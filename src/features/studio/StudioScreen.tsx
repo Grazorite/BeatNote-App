@@ -1,41 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { useSharedValue, useFrameCallback } from 'react-native-reanimated';
+import { useStudioStore } from '../../hooks/useStudioStore';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
+import { useWaveformAnimation } from '../../hooks/useWaveformAnimation';
+import AudioControls from '../../components/ui/AudioControls';
+import WaveformCanvas from '../../components/ui/WaveformCanvas';
+import TapButton from '../../components/ui/TapButton';
 
 export default function StudioScreen() {
-  const offset = useSharedValue(0);
-  const [pathData, setPathData] = useState('');
-
-  const createWaveformPath = (offsetX: number) => {
-    let path = 'M 0 100';
-    for (let x = 0; x < 400; x += 4) {
-      const y = 100 + Math.sin((x + offsetX) * 0.02) * 30;
-      path += ` L ${x} ${y}`;
-    }
-    return path;
-  };
-
-  useFrameCallback(() => {
-    offset.value += 2;
-    if (offset.value > 400) {
-      offset.value = 0;
-    }
-    setPathData(createWaveformPath(offset.value));
-  });
+  const { markers } = useStudioStore();
+  const { sound, loadSong, togglePlayback, tapToBeat } = useAudioPlayer();
+  const { pathData } = useWaveformAnimation();
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>BeatNote Studio</Text>
-      <Svg width={400} height={200} style={styles.canvas}>
-        <Path
-          d={pathData}
-          stroke="#00ff00"
-          strokeWidth={2}
-          fill="none"
-        />
-      </Svg>
-      <Text style={styles.subtitle}>Animated SVG waveform visualization</Text>
+      
+      <AudioControls
+        onLoadSong={loadSong}
+        onTogglePlayback={togglePlayback}
+        hasSound={!!sound}
+      />
+
+      <WaveformCanvas pathData={pathData} markers={markers} />
+      
+      <TapButton onTap={tapToBeat} />
+      
+      <Text style={styles.subtitle}>
+        Markers: {markers.length} | Tap to add/remove beats
+      </Text>
     </View>
   );
 }
@@ -46,16 +39,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
   title: {
     color: '#ffffff',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  canvas: {
-    width: 400,
-    height: 200,
     marginBottom: 20,
   },
   subtitle: {
