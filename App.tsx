@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import StudioScreen from './src/features/studio/StudioScreen';
 

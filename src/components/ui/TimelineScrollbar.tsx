@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
 import { useStudioStore } from '../../hooks/useStudioStore';
-import { useWaveformAnimation } from '../../hooks/useWaveformAnimation';
 
 const TIMELINE_WIDTH = 800;
 const TIMELINE_HEIGHT = 60;
@@ -22,7 +21,7 @@ const TimelineScrollbar: React.FC = () => {
     songLoaded
   } = useStudioStore();
   
-  const { createTimelineWaveformPath } = useWaveformAnimation();
+
   
   const [wasPausedForScrubbing, setWasPausedForScrubbing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -43,9 +42,7 @@ const TimelineScrollbar: React.FC = () => {
 
   const viewportWidth = (VIEWPORT_DURATION / songDuration) * TIMELINE_WIDTH;
   const viewportX = (viewportStartTime / songDuration) * TIMELINE_WIDTH;
-  const playheadPositionInViewport = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * viewportWidth;
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
-  const showMiniPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
   
   const timelineWaveformPath = (() => {
     let path = 'M 0 30';
@@ -57,10 +54,7 @@ const TimelineScrollbar: React.FC = () => {
   })();
 
   const dragState = useRef({
-    initialViewportStart: 0,
-    initialPlayheadRelative: 0,
-    initialViewportX: 0,
-    initialTouchX: 0
+    initialViewportStart: 0
   });
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
@@ -232,11 +226,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     alignItems: 'center',
   },
-  title: {
-    color: '#ffffff',
-    fontSize: 12,
-    marginBottom: 8,
-  },
+
   timeline: {
     backgroundColor: '#111111',
     borderRadius: 4,
