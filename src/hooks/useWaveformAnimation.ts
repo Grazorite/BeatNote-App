@@ -16,6 +16,15 @@ export const useWaveformAnimation = () => {
     return path;
   };
 
+  const createTimelineWaveformPath = (width: number, height: number) => {
+    let path = `M 0 ${height / 2}`;
+    for (let x = 0; x < width; x += 2) {
+      const y = height / 2 + Math.sin(x * 0.01) * (height * 0.3);
+      path += ` L ${x} ${y}`;
+    }
+    return path;
+  };
+
   useFrameCallback(() => {
     if (isPlaying) {
       offset.value += 2;
@@ -23,8 +32,10 @@ export const useWaveformAnimation = () => {
         offset.value = 0;
       }
       setPathData(createWaveformPath(offset.value));
+    } else if (!pathData) {
+      setPathData(createWaveformPath(0));
     }
   });
 
-  return { pathData };
+  return { pathData, createTimelineWaveformPath };
 };

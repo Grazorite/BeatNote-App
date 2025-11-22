@@ -6,7 +6,7 @@ import { useStudioStore } from './useStudioStore';
 
 export const useAudioPlayer = () => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const { isPlaying, markers, setIsPlaying, addMarker, removeMarker, setSongLoaded } = useStudioStore();
+  const { isPlaying, layers, activeLayerId, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime } = useStudioStore();
 
   const loadSong = async () => {
     try {
@@ -22,6 +22,25 @@ export const useAudioPlayer = () => {
         );
         setSound(newSound);
         setSongLoaded(true);
+        
+        // Get actual song duration - wait for it to be ready
+        const checkDuration = async () => {
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          while (attempts < maxAttempts) {
+            const status = await newSound.getStatusAsync();
+            if (status.isLoaded && status.durationMillis) {
+              setSongDuration(status.durationMillis);
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+        };
+        
+        checkDuration();
+        
         Alert.alert('Success', 'Song loaded successfully!');
       }
     } catch (error) {
@@ -36,6 +55,8 @@ export const useAudioPlayer = () => {
       await sound.pauseAsync();
       setIsPlaying(false);
     } else {
+      const { currentTime } = useStudioStore.getState();
+      await sound.setPositionAsync(currentTime);
       await sound.playAsync();
       setIsPlaying(true);
     }
@@ -45,24 +66,51 @@ export const useAudioPlayer = () => {
     if (sound) {
       const status = await sound.getStatusAsync();
       if (status.isLoaded) {
-        const currentTime = status.positionMillis || 0;
-        const existingMarker = markers.find(marker => Math.abs(marker - currentTime) <= 100);
+        // Always use current playhead position (orange line)
+        const { currentTime } = useStudioStore.getState();
+        const markerTime = currentTime;
+          
+        const activeLayer = layers.find(layer => layer.id === activeLayerId);
+        const existingMarker = activeLayer?.markers.find(marker => Math.abs(marker - markerTime) <= 100);
         
         if (existingMarker !== undefined) {
           removeMarker(existingMarker);
         } else {
-          addMarker(currentTime);
+          addMarker(markerTime);
         }
       }
     }
   };
 
+  // Update current time during playback using expo-av's built-in callback
   useEffect(() => {
-    return sound ? () => {
-      sound.unloadAsync();
-      setSongLoaded(false);
-    } : undefined;
-  }, [sound]);
+    if (sound) {
+      const setupStatusCallback = async () => {
+        await sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.positionMillis !== undefined) {
+            setCurrentTime(status.positionMillis);
+          }
+        });
+      };
+      setupStatusCallback();
+    }
+    
+    return () => {
+      if (sound) {
+        sound.setOnPlaybackStatusUpdate(null);
+      }
+    };
+  }, [sound, setCurrentTime]);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.setOnPlaybackStatusUpdate(null);
+        sound.unloadAsync();
+        setSongLoaded(false);
+      }
+    };
+  }, [sound, setSongLoaded]);
 
   return {
     sound,

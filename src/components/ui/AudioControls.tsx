@@ -26,13 +26,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         </Text>
       </TouchableOpacity>
       
-      <TouchableOpacity 
-        style={[styles.button, !hasSound && styles.buttonDisabled]} 
-        onPress={onTogglePlayback}
-        disabled={!hasSound}
-      >
-        <Text style={styles.buttonText}>{isPlaying ? 'Pause' : 'Play'}</Text>
-      </TouchableOpacity>
+      {hasSound && (
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={onTogglePlayback}
+        >
+          <Text style={styles.buttonText}>{isPlaying ? 'Pause' : 'Play'}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

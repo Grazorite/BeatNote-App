@@ -1,12 +1,14 @@
+import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import StudioScreen from './src/features/studio/StudioScreen';
 
 export default function App() {
   return (
-    <View style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StudioScreen />
       <StatusBar style="light" />
-    </View>
+    </GestureHandlerRootView>
   );
 }
