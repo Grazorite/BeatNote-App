@@ -1,4 +1,3 @@
-export { default as ProfessionalWaveform } from './ProfessionalWaveform';
 export { default as RhythmicGrid } from './RhythmicGrid';
 export { default as SimpleWaveform } from './SimpleWaveform';
 export { default as StemWaveform } from './StemWaveform';

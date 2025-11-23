@@ -1,7 +1,9 @@
 export { default as AudioControls } from './AudioControls';
 export { default as BpmControl } from './BpmControl';
+export { default as GhostPlayheadToggle } from './GhostPlayheadToggle';
 export { default as LayerControls } from './LayerControls';
+export { default as LayerNavigationToggle } from './LayerNavigationToggle';
+export { default as MarkerButton } from './MarkerButton';
 export { default as SidebarToggle } from './SidebarToggle';
 export { default as StemSelector } from './StemSelector';
-export { default as MarkerButton } from './MarkerButton';
 export { default as TimelineScrollbar } from './TimelineScrollbar';

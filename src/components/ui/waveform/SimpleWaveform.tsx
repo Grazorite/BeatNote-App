@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Path, Line, Circle, Polygon } from 'react-native-svg';
-import { Layer, useStudioStore } from '../../hooks/useStudioStore';
+import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
 import RhythmicGrid from './RhythmicGrid';
 
 interface SimpleWaveformProps {
@@ -71,11 +71,11 @@ const SimpleWaveform: React.FC<SimpleWaveformProps> = ({
     if (!layer.isVisible) return null;
 
     return layer.markers
-      .filter(marker => 
+      .filter((marker: number) => 
         marker >= viewportStartTime && 
         marker <= viewportStartTime + VIEWPORT_DURATION
       )
-      .map((marker, index) => {
+      .map((marker: number, index: number) => {
         const x = ((marker - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
 
         switch (layer.id) {
