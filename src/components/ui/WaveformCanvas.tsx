@@ -7,6 +7,9 @@ import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 interface WaveformCanvasProps {
   pathData: string;
   layers: Layer[];
+  onSeek: (position: number) => void;
+  onScrubStart: () => void;
+  onScrubEnd: () => void;
 }
 
 const VIEWPORT_WIDTH = 800;
@@ -15,39 +18,50 @@ const VIEWPORT_DURATION = 20000; // 20 seconds visible
 const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   pathData,
   layers,
+  onSeek,
+  onScrubStart,
+  onScrubEnd,
 }) => {
   const { viewportStartTime, currentTime, songDuration, setViewportStartTime, setCurrentTime, songLoaded } = useStudioStore();
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+  const updateTimeFromPosition = (x: number) => {
+    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setCurrentTime(newCurrentTime);
-  });
-  
-  const panGesture = Gesture.Pan().onUpdate((event) => {
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
-    const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
-    setCurrentTime(newCurrentTime);
+    onSeek(newCurrentTime);
     
     // Gradual auto-scroll only when very close to edge (Adobe Audition style)
     const relativePosition = (newCurrentTime - viewportStartTime) / VIEWPORT_DURATION;
     
     if (relativePosition < 0.1) {
-      // Gradual scroll speed based on how close to left edge (0.1x to 1x speed)
       const scrollSpeed = Math.max(0.1, (0.1 - relativePosition) * 20);
       const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
       const newViewportStart = Math.max(0, viewportStartTime - scrollAmount);
       setViewportStartTime(newViewportStart);
     } else if (relativePosition > 0.9) {
-      // Gradual scroll speed based on how close to right edge (0.1x to 1x speed)
       const scrollSpeed = Math.max(0.1, (relativePosition - 0.9) * 20);
       const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
       const newViewportStart = Math.min(songDuration - VIEWPORT_DURATION, viewportStartTime + scrollAmount);
       setViewportStartTime(newViewportStart);
     }
+  };
+  
+  const tapGesture = Gesture.Tap().onEnd((event) => {
+    updateTimeFromPosition(event.x);
   });
   
-  const composedGesture = Gesture.Simultaneous(tapGesture, panGesture);
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      onScrubStart();
+    })
+    .onUpdate((event) => {
+      updateTimeFromPosition(event.x);
+    })
+    .onEnd(() => {
+      onScrubEnd();
+    });
+  
+  const composedGesture = Gesture.Race(tapGesture, panGesture);
   
   const renderLayerMarkers = (layer: Layer) => {
     if (!layer.isVisible) return null;

@@ -12,7 +12,7 @@ import TapButton from '../../components/ui/TapButton';
 
 export default function StudioScreen() {
   const { layers, activeLayerId, stemCount } = useStudioStore();
-  const { sound, loadSong, togglePlayback, tapToBeat } = useAudioPlayer();
+  const { sound, loadSong, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub } = useAudioPlayer();
   const { pathData } = useWaveformAnimation();
 
   const activeLayer = layers.find(layer => layer.id === activeLayerId);
@@ -31,7 +31,13 @@ export default function StudioScreen() {
       <StemSelector />
       <LayerControls />
       
-      <WaveformCanvas pathData={pathData} layers={layers} />
+      <WaveformCanvas 
+        pathData={pathData} 
+        layers={layers} 
+        onSeek={seekToPosition}
+        onScrubStart={startWaveformScrub}
+        onScrubEnd={endWaveformScrub}
+      />
       
       <TimelineScrollbar />
       

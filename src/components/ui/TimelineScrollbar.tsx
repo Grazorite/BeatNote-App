@@ -18,23 +18,28 @@ const TimelineScrollbar: React.FC = () => {
     isPlaying,
     setIsPlaying,
     setCurrentTime,
-    songLoaded
+    songLoaded,
+    setViewportLocked
   } = useStudioStore();
   
 
   
-  const [wasPausedForScrubbing, setWasPausedForScrubbing] = useState(false);
+
   const [isDragging, setIsDragging] = useState(false);
 
-  // Auto-scroll viewport to follow playhead when playing (Adobe Audition style)
+  // Auto-scroll viewport to follow playhead when playing and locked (Adobe Audition style)
   useEffect(() => {
     if (isPlaying && currentTime > 0 && !isDragging) {
-      // Check if playhead is outside viewport bounds
-      if (currentTime < viewportStartTime || currentTime > viewportStartTime + VIEWPORT_DURATION) {
-        // Position viewport so playhead starts at the beginning of new viewport
-        const newStartTime = Math.max(0, 
-          Math.min(currentTime, songDuration - VIEWPORT_DURATION)
-        );
+      const { isViewportLocked, setViewportLocked } = useStudioStore.getState();
+      
+      // Check if playhead re-enters viewport - lock it back
+      if (!isViewportLocked && currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION) {
+        setViewportLocked(true);
+      }
+      
+      // Only auto-scroll when locked
+      if (isViewportLocked && (currentTime < viewportStartTime || currentTime > viewportStartTime + VIEWPORT_DURATION)) {
+        const newStartTime = Math.max(0, Math.min(currentTime, songDuration - VIEWPORT_DURATION));
         setViewportStartTime(newStartTime);
       }
     }
@@ -44,14 +49,14 @@ const TimelineScrollbar: React.FC = () => {
   const viewportX = (viewportStartTime / songDuration) * TIMELINE_WIDTH;
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
   
-  const timelineWaveformPath = (() => {
+  const timelineWaveformPath = React.useMemo(() => {
     let path = 'M 0 30';
     for (let x = 0; x < TIMELINE_WIDTH; x += 2) {
-      const y = 30 + Math.sin(x * 0.01) * 6; // Constrain within timeline rectangle (20-40)
+      const y = 30 + Math.sin(x * 0.01) * 6;
       path += ` L ${x} ${y}`;
     }
     return path;
-  })();
+  }, []);
 
   const dragState = useRef({
     initialViewportStart: 0
@@ -71,6 +76,9 @@ const TimelineScrollbar: React.FC = () => {
       const touchX = event.x;
       setIsDragging(true);
       
+      // Unlock viewport when manually dragging
+      setViewportLocked(false);
+      
       if (!(touchX >= viewportX && touchX <= viewportX + viewportWidth)) {
         const newStartTime = Math.max(0, 
           Math.min((touchX / TIMELINE_WIDTH) * songDuration - (VIEWPORT_DURATION / 2), 
@@ -82,10 +90,7 @@ const TimelineScrollbar: React.FC = () => {
         dragState.current.initialViewportStart = viewportStartTime;
       }
       
-      if (isPlaying) {
-        setWasPausedForScrubbing(true);
-        setIsPlaying(false);
-      }
+      // Don't pause when dragging timeline - only when dragging waveform
     })
     .onUpdate((event) => {
       if (isDragging) {
@@ -98,13 +103,12 @@ const TimelineScrollbar: React.FC = () => {
     })
     .onEnd(() => {
       setIsDragging(false);
-      if (wasPausedForScrubbing) {
-        setIsPlaying(true);
-        setWasPausedForScrubbing(false);
-      }
     });
   
-  const composedGesture = Gesture.Simultaneous(tapGesture, panGesture);
+  const composedGesture = React.useMemo(() => 
+    Gesture.Simultaneous(tapGesture, panGesture), 
+    [tapGesture, panGesture]
+  );
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
@@ -145,36 +149,32 @@ const TimelineScrollbar: React.FC = () => {
           />
           
           {/* All markers across entire song */}
-          {layers.map(layer => 
-            layer.isVisible && layer.markers.map((marker, index) => {
+          {layers.flatMap(layer => 
+            layer.isVisible ? layer.markers.map((marker, index) => {
               const x = (marker / songDuration) * TIMELINE_WIDTH;
+              const key = `${layer.id}-${marker}-${index}`;
               
-              // Draw circles for piano and other, lines for vocals/drums/bass
-              if (layer.id === 'piano' || layer.id === 'other') {
-                return (
-                  <Circle
-                    key={`${layer.id}-${marker}-${index}`}
-                    cx={x}
-                    cy={30}
-                    r={3}
-                    fill={layer.color}
-                    stroke={layer.color}
-                  />
-                );
-              } else {
-                return (
-                  <Line
-                    key={`${layer.id}-${marker}-${index}`}
-                    x1={x}
-                    y1={15}
-                    x2={x}
-                    y2={45}
-                    stroke={layer.color}
-                    strokeWidth={1.5}
-                  />
-                );
-              }
-            })
+              return (layer.id === 'piano' || layer.id === 'other') ? (
+                <Circle
+                  key={key}
+                  cx={x}
+                  cy={30}
+                  r={3}
+                  fill={layer.color}
+                  stroke={layer.color}
+                />
+              ) : (
+                <Line
+                  key={key}
+                  x1={x}
+                  y1={15}
+                  x2={x}
+                  y2={45}
+                  stroke={layer.color}
+                  strokeWidth={1.5}
+                />
+              );
+            }) : []
           )}
           
           {/* Orange playhead - drawn first so it doesn't block touches */}

@@ -10,6 +10,14 @@ export const useAudioPlayer = () => {
 
   const loadSong = async () => {
     try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: false,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+      
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         copyToCacheDirectory: true,
@@ -18,7 +26,14 @@ export const useAudioPlayer = () => {
       if (!result.canceled && result.assets[0]) {
         const { sound: newSound } = await Audio.Sound.createAsync(
           { uri: result.assets[0].uri },
-          { shouldPlay: false }
+          { 
+            shouldPlay: false, 
+            progressUpdateIntervalMillis: 50,
+            isLooping: false,
+            volume: 1.0,
+            rate: 1.0,
+            shouldCorrectPitch: true
+          }
         );
         setSound(newSound);
         setSongLoaded(true);
@@ -62,21 +77,50 @@ export const useAudioPlayer = () => {
     }
   };
 
+  const seekToPosition = async (position: number) => {
+    if (sound && isPlaying) {
+      try {
+        await sound.setPositionAsync(position, { toleranceMillisBefore: 0, toleranceMillisAfter: 0 });
+      } catch (error) {
+        // Ignore seek errors to prevent interruption
+      }
+    }
+  };
+
+  const startWaveformScrub = async () => {
+    if (sound && isPlaying) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+    }
+  };
+
+  const endWaveformScrub = async () => {
+    if (sound) {
+      const { currentTime } = useStudioStore.getState();
+      await sound.setPositionAsync(currentTime);
+      await sound.playAsync();
+      setIsPlaying(true);
+    }
+  };
+
   const tapToBeat = async () => {
     if (sound) {
       const status = await sound.getStatusAsync();
       if (status.isLoaded) {
-        // Always use current playhead position (orange line)
         const { currentTime } = useStudioStore.getState();
-        const markerTime = currentTime;
-          
+        
+        // Only sync audio position when paused to avoid interruption
+        if (!isPlaying) {
+          await sound.setPositionAsync(currentTime);
+        }
+        
         const activeLayer = layers.find(layer => layer.id === activeLayerId);
-        const existingMarker = activeLayer?.markers.find(marker => Math.abs(marker - markerTime) <= 100);
+        const existingMarker = activeLayer?.markers.find(marker => Math.abs(marker - currentTime) <= 100);
         
         if (existingMarker !== undefined) {
           removeMarker(existingMarker);
         } else {
-          addMarker(markerTime);
+          addMarker(currentTime);
         }
       }
     }
@@ -87,7 +131,7 @@ export const useAudioPlayer = () => {
     if (sound) {
       const setupStatusCallback = async () => {
         await sound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.positionMillis !== undefined) {
+          if (status.isLoaded && status.positionMillis !== undefined && isPlaying) {
             setCurrentTime(status.positionMillis);
           }
         });
@@ -100,7 +144,7 @@ export const useAudioPlayer = () => {
         sound.setOnPlaybackStatusUpdate(null);
       }
     };
-  }, [sound, setCurrentTime]);
+  }, [sound, setCurrentTime, isPlaying]);
 
   useEffect(() => {
     return () => {
@@ -117,5 +161,8 @@ export const useAudioPlayer = () => {
     loadSong,
     togglePlayback,
     tapToBeat,
+    seekToPosition,
+    startWaveformScrub,
+    endWaveformScrub,
   };
 };

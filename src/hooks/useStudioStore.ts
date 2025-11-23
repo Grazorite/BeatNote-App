@@ -20,10 +20,12 @@ interface StudioStore {
   activeLayerId: LayerId;
   songLoaded: boolean;
   stemCount: 2 | 4 | 5;
+  isViewportLocked: boolean; // Whether viewport follows playhead
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setViewportStartTime: (time: number) => void;
   setSongDuration: (duration: number) => void;
+  setViewportLocked: (locked: boolean) => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
   clearAllMarkers: () => void;
@@ -69,13 +71,14 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   activeLayerId: 'vocals',
   songLoaded: false,
   stemCount: 4,
+  isViewportLocked: true,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setViewportStartTime: (time) => set({ viewportStartTime: time }),
   setSongDuration: (duration) => set({ songDuration: duration }),
+  setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   addMarker: (timestamp) => set((state) => {
-    // Use viewport position + center point for marker placement
-    const markerTime = timestamp !== undefined ? timestamp : state.viewportStartTime + 10000; // 10s viewport width / 2
+    const markerTime = timestamp;
     const updatedAllLayers = state.allLayersData.map(layer => 
       layer.id === state.activeLayerId
         ? { ...layer, markers: [...layer.markers, markerTime] }
