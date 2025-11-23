@@ -10,7 +10,7 @@ export const mainContentStyles = StyleSheet.create({
     alignItems: 'center',
     padding: dimensions.spacing.sm,
     paddingBottom: 100,
-    minWidth: 900,
+    width: '100%',
   },
   title: {
     color: colors.text,

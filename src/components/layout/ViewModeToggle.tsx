@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import AnimatedSegmentedControl from '../ui/common/AnimatedSegmentedControl';
 
@@ -13,12 +14,21 @@ const ViewModeToggle: React.FC = () => {
   };
 
   return (
-    <AnimatedSegmentedControl
-      options={options}
-      selectedIndex={selectedIndex}
-      onSelectionChange={handleSelectionChange}
-      style={{ marginBottom: 10 }}
-    />
+    <View style={{ marginBottom: 15, width: '100%' }}>
+      <Text style={{
+        color: '#ffffff',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 8,
+      }}>
+        View Mode
+      </Text>
+      <AnimatedSegmentedControl
+        options={options}
+        selectedIndex={selectedIndex}
+        onSelectionChange={handleSelectionChange}
+      />
+    </View>
   );
 };
 

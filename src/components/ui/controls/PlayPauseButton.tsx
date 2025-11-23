@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon } from '../../icons';
+import { playPauseButtonStyles as styles } from '../../../styles/components/controls/playPauseButton';
 
 interface PlayPauseButtonProps {
   onTogglePlayback: () => void;
@@ -19,20 +20,20 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   const canSkipBack = songLoaded && currentTime > 0;
   const canSkipForward = songLoaded && currentTime < songDuration;
 
-  const getButtonStyle = (enabled: boolean) => ({
-    backgroundColor: enabled ? '#ff6600' : '#444444',
-    borderRadius: 12,
-    width: 80,
-    height: 80,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    opacity: enabled ? 1 : 0.5,
-  });
+  const getPlayPauseButtonStyle = (enabled: boolean) => [
+    styles.button,
+    enabled ? styles.playPauseButtonEnabled : styles.buttonDisabled
+  ];
+  
+  const getSkipButtonStyle = (enabled: boolean) => [
+    styles.button,
+    enabled ? styles.skipButtonEnabled : styles.buttonDisabled
+  ];
 
   return (
-    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+    <View style={styles.container}>
       <TouchableOpacity
-        style={getButtonStyle(canSkipBack)}
+        style={getSkipButtonStyle(canSkipBack)}
         onPress={canSkipBack ? onSkipBack : undefined}
         activeOpacity={1}
         delayPressIn={0}
@@ -42,7 +43,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getButtonStyle(songLoaded)}
+        style={getPlayPauseButtonStyle(songLoaded)}
         onPress={songLoaded ? onTogglePlayback : undefined}
         activeOpacity={1}
         delayPressIn={0}
@@ -56,7 +57,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getButtonStyle(canSkipForward)}
+        style={getSkipButtonStyle(canSkipForward)}
         onPress={canSkipForward ? onSkipForward : undefined}
         activeOpacity={1}
         delayPressIn={0}

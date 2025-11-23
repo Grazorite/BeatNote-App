@@ -10,9 +10,14 @@ export const markerButtonStyles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  markerButtonMain: {
+    backgroundColor: '#ff8c00', // Prominent orange for main marker button
+  },
+  markerButtonSecondary: {
+    backgroundColor: '#ff6600', // Original orange for secondary buttons
   },
   markerButtonText: {
     color: colors.text,

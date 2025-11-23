@@ -7,9 +7,10 @@ import LayerControls from '../ui/controls/LayerControls';
 import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
-import GhostPlayheadToggle from '../ui/controls/GhostPlayheadToggle';
+import CanvasToggle from '../ui/controls/CanvasToggle';
 import LayerNavigationToggle from '../ui/controls/LayerNavigationToggle';
-import GridLinesToggle from '../ui/controls/GridLinesToggle';
+
+import HelpButton from '../ui/controls/HelpButton';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
@@ -34,7 +35,9 @@ const Sidebar: React.FC = () => {
           showsVerticalScrollIndicator={true}
           indicatorStyle="default"
         >
-          <Text style={styles.sidebarTitle}>Controls</Text>
+          <View style={styles.sidebarSection}>
+            <HelpButton />
+          </View>
           <View style={styles.sidebarSection}>
             <ViewModeToggle />
           </View>
@@ -42,19 +45,13 @@ const Sidebar: React.FC = () => {
             <StemSelector />
           </View>
           <View style={styles.sidebarSection}>
-            <LayerControls />
-          </View>
-          <View style={styles.sidebarSection}>
             <BpmControl />
           </View>
           <View style={styles.sidebarSection}>
-            <GhostPlayheadToggle />
+            <CanvasToggle />
           </View>
           <View style={styles.sidebarSection}>
             <LayerNavigationToggle />
-          </View>
-          <View style={styles.sidebarSection}>
-            <GridLinesToggle />
           </View>
         </ScrollView>
       </Animated.View>

@@ -4,6 +4,7 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
+import ExportModal from '../modals/ExportModal';
 
 interface AudioControlsProps {
   onLoadSong: () => void;
@@ -20,9 +21,10 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   audioUri,
   audioFilename,
 }) => {
-  const { isPlaying, songLoaded, saveProject, loadProject } = useStudioStore();
+  const { isPlaying, songLoaded, saveProject, loadProject, layers } = useStudioStore();
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const handleSaveProject = useCallback(async (projectName: string) => {
     if (!audioUri || !audioFilename) {
@@ -74,6 +76,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       >
         <Text style={styles.buttonText}>Load Project</Text>
       </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.button, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]} 
+        onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
+        disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
+      >
+        <Text style={styles.buttonText}>Export Markers</Text>
+      </TouchableOpacity>
 
       <SaveProjectModal
         visible={showSaveModal}
@@ -85,6 +95,12 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         visible={showProjectManager}
         onClose={() => setShowProjectManager(false)}
         onLoadProject={handleLoadProject}
+      />
+      
+      <ExportModal
+        visible={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        projectName={audioFilename || 'Untitled'}
       />
     </View>
   );

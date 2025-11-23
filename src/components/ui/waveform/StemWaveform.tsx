@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Path, Line, Circle, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
@@ -16,8 +16,6 @@ interface StemWaveformProps {
   showPlayhead?: boolean;
 }
 
-const VIEWPORT_WIDTH = 720;
-
 const StemWaveform: React.FC<StemWaveformProps> = ({
   layers,
   audioUri,
@@ -28,6 +26,18 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   waveformColor = '#00ff00',
   showPlayhead = true,
 }) => {
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+  
+  const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
+  
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
   const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
@@ -164,11 +174,9 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
 
 const styles = StyleSheet.create({
   canvas: {
-    width: 720,
     height: 120,
   },
   waveformContainer: {
-    width: 720,
     height: 120,
   },
 });

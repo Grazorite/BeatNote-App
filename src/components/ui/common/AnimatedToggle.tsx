@@ -1,56 +1,64 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
-import Animated, { 
-  useAnimatedStyle, 
-  withSpring, 
-  withTiming,
-  interpolateColor 
-} from 'react-native-reanimated';
+import { View, Text, TouchableOpacity } from 'react-native';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { colors } from '../../../styles/common';
 
 interface AnimatedToggleProps {
-  isActive: boolean;
-  onPress: () => void;
-  activeText: string;
-  inactiveText: string;
-  style?: any;
-  activeColor?: string;
-  inactiveColor?: string;
-  textColor?: string;
+  label: string;
+  value: boolean;
+  onToggle: () => void;
+  marginBottom?: number;
 }
 
-const AnimatedToggle: React.FC<AnimatedToggleProps> = ({
-  isActive,
-  onPress,
-  activeText,
-  inactiveText,
-  style,
-  activeColor = '#ff6600',
-  inactiveColor = '#333333',
-  textColor = '#ffffff'
+const AnimatedToggle: React.FC<AnimatedToggleProps> = ({ 
+  label, 
+  value, 
+  onToggle, 
+  marginBottom = 0 
 }) => {
-  const animatedStyle = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(
-      isActive ? activeColor : inactiveColor,
-      { duration: 150 }
-    ),
-    transform: [
-      { scale: withSpring(isActive ? 1.02 : 1, { damping: 15 }) }
-    ]
+  const backgroundStyle = useAnimatedStyle(() => ({
+    backgroundColor: withTiming(value ? colors.accent : colors.surface, { duration: 200 }),
+    borderColor: withTiming(value ? colors.accent : colors.border, { duration: 200 }),
   }));
 
-  const textAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(1, { duration: 100 }),
-    color: withTiming(textColor, { duration: 100 })
+  const textStyle = useAnimatedStyle(() => ({
+    color: withTiming(value ? colors.background : colors.text, { duration: 200 }),
   }));
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Animated.View style={[style, animatedStyle]}>
-        <Animated.Text style={textAnimatedStyle}>
-          {isActive ? activeText : inactiveText}
+    <Animated.View style={[backgroundStyle, {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginBottom,
+    }]}>
+      <TouchableOpacity
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flex: 1,
+        }}
+        onPress={onToggle}
+      >
+        <View
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor: colors.textSecondary,
+            backgroundColor: value ? colors.background : 'transparent',
+            marginRight: 8,
+          }}
+        />
+        <Animated.Text style={[textStyle, { fontSize: 12 }]}>
+          {label}
         </Animated.Text>
-      </Animated.View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 

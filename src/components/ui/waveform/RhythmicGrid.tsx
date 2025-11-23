@@ -13,11 +13,11 @@ interface RhythmicGridProps {
 }
 
 const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, overlayHeight = 300, showRuler = true }) => {
-  const { bpm, viewportStartTime, showGridLines } = useStudioStore();
+  const { bpm, viewportStartTime, viewportDuration, showGridLines } = useStudioStore();
   
   const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
   const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
-  const endBeat = Math.ceil(((viewportStartTime + (width / pixelsPerSecond * 1000)) / 1000) * (bpm / 60));
+  const endBeat = Math.ceil(((viewportStartTime + viewportDuration) / 1000) * (bpm / 60));
   
   const rulerHeight = dimensions.ruler.height;
   const rulerLines = [];
@@ -25,7 +25,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
   
   for (let beat = startBeat; beat <= endBeat; beat++) {
     const beatTimeMs = (beat / (bpm / 60)) * 1000;
-    const x = (beatTimeMs - viewportStartTime) / 1000 * pixelsPerSecond;
+    const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * width;
     
     if (x >= 0 && x <= width) {
       const isEighthCount = beat % 8 === 0;

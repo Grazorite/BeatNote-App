@@ -2,21 +2,33 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import Sidebar from '../../components/layout/Sidebar';
 import MainContent from '../../components/layout/MainContent';
+import HelpScreen from '../../components/ui/screens/HelpScreen';
 import { ErrorModal } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
 
 export default function StudioScreen() {
-  const { layers, activeLayerId, viewMode, layerSpecificNavigation } = useStudioStore();
+  const { layers, activeLayerId, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
   const { sound, loadSong, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
+  
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onTogglePlayback: togglePlayback,
+    onAddMarker: tapToBeat,
+    hasSound: !!sound,
+  });
 
   const activeLayer = layers.find(layer => layer.id === activeLayerId);
   const activeLayerMarkers = activeLayer?.markers.length || 0;
   const totalMarkers = layers.reduce((sum, layer) => sum + layer.markers.length, 0);
 
   const { isSidebarCollapsed } = useStudioStore();
-  const sidebarWidth = isSidebarCollapsed ? 60 : 280;
+
+  if (showHelpScreen) {
+    return <HelpScreen onClose={() => setShowHelpScreen(false)} />;
+  }
 
   return (
     <View style={styles.mainContainer}>

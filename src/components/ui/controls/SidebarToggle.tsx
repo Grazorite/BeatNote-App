@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 
 const SidebarToggle: React.FC = () => {
@@ -11,34 +12,48 @@ const SidebarToggle: React.FC = () => {
   }));
 
   return (
-    <TouchableOpacity style={styles.toggle} onPress={toggleSidebar}>
-      <Animated.Text style={[styles.arrow, animatedStyle]}>‹</Animated.Text>
-    </TouchableOpacity>
+    <View style={styles.header}>
+      {!isSidebarCollapsed && (
+        <Text style={styles.title}>BeatNote Studio</Text>
+      )}
+      <TouchableOpacity style={styles.toggle} onPress={toggleSidebar}>
+        <Animated.View style={animatedStyle}>
+          <Svg width={16} height={16} viewBox="0 0 24 24">
+            <Path
+              d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+              fill="#ffffff"
+            />
+          </Svg>
+        </Animated.View>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   toggle: {
-    position: 'absolute',
-    top: 20,
-    right: 15,
     width: 32,
     height: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  arrow: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: -1,
   },
 });
 

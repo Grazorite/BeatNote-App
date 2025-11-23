@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { saveProjectModalStyles as styles } from '../../../styles/components/modals/saveProjectModal';
 
 interface SaveProjectModalProps {
   visible: boolean;
@@ -33,39 +34,14 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-      }}>
-        <View style={{
-          backgroundColor: '#333333',
-          borderRadius: 12,
-          padding: 24,
-          width: '100%',
-          maxWidth: 400,
-        }}>
-          <Text style={{
-            color: '#ffffff',
-            fontSize: 18,
-            fontWeight: 'bold',
-            marginBottom: 16,
-            textAlign: 'center',
-          }}>
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <Text style={styles.title}>
             Save Project
           </Text>
           
           <TextInput
-            style={{
-              backgroundColor: '#222222',
-              color: '#ffffff',
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 20,
-              fontSize: 16,
-            }}
+            style={styles.textInput}
             value={projectName}
             onChangeText={setProjectName}
             placeholder="Enter project name"
@@ -73,46 +49,26 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
             autoFocus
           />
           
-          <View style={{
-            flexDirection: 'row',
-            gap: 12,
-          }}>
+          <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={{
-                backgroundColor: '#666666',
-                padding: 12,
-                borderRadius: 8,
-                flex: 1,
-              }}
+              style={[styles.button, styles.cancelButton]}
               onPress={handleClose}
             >
-              <Text style={{
-                color: '#ffffff',
-                textAlign: 'center',
-                fontSize: 16,
-                fontWeight: '600',
-              }}>
+              <Text style={styles.buttonText}>
                 Cancel
               </Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={{
-                backgroundColor: '#ff6600',
-                padding: 12,
-                borderRadius: 8,
-                flex: 1,
-                opacity: projectName.trim() ? 1 : 0.5,
-              }}
+              style={[
+                styles.button,
+                styles.saveButton,
+                !projectName.trim() && styles.disabledButton
+              ]}
               onPress={handleSave}
               disabled={!projectName.trim()}
             >
-              <Text style={{
-                color: '#ffffff',
-                textAlign: 'center',
-                fontSize: 16,
-                fontWeight: '600',
-              }}>
+              <Text style={styles.buttonText}>
                 Save
               </Text>
             </TouchableOpacity>

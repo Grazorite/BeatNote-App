@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
 
-const TIMELINE_WIDTH = 800;
 const TIMELINE_HEIGHT = 80;
 
 interface TimelineScrollbarProps {
@@ -14,10 +13,22 @@ interface TimelineScrollbarProps {
 }
 
 const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+  
+  const TIMELINE_WIDTH = Math.max(800, screenData.width - 350); // 350px for sidebar + margins
   const { 
     currentTime, 
     ghostPlayheadTime,
     showGhostInTimeline,
+    showTimeline,
     viewportStartTime,
     viewportDuration,
     songDuration, 
@@ -106,14 +117,14 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       const touchX = event.x;
       setViewportLocked(false);
       
-      const leftHandleX = viewportX - 3;
-      const rightHandleX = viewportX + viewportWidth - 3;
+      const leftHandleX = viewportX - 6;
+      const rightHandleX = viewportX + viewportWidth - 6;
       
-      if (touchX >= leftHandleX && touchX <= leftHandleX + 6) {
+      if (touchX >= leftHandleX && touchX <= leftHandleX + 12) {
         setIsResizing('left');
         dragState.current.initialViewportStart = viewportStartTime;
         dragState.current.initialViewportDuration = viewportDuration;
-      } else if (touchX >= rightHandleX && touchX <= rightHandleX + 6) {
+      } else if (touchX >= rightHandleX && touchX <= rightHandleX + 12) {
         setIsResizing('right');
         dragState.current.initialViewportStart = viewportStartTime;
         dragState.current.initialViewportDuration = viewportDuration;
@@ -167,6 +178,10 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
   };
 
+  if (!showTimeline) {
+    return null;
+  }
+
   if (!songLoaded) {
     return (
       <View style={styles.container}>
@@ -185,7 +200,10 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <View ref={timelineRef}>
+        <View 
+          ref={timelineRef}
+          style={Platform.OS === 'web' ? { cursor: 'auto' } : {}}
+        >
           <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
             <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
             
@@ -277,30 +295,32 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             />
             
             <Rect 
-              x={viewportX - 3}
+              x={viewportX - 6}
               y={18} 
-              width={6}
+              width={12}
               height={44} 
               fill="#ffffff" 
               stroke="#999999"
               strokeWidth={1}
-              rx={1}
+              rx={2}
+              {...(Platform.OS === 'web' && { style: { cursor: 'ew-resize' } })}
             />
-            <Line x1={viewportX - 1} y1={22} x2={viewportX - 1} y2={58} stroke="#666666" strokeWidth={1} />
-            <Line x1={viewportX + 1} y1={22} x2={viewportX + 1} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX - 2} y1={22} x2={viewportX - 2} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX + 2} y1={22} x2={viewportX + 2} y2={58} stroke="#666666" strokeWidth={1} />
             
             <Rect 
-              x={viewportX + viewportWidth - 3}
+              x={viewportX + viewportWidth - 6}
               y={18} 
-              width={6}
+              width={12}
               height={44} 
               fill="#ffffff" 
               stroke="#999999"
               strokeWidth={1}
-              rx={1}
+              rx={2}
+              {...(Platform.OS === 'web' && { style: { cursor: 'ew-resize' } })}
             />
-            <Line x1={viewportX + viewportWidth - 1} y1={22} x2={viewportX + viewportWidth - 1} y2={58} stroke="#666666" strokeWidth={1} />
-            <Line x1={viewportX + viewportWidth + 1} y1={22} x2={viewportX + viewportWidth + 1} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX + viewportWidth - 2} y1={22} x2={viewportX + viewportWidth - 2} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX + viewportWidth + 2} y1={22} x2={viewportX + viewportWidth + 2} y2={58} stroke="#666666" strokeWidth={1} />
           </Svg>
         </View>
       </GestureDetector>
@@ -316,7 +336,6 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: TIMELINE_WIDTH,
     marginTop: 15,
     alignItems: 'center',
   },
@@ -327,7 +346,7 @@ const styles = StyleSheet.create({
   timeLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: TIMELINE_WIDTH - 20,
+    width: '95%',
     marginTop: 8,
   },
   timeText: {

@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import Svg, { Line, Circle, Polygon, Path } from 'react-native-svg';
@@ -20,8 +20,6 @@ interface WaveformCanvasProps {
   onScrubEnd: () => void;
 }
 
-const VIEWPORT_WIDTH = 800;
-
 const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   audioUri,
   layers,
@@ -29,6 +27,17 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   onScrubStart,
   onScrubEnd,
 }) => {
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+  
+  const VIEWPORT_WIDTH = Math.max(800, screenData.width - 350); // 350px for sidebar + margins
   const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, showGridLines, bpm } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
@@ -216,7 +225,14 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     return (
       <View style={{ position: 'relative' }}>
         <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
-        <View style={[styles.canvas, { backgroundColor: '#000000', position: 'relative' }]} />
+        <View style={[styles.waveformContainer, { width: VIEWPORT_WIDTH, position: 'relative' }]}>
+          <View style={[styles.waveform, { width: VIEWPORT_WIDTH }]} />
+          <View style={[styles.overlayContainer, { width: VIEWPORT_WIDTH, zIndex: 10 }]} pointerEvents="none">
+            {showGridLines && (
+              <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={300} showRuler={false} />
+            )}
+          </View>
+        </View>
       </View>
     );
   }

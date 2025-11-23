@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 import AudioControls from '../ui/controls/AudioControls';
@@ -7,6 +7,7 @@ import AudioControls from '../ui/controls/AudioControls';
 import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
 import TapButton from '../ui/controls/MarkerButton';
 import PlayPauseButton from '../ui/controls/PlayPauseButton';
+import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import WaveformCanvas from '../ui/waveform/WaveformCanvas';
 
 import StemsView from './StemsView';
@@ -46,6 +47,15 @@ const MainContent: React.FC<MainContentProps> = ({
   endWaveformScrub,
 }) => {
   const opacity = useSharedValue(1);
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
   
   useEffect(() => {
     opacity.value = 0;
@@ -55,9 +65,13 @@ const MainContent: React.FC<MainContentProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value
   }));
+  
+  const containerWidth = Math.max(900, screenData.width - 320); // 320px for sidebar + margin
   return (
-    <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>BeatNote Studio</Text>
+    <ScrollView 
+      style={styles.scrollContainer} 
+      contentContainerStyle={[styles.container, { minWidth: containerWidth }]}
+    >
       
       <AudioControls
         onLoadSong={loadSong}
@@ -105,6 +119,8 @@ const MainContent: React.FC<MainContentProps> = ({
           <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
         </View>
       </View>
+      
+      <HorizontalLayerSelector />
       
       <View style={styles.statusContainer}>
         <Text style={styles.activeLayerText}>

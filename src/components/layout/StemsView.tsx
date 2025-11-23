@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
@@ -29,8 +29,6 @@ const STEM_CONFIGS = [
   { name: 'Other', id: 'other', color: '#ff69b4' }
 ];
 
-const VIEWPORT_WIDTH = 720;
-
 const StemsView: React.FC<StemsViewProps> = ({
   layers,
   audioUri,
@@ -38,6 +36,18 @@ const StemsView: React.FC<StemsViewProps> = ({
   onScrubStart,
   onScrubEnd,
 }) => {
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+  
+  const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
+  
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
   const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded } = useStudioStore();
@@ -123,7 +133,7 @@ const StemsView: React.FC<StemsViewProps> = ({
       <View style={styles.stemsView}>
         <View style={styles.gridContainer}>
           <View style={styles.gridSpacer} />
-          <RhythmicGrid width={720} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
+          <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
         </View>
         <View style={styles.stemsStack}>
           {visibleStems.map((stem, index) => {
@@ -157,7 +167,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     <View style={styles.stemsView}>
       <View style={styles.gridContainer}>
         <View style={styles.gridSpacer} />
-        <RhythmicGrid width={720} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
+        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
       </View>
       {loading ? (
         <View style={styles.stemsStack}>

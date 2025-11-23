@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
 import { ProjectManager } from '../../../utils/projectManager';
 import { ProjectListItem } from '../../../types/project';
-import { colors } from '../../../styles/common';
+import { projectManagerModalStyles as styles } from '../../../styles/components/modals/projectManagerModal';
 
 interface ProjectManagerModalProps {
   visible: boolean;
@@ -80,106 +80,74 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   }, []);
 
   const formatDate = useCallback((isoString: string) => {
-    return new Date(isoString).toLocaleDateString();
+    const date = new Date(isoString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   }, []);
 
   const renderProject = useCallback(({ item }: { item: ProjectListItem }) => (
-    <View style={{
-      backgroundColor: colors.surface,
-      padding: 16,
-      marginBottom: 8,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-    }}>
+    <View style={styles.projectItem}>
       {editingProject === item.filename ? (
         <View>
           <TextInput
-            style={{
-              backgroundColor: colors.background,
-              color: colors.text,
-              padding: 8,
-              borderRadius: 4,
-              marginBottom: 8,
-            }}
+            style={styles.editInput}
             value={newName}
             onChangeText={setNewName}
             placeholder="Project name"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor="#888888"
           />
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={styles.editActions}>
             <TouchableOpacity
-              style={{
-                backgroundColor: colors.accent,
-                padding: 8,
-                borderRadius: 4,
-                flex: 1,
-              }}
+              style={[styles.actionButton, styles.saveButton]}
               onPress={() => handleRename(item.filename)}
             >
-              <Text style={{ color: colors.background, textAlign: 'center' }}>Save</Text>
+              <Text style={styles.actionButtonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{
-                backgroundColor: colors.border,
-                padding: 8,
-                borderRadius: 4,
-                flex: 1,
-              }}
+              style={[styles.actionButton, styles.cancelButton]}
               onPress={() => {
                 setEditingProject(null);
                 setNewName('');
               }}
             >
-              <Text style={{ color: colors.text, textAlign: 'center' }}>Cancel</Text>
+              <Text style={styles.actionButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
         <View>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>
+          <Text style={styles.projectName}>
             {item.name}
           </Text>
-          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
-            {formatDuration(item.duration)} • {item.stemCount} stems • {formatDate(item.modifiedAt)}
+          <Text style={styles.projectInfo}>
+            {formatDuration(item.duration)} • {item.stemCount} stems
           </Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+          <Text style={styles.projectDate}>
+            Modified: {formatDate(item.modifiedAt)}
+          </Text>
+          <View style={styles.projectActions}>
             <TouchableOpacity
-              style={{
-                backgroundColor: colors.accent,
-                padding: 8,
-                borderRadius: 4,
-                flex: 1,
-              }}
+              style={[styles.actionButton, styles.loadButton]}
               onPress={() => {
                 onLoadProject(item.filename);
                 onClose();
               }}
             >
-              <Text style={{ color: colors.background, textAlign: 'center' }}>Load</Text>
+              <Text style={styles.actionButtonText}>Load</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{
-                backgroundColor: colors.border,
-                padding: 8,
-                borderRadius: 4,
-              }}
+              style={[styles.actionButton, styles.renameButton]}
               onPress={() => {
                 setEditingProject(item.filename);
                 setNewName(item.name);
               }}
             >
-              <Text style={{ color: colors.text }}>Rename</Text>
+              <Text style={styles.actionButtonText}>Rename</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{
-                backgroundColor: '#ff4444',
-                padding: 8,
-                borderRadius: 4,
-              }}
+              style={[styles.actionButton, styles.deleteButton]}
               onPress={() => handleDelete(item.filename, item.name)}
             >
-              <Text style={{ color: '#ffffff' }}>Delete</Text>
+              <Text style={styles.actionButtonText}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -189,30 +157,26 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        }}>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: 'bold' }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>
             Project Manager
           </Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={{ color: colors.accent, fontSize: 16 }}>Close</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ flex: 1, padding: 16 }}>
+        <View style={styles.content}>
           {loading ? (
-            <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+            <Text style={styles.loadingText}>
               Loading projects...
             </Text>
           ) : projects.length === 0 ? (
-            <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+            <Text style={styles.emptyText}>
               No saved projects found
             </Text>
           ) : (

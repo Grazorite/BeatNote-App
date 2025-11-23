@@ -17,7 +17,8 @@ interface StudioStore {
   currentTime: number;
   ghostPlayheadTime: number | null; // Last clicked position on waveform
   showGhostInTimeline: boolean; // Toggle for ghost playhead in timeline
-  layerSpecificNavigation: boolean; // Toggle for layer-specific marker navigation
+  showTimeline: boolean; // Toggle for timeline visibility
+  layerSpecificNavigation: boolean; // Toggle for layer-specific Marker Selection
   viewportStartTime: number; // Start time of visible waveform section
   viewportDuration: number; // Duration of visible waveform section (ms)
   pixelsPerSecond: number; // Zoom level (pixels per second)
@@ -32,10 +33,13 @@ interface StudioStore {
   viewMode: 'unified' | 'multitrack';
   showGridLines: boolean;
   isSidebarCollapsed: boolean;
+  showHelpScreen: boolean;
+  lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
   setShowGhostInTimeline: (show: boolean) => void;
+  setShowTimeline: (show: boolean) => void;
   setLayerSpecificNavigation: (enabled: boolean) => void;
   setViewportStartTime: (time: number) => void;
   setViewportDuration: (duration: number) => void;
@@ -46,12 +50,17 @@ interface StudioStore {
   setViewMode: (mode: 'unified' | 'multitrack') => void;
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
+  setShowHelpScreen: (show: boolean) => void;
   navigateToLeftMarker: () => void;
   navigateToRightMarker: () => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
   removeLastMarker: () => void;
+  redoLastMarker: () => void;
   clearAllMarkers: () => void;
+  scrollTimeline: (direction: 'left' | 'right') => void;
+  zoomTimeline: (direction: 'in' | 'out') => void;
+  skipPlayhead: (direction: 'left' | 'right') => void;
   setSongLoaded: (loaded: boolean) => void;
   saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
   loadProject: (filename: string) => Promise<void>;
@@ -92,6 +101,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   currentTime: 0,
   ghostPlayheadTime: null,
   showGhostInTimeline: false,
+  showTimeline: true,
   layerSpecificNavigation: false,
   viewportStartTime: 0,
   viewportDuration: 20000, // Default 20 seconds visible
@@ -107,10 +117,13 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   viewMode: 'unified',
   showGridLines: true,
   isSidebarCollapsed: false,
+  showHelpScreen: false,
+  lastRemovedMarker: null,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
   setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
+  setShowTimeline: (show) => set({ showTimeline: show }),
   setLayerSpecificNavigation: (enabled) => set({ layerSpecificNavigation: enabled }),
   setViewportStartTime: (time) => set({ viewportStartTime: time }),
   setViewportDuration: (duration) => set({ viewportDuration: duration }),
@@ -121,6 +134,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  setShowHelpScreen: (show) => set({ showHelpScreen: show }),
   navigateToLeftMarker: () => set((state) => {
     const baseMarkers = state.layerSpecificNavigation 
       ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
@@ -198,33 +212,74 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     if (leftMarkers.length === 0) return {};
     
     const markerToRemove = leftMarkers[0];
+    let layerIdToRemoveFrom = state.activeLayerId;
     
-    if (state.layerSpecificNavigation) {
-      const updatedAllLayers = state.allLayersData.map(layer => 
-        layer.id === state.activeLayerId
-          ? { ...layer, markers: layer.markers.filter(marker => marker !== markerToRemove) }
-          : layer
+    if (!state.layerSpecificNavigation) {
+      // Find which layer contains this marker
+      const layerWithMarker = state.allLayersData.find(layer => 
+        layer.markers.includes(markerToRemove)
       );
-      return {
-        allLayersData: updatedAllLayers,
-        layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
-      };
-    } else {
-      const updatedAllLayers = state.allLayersData.map(layer => ({
-        ...layer,
-        markers: layer.markers.filter(marker => marker !== markerToRemove)
-      }));
-      return {
-        allLayersData: updatedAllLayers,
-        layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
-      };
+      if (layerWithMarker) {
+        layerIdToRemoveFrom = layerWithMarker.id;
+      }
     }
+    
+    const updatedAllLayers = state.allLayersData.map(layer => 
+      layer.id === layerIdToRemoveFrom
+        ? { ...layer, markers: layer.markers.filter(marker => marker !== markerToRemove) }
+        : layer
+    );
+    
+    return {
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      lastRemovedMarker: { layerId: layerIdToRemoveFrom, timestamp: markerToRemove }
+    };
+  }),
+  redoLastMarker: () => set((state) => {
+    if (!state.lastRemovedMarker) return {};
+    
+    const { layerId, timestamp } = state.lastRemovedMarker;
+    const updatedAllLayers = state.allLayersData.map(layer => 
+      layer.id === layerId
+        ? { ...layer, markers: [...layer.markers, timestamp] }
+        : layer
+    );
+    
+    return {
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      lastRemovedMarker: null
+    };
+  }),
+  scrollTimeline: (direction) => set((state) => {
+    const scrollAmount = state.viewportDuration * 0.1; // 10% of viewport
+    const newStartTime = direction === 'left' 
+      ? Math.max(0, state.viewportStartTime - scrollAmount)
+      : Math.min(state.songDuration - state.viewportDuration, state.viewportStartTime + scrollAmount);
+    
+    return { viewportStartTime: newStartTime };
+  }),
+  zoomTimeline: (direction) => set((state) => {
+    const zoomFactor = direction === 'in' ? 1.2 : 0.8;
+    const newPixelsPerSecond = Math.max(10, Math.min(200, state.pixelsPerSecond * zoomFactor));
+    const newViewportDuration = 800 / newPixelsPerSecond * 1000; // 800px width
+    
+    return { 
+      pixelsPerSecond: newPixelsPerSecond,
+      viewportDuration: newViewportDuration
+    };
+  }),
+  skipPlayhead: (direction) => set((state) => {
+    const newTime = direction === 'left' ? 0 : state.songDuration;
+    return { currentTime: newTime };
   }),
   clearAllMarkers: () => set((state) => {
     const clearedAllLayers = state.allLayersData.map(layer => ({ ...layer, markers: [] }));
     return {
       allLayersData: clearedAllLayers,
-      layers: getLayersForDisplay(clearedAllLayers, state.stemCount)
+      layers: getLayersForDisplay(clearedAllLayers, state.stemCount),
+      lastRemovedMarker: null
     };
   }),
   setSongLoaded: (loaded) => set({ songLoaded: loaded }),

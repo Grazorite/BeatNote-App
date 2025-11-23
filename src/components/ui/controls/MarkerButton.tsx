@@ -72,7 +72,10 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
   return (
     <View style={styles.markerButtonContainer}>
       <TouchableOpacity 
-        style={[styles.markerButton, (!songLoaded || !canRemoveLastMarker()) && styles.markerButtonDisabled]} 
+        style={[
+          styles.markerButton,
+          songLoaded && canRemoveLastMarker() ? styles.markerButtonSecondary : styles.markerButtonDisabled
+        ]} 
         onPress={(songLoaded && canRemoveLastMarker()) ? removeLastMarker : undefined}
         disabled={!songLoaded || !canRemoveLastMarker()}
         activeOpacity={1}
@@ -83,7 +86,10 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.markerButton, (!songLoaded || !canNavigateLeft()) && styles.markerButtonDisabled]} 
+        style={[
+          styles.markerButton,
+          songLoaded && canNavigateLeft() ? styles.markerButtonSecondary : styles.markerButtonDisabled
+        ]} 
         onPress={(songLoaded && canNavigateLeft()) ? handleLeftNavigation : undefined}
         disabled={!songLoaded || !canNavigateLeft()}
         activeOpacity={1}
@@ -94,7 +100,10 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.markerButton, !songLoaded && styles.markerButtonDisabled]} 
+        style={[
+          styles.markerButton,
+          songLoaded ? styles.markerButtonMain : styles.markerButtonDisabled
+        ]} 
         onPress={songLoaded ? onTap : undefined}
         disabled={!songLoaded}
         activeOpacity={1}
@@ -105,7 +114,10 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.markerButton, (!songLoaded || !canNavigateRight()) && styles.markerButtonDisabled]} 
+        style={[
+          styles.markerButton,
+          songLoaded && canNavigateRight() ? styles.markerButtonSecondary : styles.markerButtonDisabled
+        ]} 
         onPress={(songLoaded && canNavigateRight()) ? handleRightNavigation : undefined}
         disabled={!songLoaded || !canNavigateRight()}
         activeOpacity={1}

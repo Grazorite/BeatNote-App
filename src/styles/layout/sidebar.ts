@@ -19,14 +19,15 @@ export const sidebarStyles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 10,
     paddingBottom: 20,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   sidebarTitle: {
