@@ -163,7 +163,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             stroke="#00ff00"
             strokeWidth={1}
             fill="none"
-            opacity={0.4}
+            strokeOpacity={0.6}
             transform="translate(0, 20)"
           />
           

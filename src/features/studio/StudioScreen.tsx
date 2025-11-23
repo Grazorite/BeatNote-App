@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
 import Sidebar from '../../components/layout/Sidebar';
@@ -17,7 +17,12 @@ export default function StudioScreen() {
   return (
     <View style={styles.mainContainer}>
       <Sidebar />
-      <MainContent
+      <ScrollView 
+        horizontal={true}
+        showsHorizontalScrollIndicator={true}
+        style={{ flex: 1 }}
+      >
+        <MainContent
         viewMode={viewMode}
         layers={layers}
         activeLayer={activeLayer}
@@ -30,7 +35,8 @@ export default function StudioScreen() {
         seekToPosition={seekToPosition}
         startWaveformScrub={startWaveformScrub}
         endWaveformScrub={endWaveformScrub}
-      />
+        />
+      </ScrollView>
       <ErrorModal
         visible={error.visible}
         title={error.title}

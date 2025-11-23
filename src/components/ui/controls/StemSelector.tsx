@@ -8,7 +8,7 @@ const StemSelector: React.FC = () => {
   const stemOptions = [
     { count: 2 as const, label: '2 Stems', description: 'Vocals + Accompaniment' },
     { count: 4 as const, label: '4 Stems', description: 'Vocals, Drums, Bass, Other' },
-    { count: 5 as const, label: '5 Stems', description: 'Vocals, Drums, Bass, Piano, Other' },
+    { count: 6 as const, label: '6 Stems', description: 'Vocals, Drums, Bass, Piano, Guitar, Other' },
   ];
 
   return (

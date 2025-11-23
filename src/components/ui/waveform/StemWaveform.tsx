@@ -100,7 +100,9 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             x2={x}
             y2={120}
             stroke={layer.color}
-            strokeWidth={2}
+            strokeWidth={3}
+            filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+            strokeOpacity={0.9}
           />
         );
       });
@@ -126,6 +128,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             stroke="#00ff00"
             strokeWidth={2}
             fill="none"
+            strokeOpacity={0.6}
           />
           {renderStemMarkers()}
           

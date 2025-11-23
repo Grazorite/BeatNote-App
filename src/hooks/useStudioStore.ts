@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'other';
+export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
 export interface Layer {
   id: LayerId;
@@ -19,7 +19,7 @@ interface StudioStore {
   allLayersData: Layer[]; // Persistent storage for all layers
   activeLayerId: LayerId;
   songLoaded: boolean;
-  stemCount: 2 | 4 | 5;
+  stemCount: 2 | 4 | 6;
   isViewportLocked: boolean; // Whether viewport follows playhead
   bpm: number;
   viewMode: 'unified' | 'multitrack';
@@ -38,7 +38,7 @@ interface StudioStore {
   setSongLoaded: (loaded: boolean) => void;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
-  setStemCount: (count: 2 | 4 | 5) => void;
+  setStemCount: (count: 2 | 4 | 6) => void;
 }
 
 const allLayers: Layer[] = [
@@ -46,23 +46,24 @@ const allLayers: Layer[] = [
   { id: 'drums', name: 'Drums', color: '#00ccff', markers: [], isVisible: true },
   { id: 'bass', name: 'Bass', color: '#bb66ff', markers: [], isVisible: true },
   { id: 'piano', name: 'Piano', color: '#ffcc00', markers: [], isVisible: true },
+  { id: 'guitar', name: 'Guitar', color: '#d2b48c', markers: [], isVisible: true },
   { id: 'other', name: 'Other', color: '#ff69b4', markers: [], isVisible: true },
 ];
 
-const getVisibleLayerIds = (stemCount: 2 | 4 | 5): LayerId[] => {
+const getVisibleLayerIds = (stemCount: 2 | 4 | 6): LayerId[] => {
   switch (stemCount) {
     case 2:
       return ['vocals', 'other'];
     case 4:
       return ['vocals', 'drums', 'bass', 'other'];
-    case 5:
-      return ['vocals', 'drums', 'bass', 'piano', 'other'];
+    case 6:
+      return ['vocals', 'drums', 'bass', 'piano', 'guitar', 'other'];
     default:
       return ['vocals', 'drums', 'bass', 'other'];
   }
 };
 
-const getLayersForDisplay = (allLayersData: Layer[], stemCount: 2 | 4 | 5): Layer[] => {
+const getLayersForDisplay = (allLayersData: Layer[], stemCount: 2 | 4 | 6): Layer[] => {
   const visibleIds = getVisibleLayerIds(stemCount);
   return allLayersData.filter(layer => visibleIds.includes(layer.id));
 };

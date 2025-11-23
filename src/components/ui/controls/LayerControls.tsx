@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { layerControlsStyles as styles } from '../../../styles/components/controls/layerControls';
-import { VocalsIcon, DrumsIcon, BassIcon, PianoIcon, OtherIcon } from '../../icons';
+import { VocalsIcon, DrumsIcon, BassIcon, PianoIcon, GuitarIcon, OtherIcon } from '../../icons';
 
 const LayerControls: React.FC = () => {
   const { layers, activeLayerId, setActiveLayer, toggleLayerVisibility } = useStudioStore();
@@ -19,6 +19,7 @@ const LayerControls: React.FC = () => {
       case 'drums': return <DrumsIcon {...iconProps} />;
       case 'bass': return <BassIcon {...iconProps} />;
       case 'piano': return <PianoIcon {...iconProps} />;
+      case 'guitar': return <GuitarIcon {...iconProps} />;
       case 'other': return <OtherIcon {...iconProps} />;
       default: return null;
     }

@@ -14,15 +14,15 @@ test.describe('Core Functionality', () => {
     test('should allow tap to beat functionality', async ({ page }) => {
       await page.goto('/');
       
-      const tapButton = page.getByText('TAP', { exact: true });
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await expect(markerButton).toBeVisible();
       
       // Get initial marker count
       const initialText = await page.getByText(/Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
       // Click tap button
-      await tapButton.click();
+      await markerButton.click();
       
       // Wait for state update
       await page.waitForTimeout(100);
@@ -135,15 +135,15 @@ test.describe('Core Functionality', () => {
       await expect(page.getByText('BeatNote Studio')).toBeVisible();
       
       // Find TAP button
-      const tapButton = page.getByText('TAP', { exact: true });
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await expect(markerButton).toBeVisible();
       
       // Get initial marker count
       const initialText = await page.getByText(/Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
       // Click tap button to add marker
-      await tapButton.click();
+      await markerButton.click();
       
       // Verify marker was added
       const newText = await page.getByText(/Total: \d+ markers/).textContent();

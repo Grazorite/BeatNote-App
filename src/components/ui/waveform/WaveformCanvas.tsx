@@ -98,8 +98,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               x2={x}
               y2={300}
               stroke={layer.color}
-              strokeWidth={3}
-              filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
+              strokeWidth={4}
+              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              strokeOpacity={0.9}
             />
           );
         case 'drums':
@@ -111,8 +112,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               x2={x}
               y2={100}
               stroke={layer.color}
-              strokeWidth={4}
-              filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
+              strokeWidth={5}
+              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              strokeOpacity={0.9}
             />
           );
         case 'bass':
@@ -124,8 +126,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               x2={x}
               y2={300}
               stroke={layer.color}
-              strokeWidth={3}
-              filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
+              strokeWidth={4}
+              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              strokeOpacity={0.9}
             />
           );
         case 'piano':
@@ -134,10 +137,26 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
               cy={150}
+              r={6}
+              fill={layer.color}
+              stroke="#000000"
+              strokeWidth={2}
+              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              fillOpacity={0.9}
+            />
+          );
+        case 'guitar':
+          return (
+            <Circle
+              key={`${layer.id}-${marker}-${index}`}
+              cx={x}
+              cy={220}
               r={5}
               fill={layer.color}
               stroke="#000000"
-              strokeWidth={1}
+              strokeWidth={2}
+              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              fillOpacity={0.9}
             />
           );
         case 'other':
@@ -146,10 +165,12 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
               cy={280}
-              r={4}
+              r={5}
               fill={layer.color}
               stroke="#000000"
-              strokeWidth={1}
+              strokeWidth={2}
+              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              fillOpacity={0.9}
             />
           );
         default:
@@ -196,6 +217,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   stroke={colors.success}
                   strokeWidth={1}
                   fill="none"
+                  strokeOpacity={0.6}
                 />
               ) : (
                 <Path
@@ -210,7 +232,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   stroke={colors.success}
                   strokeWidth={1}
                   fill="none"
-                  opacity={0.5}
+                  strokeOpacity={0.4}
                 />
               )}
             </Svg>

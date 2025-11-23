@@ -51,9 +51,6 @@ export const layerControlsStyles = StyleSheet.create({
     fontWeight: 'bold',
   },
   activeLayerText: {
-    textShadowColor: 'rgba(255, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 3,
   },
   markerCount: {
     color: colors.textSecondary,

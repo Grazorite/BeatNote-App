@@ -4,7 +4,7 @@ export * from './common';
 // Component styles
 export * from './components/controls/audioControls';
 export * from './components/controls/layerControls';
-export * from './components/controls/tapButton';
+export * from './components/controls/markerButton';
 export * from './components/waveform/rhythmicGrid';
 export * from './components/waveform/waveformCanvas';
 

@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { Layer } from '../../hooks/useStudioStore';
 import AudioControls from '../ui/controls/AudioControls';
-import BpmControl from '../ui/controls/BpmControl';
+
 import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
-import TapButton from '../ui/controls/TapButton';
+import TapButton from '../ui/controls/MarkerButton';
 import WaveformCanvas from '../ui/waveform/WaveformCanvas';
-import ViewModeToggle from './ViewModeToggle';
+
 import StemsView from './StemsView';
 import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 
@@ -49,10 +49,6 @@ const MainContent: React.FC<MainContentProps> = ({
         hasSound={!!sound}
       />
       
-      <BpmControl />
-      
-      <ViewModeToggle />
-
       {viewMode === 'unified' ? (
         <WaveformCanvas
           audioUri={audioUri || undefined}
@@ -73,13 +69,18 @@ const MainContent: React.FC<MainContentProps> = ({
       
       <TimelineScrollbar audioUri={audioUri || undefined} />
       
-      <View style={styles.tapButtonContainer}>
+      <View style={styles.markerButtonContainer}>
         <TapButton onTap={tapToBeat} />
       </View>
       
-      <Text style={styles.subtitle}>
-        Active: {activeLayer?.name} | Total: {totalMarkers} markers
-      </Text>
+      <View style={styles.statusContainer}>
+        <Text style={styles.activeLayerText}>
+          Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer?.name}</Text>
+        </Text>
+        <Text style={styles.totalMarkersText}>
+          Total: {totalMarkers} markers
+        </Text>
+      </View>
     </ScrollView>
   );
 };

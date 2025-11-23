@@ -40,10 +40,10 @@ test.describe('UI Components & Layout', () => {
       await page.goto('/');
       
       // Look for TAP button with exact text
-      const tapButton = page.getByText('TAP', { exact: true });
+      const markerButton = page.getByText('TAP', { exact: true });
       
-      // TapButton should be present
-      await expect(tapButton).toBeVisible();
+      // MarkerButton should be present
+      await expect(markerButton).toBeVisible();
     });
     
     test('should have view mode toggle', async ({ page }) => {
@@ -87,8 +87,8 @@ test.describe('UI Components & Layout', () => {
     test('should show tap button', async ({ page }) => {
       await page.goto('/');
       
-      const tapButton = page.getByText('TAP', { exact: true });
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await expect(markerButton).toBeVisible();
     });
     
     test('should handle tap button interaction', async ({ page }) => {
@@ -99,8 +99,8 @@ test.describe('UI Components & Layout', () => {
       const initialMarkerCount = parseInt(initialMarkerText?.match(/\d+/)?.[0] || '0');
       
       // Click tap button
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.click();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.click();
       
       // Verify marker count increased
       const newMarkerText = await page.getByText(/Total: \d+ markers/).textContent();

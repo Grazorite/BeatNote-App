@@ -34,8 +34,8 @@ const BpmControl: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
     marginBottom: 15,
+    width: '100%',
   },
   label: {
     color: '#ffffff',
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#222222',
     borderRadius: 8,
     padding: 4,

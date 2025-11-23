@@ -17,11 +17,33 @@ export const mainContentStyles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: dimensions.spacing.sm,
   },
-  tapButtonContainer: {
-    marginTop: dimensions.spacing.sm,
+  markerButtonContainer: {
+    marginTop: dimensions.spacing.lg,
+    marginBottom: 8,
     alignItems: 'center',
   },
   subtitle: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  statusContainer: {
+    alignItems: 'center',
+    marginTop: dimensions.spacing.sm,
+  },
+  activeLayerText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  activeLayerName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  totalMarkersText: {
     color: colors.textSecondary,
     fontSize: 14,
   },

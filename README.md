@@ -16,16 +16,16 @@ A professional React Native audio annotation app for multi-track music analysis 
 - File loading with expo-document-picker
 - "Tap to beat" functionality with timestamp markers
 - Zustand state management
-- Modular component architecture (AudioControls, WaveformCanvas, TapButton)
+- Modular component architecture (AudioControls, WaveformCanvas, MarkerButton)
 - Custom hooks (useAudioPlayer, useWaveformAnimation, useStudioStore)
 
 ### Phase 3: Professional Multi-Track System
 
-- **Music Stem Annotation**: Vocals, Drums, Bass, Piano, Other (replaces generic beats/notes)
+- **Music Stem Annotation**: Vocals, Drums, Bass, Piano, Guitar, Other (replaces generic beats/notes)
 - **Visual Markers**: Distinct markers per stem type (lines, circles, thickness variations)
 - **Timeline Navigation**: Scrollable timeline with viewport scrubber
 - **Adobe Audition-Style Workflow**: Auto-follow playhead, click-to-position, drag-to-scrub
-- **Forward-Compatible Data**: Layer persistence across stem count changes (2→4→5 stems)
+- **Forward-Compatible Data**: Layer persistence across stem count changes (2→4→6 stems)
 - **Modern Gesture System**: Migrated to react-native-gesture-handler v2 Gesture API
 
 ## Tech Stack
@@ -56,8 +56,8 @@ npx expo start
 ## Usage
 
 1. **Load Audio**: Tap "Load Song" to select an audio file
-2. **Select Stems**: Choose 2, 4, or 5 stem separation mode
-3. **Choose Layer**: Select which stem to annotate (vocals, drums, bass, piano, other)
+2. **Select Stems**: Choose 2, 4, or 6 stem separation mode
+3. **Choose Layer**: Select which stem to annotate (vocals, drums, bass, piano, guitar, other)
 4. **Navigate**: Use timeline scrubber or click/drag on waveform to navigate
 5. **Add Markers**: Tap "TAP" button or click on waveform to place markers
 6. **Toggle Visibility**: Show/hide markers for each stem layer
@@ -70,7 +70,7 @@ src/
 │   ├── AudioControls.tsx   # Play/pause and load controls
 │   ├── LayerControls.tsx   # Layer selection and visibility
 │   ├── StemSelector.tsx    # Stem count selection (2/4/5)
-│   ├── TapButton.tsx       # Marker placement button
+│   ├── MarkerButton.tsx       # Marker placement button
 │   ├── TimelineScrollbar.tsx # Timeline navigation
 │   └── WaveformCanvas.tsx  # Main waveform display
 ├── features/studio/        # Feature-specific components
@@ -89,6 +89,7 @@ src/
 - **Drums**: Thick cyan lines (top section)
 - **Bass**: Purple lines (bottom section)  
 - **Piano**: Yellow circles (center)
+- **Guitar**: Light brown circles (center-bottom)
 - **Other**: Orange circles (bottom)
 
 ### Timeline Navigation

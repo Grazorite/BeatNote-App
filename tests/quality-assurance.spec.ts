@@ -19,30 +19,30 @@ test.describe('Quality Assurance', () => {
       
       // Should be able to interact with buttons (React Native web may not support focus states)
       const loadButton = page.getByText('Load Song');
-      const tapButton = page.getByText('TAP', { exact: true });
+      const markerButton = page.getByText('TAP', { exact: true });
       
       // Verify buttons are visible and clickable
       await expect(loadButton).toBeVisible();
-      await expect(tapButton).toBeVisible();
+      await expect(markerButton).toBeVisible();
       
       // Test that buttons respond to clicks
       await loadButton.click();
-      await tapButton.click();
+      await markerButton.click();
     });
     
     test('should support keyboard interactions', async ({ page }) => {
       await page.goto('/');
       
       // Focus on TAP button and press Enter/Space
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.focus();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.focus();
       
       // Get initial marker count
       const initialText = await page.getByText(/Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
       // Test click interaction instead of keyboard (React Native web limitation)
-      await tapButton.click();
+      await markerButton.click();
       
       // Verify marker was added
       const newText = await page.getByText(/Total: \d+ markers/).textContent();
@@ -69,14 +69,14 @@ test.describe('Quality Assurance', () => {
     test('should handle rapid interactions without lag', async ({ page }) => {
       await page.goto('/');
       
-      const tapButton = page.getByText('TAP', { exact: true });
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await expect(markerButton).toBeVisible();
       
       // Rapid clicks should not cause issues
       const startTime = Date.now();
       
       for (let i = 0; i < 5; i++) {
-        await tapButton.click();
+        await markerButton.click();
         await page.waitForTimeout(50); // Small delay between clicks
       }
       
@@ -134,11 +134,11 @@ test.describe('Quality Assurance', () => {
       await page.goto('/');
       
       // Verify core functionality still works
-      const tapButton = page.getByText('TAP', { exact: true });
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await expect(markerButton).toBeVisible();
       
       // Should be able to interact with UI
-      await tapButton.click();
+      await markerButton.click();
       
       // App should remain stable
       await expect(page.getByText('BeatNote Studio')).toBeVisible();
@@ -151,9 +151,9 @@ test.describe('Quality Assurance', () => {
       await page.goto('/');
       
       // Add some markers
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.click();
-      await tapButton.click();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.click();
+      await markerButton.click();
       
       // Get marker count
       const markerText = await page.getByText(/Total: \d+ markers/).textContent();
@@ -187,8 +187,8 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByText('120')).toBeVisible();
       
       // Interact with other controls
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.click();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.click();
       
       const multitrackButton = page.getByText('Multitrack');
       await multitrackButton.click();
@@ -224,7 +224,7 @@ test.describe('Quality Assurance', () => {
     test('should handle rapid button clicks gracefully', async ({ page }) => {
       await page.goto('/');
       
-      const tapButton = page.getByText('TAP', { exact: true });
+      const markerButton = page.getByText('TAP', { exact: true });
       
       // Get initial count
       const initialText = await page.getByText(/Total: \d+ markers/).textContent();
@@ -232,11 +232,11 @@ test.describe('Quality Assurance', () => {
       
       // Rapid fire clicks
       await Promise.all([
-        tapButton.click(),
-        tapButton.click(),
-        tapButton.click(),
-        tapButton.click(),
-        tapButton.click(),
+        markerButton.click(),
+        markerButton.click(),
+        markerButton.click(),
+        markerButton.click(),
+        markerButton.click(),
       ]);
       
       // Wait for state to settle
@@ -307,8 +307,8 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByText('BeatNote Studio')).toBeVisible();
       
       // Add some markers to create state
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.click();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.click();
       
       // Navigate away and back (simulate SPA routing)
       await page.evaluate(() => {
@@ -370,8 +370,8 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByText('BeatNote Studio')).toBeVisible();
       
       // App should remain functional
-      const tapButton = page.getByText('TAP', { exact: true });
-      await tapButton.click();
+      const markerButton = page.getByText('TAP', { exact: true });
+      await markerButton.click();
       
       // Switch back to desktop
       await page.setViewportSize({ width: 1280, height: 720 });

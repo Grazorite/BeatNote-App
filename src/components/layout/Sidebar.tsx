@@ -5,6 +5,8 @@ import { useStudioStore } from '../../hooks/useStudioStore';
 import StemSelector from '../ui/controls/StemSelector';
 import LayerControls from '../ui/controls/LayerControls';
 import SidebarToggle from '../ui/controls/SidebarToggle';
+import ViewModeToggle from './ViewModeToggle';
+import BpmControl from '../ui/controls/BpmControl';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
@@ -29,10 +31,16 @@ const Sidebar: React.FC = () => {
         >
           <Text style={styles.sidebarTitle}>Controls</Text>
           <View style={styles.sidebarSection}>
+            <ViewModeToggle />
+          </View>
+          <View style={styles.sidebarSection}>
             <StemSelector />
           </View>
           <View style={styles.sidebarSection}>
             <LayerControls />
+          </View>
+          <View style={styles.sidebarSection}>
+            <BpmControl />
           </View>
         </ScrollView>
       </Animated.View>

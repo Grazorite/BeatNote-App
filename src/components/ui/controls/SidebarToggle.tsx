@@ -20,20 +20,22 @@ const SidebarToggle: React.FC = () => {
 const styles = StyleSheet.create({
   toggle: {
     position: 'absolute',
-    top: 15,
-    right: 5,
-    width: 30,
-    height: 30,
-    backgroundColor: '#333333',
-    borderRadius: 15,
+    top: 20,
+    right: 15,
+    width: 32,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   arrow: {
     color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

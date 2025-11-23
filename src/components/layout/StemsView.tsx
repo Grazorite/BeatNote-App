@@ -21,6 +21,7 @@ const STEM_CONFIGS = [
   { name: 'Drums', id: 'drums', color: '#00ccff' },
   { name: 'Bass', id: 'bass', color: '#bb66ff' },
   { name: 'Piano', id: 'piano', color: '#ffcc00' },
+  { name: 'Guitar', id: 'guitar', color: '#d2b48c' },
   { name: 'Other', id: 'other', color: '#ff69b4' }
 ];
 

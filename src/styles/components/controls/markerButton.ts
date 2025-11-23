@@ -1,19 +1,22 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
 
-export const tapButtonStyles = StyleSheet.create({
-  tapButton: {
+export const markerButtonStyles = StyleSheet.create({
+  markerButton: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 12,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: dimensions.spacing.lg,
   },
-  tapButtonText: {
+  markerButtonText: {
     color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  markerButtonDisabled: {
+    backgroundColor: '#444444',
+    opacity: 0.5,
   },
 });
