@@ -9,10 +9,11 @@ interface RhythmicGridProps {
   width: number;
   pixelsPerSecond: number;
   overlayHeight?: number;
+  showRuler?: boolean;
 }
 
-const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, overlayHeight = 300 }) => {
-  const { bpm, viewportStartTime } = useStudioStore();
+const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, overlayHeight = 300, showRuler = true }) => {
+  const { bpm, viewportStartTime, showGridLines } = useStudioStore();
   
   const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
   const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
@@ -78,25 +79,29 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
   return (
     <View>
       {/* Ruler bar */}
-      <Svg width={width} height={rulerHeight} style={styles.ruler}>
-        {rulerLines}
-      </Svg>
+      {showRuler && (
+        <Svg width={width} height={rulerHeight} style={styles.ruler}>
+          {rulerLines}
+        </Svg>
+      )}
       
       {/* Major lines overlay for waveform */}
-      <Svg width={width} height={overlayHeight} style={styles.majorLines}>
-        {majorLines.map(({ x, beat, isMiddle }) => (
-          <Line
-            key={`major-${beat}`}
-            x1={x}
-            y1={0}
-            x2={x}
-            y2={overlayHeight}
-            stroke={isMiddle ? colors.gridMinor : colors.gridMajor}
-            strokeWidth={1}
-            opacity={isMiddle ? 0.2 : 0.3}
-          />
-        ))}
-      </Svg>
+      {showGridLines && overlayHeight > 0 && (
+        <Svg width={width} height={overlayHeight} style={styles.majorLines}>
+          {majorLines.map(({ x, beat, isMiddle }) => (
+            <Line
+              key={`major-${beat}`}
+              x1={x}
+              y1={0}
+              x2={x}
+              y2={overlayHeight}
+              stroke={isMiddle ? colors.gridMinor : colors.gridMajor}
+              strokeWidth={1}
+              opacity={isMiddle ? 0.2 : 0.3}
+            />
+          ))}
+        </Svg>
+      )}
     </View>
   );
 };

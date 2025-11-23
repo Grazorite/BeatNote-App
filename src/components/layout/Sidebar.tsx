@@ -9,6 +9,7 @@ import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
 import GhostPlayheadToggle from '../ui/controls/GhostPlayheadToggle';
 import LayerNavigationToggle from '../ui/controls/LayerNavigationToggle';
+import GridLinesToggle from '../ui/controls/GridLinesToggle';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
@@ -16,6 +17,7 @@ const Sidebar: React.FC = () => {
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: withTiming(isSidebarCollapsed ? 60 : 280, { duration: 300 }),
+    height: '100%',
   }));
 
   const contentOpacity = useAnimatedStyle(() => ({
@@ -29,7 +31,8 @@ const Sidebar: React.FC = () => {
         <ScrollView 
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          indicatorStyle="default"
         >
           <Text style={styles.sidebarTitle}>Controls</Text>
           <View style={styles.sidebarSection}>
@@ -49,6 +52,9 @@ const Sidebar: React.FC = () => {
           </View>
           <View style={styles.sidebarSection}>
             <LayerNavigationToggle />
+          </View>
+          <View style={styles.sidebarSection}>
+            <GridLinesToggle />
           </View>
         </ScrollView>
       </Animated.View>

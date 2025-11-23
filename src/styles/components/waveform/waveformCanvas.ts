@@ -20,7 +20,7 @@ export const waveformCanvasStyles = StyleSheet.create({
   waveform: {
     width: dimensions.waveform.width,
     height: dimensions.waveform.height,
-    backgroundColor: colors.surface,
+    backgroundColor: '#000000',
   },
   waveformSvg: {
     position: 'absolute',
@@ -35,7 +35,7 @@ export const waveformCanvasStyles = StyleSheet.create({
     height: dimensions.waveform.height,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#000000',
   },
   gestureOverlay: {
     position: 'absolute',

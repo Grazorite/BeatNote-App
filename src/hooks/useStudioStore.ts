@@ -17,6 +17,8 @@ interface StudioStore {
   showGhostInTimeline: boolean; // Toggle for ghost playhead in timeline
   layerSpecificNavigation: boolean; // Toggle for layer-specific marker navigation
   viewportStartTime: number; // Start time of visible waveform section
+  viewportDuration: number; // Duration of visible waveform section (ms)
+  pixelsPerSecond: number; // Zoom level (pixels per second)
   songDuration: number;
   layers: Layer[];
   allLayersData: Layer[]; // Persistent storage for all layers
@@ -26,6 +28,7 @@ interface StudioStore {
   isViewportLocked: boolean; // Whether viewport follows playhead
   bpm: number;
   viewMode: 'unified' | 'multitrack';
+  showGridLines: boolean;
   isSidebarCollapsed: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
@@ -33,10 +36,13 @@ interface StudioStore {
   setShowGhostInTimeline: (show: boolean) => void;
   setLayerSpecificNavigation: (enabled: boolean) => void;
   setViewportStartTime: (time: number) => void;
+  setViewportDuration: (duration: number) => void;
+  setPixelsPerSecond: (pps: number) => void;
   setSongDuration: (duration: number) => void;
   setViewportLocked: (locked: boolean) => void;
   setBpm: (bpm: number) => void;
   setViewMode: (mode: 'unified' | 'multitrack') => void;
+  setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   navigateToLeftMarker: () => void;
   navigateToRightMarker: () => void;
@@ -83,6 +89,8 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   showGhostInTimeline: false,
   layerSpecificNavigation: false,
   viewportStartTime: 0,
+  viewportDuration: 20000, // Default 20 seconds visible
+  pixelsPerSecond: 40, // Default zoom level (800px / 20s)
   songDuration: 180000, // Default 3 minutes in ms
   layers: getLayersForDisplay(allLayers, 4),
   allLayersData: allLayers,
@@ -92,6 +100,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   isViewportLocked: true,
   bpm: 120,
   viewMode: 'unified',
+  showGridLines: true,
   isSidebarCollapsed: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
@@ -99,10 +108,13 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
   setLayerSpecificNavigation: (enabled) => set({ layerSpecificNavigation: enabled }),
   setViewportStartTime: (time) => set({ viewportStartTime: time }),
+  setViewportDuration: (duration) => set({ viewportDuration: duration }),
+  setPixelsPerSecond: (pps) => set({ pixelsPerSecond: pps }),
   setSongDuration: (duration) => set({ songDuration: duration }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
   setViewMode: (mode) => set({ viewMode: mode }),
+  setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   navigateToLeftMarker: () => set((state) => {
     const baseMarkers = state.layerSpecificNavigation 

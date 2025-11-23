@@ -15,13 +15,24 @@ export default function StudioScreen() {
   const activeLayerMarkers = activeLayer?.markers.length || 0;
   const totalMarkers = layers.reduce((sum, layer) => sum + layer.markers.length, 0);
 
+  const { isSidebarCollapsed } = useStudioStore();
+  const sidebarWidth = isSidebarCollapsed ? 60 : 280;
+
   return (
     <View style={styles.mainContainer}>
-      <Sidebar />
       <ScrollView 
-        horizontal={true}
-        showsHorizontalScrollIndicator={true}
-        style={{ flex: 1 }}
+        style={{ 
+          flex: 1, 
+          marginLeft: sidebarWidth,
+          transition: 'margin-left 0.3s ease'
+        }}
+        contentContainerStyle={{ 
+          justifyContent: 'flex-start', 
+          alignItems: 'center', 
+          paddingBottom: 50,
+          paddingTop: 20
+        }}
+        showsVerticalScrollIndicator={true}
       >
         <MainContent
         viewMode={viewMode}
@@ -40,6 +51,7 @@ export default function StudioScreen() {
         endWaveformScrub={endWaveformScrub}
         />
       </ScrollView>
+      <Sidebar />
       <ErrorModal
         visible={error.visible}
         title={error.title}

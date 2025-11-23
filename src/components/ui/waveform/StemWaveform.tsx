@@ -17,7 +17,6 @@ interface StemWaveformProps {
 }
 
 const VIEWPORT_WIDTH = 720;
-const VIEWPORT_DURATION = 20000;
 
 const StemWaveform: React.FC<StemWaveformProps> = ({
   layers,
@@ -30,17 +29,17 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   showPlayhead = true,
 }) => {
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
-  const { viewportStartTime, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
+  const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
   
   const updateTimeFromPosition = (x: number) => {
-    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setCurrentTime(newCurrentTime);
   };
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     updateTimeFromPosition(event.x);
@@ -56,7 +55,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     .onUpdate((event) => {
       updateTimeFromPosition(event.x);
       // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
       const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newGhostTime);
     })
@@ -81,7 +80,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       VIEWPORT_WIDTH,
       120,
       viewportStartTime,
-      20000, // VIEWPORT_DURATION
+      viewportDuration,
       waveformData.duration
     );
   }, [waveformData, viewportStartTime]);
@@ -93,10 +92,10 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     return layer.markers
       .filter(marker => 
         marker >= viewportStartTime && 
-        marker <= viewportStartTime + VIEWPORT_DURATION
+        marker <= viewportStartTime + viewportDuration
       )
       .map((marker, index) => {
-        const x = ((marker - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
+        const x = ((marker - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
         return (
           <Line
             key={`${stemId}-${marker}-${index}`}
@@ -113,13 +112,13 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       });
   };
 
-  const playheadX = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
-  const isPlayheadVisible = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
+  const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+  const isPlayheadVisible = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
 
   if (!songLoaded || !audioUri) {
     return (
       <View style={styles.waveformContainer}>
-        <View style={[styles.canvas, { backgroundColor: '#111111' }]} />
+        <View style={[styles.canvas, { backgroundColor: '#000000' }]} />
       </View>
     );
   }

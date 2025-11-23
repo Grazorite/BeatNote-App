@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import Svg, { Line, Circle, Polygon, Path } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
+import { useZoomGesture } from '../../../hooks/useZoomGesture';
+import { useScrollZoom } from '../../../hooks/useScrollZoom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import RhythmicGrid from './RhythmicGrid';
 import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
@@ -19,7 +21,6 @@ interface WaveformCanvasProps {
 }
 
 const VIEWPORT_WIDTH = 800;
-const VIEWPORT_DURATION = 20000; // 20 seconds visible
 
 const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   audioUri,
@@ -28,33 +29,46 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   onScrubStart,
   onScrubEnd,
 }) => {
-  const { viewportStartTime, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
+  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, showGridLines, bpm } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
+  const pinchGesture = useZoomGesture();
+  const waveformRef = useRef<View>(null);
+  const { handleWheelZoom } = useScrollZoom(waveformRef);
+  
+  // Re-initialize scroll zoom when song loads
+  React.useEffect(() => {
+    if (songLoaded && waveformRef.current) {
+      const element = waveformRef.current;
+      if (element) {
+        element.focus?.();
+      }
+    }
+  }, [songLoaded]);
   
   const updateTimeFromPosition = (x: number) => {
-    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setCurrentTime(newCurrentTime);
     
     // Gradual auto-scroll only when very close to edge (Adobe Audition style)
-    const relativePosition = (newCurrentTime - viewportStartTime) / VIEWPORT_DURATION;
+    const relativePosition = (newCurrentTime - viewportStartTime) / viewportDuration;
     
     if (relativePosition < 0.1) {
       const scrollSpeed = Math.max(0.1, (0.1 - relativePosition) * 20);
-      const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
+      const scrollAmount = viewportDuration * 0.1 * scrollSpeed;
       const newViewportStart = Math.max(0, viewportStartTime - scrollAmount);
       setViewportStartTime(newViewportStart);
     } else if (relativePosition > 0.9) {
       const scrollSpeed = Math.max(0.1, (relativePosition - 0.9) * 20);
-      const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
-      const newViewportStart = Math.min(songDuration - VIEWPORT_DURATION, viewportStartTime + scrollAmount);
+      const scrollAmount = viewportDuration * 0.1 * scrollSpeed;
+      const newViewportStart = Math.min(songDuration - viewportDuration, viewportStartTime + scrollAmount);
       setViewportStartTime(newViewportStart);
     }
   };
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
     if (!songLoaded) return;
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     onSeek(newCurrentTime);
@@ -71,7 +85,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       if (!songLoaded) return;
       updateTimeFromPosition(event.x);
       // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
       const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newGhostTime);
     })
@@ -80,7 +94,10 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       onScrubEnd(); // Resume playing from final position if was playing
     });
   
-  const composedGesture = Gesture.Race(tapGesture, panGesture);
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Race(tapGesture, panGesture),
+    pinchGesture
+  );
   
   const renderLayerMarkers = (layer: Layer) => {
     if (!layer.isVisible) return null;
@@ -88,10 +105,10 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     return layer.markers
       .filter(marker => 
         marker >= viewportStartTime && 
-        marker <= viewportStartTime + VIEWPORT_DURATION
+        marker <= viewportStartTime + viewportDuration
       )
       .map((marker, index) => {
-        const x = ((marker - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
+        const x = ((marker - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
 
       switch (layer.id) {
         case 'vocals':
@@ -185,30 +202,60 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   };
 
   // Current playhead position in viewport
-  const playheadX = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
-  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
+  const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
   
   // Ghost playhead position in viewport
-  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH : 0;
+  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH : 0;
   const showGhostPlayhead = ghostPlayheadTime !== null && 
     ghostPlayheadTime >= viewportStartTime && 
-    ghostPlayheadTime <= viewportStartTime + VIEWPORT_DURATION &&
+    ghostPlayheadTime <= viewportStartTime + viewportDuration &&
     Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
 
   if (!songLoaded || !audioUri) {
     return (
       <View style={{ position: 'relative' }}>
-        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} overlayHeight={300} />
-        <View style={[styles.canvas, { backgroundColor: colors.surface }]} />
+        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
+        <View style={[styles.canvas, { backgroundColor: '#000000', position: 'relative' }]} />
       </View>
     );
   }
 
+  const renderGridLines = () => {
+    if (!showGridLines) return null;
+    
+    const lines = [];
+    const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
+    const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
+    const endBeat = Math.ceil(((viewportStartTime + viewportDuration) / 1000) * (bpm / 60));
+    
+    for (let beat = startBeat; beat <= endBeat; beat++) {
+      const beatTimeMs = (beat / (bpm / 60)) * 1000;
+      const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+      
+      if (x >= 0 && x <= VIEWPORT_WIDTH && beat % 8 === 0) {
+        lines.push(
+          <Line
+            key={`grid-${beat}`}
+            x1={x}
+            y1={0}
+            x2={x}
+            y2={300}
+            stroke="#666666"
+            strokeWidth={2}
+            opacity={0.5}
+          />
+        );
+      }
+    }
+    return lines;
+  };
+
   return (
     <View style={{ position: 'relative' }}>
-      <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} overlayHeight={300} />
+      <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
       
-      <View style={styles.waveformContainer} testID="waveform-container">
+      <View style={[styles.waveformContainer, { position: 'relative' }]} testID="waveform-container">
         <View style={styles.waveform}>
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -223,7 +270,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                     VIEWPORT_WIDTH, 
                     300, 
                     viewportStartTime, 
-                    VIEWPORT_DURATION, 
+                    viewportDuration, 
                     waveformData.duration
                   )}
                   stroke={colors.success}
@@ -253,12 +300,13 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         
         {/* Transparent overlay for gesture detection */}
         <GestureDetector gesture={composedGesture}>
-          <View style={styles.gestureOverlay} />
+          <View ref={waveformRef} style={styles.gestureOverlay} />
         </GestureDetector>
         
         {/* Visual overlay for markers and playhead */}
-        <View style={styles.overlayContainer} pointerEvents="none">
+        <View style={[styles.overlayContainer, { zIndex: 10 }]} pointerEvents="none">
           <Svg width={VIEWPORT_WIDTH} height={300} style={styles.overlay}>
+            {renderGridLines()}
             {layers.map(layer => renderLayerMarkers(layer))}
             
             {/* Ghost playhead */}

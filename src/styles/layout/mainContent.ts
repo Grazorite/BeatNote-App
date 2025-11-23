@@ -9,7 +9,8 @@ export const mainContentStyles = StyleSheet.create({
   container: {
     alignItems: 'center',
     padding: dimensions.spacing.sm,
-    minHeight: '100%',
+    paddingBottom: 100,
+    minWidth: 900,
   },
   title: {
     color: colors.text,

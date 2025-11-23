@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
@@ -7,6 +7,8 @@ import StemWaveform from '../ui/waveform/StemWaveform';
 import RhythmicGrid from '../ui/waveform/RhythmicGrid';
 import LoadingSpinner from '../ui/common/LoadingSpinner';
 import { useWaveformData } from '../../hooks/useWaveformData';
+import { useZoomGesture } from '../../hooks/useZoomGesture';
+import { useScrollZoom } from '../../hooks/useScrollZoom';
 import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
 import { colors } from '../../styles/common';
 
@@ -28,7 +30,6 @@ const STEM_CONFIGS = [
 ];
 
 const VIEWPORT_WIDTH = 720;
-const VIEWPORT_DURATION = 20000;
 
 const StemsView: React.FC<StemsViewProps> = ({
   layers,
@@ -39,8 +40,11 @@ const StemsView: React.FC<StemsViewProps> = ({
 }) => {
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
-  const { viewportStartTime, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded } = useStudioStore();
+  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
+  const pinchGesture = useZoomGesture();
+  const stemsRef = useRef<View>(null);
+  const { handleWheelZoom } = useScrollZoom(stemsRef);
   
   const visibleStems = STEM_CONFIGS.filter(stem => 
     layers.some(layer => layer.id === stem.id)
@@ -49,29 +53,29 @@ const StemsView: React.FC<StemsViewProps> = ({
   console.log('StemsView visibleStems:', visibleStems.map(s => s.id));
   
   const updateTimeFromPosition = (x: number) => {
-    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setCurrentTime(newCurrentTime);
     
     // Adobe Audition-style viewport scrolling
-    const relativePosition = (newCurrentTime - viewportStartTime) / VIEWPORT_DURATION;
+    const relativePosition = (newCurrentTime - viewportStartTime) / viewportDuration;
     
     if (relativePosition < 0.1) {
       const scrollSpeed = Math.max(0.1, (0.1 - relativePosition) * 20);
-      const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
+      const scrollAmount = viewportDuration * 0.1 * scrollSpeed;
       const newViewportStart = Math.max(0, viewportStartTime - scrollAmount);
       setViewportStartTime(newViewportStart);
     } else if (relativePosition > 0.9) {
       const scrollSpeed = Math.max(0.1, (relativePosition - 0.9) * 20);
-      const scrollAmount = VIEWPORT_DURATION * 0.1 * scrollSpeed;
-      const newViewportStart = Math.min(songDuration - VIEWPORT_DURATION, viewportStartTime + scrollAmount);
+      const scrollAmount = viewportDuration * 0.1 * scrollSpeed;
+      const newViewportStart = Math.min(songDuration - viewportDuration, viewportStartTime + scrollAmount);
       setViewportStartTime(newViewportStart);
     }
   };
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
     if (!audioUri) return;
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     onSeek(newCurrentTime);
@@ -88,7 +92,7 @@ const StemsView: React.FC<StemsViewProps> = ({
       if (!audioUri) return;
       updateTimeFromPosition(event.x);
       // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
       const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newGhostTime);
     })
@@ -97,16 +101,19 @@ const StemsView: React.FC<StemsViewProps> = ({
       onScrubEnd();
     });
   
-  const composedGesture = Gesture.Race(tapGesture, panGesture);
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Race(tapGesture, panGesture),
+    pinchGesture
+  );
   
-  const playheadX = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
-  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
+  const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
   
   // Ghost playhead position
-  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH : 0;
+  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH : 0;
   const showGhostPlayhead = ghostPlayheadTime !== null && 
     ghostPlayheadTime >= viewportStartTime && 
-    ghostPlayheadTime <= viewportStartTime + VIEWPORT_DURATION &&
+    ghostPlayheadTime <= viewportStartTime + viewportDuration &&
     Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
   
   const totalStemHeight = visibleStems.length * 120;
@@ -116,7 +123,7 @@ const StemsView: React.FC<StemsViewProps> = ({
       <View style={styles.stemsView}>
         <View style={styles.gridContainer}>
           <View style={styles.gridSpacer} />
-          <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} overlayHeight={totalStemHeight} />
+          <RhythmicGrid width={720} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
         </View>
         <View style={styles.stemsStack}>
           {visibleStems.map((stem, index) => {
@@ -150,7 +157,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     <View style={styles.stemsView}>
       <View style={styles.gridContainer}>
         <View style={styles.gridSpacer} />
-        <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} overlayHeight={totalStemHeight} />
+        <RhythmicGrid width={720} pixelsPerSecond={pixelsPerSecond} overlayHeight={totalStemHeight} showRuler={true} />
       </View>
       {loading ? (
         <View style={styles.stemsStack}>
@@ -163,7 +170,7 @@ const StemsView: React.FC<StemsViewProps> = ({
                 <View style={styles.stemTrackLabel}>
                   <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
                 </View>
-                <View style={{ width: 720, height: 120, backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ width: 720, height: 120, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
                   {index === Math.floor(visibleStems.length / 2) && <LoadingSpinner />}
                 </View>
               </View>
@@ -197,7 +204,7 @@ const StemsView: React.FC<StemsViewProps> = ({
         
         {/* Unified playhead overlay */}
         <GestureDetector gesture={composedGesture}>
-          <View style={styles.playheadOverlay}>
+          <View ref={stemsRef} style={styles.playheadOverlay}>
             <Svg width={VIEWPORT_WIDTH} height={totalStemHeight} style={styles.playheadSvg}>
               {/* Ghost playhead */}
               {showGhostPlayhead && audioUri && (

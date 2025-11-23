@@ -4,10 +4,10 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
+import { useScrollZoom } from '../../../hooks/useScrollZoom';
 
 const TIMELINE_WIDTH = 800;
 const TIMELINE_HEIGHT = 80;
-const VIEWPORT_DURATION = 20000; // 20 seconds visible in workspace
 
 interface TimelineScrollbarProps {
   audioUri?: string;
@@ -18,43 +18,51 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     currentTime, 
     ghostPlayheadTime,
     showGhostInTimeline,
-    viewportStartTime, 
+    viewportStartTime,
+    viewportDuration,
     songDuration, 
     setViewportStartTime,
+    setViewportDuration,
     layers,
     isPlaying,
-    setIsPlaying,
     setCurrentTime,
     songLoaded,
     setViewportLocked
   } = useStudioStore();
   
   const { waveformData } = useWaveformData(audioUri || null);
+  const timelineRef = useRef<View>(null);
+  const { handleWheelZoom } = useScrollZoom(timelineRef);
   
-
-  
-
+  // Re-initialize scroll zoom when song loads
+  React.useEffect(() => {
+    if (songLoaded && timelineRef.current) {
+      const element = timelineRef.current;
+      if (element) {
+        element.focus?.();
+      }
+    }
+  }, [songLoaded]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null);
 
-  // Auto-scroll viewport to follow playhead when playing and locked (Adobe Audition style)
+  // Auto-scroll viewport to follow playhead when playing and locked
   useEffect(() => {
     if (isPlaying && currentTime > 0 && !isDragging) {
       const { isViewportLocked, setViewportLocked } = useStudioStore.getState();
       
-      // Check if playhead re-enters viewport - lock it back
-      if (!isViewportLocked && currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION) {
+      if (!isViewportLocked && currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration) {
         setViewportLocked(true);
       }
       
-      // Only auto-scroll when locked
-      if (isViewportLocked && (currentTime < viewportStartTime || currentTime > viewportStartTime + VIEWPORT_DURATION)) {
-        const newStartTime = Math.max(0, Math.min(currentTime, songDuration - VIEWPORT_DURATION));
+      if (isViewportLocked && (currentTime < viewportStartTime || currentTime > viewportStartTime + viewportDuration)) {
+        const newStartTime = Math.max(0, Math.min(currentTime, songDuration - viewportDuration));
         setViewportStartTime(newStartTime);
       }
     }
-  }, [currentTime, isPlaying, viewportStartTime, songDuration, setViewportStartTime, isDragging]);
+  }, [currentTime, isPlaying, viewportStartTime, viewportDuration, songDuration, setViewportStartTime, isDragging]);
 
-  const viewportWidth = (VIEWPORT_DURATION / songDuration) * TIMELINE_WIDTH;
+  const viewportWidth = (viewportDuration / songDuration) * TIMELINE_WIDTH;
   const viewportX = (viewportStartTime / songDuration) * TIMELINE_WIDTH;
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
   const ghostPlayheadPositionOnTimeline = ghostPlayheadTime ? (ghostPlayheadTime / songDuration) * TIMELINE_WIDTH : 0;
@@ -72,22 +80,23 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     return generateWaveformPath(
       waveformData.peaks,
       TIMELINE_WIDTH,
-      40, // Height of timeline waveform area
-      0, // Show full waveform
+      40,
+      0,
       waveformData.duration,
       waveformData.duration
     );
   }, [waveformData]);
 
   const dragState = useRef({
-    initialViewportStart: 0
+    initialViewportStart: 0,
+    initialViewportDuration: 0
   });
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
     const touchX = event.x;
     const newStartTime = Math.max(0, 
-      Math.min((touchX / TIMELINE_WIDTH) * songDuration - (VIEWPORT_DURATION / 2), 
-      songDuration - VIEWPORT_DURATION)
+      Math.min((touchX / TIMELINE_WIDTH) * songDuration - (viewportDuration / 2), 
+      songDuration - viewportDuration)
     );
     setViewportStartTime(newStartTime);
   });
@@ -95,35 +104,56 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const panGesture = Gesture.Pan()
     .onBegin((event) => {
       const touchX = event.x;
-      setIsDragging(true);
-      
-      // Unlock viewport when manually dragging
       setViewportLocked(false);
       
-      if (!(touchX >= viewportX && touchX <= viewportX + viewportWidth)) {
-        const newStartTime = Math.max(0, 
-          Math.min((touchX / TIMELINE_WIDTH) * songDuration - (VIEWPORT_DURATION / 2), 
-          songDuration - VIEWPORT_DURATION)
-        );
-        setViewportStartTime(newStartTime);
-        dragState.current.initialViewportStart = newStartTime;
-      } else {
-        dragState.current.initialViewportStart = viewportStartTime;
-      }
+      const leftHandleX = viewportX - 3;
+      const rightHandleX = viewportX + viewportWidth - 3;
       
-      // Don't pause when dragging timeline - only when dragging waveform
+      if (touchX >= leftHandleX && touchX <= leftHandleX + 6) {
+        setIsResizing('left');
+        dragState.current.initialViewportStart = viewportStartTime;
+        dragState.current.initialViewportDuration = viewportDuration;
+      } else if (touchX >= rightHandleX && touchX <= rightHandleX + 6) {
+        setIsResizing('right');
+        dragState.current.initialViewportStart = viewportStartTime;
+        dragState.current.initialViewportDuration = viewportDuration;
+      } else {
+        setIsDragging(true);
+        
+        if (!(touchX >= viewportX && touchX <= viewportX + viewportWidth)) {
+          const newStartTime = Math.max(0, 
+            Math.min((touchX / TIMELINE_WIDTH) * songDuration - (viewportDuration / 2), 
+            songDuration - viewportDuration)
+          );
+          setViewportStartTime(newStartTime);
+          dragState.current.initialViewportStart = newStartTime;
+        } else {
+          dragState.current.initialViewportStart = viewportStartTime;
+        }
+      }
     })
     .onUpdate((event) => {
-      if (isDragging) {
+      if (isResizing === 'left') {
+        const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
+        const newStartTime = Math.max(0, dragState.current.initialViewportStart + dragDistance);
+        const newDuration = Math.max(1000, dragState.current.initialViewportDuration - dragDistance);
+        setViewportStartTime(newStartTime);
+        setViewportDuration(newDuration);
+      } else if (isResizing === 'right') {
+        const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
+        const newDuration = Math.max(1000, Math.min(songDuration - viewportStartTime, dragState.current.initialViewportDuration + dragDistance));
+        setViewportDuration(newDuration);
+      } else if (isDragging) {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
         const newStartTime = Math.max(0, 
-          Math.min(dragState.current.initialViewportStart + dragDistance, songDuration - VIEWPORT_DURATION)
+          Math.min(dragState.current.initialViewportStart + dragDistance, songDuration - viewportDuration)
         );
         setViewportStartTime(newStartTime);
       }
     })
     .onEnd(() => {
       setIsDragging(false);
+      setIsResizing(null);
     });
   
   const composedGesture = React.useMemo(() => 
@@ -155,119 +185,130 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <View>
-        <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
-          {/* Background track */}
-          <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
-          
-          {/* Timeline waveform - inside rectangle */}
-          <Path
-            d={timelineWaveformPath}
-            stroke="#00ff00"
-            strokeWidth={1}
-            fill="none"
-            strokeOpacity={0.6}
-            transform="translate(0, 20)"
-          />
-          
-          {/* All markers across entire song */}
-          {layers.flatMap(layer => 
-            layer.isVisible ? layer.markers.map((marker, index) => {
-              const x = (marker / songDuration) * TIMELINE_WIDTH;
-              const key = `${layer.id}-${marker}-${index}`;
-              
-              return (layer.id === 'piano' || layer.id === 'other') ? (
-                <Circle
-                  key={key}
-                  cx={x}
-                  cy={40}
-                  r={3}
-                  fill={layer.color}
+        <View ref={timelineRef}>
+          <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
+            <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
+            
+            <Path
+              d={timelineWaveformPath}
+              stroke="#00ff00"
+              strokeWidth={1}
+              fill="none"
+              strokeOpacity={0.6}
+              transform="translate(0, 20)"
+            />
+            
+            {layers.flatMap(layer => 
+              layer.isVisible ? layer.markers.map((marker, index) => {
+                const x = (marker / songDuration) * TIMELINE_WIDTH;
+                const key = `${layer.id}-${marker}-${index}`;
+                
+                return (layer.id === 'piano' || layer.id === 'other') ? (
+                  <Circle
+                    key={key}
+                    cx={x}
+                    cy={40}
+                    r={3}
+                    fill={layer.color}
+                    stroke="#000000"
+                    strokeWidth={1}
+                  />
+                ) : (
+                  <Line
+                    key={key}
+                    x1={x}
+                    y1={25}
+                    x2={x}
+                    y2={55}
+                    stroke={layer.color}
+                    strokeWidth={2}
+                  />
+                );
+              }) : []
+            )}
+            
+            {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && (
+              <>
+                <Line
+                  x1={ghostPlayheadPositionOnTimeline}
+                  y1={18}
+                  x2={ghostPlayheadPositionOnTimeline}
+                  y2={62}
+                  stroke="#ff6600"
+                  strokeWidth={2}
+                  strokeOpacity={0.5}
+                  strokeDasharray="6,3"
+                />
+                <Polygon
+                  points={`${ghostPlayheadPositionOnTimeline - 3},62 ${ghostPlayheadPositionOnTimeline + 3},62 ${ghostPlayheadPositionOnTimeline + 3},56 ${ghostPlayheadPositionOnTimeline},53 ${ghostPlayheadPositionOnTimeline - 3},56`}
+                  fill="#ff6600"
+                  fillOpacity={0.5}
                   stroke="#000000"
                   strokeWidth={1}
+                  strokeOpacity={0.3}
                 />
-              ) : (
-                <Line
-                  key={key}
-                  x1={x}
-                  y1={25}
-                  x2={x}
-                  y2={55}
-                  stroke={layer.color}
-                  strokeWidth={2}
-                  filter="drop-shadow(0 0 2px rgba(0,0,0,0.8))"
-                />
-              );
-            }) : []
-          )}
-          
-          {/* Ghost playhead - only show if enabled and different from current */}
-          {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && (
-            <>
-              <Line
-                x1={ghostPlayheadPositionOnTimeline}
-                y1={18}
-                x2={ghostPlayheadPositionOnTimeline}
-                y2={62}
-                stroke="#ff6600"
-                strokeWidth={2}
-                strokeOpacity={0.5}
-                strokeDasharray="6,3"
-                filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
-                pointerEvents="none"
-              />
-              <Polygon
-                points={`${ghostPlayheadPositionOnTimeline - 3},62 ${ghostPlayheadPositionOnTimeline + 3},62 ${ghostPlayheadPositionOnTimeline + 3},56 ${ghostPlayheadPositionOnTimeline},53 ${ghostPlayheadPositionOnTimeline - 3},56`}
-                fill="#ff6600"
-                fillOpacity={0.5}
-                stroke="#000000"
-                strokeWidth={1}
-                strokeOpacity={0.3}
-                pointerEvents="none"
-              />
-            </>
-          )}
-          
-          {/* Orange playhead - drawn first so it doesn't block touches */}
-          <Line
-            x1={playheadPositionOnTimeline}
-            y1={18}
-            x2={playheadPositionOnTimeline}
-            y2={62}
-            stroke="#ff6600"
-            strokeWidth={3}
-            filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
-            pointerEvents="none"
-          />
-          {/* Playhead label marker */}
-          <Polygon
-            points={`${playheadPositionOnTimeline - 4},62 ${playheadPositionOnTimeline + 4},62 ${playheadPositionOnTimeline + 4},55 ${playheadPositionOnTimeline},52 ${playheadPositionOnTimeline - 4},55`}
-            fill="#ff6600"
-            stroke="#000000"
-            strokeWidth={1}
-            pointerEvents="none"
-          />
-          
-          {/* Draggable viewport window - drawn last for touch priority */}
-          <Rect 
-            x={viewportX}
-            y={18} 
-            width={viewportWidth}
-            height={44} 
-            fill="rgba(255, 255, 255, 0.2)" 
-            stroke="#ffffff" 
-            strokeWidth={2}
-            rx={2}
-          />
-        </Svg>
+              </>
+            )}
+            
+            <Line
+              x1={playheadPositionOnTimeline}
+              y1={18}
+              x2={playheadPositionOnTimeline}
+              y2={62}
+              stroke="#ff6600"
+              strokeWidth={3}
+            />
+            <Polygon
+              points={`${playheadPositionOnTimeline - 4},62 ${playheadPositionOnTimeline + 4},62 ${playheadPositionOnTimeline + 4},55 ${playheadPositionOnTimeline},52 ${playheadPositionOnTimeline - 4},55`}
+              fill="#ff6600"
+              stroke="#000000"
+              strokeWidth={1}
+            />
+            
+            <Rect 
+              x={viewportX}
+              y={18} 
+              width={viewportWidth}
+              height={44} 
+              fill="rgba(255, 255, 255, 0.2)" 
+              stroke="#ffffff" 
+              strokeWidth={2}
+              rx={2}
+            />
+            
+            <Rect 
+              x={viewportX - 3}
+              y={18} 
+              width={6}
+              height={44} 
+              fill="#ffffff" 
+              stroke="#999999"
+              strokeWidth={1}
+              rx={1}
+            />
+            <Line x1={viewportX - 1} y1={22} x2={viewportX - 1} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX + 1} y1={22} x2={viewportX + 1} y2={58} stroke="#666666" strokeWidth={1} />
+            
+            <Rect 
+              x={viewportX + viewportWidth - 3}
+              y={18} 
+              width={6}
+              height={44} 
+              fill="#ffffff" 
+              stroke="#999999"
+              strokeWidth={1}
+              rx={1}
+            />
+            <Line x1={viewportX + viewportWidth - 1} y1={22} x2={viewportX + viewportWidth - 1} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={viewportX + viewportWidth + 1} y1={22} x2={viewportX + viewportWidth + 1} y2={58} stroke="#666666" strokeWidth={1} />
+          </Svg>
         </View>
       </GestureDetector>
       
-      {/* Time labels */}
       <View style={styles.timeLabels}>
         <Text style={styles.timeText}>{formatTime(viewportStartTime)}</Text>
         <Text style={styles.timeText}>Current: {formatTime(currentTime)}</Text>
-        <Text style={styles.timeText}>{formatTime(Math.min(viewportStartTime + VIEWPORT_DURATION, songDuration))}</Text>
+        <Text style={styles.timeText}>{formatTime(Math.min(viewportStartTime + viewportDuration, songDuration))}</Text>
       </View>
     </View>
   );
@@ -279,12 +320,10 @@ const styles = StyleSheet.create({
     marginTop: 15,
     alignItems: 'center',
   },
-
   timeline: {
     backgroundColor: '#111111',
     borderRadius: 4,
   },
-
   timeLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
