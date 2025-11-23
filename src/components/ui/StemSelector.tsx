@@ -43,7 +43,7 @@ const StemSelector: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 15,
-    alignItems: 'center',
+    width: '100%',
   },
   title: {
     color: '#ffffff',
@@ -52,18 +52,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   options: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 8,
+    width: '100%',
   },
   option: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#444444',
     borderRadius: 6,
     backgroundColor: '#222222',
     alignItems: 'center',
-    flex: 1,
+    width: '100%',
   },
   activeOption: {
     borderColor: '#00ff00',

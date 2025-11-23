@@ -21,11 +21,17 @@ interface StudioStore {
   songLoaded: boolean;
   stemCount: 2 | 4 | 5;
   isViewportLocked: boolean; // Whether viewport follows playhead
+  bpm: number;
+  viewMode: 'single' | 'stems';
+  isSidebarCollapsed: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setViewportStartTime: (time: number) => void;
   setSongDuration: (duration: number) => void;
   setViewportLocked: (locked: boolean) => void;
+  setBpm: (bpm: number) => void;
+  setViewMode: (mode: 'single' | 'stems') => void;
+  toggleSidebar: () => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
   clearAllMarkers: () => void;
@@ -36,11 +42,11 @@ interface StudioStore {
 }
 
 const allLayers: Layer[] = [
-  { id: 'vocals', name: 'Vocals', color: '#ff3333', markers: [], isVisible: true },
+  { id: 'vocals', name: 'Vocals', color: '#ff6666', markers: [], isVisible: true },
   { id: 'drums', name: 'Drums', color: '#00ccff', markers: [], isVisible: true },
-  { id: 'bass', name: 'Bass', color: '#9933ff', markers: [], isVisible: true },
+  { id: 'bass', name: 'Bass', color: '#bb66ff', markers: [], isVisible: true },
   { id: 'piano', name: 'Piano', color: '#ffcc00', markers: [], isVisible: true },
-  { id: 'other', name: 'Other', color: '#ff9900', markers: [], isVisible: true },
+  { id: 'other', name: 'Other', color: '#ff69b4', markers: [], isVisible: true },
 ];
 
 const getVisibleLayerIds = (stemCount: 2 | 4 | 5): LayerId[] => {
@@ -72,11 +78,17 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   songLoaded: false,
   stemCount: 4,
   isViewportLocked: true,
+  bpm: 120,
+  viewMode: 'single',
+  isSidebarCollapsed: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setViewportStartTime: (time) => set({ viewportStartTime: time }),
   setSongDuration: (duration) => set({ songDuration: duration }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
+  setBpm: (bpm) => set({ bpm }),
+  setViewMode: (mode) => set({ viewMode: mode }),
+  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   addMarker: (timestamp) => set((state) => {
     const markerTime = timestamp;
     const updatedAllLayers = state.allLayersData.map(layer => 

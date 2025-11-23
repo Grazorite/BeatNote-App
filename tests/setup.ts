@@ -1,7 +1,10 @@
-import { test as base } from '@playwright/test';
+import { test as base, expect as baseExpect } from '@playwright/test';
 
-export const test = base.extend({
-  // Add custom fixtures here if needed
-});
+// Use base test without complex fixtures
+export const test = base;
 
-export { expect } from '@playwright/test';
+// Use base expect
+export const expect = baseExpect;
+
+// Re-export everything else
+export { Page, Locator, BrowserContext } from '@playwright/test';

@@ -1,65 +1,55 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './setup';
 
-test.describe('Marker Placement Bug', () => {
-  test('should place markers at current playhead position after waveform interaction', async ({ page }) => {
+test.describe('Marker Placement', () => {
+  test('should place markers via tap button', async ({ page }) => {
     await page.goto('/');
     
     // Wait for the studio to load
     await expect(page.getByText('BeatNote Studio')).toBeVisible();
     
-    // Check initial state - no song loaded yet
-    await expect(page.getByText('Load Song')).toBeVisible();
+    // Find TAP button
+    const tapButton = page.getByText('TAP', { exact: true });
+    await expect(tapButton).toBeVisible();
     
-    // Since we can't actually load a file in the test, let's simulate the state
-    // by checking if the waveform canvas and tap button are present
-    const waveformCanvas = page.locator('svg').first();
-    const tapButton = page.getByText('TAP');
+    // Get initial marker count
+    const initialText = await page.getByText(/Total: \d+ markers/).textContent();
+    const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
     
-    // Check if components are rendered
-    if (await waveformCanvas.count() > 0) {
-      await expect(waveformCanvas).toBeVisible();
-    }
+    // Click tap button to add marker
+    await tapButton.click();
     
-    if (await tapButton.count() > 0) {
-      await expect(tapButton).toBeVisible();
-    }
+    // Verify marker was added
+    const newText = await page.getByText(/Total: \d+ markers/).textContent();
+    const newCount = parseInt(newText?.match(/\d+/)?.[0] || '0');
     
-    // Test the marker placement logic by checking the store state
-    // This test will help us understand the current behavior
-    const currentTimeDisplay = page.getByText(/Current:/);
-    if (await currentTimeDisplay.count() > 0) {
-      await expect(currentTimeDisplay).toBeVisible();
-    }
+    expect(newCount).toBe(initialCount + 1);
   });
 
-  test('should update current time when clicking on waveform', async ({ page }) => {
+  test('should handle view mode switching if implemented', async ({ page }) => {
     await page.goto('/');
     
-    // Wait for components to load
-    await page.waitForTimeout(1000);
+    // Look for view mode toggle
+    const singleButton = page.getByText('Single');
+    const stemsButton = page.getByText('Stems', { exact: true });
     
-    // Look for the waveform SVG element
-    const waveformSvg = page.locator('svg').first();
-    
-    if (await waveformSvg.count() > 0) {
-      // Get the bounding box of the waveform
-      const boundingBox = await waveformSvg.boundingBox();
+    if (await singleButton.count() > 0 && await stemsButton.count() > 0) {
+      await expect(singleButton).toBeVisible();
+      await expect(stemsButton).toBeVisible();
       
-      if (boundingBox) {
-        // Click at a specific position on the waveform (middle)
-        const clickX = boundingBox.x + boundingBox.width / 2;
-        const clickY = boundingBox.y + boundingBox.height / 2;
-        
-        await page.mouse.click(clickX, clickY);
-        
-        // Check if the current time display updates
-        // This should reflect the new playhead position
-        const timeDisplay = page.getByText(/Current:/);
-        if (await timeDisplay.count() > 0) {
-          const timeText = await timeDisplay.textContent();
-          console.log('Current time after click:', timeText);
-        }
-      }
+      // Switch to stems view
+      await stemsButton.click();
+      await page.waitForTimeout(500);
+      
+      // Verify app still works
+      await expect(page.getByText('BeatNote Studio')).toBeVisible();
+      
+      // Switch back to single view
+      await singleButton.click();
+      await page.waitForTimeout(500);
+      
+      await expect(page.getByText('BeatNote Studio')).toBeVisible();
+    } else {
+      console.log('View mode toggle not found - may not be implemented yet');
     }
   });
 });

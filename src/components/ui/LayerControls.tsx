@@ -25,7 +25,11 @@ const LayerControls: React.FC = () => {
             onPress={() => setActiveLayer(layer.id)}
             onLongPress={() => toggleLayerVisibility(layer.id)}
           >
-            <Text style={[styles.layerText, { color: layer.color }]}>
+            <Text style={[
+              styles.layerText, 
+              { color: layer.color },
+              activeLayerId === layer.id && styles.activeLayerText
+            ]}>
               {layer.name}
             </Text>
             <Text style={styles.markerCount}>
@@ -44,7 +48,7 @@ const LayerControls: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
-    alignItems: 'center',
+    width: '100%',
   },
   title: {
     color: '#ffffff',
@@ -53,27 +57,41 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   layerButtons: {
-    flexDirection: 'row',
-    gap: 10,
+    flexDirection: 'column',
+    gap: 8,
+    width: '100%',
   },
   layerButton: {
     paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderWidth: 2,
     borderRadius: 8,
     backgroundColor: '#222222',
     alignItems: 'center',
-    minWidth: 70,
+    width: '100%',
   },
   activeLayer: {
-    backgroundColor: '#444444',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 3,
+    shadowColor: '#ffffff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 6,
+    transform: [{ scale: 1.02 }],
   },
   hiddenLayer: {
     opacity: 0.3,
+    backgroundColor: '#111111',
   },
   layerText: {
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  activeLayerText: {
+    textShadowColor: 'rgba(255, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 3,
   },
   markerCount: {
     color: '#999999',

@@ -3,12 +3,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
 import { useStudioStore } from '../../hooks/useStudioStore';
+import { useWaveformData, generateWaveformPath } from '../../hooks/useWaveformData';
 
 const TIMELINE_WIDTH = 800;
-const TIMELINE_HEIGHT = 60;
+const TIMELINE_HEIGHT = 80;
 const VIEWPORT_DURATION = 20000; // 20 seconds visible in workspace
 
-const TimelineScrollbar: React.FC = () => {
+interface TimelineScrollbarProps {
+  audioUri?: string;
+}
+
+const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const { 
     currentTime, 
     viewportStartTime, 
@@ -21,6 +26,8 @@ const TimelineScrollbar: React.FC = () => {
     songLoaded,
     setViewportLocked
   } = useStudioStore();
+  
+  const { waveformData } = useWaveformData(audioUri || null);
   
 
   
@@ -50,13 +57,24 @@ const TimelineScrollbar: React.FC = () => {
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
   
   const timelineWaveformPath = React.useMemo(() => {
-    let path = 'M 0 30';
-    for (let x = 0; x < TIMELINE_WIDTH; x += 2) {
-      const y = 30 + Math.sin(x * 0.01) * 6;
-      path += ` L ${x} ${y}`;
+    if (!waveformData) {
+      let path = 'M 0 30';
+      for (let x = 0; x < TIMELINE_WIDTH; x += 2) {
+        const y = 30 + Math.sin(x * 0.01) * 6;
+        path += ` L ${x} ${y}`;
+      }
+      return path;
     }
-    return path;
-  }, []);
+    
+    return generateWaveformPath(
+      waveformData.peaks,
+      TIMELINE_WIDTH,
+      40, // Height of timeline waveform area
+      0, // Show full waveform
+      waveformData.duration,
+      waveformData.duration
+    );
+  }, [waveformData]);
 
   const dragState = useRef({
     initialViewportStart: 0
@@ -137,7 +155,7 @@ const TimelineScrollbar: React.FC = () => {
         <View>
         <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
           {/* Background track */}
-          <Rect x={0} y={20} width={TIMELINE_WIDTH} height={20} fill="#222222" stroke="#444444" />
+          <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
           
           {/* Timeline waveform - inside rectangle */}
           <Path
@@ -146,6 +164,7 @@ const TimelineScrollbar: React.FC = () => {
             strokeWidth={1}
             fill="none"
             opacity={0.4}
+            transform="translate(0, 20)"
           />
           
           {/* All markers across entire song */}
@@ -158,20 +177,22 @@ const TimelineScrollbar: React.FC = () => {
                 <Circle
                   key={key}
                   cx={x}
-                  cy={30}
+                  cy={40}
                   r={3}
                   fill={layer.color}
-                  stroke={layer.color}
+                  stroke="#000000"
+                  strokeWidth={1}
                 />
               ) : (
                 <Line
                   key={key}
                   x1={x}
-                  y1={15}
+                  y1={25}
                   x2={x}
-                  y2={45}
+                  y2={55}
                   stroke={layer.color}
-                  strokeWidth={1.5}
+                  strokeWidth={2}
+                  filter="drop-shadow(0 0 2px rgba(0,0,0,0.8))"
                 />
               );
             }) : []
@@ -182,16 +203,18 @@ const TimelineScrollbar: React.FC = () => {
             x1={playheadPositionOnTimeline}
             y1={18}
             x2={playheadPositionOnTimeline}
-            y2={42}
+            y2={62}
             stroke="#ff6600"
-            strokeWidth={2}
+            strokeWidth={3}
+            filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
             pointerEvents="none"
           />
           {/* Playhead label marker */}
           <Polygon
-            points={`${playheadPositionOnTimeline - 4},42 ${playheadPositionOnTimeline + 4},42 ${playheadPositionOnTimeline + 4},35 ${playheadPositionOnTimeline},32 ${playheadPositionOnTimeline - 4},35`}
+            points={`${playheadPositionOnTimeline - 4},62 ${playheadPositionOnTimeline + 4},62 ${playheadPositionOnTimeline + 4},55 ${playheadPositionOnTimeline},52 ${playheadPositionOnTimeline - 4},55`}
             fill="#ff6600"
-            stroke="#ff6600"
+            stroke="#000000"
+            strokeWidth={1}
             pointerEvents="none"
           />
           
@@ -200,7 +223,7 @@ const TimelineScrollbar: React.FC = () => {
             x={viewportX}
             y={18} 
             width={viewportWidth}
-            height={24} 
+            height={44} 
             fill="rgba(255, 255, 255, 0.2)" 
             stroke="#ffffff" 
             strokeWidth={2}
