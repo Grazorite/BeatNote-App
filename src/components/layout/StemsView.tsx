@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
-import StemWaveform from '../ui/StemWaveform';
-import RhythmicGrid from '../ui/RhythmicGrid';
+import StemWaveform from '../ui/waveform/StemWaveform';
+import RhythmicGrid from '../ui/waveform/RhythmicGrid';
+import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
+import { colors } from '../../styles/common';
 
 interface StemsViewProps {
   layers: Layer[];
@@ -67,7 +69,6 @@ const StemsView: React.FC<StemsViewProps> = ({
     if (!audioUri) return;
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
-    updateTimeFromPosition(event.x);
     onSeek(newCurrentTime);
   });
   
@@ -97,7 +98,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     <View style={styles.stemsView}>
       <View style={styles.gridContainer}>
         <View style={styles.gridSpacer} />
-        <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} />
+        <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} overlayHeight={totalStemHeight} />
       </View>
       <View style={styles.stemsStack}>
         {visibleStems.map((stem, index) => {
@@ -134,13 +135,13 @@ const StemsView: React.FC<StemsViewProps> = ({
                     y1={0}
                     x2={playheadX}
                     y2={totalStemHeight}
-                    stroke="#ff6600"
+                    stroke={colors.accent}
                     strokeWidth={4}
                     filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
                   />
                   <Polygon
                     points={`${playheadX-8},${totalStemHeight} ${playheadX+8},${totalStemHeight} ${playheadX+8},${totalStemHeight-15} ${playheadX},${totalStemHeight-20} ${playheadX-8},${totalStemHeight-15}`}
-                    fill="#ff6600"
+                    fill={colors.accent}
                     stroke="#000000"
                     strokeWidth={1}
                   />
@@ -154,55 +155,6 @@ const StemsView: React.FC<StemsViewProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  stemsView: {
-    marginBottom: 10,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  gridSpacer: {
-    width: 80,
-  },
-  stemsStack: {
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  stemTrack: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stemTrackLabel: {
-    width: 80,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#333333',
-  },
-  stemLabelText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  stemTrackBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  playheadOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 80,
-    width: 720,
-    height: '100%',
-    pointerEvents: 'box-none',
-  },
-  playheadSvg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-});
+
 
 export default StemsView;

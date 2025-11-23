@@ -1,12 +1,14 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import Svg, { Line, Circle, Polygon, Path } from 'react-native-svg';
-import { Layer, useStudioStore } from '../../hooks/useStudioStore';
-import { useWaveformData, generateWaveformPath } from '../../hooks/useWaveformData';
-import LoadingSpinner from './LoadingSpinner';
+import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
+import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
+import LoadingSpinner from '../common/LoadingSpinner';
 import RhythmicGrid from './RhythmicGrid';
+import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
+import { colors } from '../../../styles/common';
 
 interface WaveformCanvasProps {
   audioUri?: string;
@@ -54,7 +56,6 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     if (!songLoaded) return;
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
-    updateTimeFromPosition(event.x);
     onSeek(newCurrentTime);
   });
   
@@ -163,16 +164,16 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
 
   if (!songLoaded || !audioUri) {
     return (
-      <View>
-        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} />
-        <View style={[styles.canvas, { backgroundColor: '#111111' }]} />
+      <View style={{ position: 'relative' }}>
+        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} overlayHeight={300} />
+        <View style={[styles.canvas, { backgroundColor: colors.surface }]} />
       </View>
     );
   }
 
   return (
-    <View>
-      <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} />
+    <View style={{ position: 'relative' }}>
+      <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={VIEWPORT_WIDTH / (VIEWPORT_DURATION / 1000)} overlayHeight={300} />
       
       <View style={styles.waveformContainer} testID="waveform-container">
         <View style={styles.waveform}>
@@ -192,7 +193,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                     VIEWPORT_DURATION, 
                     waveformData.duration
                   )}
-                  stroke="#00ff00"
+                  stroke={colors.success}
                   strokeWidth={1}
                   fill="none"
                 />
@@ -206,7 +207,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                     }
                     return path;
                   })()}
-                  stroke="#00ff00"
+                  stroke={colors.success}
                   strokeWidth={1}
                   fill="none"
                   opacity={0.5}
@@ -234,13 +235,13 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   y1={0}
                   x2={playheadX}
                   y2={300}
-                  stroke="#ff6600"
+                  stroke={colors.accent}
                   strokeWidth={4}
                   filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
                 />
                 <Polygon
                   points={`${playheadX-8},300 ${playheadX+8},300 ${playheadX+8},285 ${playheadX},280 ${playheadX-8},285`}
-                  fill="#ff6600"
+                  fill={colors.accent}
                   stroke="#000000"
                   strokeWidth={1}
                 />
@@ -253,62 +254,6 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  canvas: {
-    width: 800,
-    height: 300,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  waveformContainer: {
-    position: 'relative',
-    width: 800,
-    height: 300,
-    borderWidth: 1,
-    borderColor: '#333333',
-    marginBottom: 20,
-  },
-  waveform: {
-    width: 800,
-    height: 300,
-    backgroundColor: '#111111',
-  },
-  waveformSvg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 800,
-    height: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#111111',
-  },
-  gestureOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 800,
-    height: 300,
-    backgroundColor: 'transparent',
-  },
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 800,
-    height: 300,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-});
+
 
 export default WaveformCanvas;

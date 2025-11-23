@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Layer } from '../../hooks/useStudioStore';
-import AudioControls from '../ui/AudioControls';
-import BpmControl from '../ui/BpmControl';
-import TimelineScrollbar from '../ui/TimelineScrollbar';
-import TapButton from '../ui/TapButton';
-import WaveformCanvas from '../ui/WaveformCanvas';
+import AudioControls from '../ui/controls/AudioControls';
+import BpmControl from '../ui/controls/BpmControl';
+import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
+import TapButton from '../ui/controls/TapButton';
+import WaveformCanvas from '../ui/waveform/WaveformCanvas';
 import ViewModeToggle from './ViewModeToggle';
 import StemsView from './StemsView';
+import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 
 interface MainContentProps {
-  viewMode: 'single' | 'stems';
+  viewMode: 'unified' | 'multitrack';
   layers: Layer[];
   activeLayer?: Layer;
   totalMarkers: number;
@@ -52,7 +53,7 @@ const MainContent: React.FC<MainContentProps> = ({
       
       <ViewModeToggle />
 
-      {viewMode === 'single' ? (
+      {viewMode === 'unified' ? (
         <WaveformCanvas
           audioUri={audioUri || undefined}
           layers={layers}
@@ -70,7 +71,7 @@ const MainContent: React.FC<MainContentProps> = ({
         />
       )}
       
-      <TimelineScrollbar audioUri={audioUri} />
+      <TimelineScrollbar audioUri={audioUri || undefined} />
       
       <View style={styles.tapButtonContainer}>
         <TapButton onTap={tapToBeat} />
@@ -83,30 +84,6 @@ const MainContent: React.FC<MainContentProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  container: {
-    alignItems: 'center',
-    padding: 10,
-    minHeight: '100%',
-  },
-  title: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  tapButtonContainer: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  subtitle: {
-    color: '#999999',
-    fontSize: 14,
-  },
-});
+
 
 export default MainContent;

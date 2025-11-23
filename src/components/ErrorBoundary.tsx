@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -21,6 +21,17 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
     console.error('ErrorBoundary componentDidCatch:', error, errorInfo);
   }
 
+  copyErrorToClipboard = () => {
+    const errorText = `Error: ${this.state.error?.message || 'Unknown error'}\n\nStack Trace:\n${this.state.error?.stack || 'No stack trace'}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(errorText);
+      Alert.alert('Copied', 'Error details copied to clipboard');
+    } else {
+      Alert.alert('Error Details', errorText);
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -29,6 +40,9 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
           <Text style={styles.errorMessage}>
             {this.state.error?.message || 'Unknown error'}
           </Text>
+          <TouchableOpacity style={styles.copyButton} onPress={this.copyErrorToClipboard}>
+            <Text style={styles.copyButtonText}>Copy Error Details</Text>
+          </TouchableOpacity>
           <Text style={styles.errorStack}>
             {this.state.error?.stack}
           </Text>
@@ -60,10 +74,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  copyButton: {
+    backgroundColor: '#ff6600',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  copyButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   errorStack: {
     color: '#cccccc',
     fontSize: 10,
     fontFamily: 'monospace',
+    maxHeight: 200,
   },
 });
 

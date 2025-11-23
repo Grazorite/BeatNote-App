@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
-import { useStudioStore } from '../../hooks/useStudioStore';
-import { useWaveformData, generateWaveformPath } from '../../hooks/useWaveformData';
+import { useStudioStore } from '../../../hooks/useStudioStore';
+import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 
 const TIMELINE_WIDTH = 800;
 const TIMELINE_HEIGHT = 80;

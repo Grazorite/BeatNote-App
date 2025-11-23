@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useStudioStore } from '../../hooks/useStudioStore';
-import StemSelector from '../ui/StemSelector';
-import LayerControls from '../ui/LayerControls';
-import SidebarToggle from '../ui/SidebarToggle';
+import StemSelector from '../ui/controls/StemSelector';
+import LayerControls from '../ui/controls/LayerControls';
+import SidebarToggle from '../ui/controls/SidebarToggle';
+import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
   const { isSidebarCollapsed } = useStudioStore();
@@ -39,35 +40,6 @@ const Sidebar: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  sidebar: {
-    backgroundColor: '#111111',
-    borderRightWidth: 1,
-    borderRightColor: '#333333',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  contentContainer: {
-    flex: 1,
-    paddingTop: 50,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 15,
-    flexGrow: 1,
-  },
-  sidebarTitle: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  sidebarSection: {
-    marginBottom: 20,
-  },
-});
+
 
 export default Sidebar;

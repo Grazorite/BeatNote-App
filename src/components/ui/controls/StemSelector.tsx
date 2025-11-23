@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useStudioStore } from '../../hooks/useStudioStore';
+import { useStudioStore } from '../../../hooks/useStudioStore';
 
 const StemSelector: React.FC = () => {
   const { stemCount, setStemCount } = useStudioStore();

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useStudioStore } from '../../hooks/useStudioStore';
+import { useStudioStore } from '../../../hooks/useStudioStore';
 
 const BpmControl: React.FC = () => {
   const { bpm, setBpm } = useStudioStore();

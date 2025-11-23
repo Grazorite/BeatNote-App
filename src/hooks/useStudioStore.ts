@@ -22,7 +22,7 @@ interface StudioStore {
   stemCount: 2 | 4 | 5;
   isViewportLocked: boolean; // Whether viewport follows playhead
   bpm: number;
-  viewMode: 'single' | 'stems';
+  viewMode: 'unified' | 'multitrack';
   isSidebarCollapsed: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
@@ -30,7 +30,7 @@ interface StudioStore {
   setSongDuration: (duration: number) => void;
   setViewportLocked: (locked: boolean) => void;
   setBpm: (bpm: number) => void;
-  setViewMode: (mode: 'single' | 'stems') => void;
+  setViewMode: (mode: 'unified' | 'multitrack') => void;
   toggleSidebar: () => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
@@ -79,7 +79,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   stemCount: 4,
   isViewportLocked: true,
   bpm: 120,
-  viewMode: 'single',
+  viewMode: 'unified',
   isSidebarCollapsed: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),

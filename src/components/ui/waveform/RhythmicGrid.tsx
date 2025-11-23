@@ -1,21 +1,24 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Line, Text } from 'react-native-svg';
-import { useStudioStore } from '../../hooks/useStudioStore';
+import { useStudioStore } from '../../../hooks/useStudioStore';
+import { rhythmicGridStyles as styles } from '../../../styles/components/waveform/rhythmicGrid';
+import { colors, dimensions } from '../../../styles/common';
 
 interface RhythmicGridProps {
   width: number;
   pixelsPerSecond: number;
+  overlayHeight?: number;
 }
 
-const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond }) => {
+const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, overlayHeight = 300 }) => {
   const { bpm, viewportStartTime } = useStudioStore();
   
   const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
   const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
   const endBeat = Math.ceil(((viewportStartTime + (width / pixelsPerSecond * 1000)) / 1000) * (bpm / 60));
   
-  const rulerHeight = 30;
+  const rulerHeight = dimensions.ruler.height;
   const rulerLines = [];
   const majorLines = []; // Lines that extend into waveform
   
@@ -36,7 +39,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond }) =
           y1={0}
           x2={x}
           y2={isEighthCount ? rulerHeight : (isFourthCount ? rulerHeight * 0.8 : rulerHeight * 0.6)}
-          stroke={isEighthCount ? '#ffffff' : (isFourthCount ? '#cccccc' : '#666666')}
+          stroke={isEighthCount ? colors.gridMajor : (isFourthCount ? colors.gridMiddle : colors.gridMinor)}
           strokeWidth={isEighthCount ? 2 : (isFourthCount ? 1.5 : 1)}
           opacity={0.8}
         />
@@ -50,7 +53,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond }) =
             key={`measure-${beat}`}
             x={x + 3}
             y={rulerHeight - 3}
-            fill="#ffffff"
+            fill={colors.text}
             fontSize={10}
             opacity={0.8}
             filter="drop-shadow(0 1px 2px rgba(0,0,0,0.8))"
@@ -80,15 +83,15 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond }) =
       </Svg>
       
       {/* Major lines overlay for waveform */}
-      <Svg width={width} height={300} style={styles.majorLines}>
+      <Svg width={width} height={overlayHeight} style={styles.majorLines}>
         {majorLines.map(({ x, beat, isMiddle }) => (
           <Line
             key={`major-${beat}`}
             x1={x}
             y1={0}
             x2={x}
-            y2={300}
-            stroke={isMiddle ? '#666666' : '#ffffff'}
+            y2={overlayHeight}
+            stroke={isMiddle ? colors.gridMinor : colors.gridMajor}
             strokeWidth={1}
             opacity={isMiddle ? 0.2 : 0.3}
           />
@@ -98,18 +101,6 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond }) =
   );
 };
 
-const styles = StyleSheet.create({
-  ruler: {
-    backgroundColor: '#1a1a1a',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  majorLines: {
-    position: 'absolute',
-    top: 30,
-    left: 0,
-    pointerEvents: 'none',
-  },
-});
+
 
 export default RhythmicGrid;

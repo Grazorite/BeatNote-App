@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useStudioStore } from '../../hooks/useStudioStore';
+import { useStudioStore } from '../../../hooks/useStudioStore';
 
 const SidebarToggle: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useStudioStore();

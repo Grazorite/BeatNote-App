@@ -2,8 +2,8 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Path, Line, Circle, Polygon } from 'react-native-svg';
-import { Layer, useStudioStore } from '../../hooks/useStudioStore';
-import { useWaveformData, generateWaveformPath } from '../../hooks/useWaveformData';
+import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
+import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 
 interface StemWaveformProps {
   layers: Layer[];

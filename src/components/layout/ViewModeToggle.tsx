@@ -8,16 +8,16 @@ const ViewModeToggle: React.FC = () => {
   return (
     <View style={styles.viewModeToggle}>
       <TouchableOpacity 
-        style={[styles.toggleButton, viewMode === 'single' && styles.activeToggle]}
-        onPress={() => setViewMode('single')}
+        style={[styles.toggleButton, viewMode === 'unified' && styles.activeToggle]}
+        onPress={() => setViewMode('unified')}
       >
-        <Text style={styles.toggleText}>Single</Text>
+        <Text style={styles.toggleText}>Unified</Text>
       </TouchableOpacity>
       <TouchableOpacity 
-        style={[styles.toggleButton, viewMode === 'stems' && styles.activeToggle]}
-        onPress={() => setViewMode('stems')}
+        style={[styles.toggleButton, viewMode === 'multitrack' && styles.activeToggle]}
+        onPress={() => setViewMode('multitrack')}
       >
-        <Text style={styles.toggleText}>Stems</Text>
+        <Text style={styles.toggleText}>Multitrack</Text>
       </TouchableOpacity>
     </View>
   );
