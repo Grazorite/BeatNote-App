@@ -63,6 +63,8 @@ const MainContent: React.FC<MainContentProps> = ({
         onLoadSong={loadSong}
         onTogglePlayback={() => {}}
         hasSound={!!sound}
+        audioUri={audioUri}
+        audioFilename={audioUri ? audioUri.split('/').pop() || 'unknown' : null}
       />
       
       <Animated.View style={animatedStyle}>

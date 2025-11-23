@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { ProjectManager } from '../utils/projectManager';
+import { BeatNoteProject } from '../types/project';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -51,6 +53,8 @@ interface StudioStore {
   removeLastMarker: () => void;
   clearAllMarkers: () => void;
   setSongLoaded: (loaded: boolean) => void;
+  saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
+  loadProject: (filename: string) => Promise<void>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
@@ -246,4 +250,59 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       activeLayerId: activeExists ? state.activeLayerId : newVisibleLayers[0].id
     };
   }),
+  saveProject: async (name: string, audioUri: string, audioFilename: string) => {
+    const state = get();
+    const project: BeatNoteProject = {
+      version: '1.0.0',
+      metadata: {
+        name,
+        bpm: state.bpm,
+        duration: state.songDuration,
+        stemCount: state.stemCount,
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+      },
+      audio: {
+        uri: audioUri,
+        filename: audioFilename,
+      },
+      layers: state.allLayersData.map(layer => ({
+        id: layer.id,
+        name: layer.name,
+        color: layer.color,
+        markers: layer.markers,
+        isVisible: layer.isVisible,
+      })),
+      settings: {
+        viewMode: state.viewMode,
+        showGridLines: state.showGridLines,
+        layerSpecificNavigation: state.layerSpecificNavigation,
+      },
+    };
+    return await ProjectManager.saveProject(project);
+  },
+  loadProject: async (filename: string) => {
+    const project = await ProjectManager.loadProject(filename);
+    const updatedAllLayers = allLayers.map(layer => {
+      const projectLayer = project.layers.find(pl => pl.id === layer.id);
+      return projectLayer ? {
+        ...layer,
+        markers: projectLayer.markers,
+        isVisible: projectLayer.isVisible,
+      } : layer;
+    });
+    
+    set({
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, project.metadata.stemCount),
+      stemCount: project.metadata.stemCount,
+      bpm: project.metadata.bpm,
+      songDuration: project.metadata.duration,
+      viewMode: project.settings.viewMode,
+      showGridLines: project.settings.showGridLines,
+      layerSpecificNavigation: project.settings.layerSpecificNavigation,
+      songLoaded: true,
+      currentTime: 0,
+    });
+  },
 }));
