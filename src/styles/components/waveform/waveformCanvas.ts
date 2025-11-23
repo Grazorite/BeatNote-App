@@ -52,6 +52,15 @@ export const waveformCanvasStyles = StyleSheet.create({
     width: dimensions.waveform.width,
     height: dimensions.waveform.height,
   },
+  overlayZIndex: {
+    zIndex: 10,
+  },
+  containerRelative: {
+    position: 'relative',
+  },
+  responsiveWidth: {
+    position: 'relative',
+  },
   overlay: {
     position: 'absolute',
     top: 0,

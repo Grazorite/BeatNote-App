@@ -20,7 +20,9 @@ export const useKeyboardShortcuts = ({
     navigateToRightMarker,
     scrollTimeline,
     zoomTimeline,
-    skipPlayhead
+    skipPlayhead,
+    toggleRepeat,
+    toggleLoopMarker
   } = useStudioStore();
 
   useEffect(() => {
@@ -105,9 +107,27 @@ export const useKeyboardShortcuts = ({
         zoomTimeline('out');
         return;
       }
+      
+      // R = Toggle Repeat
+      if (key === 'r' || key === 'R' || code === 'KeyR') {
+        event.preventDefault();
+        if (hasSound) {
+          toggleRepeat();
+        }
+        return;
+      }
+      
+      // L = Toggle Loop Marker
+      if (key === 'l' || key === 'L' || code === 'KeyL') {
+        event.preventDefault();
+        if (hasSound) {
+          toggleLoopMarker();
+        }
+        return;
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onTogglePlayback, onAddMarker, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead]);
+  }, [onTogglePlayback, onAddMarker, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopMarker]);
 };

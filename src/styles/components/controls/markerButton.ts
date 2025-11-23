@@ -28,4 +28,10 @@ export const markerButtonStyles = StyleSheet.create({
     backgroundColor: '#444444',
     opacity: 0.5,
   },
+  markerButtonActive: {
+    backgroundColor: '#ff6600', // Normal orange when active
+  },
+  markerButtonInactive: {
+    backgroundColor: '#666666', // Gray when inactive
+  },
 });

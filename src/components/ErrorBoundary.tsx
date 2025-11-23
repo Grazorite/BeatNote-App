@@ -41,7 +41,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
             {this.state.error?.message || 'Unknown error'}
           </Text>
           <TouchableOpacity style={styles.copyButton} onPress={this.copyErrorToClipboard}>
-            <Text style={styles.copyButtonText}>Copy Error Details</Text>
+            <Text style={styles.copyButtonText}>Copy Error Log</Text>
           </TouchableOpacity>
           <Text style={styles.errorStack}>
             {this.state.error?.stack}

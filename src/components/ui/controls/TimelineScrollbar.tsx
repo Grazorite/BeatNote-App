@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
+import { View, Text, Dimensions, Platform } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Rect, Line, Path, Circle, Polygon } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
+import { timelineScrollbarStyles as styles } from '../../../styles/components/controls/timelineScrollbar';
 
 const TIMELINE_HEIGHT = 80;
 
@@ -66,15 +67,19 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
         setViewportLocked(true);
       }
       
-      if (isViewportLocked && (currentTime < viewportStartTime || currentTime > viewportStartTime + viewportDuration)) {
-        const newStartTime = Math.max(0, Math.min(currentTime, songDuration - viewportDuration));
+      if (isViewportLocked && (currentTime < constrainedViewportStartTime || currentTime > constrainedViewportStartTime + constrainedViewportDuration)) {
+        const newStartTime = Math.max(0, Math.min(currentTime, songDuration - constrainedViewportDuration));
         setViewportStartTime(newStartTime);
       }
     }
   }, [currentTime, isPlaying, viewportStartTime, viewportDuration, songDuration, setViewportStartTime, isDragging]);
 
-  const viewportWidth = (viewportDuration / songDuration) * TIMELINE_WIDTH;
-  const viewportX = (viewportStartTime / songDuration) * TIMELINE_WIDTH;
+  // Ensure viewport stays within bounds
+  const constrainedViewportDuration = Math.min(viewportDuration, songDuration);
+  const constrainedViewportStartTime = Math.max(0, Math.min(viewportStartTime, songDuration - constrainedViewportDuration));
+  
+  const viewportWidth = Math.min((constrainedViewportDuration / songDuration) * TIMELINE_WIDTH, TIMELINE_WIDTH);
+  const viewportX = (constrainedViewportStartTime / songDuration) * TIMELINE_WIDTH;
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
   const ghostPlayheadPositionOnTimeline = ghostPlayheadTime ? (ghostPlayheadTime / songDuration) * TIMELINE_WIDTH : 0;
   
@@ -117,8 +122,8 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       const touchX = event.x;
       setViewportLocked(false);
       
-      const leftHandleX = viewportX - 6;
-      const rightHandleX = viewportX + viewportWidth - 6;
+      const leftHandleX = Math.max(0, viewportX - 6);
+      const rightHandleX = Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6);
       
       if (touchX >= leftHandleX && touchX <= leftHandleX + 12) {
         setIsResizing('left');
@@ -147,17 +152,19 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       if (isResizing === 'left') {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
         const newStartTime = Math.max(0, dragState.current.initialViewportStart + dragDistance);
-        const newDuration = Math.max(1000, dragState.current.initialViewportDuration - dragDistance);
+        const maxDuration = songDuration - newStartTime;
+        const newDuration = Math.max(1000, Math.min(maxDuration, dragState.current.initialViewportDuration - dragDistance));
         setViewportStartTime(newStartTime);
         setViewportDuration(newDuration);
       } else if (isResizing === 'right') {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
-        const newDuration = Math.max(1000, Math.min(songDuration - viewportStartTime, dragState.current.initialViewportDuration + dragDistance));
+        const maxDuration = songDuration - viewportStartTime;
+        const newDuration = Math.max(1000, Math.min(maxDuration, dragState.current.initialViewportDuration + dragDistance));
         setViewportDuration(newDuration);
       } else if (isDragging) {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
         const newStartTime = Math.max(0, 
-          Math.min(dragState.current.initialViewportStart + dragDistance, songDuration - viewportDuration)
+          Math.min(dragState.current.initialViewportStart + dragDistance, songDuration - constrainedViewportDuration)
         );
         setViewportStartTime(newStartTime);
       }
@@ -202,8 +209,14 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       <GestureDetector gesture={composedGesture}>
         <View 
           ref={timelineRef}
-          style={Platform.OS === 'web' ? { cursor: 'auto' } : {}}
+          style={styles.cursorAuto}
         >
+          <View 
+            style={[styles.cursorResize, { position: 'absolute', left: Math.max(0, viewportX - 6), top: 18, width: 12, height: 44, zIndex: 10 }]}
+          />
+          <View 
+            style={[styles.cursorResize, { position: 'absolute', left: Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6), top: 18, width: 12, height: 44, zIndex: 10 }]}
+          />
           <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
             <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
             
@@ -226,7 +239,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
                     key={key}
                     cx={x}
                     cy={40}
-                    r={3}
+                    r={5}
                     fill={layer.color}
                     stroke="#000000"
                     strokeWidth={1}
@@ -295,7 +308,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             />
             
             <Rect 
-              x={viewportX - 6}
+              x={Math.max(0, viewportX - 6)}
               y={18} 
               width={12}
               height={44} 
@@ -303,13 +316,12 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               stroke="#999999"
               strokeWidth={1}
               rx={2}
-              {...(Platform.OS === 'web' && { style: { cursor: 'ew-resize' } })}
             />
-            <Line x1={viewportX - 2} y1={22} x2={viewportX - 2} y2={58} stroke="#666666" strokeWidth={1} />
-            <Line x1={viewportX + 2} y1={22} x2={viewportX + 2} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={Math.max(2, viewportX - 2)} y1={22} x2={Math.max(2, viewportX - 2)} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={Math.max(6, viewportX + 2)} y1={22} x2={Math.max(6, viewportX + 2)} y2={58} stroke="#666666" strokeWidth={1} />
             
             <Rect 
-              x={viewportX + viewportWidth - 6}
+              x={Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6)}
               y={18} 
               width={12}
               height={44} 
@@ -317,10 +329,9 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               stroke="#999999"
               strokeWidth={1}
               rx={2}
-              {...(Platform.OS === 'web' && { style: { cursor: 'ew-resize' } })}
             />
-            <Line x1={viewportX + viewportWidth - 2} y1={22} x2={viewportX + viewportWidth - 2} y2={58} stroke="#666666" strokeWidth={1} />
-            <Line x1={viewportX + viewportWidth + 2} y1={22} x2={viewportX + viewportWidth + 2} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={Math.min(TIMELINE_WIDTH - 2, viewportX + viewportWidth - 2)} y1={22} x2={Math.min(TIMELINE_WIDTH - 2, viewportX + viewportWidth - 2)} y2={58} stroke="#666666" strokeWidth={1} />
+            <Line x1={Math.min(TIMELINE_WIDTH - 6, viewportX + viewportWidth + 2)} y1={22} x2={Math.min(TIMELINE_WIDTH - 6, viewportX + viewportWidth + 2)} y2={58} stroke="#666666" strokeWidth={1} />
           </Svg>
         </View>
       </GestureDetector>
@@ -334,25 +345,6 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  timeline: {
-    backgroundColor: '#111111',
-    borderRadius: 4,
-  },
-  timeLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '95%',
-    marginTop: 8,
-  },
-  timeText: {
-    color: '#999999',
-    fontSize: 10,
-  },
-});
+
 
 export default TimelineScrollbar;

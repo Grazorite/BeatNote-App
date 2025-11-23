@@ -27,7 +27,7 @@ export const useCustomAudioPlayer = () => {
   const [wasPlayingBeforeScrub, setWasPlayingBeforeScrub] = useState(false);
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
   const player = useAudioPlayer(audioSource);
-  const { isPlaying, layers, activeLayerId, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime } = useStudioStore();
+  const { isPlaying, layers, activeLayerId, isRepeatActive, isLoopMarkerActive, layerSpecificNavigation, allLayersData, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime } = useStudioStore();
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });
@@ -198,11 +198,43 @@ export const useCustomAudioPlayer = () => {
         const currentTimeMs = player.currentTime * 1000; // Convert to milliseconds
         const { songDuration } = useStudioStore.getState();
         
+        // Check for loop marker functionality
+        if (isLoopMarkerActive) {
+          const baseMarkers = layerSpecificNavigation 
+            ? allLayersData.find(layer => layer.id === activeLayerId)?.markers || []
+            : allLayersData.flatMap(layer => layer.markers);
+          
+          const sortedMarkers = [...baseMarkers, 0, songDuration].sort((a, b) => a - b);
+          
+          // Find current position in marker array
+          const currentIndex = sortedMarkers.findIndex(marker => marker > currentTimeMs);
+          
+          if (currentIndex > 0) {
+            const nextMarker = sortedMarkers[currentIndex];
+            const prevMarker = sortedMarkers[currentIndex - 1];
+            
+            // If reached next marker, loop back to previous marker
+            if (currentTimeMs >= nextMarker - END_OF_TRACK_TOLERANCE_MS) {
+              setCurrentTime(prevMarker);
+              player.seekTo(prevMarker / 1000);
+              player.play();
+              return;
+            }
+          }
+        }
+        
         // Check if reached end of track
         if (currentTimeMs >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
-          player.pause();
-          setIsPlaying(false);
-          setCurrentTime(songDuration); // Set to exact end for consistent UI
+          if (isRepeatActive) {
+            // Restart from beginning when repeat is active
+            setCurrentTime(0);
+            player.seekTo(0);
+            player.play(); // Continue playing
+          } else {
+            player.pause();
+            setIsPlaying(false);
+            setCurrentTime(songDuration); // Set to exact end for consistent UI
+          }
         } else {
           setCurrentTime(currentTimeMs);
         }
@@ -210,7 +242,7 @@ export const useCustomAudioPlayer = () => {
     }, PLAYBACK_UPDATE_INTERVAL_MS);
     
     return () => clearInterval(interval);
-  }, [player, isPlaying, setCurrentTime, setIsPlaying]);
+  }, [player, isPlaying, setCurrentTime, setIsPlaying, isLoopMarkerActive, layerSpecificNavigation, activeLayerId, allLayersData]);
 
   return {
     sound: player,

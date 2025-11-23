@@ -214,7 +214,7 @@ const StemsView: React.FC<StemsViewProps> = ({
         
         {/* Unified playhead overlay */}
         <GestureDetector gesture={composedGesture}>
-          <View ref={stemsRef} style={styles.playheadOverlay}>
+          <View ref={stemsRef} style={[styles.playheadOverlay, { width: VIEWPORT_WIDTH }]}>
             <Svg width={VIEWPORT_WIDTH} height={totalStemHeight} style={styles.playheadSvg}>
               {/* Ghost playhead */}
               {showGhostPlayhead && audioUri && (

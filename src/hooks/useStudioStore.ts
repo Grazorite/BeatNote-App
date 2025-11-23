@@ -35,6 +35,8 @@ interface StudioStore {
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
+  isRepeatActive: boolean;
+  isLoopMarkerActive: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
@@ -51,6 +53,8 @@ interface StudioStore {
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   setShowHelpScreen: (show: boolean) => void;
+  toggleRepeat: () => void;
+  toggleLoopMarker: () => void;
   navigateToLeftMarker: () => void;
   navigateToRightMarker: () => void;
   addMarker: (timestamp: number) => void;
@@ -119,22 +123,46 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   isSidebarCollapsed: false,
   showHelpScreen: false,
   lastRemovedMarker: null,
+  isRepeatActive: false,
+  isLoopMarkerActive: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
   setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
   setShowTimeline: (show) => set({ showTimeline: show }),
   setLayerSpecificNavigation: (enabled) => set({ layerSpecificNavigation: enabled }),
-  setViewportStartTime: (time) => set({ viewportStartTime: time }),
-  setViewportDuration: (duration) => set({ viewportDuration: duration }),
+  setViewportStartTime: (time) => set((state) => {
+    const constrainedStartTime = Math.max(0, Math.min(time, state.songDuration - state.viewportDuration));
+    return { viewportStartTime: constrainedStartTime };
+  }),
+  setViewportDuration: (duration) => set((state) => {
+    const constrainedDuration = Math.min(duration, state.songDuration);
+    const constrainedStartTime = Math.max(0, Math.min(state.viewportStartTime, state.songDuration - constrainedDuration));
+    return { 
+      viewportDuration: constrainedDuration,
+      viewportStartTime: constrainedStartTime
+    };
+  }),
   setPixelsPerSecond: (pps) => set({ pixelsPerSecond: pps }),
-  setSongDuration: (duration) => set({ songDuration: duration }),
+  setSongDuration: (duration) => set((state) => {
+    if (state.songLoaded) {
+      return {
+        songDuration: duration,
+        viewportStartTime: 0,
+        viewportDuration: duration,
+        pixelsPerSecond: 800 / (duration / 1000) // Fit entire song in 800px
+      };
+    }
+    return { songDuration: duration };
+  }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
+  toggleRepeat: () => set((state) => ({ isRepeatActive: !state.isRepeatActive })),
+  toggleLoopMarker: () => set((state) => ({ isLoopMarkerActive: !state.isLoopMarkerActive })),
   navigateToLeftMarker: () => set((state) => {
     const baseMarkers = state.layerSpecificNavigation 
       ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
@@ -282,7 +310,17 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       lastRemovedMarker: null
     };
   }),
-  setSongLoaded: (loaded) => set({ songLoaded: loaded }),
+  setSongLoaded: (loaded) => set((state) => {
+    if (loaded) {
+      return {
+        songLoaded: loaded,
+        viewportStartTime: 0,
+        viewportDuration: state.songDuration,
+        pixelsPerSecond: 800 / (state.songDuration / 1000) // Fit entire song in 800px
+      };
+    }
+    return { songLoaded: loaded };
+  }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
   toggleLayerVisibility: (layerId) => set((state) => {
     const updatedAllLayers = state.allLayersData.map(layer => 

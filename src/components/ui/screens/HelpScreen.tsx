@@ -45,6 +45,8 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ onClose }) => {
           <ShortcutGroup title="Playback">
             <Shortcut keys="Space" description="Play/Pause" />
             <Shortcut keys="M" description="Add marker at current position" />
+            <Shortcut keys="R" description="Toggle repeat mode" />
+            <Shortcut keys="L" description="Toggle loop marker mode" />
           </ShortcutGroup>
 
           <ShortcutGroup title="Navigation">

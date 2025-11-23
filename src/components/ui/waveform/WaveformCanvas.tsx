@@ -38,7 +38,21 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   }, []);
   
   const VIEWPORT_WIDTH = Math.max(800, screenData.width - 350); // 350px for sidebar + margins
-  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, showGridLines, bpm } = useStudioStore();
+  
+  // Optimized Zustand selectors - only subscribe to what we need
+  const viewportStartTime = useStudioStore(state => state.viewportStartTime);
+  const viewportDuration = useStudioStore(state => state.viewportDuration);
+  const pixelsPerSecond = useStudioStore(state => state.pixelsPerSecond);
+  const currentTime = useStudioStore(state => state.currentTime);
+  const ghostPlayheadTime = useStudioStore(state => state.ghostPlayheadTime);
+  const songDuration = useStudioStore(state => state.songDuration);
+  const songLoaded = useStudioStore(state => state.songLoaded);
+  const isPlaying = useStudioStore(state => state.isPlaying);
+  const showGridLines = useStudioStore(state => state.showGridLines);
+  const bpm = useStudioStore(state => state.bpm);
+  const setViewportStartTime = useStudioStore(state => state.setViewportStartTime);
+  const setCurrentTime = useStudioStore(state => state.setCurrentTime);
+  const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
   const waveformRef = useRef<View>(null);
@@ -54,10 +68,13 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     }
   }, [songLoaded]);
   
-  const updateTimeFromPosition = (x: number) => {
+  const updateTimeFromPosition = (x: number, disableAutoScroll = false) => {
     const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setCurrentTime(newCurrentTime);
+    
+    // Skip auto-scroll during active dragging to prevent interference
+    if (disableAutoScroll) return;
     
     // Gradual auto-scroll only when very close to edge (Adobe Audition style)
     const relativePosition = (newCurrentTime - viewportStartTime) / viewportDuration;
@@ -75,15 +92,23 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     }
   };
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
-    if (!songLoaded) return;
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
-    const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
-    setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
-    onSeek(newCurrentTime);
-  });
+  const tapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .onStart((event) => {
+      if (!songLoaded) return;
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      setGhostPlayheadTime(newCurrentTime); // Immediate visual feedback
+    })
+    .onEnd((event) => {
+      if (!songLoaded) return;
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      onSeek(newCurrentTime);
+    });
   
   const panGesture = Gesture.Pan()
+    .minDistance(5)
     .onBegin(() => {
       if (!songLoaded) return;
       if (isPlaying) {
@@ -92,7 +117,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     })
     .onUpdate((event) => {
       if (!songLoaded) return;
-      updateTimeFromPosition(event.x);
+      updateTimeFromPosition(event.x, true); // Disable auto-scroll during dragging
       // Update ghost playhead during scrubbing
       const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
       const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
@@ -108,7 +133,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     pinchGesture
   );
   
-  const renderLayerMarkers = (layer: Layer) => {
+  const renderLayerMarkers = React.useCallback((layer: Layer) => {
     if (!layer.isVisible) return null;
 
     return layer.markers
@@ -208,36 +233,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
           return null;
       }
     });
-  };
-
-  // Current playhead position in viewport
-  const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
-  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
+  }, [viewportStartTime, viewportDuration, VIEWPORT_WIDTH]);
   
-  // Ghost playhead position in viewport
-  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH : 0;
-  const showGhostPlayhead = ghostPlayheadTime !== null && 
-    ghostPlayheadTime >= viewportStartTime && 
-    ghostPlayheadTime <= viewportStartTime + viewportDuration &&
-    Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
-
-  if (!songLoaded || !audioUri) {
-    return (
-      <View style={{ position: 'relative' }}>
-        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
-        <View style={[styles.waveformContainer, { width: VIEWPORT_WIDTH, position: 'relative' }]}>
-          <View style={[styles.waveform, { width: VIEWPORT_WIDTH }]} />
-          <View style={[styles.overlayContainer, { width: VIEWPORT_WIDTH, zIndex: 10 }]} pointerEvents="none">
-            {showGridLines && (
-              <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={300} showRuler={false} />
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  const renderGridLines = () => {
+  const renderGridLines = React.useCallback(() => {
     if (!showGridLines) return null;
     
     const lines = [];
@@ -265,13 +263,40 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       }
     }
     return lines;
-  };
+  }, [showGridLines, pixelsPerSecond, bpm, viewportStartTime, viewportDuration, VIEWPORT_WIDTH]);
+
+  // Current playhead position in viewport
+  const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+  const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
+  
+  // Ghost playhead position in viewport
+  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH : 0;
+  const showGhostPlayhead = ghostPlayheadTime !== null && 
+    ghostPlayheadTime >= viewportStartTime && 
+    ghostPlayheadTime <= viewportStartTime + viewportDuration &&
+    Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
+
+  if (!songLoaded || !audioUri) {
+    return (
+      <View style={styles.containerRelative}>
+        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
+        <View style={[styles.waveformContainer, styles.responsiveWidth, { width: VIEWPORT_WIDTH }]}>
+          <View style={[styles.waveform, { width: VIEWPORT_WIDTH }]} />
+          <View style={[styles.overlayContainer, styles.overlayZIndex, { width: VIEWPORT_WIDTH }]} pointerEvents="none">
+            {showGridLines && (
+              <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={300} showRuler={false} />
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <View style={{ position: 'relative' }}>
+    <View style={styles.containerRelative}>
       <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
       
-      <View style={[styles.waveformContainer, { position: 'relative' }]} testID="waveform-container">
+      <View style={[styles.waveformContainer, styles.containerRelative]} testID="waveform-container">
         <View style={styles.waveform}>
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -316,11 +341,11 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         
         {/* Transparent overlay for gesture detection */}
         <GestureDetector gesture={composedGesture}>
-          <View ref={waveformRef} style={styles.gestureOverlay} />
+          <View ref={waveformRef} style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH }]} />
         </GestureDetector>
         
         {/* Visual overlay for markers and playhead */}
-        <View style={[styles.overlayContainer, { zIndex: 10 }]} pointerEvents="none">
+        <View style={[styles.overlayContainer, styles.overlayZIndex]} pointerEvents="none">
           <Svg width={VIEWPORT_WIDTH} height={300} style={styles.overlay}>
             {renderGridLines()}
             {layers.map(layer => renderLayerMarkers(layer))}
@@ -379,4 +404,14 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
 
 
 
-export default WaveformCanvas;
+// Memoize WaveformCanvas to prevent re-renders when only playhead position changes
+export default React.memo(WaveformCanvas, (prevProps, nextProps) => {
+  // Only re-render if props that affect waveform structure change
+  return (
+    prevProps.audioUri === nextProps.audioUri &&
+    prevProps.layers === nextProps.layers &&
+    prevProps.onSeek === nextProps.onSeek &&
+    prevProps.onScrubStart === nextProps.onScrubStart &&
+    prevProps.onScrubEnd === nextProps.onScrubEnd
+  );
+});

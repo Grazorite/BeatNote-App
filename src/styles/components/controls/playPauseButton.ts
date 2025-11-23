@@ -23,4 +23,10 @@ export const playPauseButtonStyles = StyleSheet.create({
     backgroundColor: '#444444',
     opacity: 0.5,
   },
+  repeatButtonActive: {
+    backgroundColor: '#ff6600', // Normal orange when active
+  },
+  repeatButtonInactive: {
+    backgroundColor: '#666666', // Gray when inactive
+  },
 });

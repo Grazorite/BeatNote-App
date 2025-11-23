@@ -1,6 +1,6 @@
 export { default as AudioControls } from './AudioControls';
 export { default as BpmControl } from './BpmControl';
-export { default as GhostPlayheadToggle } from './GhostPlayheadToggle';
+export { default as CanvasToggle } from './CanvasToggle';
 export { default as LayerControls } from './LayerControls';
 export { default as LayerNavigationToggle } from './LayerNavigationToggle';
 export { default as MarkerButton } from './MarkerButton';

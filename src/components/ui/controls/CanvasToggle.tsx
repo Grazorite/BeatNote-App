@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { colors } from '../../../styles/common';
 import AnimatedToggle from '../common/AnimatedToggle';
+import { canvasToggleStyles as styles } from '../../../styles/components/controls/canvasToggle';
 
 const CanvasToggle: React.FC = () => {
   const { showGhostInTimeline, setShowGhostInTimeline, showTimeline, setShowTimeline, showGridLines, setShowGridLines } = useStudioStore();
 
   return (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={{ color: colors.text, fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
+    <View style={styles.container}>
+      <Text style={styles.label}>
         Canvas
       </Text>
       <AnimatedToggle

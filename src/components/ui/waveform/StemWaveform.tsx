@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Path, Line, Circle, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
+import { useZoomGesture } from '../../../hooks/useZoomGesture';
+import { useScrollZoom } from '../../../hooks/useScrollZoom';
 
 interface StemWaveformProps {
   layers: Layer[];
@@ -41,6 +43,9 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
   const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
+  const pinchGesture = useZoomGesture();
+  const stemRef = useRef<View>(null);
+  const { handleWheelZoom } = useScrollZoom(stemRef);
   
   const updateTimeFromPosition = (x: number) => {
     const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;
@@ -48,24 +53,33 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     setCurrentTime(newCurrentTime);
   };
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
-    const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
-    setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
-    updateTimeFromPosition(event.x);
-    onSeek(newCurrentTime);
-  });
+  const tapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .onStart((event) => {
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      setGhostPlayheadTime(newCurrentTime); // Immediate visual feedback
+    })
+    .onEnd((event) => {
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      updateTimeFromPosition(event.x);
+      onSeek(newCurrentTime);
+    });
   
   const panGesture = Gesture.Pan()
+    .minDistance(5)
     .onBegin(() => {
       if (isPlaying) {
         onScrubStart();
       }
     })
     .onUpdate((event) => {
-      updateTimeFromPosition(event.x);
+      // Use absolute position within viewport bounds for consistent tracking
+      const clampedX = Math.max(0, Math.min(event.x, VIEWPORT_WIDTH));
+      updateTimeFromPosition(clampedX);
       // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      const targetTime = viewportStartTime + (clampedX / VIEWPORT_WIDTH) * viewportDuration;
       const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newGhostTime);
     })
@@ -73,7 +87,10 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       onScrubEnd();
     });
   
-  const composedGesture = Gesture.Race(tapGesture, panGesture);
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Race(tapGesture, panGesture),
+    pinchGesture
+  );
   
   const pathData = React.useMemo(() => {
     if (!waveformData) {
@@ -93,7 +110,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       viewportDuration,
       waveformData.duration
     );
-  }, [waveformData, viewportStartTime]);
+  }, [waveformData, viewportStartTime, viewportDuration, VIEWPORT_WIDTH]);
   
   const renderStemMarkers = () => {
     const layer = layers.find(l => l.id === stemId);
@@ -134,9 +151,8 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   }
 
   return (
-    <GestureDetector gesture={composedGesture}>
-      <View style={styles.waveformContainer}>
-        <Svg width={VIEWPORT_WIDTH} height={120} style={styles.canvas}>
+    <View style={styles.waveformContainer}>
+      <Svg width={VIEWPORT_WIDTH} height={120} style={styles.canvas}>
           <Path
             d={pathData}
             stroke="#00ff00"
@@ -167,8 +183,12 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             </>
           )}
         </Svg>
-      </View>
-    </GestureDetector>
+      
+      {/* Transparent overlay for gesture detection */}
+      <GestureDetector gesture={composedGesture}>
+        <View ref={stemRef} style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH }]} />
+      </GestureDetector>
+    </View>
   );
 };
 
@@ -178,6 +198,15 @@ const styles = StyleSheet.create({
   },
   waveformContainer: {
     height: 120,
+    position: 'relative',
+  },
+  gestureOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
   },
 });
 

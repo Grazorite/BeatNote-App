@@ -14,3 +14,5 @@ export { default as MarkerRemoveIcon } from './MarkerRemoveIcon';
 export { default as MarkerLeftIcon } from './MarkerLeftIcon';
 export { default as MarkerRightIcon } from './MarkerRightIcon';
 export { default as MarkerRemoveLastIcon } from './MarkerRemoveLastIcon';
+export { default as RepeatIcon } from './RepeatIcon';
+export { default as LoopMarkerIcon } from './LoopMarkerIcon';
