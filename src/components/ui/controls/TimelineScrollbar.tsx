@@ -16,6 +16,8 @@ interface TimelineScrollbarProps {
 const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const { 
     currentTime, 
+    ghostPlayheadTime,
+    showGhostInTimeline,
     viewportStartTime, 
     songDuration, 
     setViewportStartTime,
@@ -55,6 +57,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const viewportWidth = (VIEWPORT_DURATION / songDuration) * TIMELINE_WIDTH;
   const viewportX = (viewportStartTime / songDuration) * TIMELINE_WIDTH;
   const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
+  const ghostPlayheadPositionOnTimeline = ghostPlayheadTime ? (ghostPlayheadTime / songDuration) * TIMELINE_WIDTH : 0;
   
   const timelineWaveformPath = React.useMemo(() => {
     if (!waveformData) {
@@ -196,6 +199,33 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
                 />
               );
             }) : []
+          )}
+          
+          {/* Ghost playhead - only show if enabled and different from current */}
+          {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && (
+            <>
+              <Line
+                x1={ghostPlayheadPositionOnTimeline}
+                y1={18}
+                x2={ghostPlayheadPositionOnTimeline}
+                y2={62}
+                stroke="#ff6600"
+                strokeWidth={2}
+                strokeOpacity={0.5}
+                strokeDasharray="6,3"
+                filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
+                pointerEvents="none"
+              />
+              <Polygon
+                points={`${ghostPlayheadPositionOnTimeline - 3},62 ${ghostPlayheadPositionOnTimeline + 3},62 ${ghostPlayheadPositionOnTimeline + 3},56 ${ghostPlayheadPositionOnTimeline},53 ${ghostPlayheadPositionOnTimeline - 3},56`}
+                fill="#ff6600"
+                fillOpacity={0.5}
+                stroke="#000000"
+                strokeWidth={1}
+                strokeOpacity={0.3}
+                pointerEvents="none"
+              />
+            </>
           )}
           
           {/* Orange playhead - drawn first so it doesn't block touches */}

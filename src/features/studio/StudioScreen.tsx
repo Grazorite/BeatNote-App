@@ -8,10 +8,11 @@ import { ErrorModal } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
 
 export default function StudioScreen() {
-  const { layers, activeLayerId, viewMode } = useStudioStore();
+  const { layers, activeLayerId, viewMode, layerSpecificNavigation } = useStudioStore();
   const { sound, loadSong, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
 
   const activeLayer = layers.find(layer => layer.id === activeLayerId);
+  const activeLayerMarkers = activeLayer?.markers.length || 0;
   const totalMarkers = layers.reduce((sum, layer) => sum + layer.markers.length, 0);
 
   return (
@@ -26,7 +27,9 @@ export default function StudioScreen() {
         viewMode={viewMode}
         layers={layers}
         activeLayer={activeLayer}
+        activeLayerMarkers={activeLayerMarkers}
         totalMarkers={totalMarkers}
+        layerSpecificNavigation={layerSpecificNavigation}
         audioUri={audioUri}
         sound={sound}
         loadSong={loadSong}

@@ -14,7 +14,9 @@ interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
   layers: Layer[];
   activeLayer?: Layer;
+  activeLayerMarkers: number;
   totalMarkers: number;
+  layerSpecificNavigation: boolean;
   audioUri: string | null;
   sound: any;
   loadSong: () => void;
@@ -29,7 +31,9 @@ const MainContent: React.FC<MainContentProps> = ({
   viewMode,
   layers,
   activeLayer,
+  activeLayerMarkers,
   totalMarkers,
+  layerSpecificNavigation,
   audioUri,
   sound,
   loadSong,
@@ -70,15 +74,20 @@ const MainContent: React.FC<MainContentProps> = ({
       <TimelineScrollbar audioUri={audioUri || undefined} />
       
       <View style={styles.markerButtonContainer}>
-        <TapButton onTap={tapToBeat} />
+        <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
       </View>
       
       <View style={styles.statusContainer}>
         <Text style={styles.activeLayerText}>
           Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer?.name}</Text>
         </Text>
+        {layerSpecificNavigation && (
+          <Text style={styles.totalMarkersText}>
+            Total: {activeLayerMarkers} markers
+          </Text>
+        )}
         <Text style={styles.totalMarkersText}>
-          Total: {totalMarkers} markers
+          Grand Total: {totalMarkers} markers
         </Text>
       </View>
     </ScrollView>

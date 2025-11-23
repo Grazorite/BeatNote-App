@@ -7,6 +7,8 @@ import LayerControls from '../ui/controls/LayerControls';
 import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
+import GhostPlayheadToggle from '../ui/controls/GhostPlayheadToggle';
+import LayerNavigationToggle from '../ui/controls/LayerNavigationToggle';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
@@ -41,6 +43,12 @@ const Sidebar: React.FC = () => {
           </View>
           <View style={styles.sidebarSection}>
             <BpmControl />
+          </View>
+          <View style={styles.sidebarSection}>
+            <GhostPlayheadToggle />
+          </View>
+          <View style={styles.sidebarSection}>
+            <LayerNavigationToggle />
           </View>
         </ScrollView>
       </Animated.View>

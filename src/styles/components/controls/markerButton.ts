@@ -2,6 +2,10 @@ import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
 
 export const markerButtonStyles = StyleSheet.create({
+  markerButtonContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   markerButton: {
     width: 80,
     height: 80,

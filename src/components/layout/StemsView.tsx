@@ -5,6 +5,8 @@ import Svg, { Line, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 import StemWaveform from '../ui/waveform/StemWaveform';
 import RhythmicGrid from '../ui/waveform/RhythmicGrid';
+import LoadingSpinner from '../ui/common/LoadingSpinner';
+import { useWaveformData } from '../../hooks/useWaveformData';
 import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
 import { colors } from '../../styles/common';
 
@@ -37,7 +39,8 @@ const StemsView: React.FC<StemsViewProps> = ({
 }) => {
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
-  const { viewportStartTime, currentTime, songDuration, setViewportStartTime, setCurrentTime, isPlaying } = useStudioStore();
+  const { viewportStartTime, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded } = useStudioStore();
+  const { waveformData, loading } = useWaveformData(audioUri || null);
   
   const visibleStems = STEM_CONFIGS.filter(stem => 
     layers.some(layer => layer.id === stem.id)
@@ -70,6 +73,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     if (!audioUri) return;
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+    setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     onSeek(newCurrentTime);
   });
   
@@ -83,6 +87,10 @@ const StemsView: React.FC<StemsViewProps> = ({
     .onUpdate((event) => {
       if (!audioUri) return;
       updateTimeFromPosition(event.x);
+      // Update ghost playhead during scrubbing
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
+      setGhostPlayheadTime(newGhostTime);
     })
     .onEnd(() => {
       if (!audioUri) return;
@@ -93,7 +101,50 @@ const StemsView: React.FC<StemsViewProps> = ({
   
   const playheadX = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
   const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
+  
+  // Ghost playhead position
+  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH : 0;
+  const showGhostPlayhead = ghostPlayheadTime !== null && 
+    ghostPlayheadTime >= viewportStartTime && 
+    ghostPlayheadTime <= viewportStartTime + VIEWPORT_DURATION &&
+    Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
+  
   const totalStemHeight = visibleStems.length * 120;
+
+  if (!songLoaded || !audioUri) {
+    return (
+      <View style={styles.stemsView}>
+        <View style={styles.gridContainer}>
+          <View style={styles.gridSpacer} />
+          <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} overlayHeight={totalStemHeight} />
+        </View>
+        <View style={styles.stemsStack}>
+          {visibleStems.map((stem, index) => {
+            const layer = layers.find(l => l.id === stem.id);
+            const stemColor = layer?.color || stem.color;
+            
+            return (
+              <View key={stem.id} style={[styles.stemTrack, index < visibleStems.length - 1 && styles.stemTrackBorder]}>
+                <View style={styles.stemTrackLabel}>
+                  <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                </View>
+                <StemWaveform
+                  layers={layers}
+                  audioUri={undefined}
+                  stemId={stem.id}
+                  onSeek={onSeek}
+                  onScrubStart={onScrubStart}
+                  onScrubEnd={onScrubEnd}
+                  waveformColor={stemColor}
+                  showPlayhead={false}
+                />
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.stemsView}>
@@ -101,7 +152,26 @@ const StemsView: React.FC<StemsViewProps> = ({
         <View style={styles.gridSpacer} />
         <RhythmicGrid width={720} pixelsPerSecond={720 / (20000 / 1000)} overlayHeight={totalStemHeight} />
       </View>
-      <View style={styles.stemsStack}>
+      {loading ? (
+        <View style={styles.stemsStack}>
+          {visibleStems.map((stem, index) => {
+            const layer = layers.find(l => l.id === stem.id);
+            const stemColor = layer?.color || stem.color;
+            
+            return (
+              <View key={stem.id} style={[styles.stemTrack, index < visibleStems.length - 1 && styles.stemTrackBorder]}>
+                <View style={styles.stemTrackLabel}>
+                  <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                </View>
+                <View style={{ width: 720, height: 120, backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' }}>
+                  {index === Math.floor(visibleStems.length / 2) && <LoadingSpinner />}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      ) : (
+        <View style={styles.stemsStack}>
         {visibleStems.map((stem, index) => {
           const layer = layers.find(l => l.id === stem.id);
           const stemColor = layer?.color || stem.color;
@@ -129,6 +199,32 @@ const StemsView: React.FC<StemsViewProps> = ({
         <GestureDetector gesture={composedGesture}>
           <View style={styles.playheadOverlay}>
             <Svg width={VIEWPORT_WIDTH} height={totalStemHeight} style={styles.playheadSvg}>
+              {/* Ghost playhead */}
+              {showGhostPlayhead && audioUri && (
+                <>
+                  <Line
+                    x1={ghostPlayheadX}
+                    y1={0}
+                    x2={ghostPlayheadX}
+                    y2={totalStemHeight}
+                    stroke={colors.accent}
+                    strokeWidth={2}
+                    strokeOpacity={0.5}
+                    strokeDasharray="8,4"
+                    filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
+                  />
+                  <Polygon
+                    points={`${ghostPlayheadX-6},${totalStemHeight} ${ghostPlayheadX+6},${totalStemHeight} ${ghostPlayheadX+6},${totalStemHeight-12} ${ghostPlayheadX},${totalStemHeight-16} ${ghostPlayheadX-6},${totalStemHeight-12}`}
+                    fill={colors.accent}
+                    fillOpacity={0.5}
+                    stroke="#000000"
+                    strokeWidth={1}
+                    strokeOpacity={0.3}
+                  />
+                </>
+              )}
+              
+              {/* Current playhead */}
               {showPlayhead && audioUri && (
                 <>
                   <Line
@@ -151,7 +247,8 @@ const StemsView: React.FC<StemsViewProps> = ({
             </Svg>
           </View>
         </GestureDetector>
-      </View>
+        </View>
+      )}
     </View>
   );
 };

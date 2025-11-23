@@ -30,7 +30,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   showPlayhead = true,
 }) => {
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
-  const { viewportStartTime, currentTime, songDuration, setCurrentTime, songLoaded, isPlaying } = useStudioStore();
+  const { viewportStartTime, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
   
   const updateTimeFromPosition = (x: number) => {
@@ -42,6 +42,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   const tapGesture = Gesture.Tap().onEnd((event) => {
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+    setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     updateTimeFromPosition(event.x);
     onSeek(newCurrentTime);
   });
@@ -54,6 +55,10 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     })
     .onUpdate((event) => {
       updateTimeFromPosition(event.x);
+      // Update ghost playhead during scrubbing
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
+      setGhostPlayheadTime(newGhostTime);
     })
     .onEnd(() => {
       onScrubEnd();
@@ -132,6 +137,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
           />
           {renderStemMarkers()}
           
+          {/* Current playhead */}
           {showPlayhead && isPlayheadVisible && (
             <>
               <Line

@@ -13,6 +13,9 @@ export interface Layer {
 interface StudioStore {
   isPlaying: boolean;
   currentTime: number;
+  ghostPlayheadTime: number | null; // Last clicked position on waveform
+  showGhostInTimeline: boolean; // Toggle for ghost playhead in timeline
+  layerSpecificNavigation: boolean; // Toggle for layer-specific marker navigation
   viewportStartTime: number; // Start time of visible waveform section
   songDuration: number;
   layers: Layer[];
@@ -26,12 +29,17 @@ interface StudioStore {
   isSidebarCollapsed: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
+  setGhostPlayheadTime: (time: number | null) => void;
+  setShowGhostInTimeline: (show: boolean) => void;
+  setLayerSpecificNavigation: (enabled: boolean) => void;
   setViewportStartTime: (time: number) => void;
   setSongDuration: (duration: number) => void;
   setViewportLocked: (locked: boolean) => void;
   setBpm: (bpm: number) => void;
   setViewMode: (mode: 'unified' | 'multitrack') => void;
   toggleSidebar: () => void;
+  navigateToLeftMarker: () => void;
+  navigateToRightMarker: () => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
   clearAllMarkers: () => void;
@@ -71,6 +79,9 @@ const getLayersForDisplay = (allLayersData: Layer[], stemCount: 2 | 4 | 6): Laye
 export const useStudioStore = create<StudioStore>((set, get) => ({
   isPlaying: false,
   currentTime: 0,
+  ghostPlayheadTime: null,
+  showGhostInTimeline: false,
+  layerSpecificNavigation: false,
   viewportStartTime: 0,
   songDuration: 180000, // Default 3 minutes in ms
   layers: getLayersForDisplay(allLayers, 4),
@@ -84,12 +95,57 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   isSidebarCollapsed: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
+  setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
+  setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
+  setLayerSpecificNavigation: (enabled) => set({ layerSpecificNavigation: enabled }),
   setViewportStartTime: (time) => set({ viewportStartTime: time }),
   setSongDuration: (duration) => set({ songDuration: duration }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  navigateToLeftMarker: () => set((state) => {
+    const baseMarkers = state.layerSpecificNavigation 
+      ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
+      : state.allLayersData.flatMap(layer => layer.markers);
+    
+    const allMarkers = [...baseMarkers]; // Create a copy to avoid mutation
+    
+    if (state.ghostPlayheadTime !== null) {
+      allMarkers.push(state.ghostPlayheadTime);
+    }
+    allMarkers.push(0); // Start of song
+    
+    const leftMarkers = allMarkers
+      .filter(marker => marker < state.currentTime)
+      .sort((a, b) => b - a); // Descending order
+    
+    if (leftMarkers.length > 0) {
+      return { currentTime: leftMarkers[0] };
+    }
+    return {};
+  }),
+  navigateToRightMarker: () => set((state) => {
+    const baseMarkers = state.layerSpecificNavigation 
+      ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
+      : state.allLayersData.flatMap(layer => layer.markers);
+    
+    const allMarkers = [...baseMarkers]; // Create a copy to avoid mutation
+    
+    if (state.ghostPlayheadTime !== null) {
+      allMarkers.push(state.ghostPlayheadTime);
+    }
+    allMarkers.push(state.songDuration); // End of song
+    
+    const rightMarkers = allMarkers
+      .filter(marker => marker > state.currentTime)
+      .sort((a, b) => a - b); // Ascending order
+    
+    if (rightMarkers.length > 0) {
+      return { currentTime: rightMarkers[0] };
+    }
+    return {};
+  }),
   addMarker: (timestamp) => set((state) => {
     const markerTime = timestamp;
     const updatedAllLayers = state.allLayersData.map(layer => 

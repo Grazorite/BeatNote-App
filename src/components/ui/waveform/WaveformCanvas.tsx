@@ -28,7 +28,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   onScrubStart,
   onScrubEnd,
 }) => {
-  const { viewportStartTime, currentTime, songDuration, setViewportStartTime, setCurrentTime, songLoaded, isPlaying } = useStudioStore();
+  const { viewportStartTime, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
   
   const updateTimeFromPosition = (x: number) => {
@@ -56,6 +56,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     if (!songLoaded) return;
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+    setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     onSeek(newCurrentTime);
   });
   
@@ -69,6 +70,10 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     .onUpdate((event) => {
       if (!songLoaded) return;
       updateTimeFromPosition(event.x);
+      // Update ghost playhead during scrubbing
+      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
+      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
+      setGhostPlayheadTime(newGhostTime);
     })
     .onEnd(() => {
       if (!songLoaded) return;
@@ -137,7 +142,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
               cy={150}
-              r={6}
+              r={8}
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
@@ -151,7 +156,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
               cy={220}
-              r={5}
+              r={7}
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
@@ -164,8 +169,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Circle
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
-              cy={280}
-              r={5}
+              cy={30}
+              r={7}
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
@@ -182,6 +187,13 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   // Current playhead position in viewport
   const playheadX = ((currentTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH;
   const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + VIEWPORT_DURATION;
+  
+  // Ghost playhead position in viewport
+  const ghostPlayheadX = ghostPlayheadTime ? ((ghostPlayheadTime - viewportStartTime) / VIEWPORT_DURATION) * VIEWPORT_WIDTH : 0;
+  const showGhostPlayhead = ghostPlayheadTime !== null && 
+    ghostPlayheadTime >= viewportStartTime && 
+    ghostPlayheadTime <= viewportStartTime + VIEWPORT_DURATION &&
+    Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
 
   if (!songLoaded || !audioUri) {
     return (
@@ -248,6 +260,31 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         <View style={styles.overlayContainer} pointerEvents="none">
           <Svg width={VIEWPORT_WIDTH} height={300} style={styles.overlay}>
             {layers.map(layer => renderLayerMarkers(layer))}
+            
+            {/* Ghost playhead */}
+            {showGhostPlayhead && (
+              <>
+                <Line
+                  x1={ghostPlayheadX}
+                  y1={0}
+                  x2={ghostPlayheadX}
+                  y2={300}
+                  stroke={colors.accent}
+                  strokeWidth={2}
+                  strokeOpacity={0.5}
+                  strokeDasharray="8,4"
+                  filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
+                />
+                <Polygon
+                  points={`${ghostPlayheadX-6},300 ${ghostPlayheadX+6},300 ${ghostPlayheadX+6},288 ${ghostPlayheadX},284 ${ghostPlayheadX-6},288`}
+                  fill={colors.accent}
+                  fillOpacity={0.5}
+                  stroke="#000000"
+                  strokeWidth={1}
+                  strokeOpacity={0.3}
+                />
+              </>
+            )}
             
             {/* Current playhead */}
             {showPlayhead && (
