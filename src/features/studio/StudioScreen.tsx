@@ -21,17 +21,11 @@ export default function StudioScreen() {
   return (
     <View style={styles.mainContainer}>
       <ScrollView 
-        style={{ 
-          flex: 1, 
-          marginLeft: sidebarWidth,
-          transition: 'margin-left 0.3s ease'
-        }}
-        contentContainerStyle={{ 
-          justifyContent: 'flex-start', 
-          alignItems: 'center', 
-          paddingBottom: 50,
-          paddingTop: 20
-        }}
+        style={[
+          styles.scrollView,
+          isSidebarCollapsed ? styles.scrollViewCollapsed : styles.scrollViewExpanded
+        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
         <MainContent

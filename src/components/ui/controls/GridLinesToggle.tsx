@@ -1,29 +1,25 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { colors } from '../../../styles/common';
+import { gridLinesToggleStyles as styles } from '../../../styles/components/controls/gridLinesToggle';
+import AnimatedToggle from '../common/AnimatedToggle';
 
 const GridLinesToggle: React.FC = () => {
   const { showGridLines, setShowGridLines } = useStudioStore();
 
   return (
-    <View>
-      <Text style={{ color: colors.text, fontSize: 14, marginBottom: 8 }}>Grid Lines</Text>
-      <TouchableOpacity
+    <View style={styles.container}>
+      <Text style={styles.label}>Grid Lines</Text>
+      <AnimatedToggle
+        isActive={showGridLines}
         onPress={() => setShowGridLines(!showGridLines)}
-        style={{
-          backgroundColor: showGridLines ? colors.accent : colors.surface,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          borderRadius: 6,
-          borderWidth: 1,
-          borderColor: colors.border,
-        }}
-      >
-        <Text style={{ color: showGridLines ? colors.background : colors.text, fontSize: 14 }}>
-          {showGridLines ? 'ON' : 'OFF'}
-        </Text>
-      </TouchableOpacity>
+        activeText="On"
+        inactiveText="Off"
+        style={styles.toggleButton}
+        activeColor="#ff6600"
+        inactiveColor="#333333"
+        textColor={showGridLines ? '#000000' : '#ffffff'}
+      />
     </View>
   );
 };

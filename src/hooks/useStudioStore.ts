@@ -48,6 +48,7 @@ interface StudioStore {
   navigateToRightMarker: () => void;
   addMarker: (timestamp: number) => void;
   removeMarker: (timestamp: number) => void;
+  removeLastMarker: () => void;
   clearAllMarkers: () => void;
   setSongLoaded: (loaded: boolean) => void;
   setActiveLayer: (layerId: LayerId) => void;
@@ -180,6 +181,40 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
     };
+  }),
+  removeLastMarker: () => set((state) => {
+    const baseMarkers = state.layerSpecificNavigation 
+      ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
+      : state.allLayersData.flatMap(layer => layer.markers);
+    
+    const leftMarkers = baseMarkers
+      .filter(marker => marker < state.currentTime)
+      .sort((a, b) => b - a); // Descending order
+    
+    if (leftMarkers.length === 0) return {};
+    
+    const markerToRemove = leftMarkers[0];
+    
+    if (state.layerSpecificNavigation) {
+      const updatedAllLayers = state.allLayersData.map(layer => 
+        layer.id === state.activeLayerId
+          ? { ...layer, markers: layer.markers.filter(marker => marker !== markerToRemove) }
+          : layer
+      );
+      return {
+        allLayersData: updatedAllLayers,
+        layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
+      };
+    } else {
+      const updatedAllLayers = state.allLayersData.map(layer => ({
+        ...layer,
+        markers: layer.markers.filter(marker => marker !== markerToRemove)
+      }));
+      return {
+        allLayersData: updatedAllLayers,
+        layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
+      };
+    }
   }),
   clearAllMarkers: () => set((state) => {
     const clearedAllLayers = state.allLayersData.map(layer => ({ ...layer, markers: [] }));

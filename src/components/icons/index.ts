@@ -1,4 +1,8 @@
 export { default as VocalsIcon } from './VocalsIcon';
+export { default as PlayIcon } from './PlayIcon';
+export { default as PauseIcon } from './PauseIcon';
+export { default as SkipBackIcon } from './SkipBackIcon';
+export { default as SkipForwardIcon } from './SkipForwardIcon';
 export { default as DrumsIcon } from './DrumsIcon';
 export { default as BassIcon } from './BassIcon';
 export { default as PianoIcon } from './PianoIcon';
@@ -9,3 +13,4 @@ export { default as MarkerAddIcon } from './MarkerAddIcon';
 export { default as MarkerRemoveIcon } from './MarkerRemoveIcon';
 export { default as MarkerLeftIcon } from './MarkerLeftIcon';
 export { default as MarkerRightIcon } from './MarkerRightIcon';
+export { default as MarkerRemoveLastIcon } from './MarkerRemoveLastIcon';

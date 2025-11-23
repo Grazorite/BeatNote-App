@@ -27,13 +27,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         </Text>
       </TouchableOpacity>
       
-      <TouchableOpacity 
-        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
-        onPress={songLoaded ? onTogglePlayback : undefined}
-        disabled={!songLoaded}
-      >
-        <Text style={styles.buttonText}>{isPlaying ? 'Pause' : 'Play'}</Text>
-      </TouchableOpacity>
+
     </View>
   );
 };

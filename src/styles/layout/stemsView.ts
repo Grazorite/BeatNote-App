@@ -50,4 +50,11 @@ export const stemsViewStyles = StyleSheet.create({
     top: 0,
     left: 0,
   },
+  loadingWaveform: {
+    width: 720,
+    height: 120,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

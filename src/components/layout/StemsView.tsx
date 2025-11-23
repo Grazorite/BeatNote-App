@@ -170,7 +170,7 @@ const StemsView: React.FC<StemsViewProps> = ({
                 <View style={styles.stemTrackLabel}>
                   <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
                 </View>
-                <View style={{ width: 720, height: 120, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                <View style={styles.loadingWaveform}>
                   {index === Math.floor(visibleStems.length / 2) && <LoadingSpinner />}
                 </View>
               </View>

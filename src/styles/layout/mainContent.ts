@@ -18,9 +18,16 @@ export const mainContentStyles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: dimensions.spacing.sm,
   },
-  markerButtonContainer: {
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
     marginTop: dimensions.spacing.lg,
     marginBottom: 8,
+    paddingHorizontal: 20,
+  },
+  markerButtonContainer: {
     alignItems: 'center',
   },
   subtitle: {
