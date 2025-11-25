@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, RepeatIcon } from '../../icons';
-import { playPauseButtonStyles as styles } from '../../../styles/components/controls/playPauseButton';
+import { Play, Pause, SkipBack, SkipForward, Repeat2 } from 'lucide-react-native';
+import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
 
-interface PlayPauseButtonProps {
+interface AudioControlsProps {
   onTogglePlayback: () => void;
   onSkipBack: () => void;
   onSkipForward: () => void;
 }
 
-const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({ 
+const AudioControls: React.FC<AudioControlsProps> = ({ 
   onTogglePlayback, 
   onSkipBack, 
   onSkipForward 
@@ -20,9 +20,9 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   const canSkipBack = songLoaded && currentTime > 0;
   const canSkipForward = songLoaded && currentTime < songDuration;
 
-  const getPlayPauseButtonStyle = (enabled: boolean) => [
+  const getAudioControlsStyle = (enabled: boolean) => [
     styles.button,
-    enabled ? styles.playPauseButtonEnabled : styles.buttonDisabled
+    enabled ? styles.audioControlsEnabled : styles.buttonDisabled
   ];
   
   const getSkipButtonStyle = (enabled: boolean) => [
@@ -45,11 +45,11 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <SkipBackIcon size={32} color={canSkipBack ? "#ffffff" : "#666666"} />
+        <SkipBack size={32} color={canSkipBack ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getPlayPauseButtonStyle(songLoaded)}
+        style={getAudioControlsStyle(songLoaded)}
         onPress={songLoaded ? onTogglePlayback : undefined}
         disabled={!songLoaded}
         activeOpacity={1}
@@ -57,9 +57,9 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
         delayPressOut={0}
       >
         {isPlaying ? (
-          <PauseIcon size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+          <Pause size={32} color={songLoaded ? "#ffffff" : "#666666"} />
         ) : (
-          <PlayIcon size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+          <Play size={32} color={songLoaded ? "#ffffff" : "#666666"} />
         )}
       </TouchableOpacity>
       
@@ -71,7 +71,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <SkipForwardIcon size={32} color={canSkipForward ? "#ffffff" : "#666666"} />
+        <SkipForward size={32} color={canSkipForward ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -82,10 +82,10 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <RepeatIcon size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+        <Repeat2 size={32} color={songLoaded ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
     </View>
   );
 };
 
-export default PlayPauseButton;
+export default AudioControls;

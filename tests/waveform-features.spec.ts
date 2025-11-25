@@ -98,8 +98,8 @@ test.describe('Waveform Features', () => {
       await playButton.click();
       
       // Verify button remains clickable
-      const playPauseButton = page.getByText('Play').or(page.getByText('Pause'));
-      await expect(playPauseButton).toBeVisible();
+      const audioControls = page.getByText('Play').or(page.getByText('Pause'));
+      await expect(audioControls).toBeVisible();
     });
   });
 

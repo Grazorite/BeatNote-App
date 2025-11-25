@@ -146,7 +146,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   lastRemovedMarker: null,
   isRepeatActive: false,
   isLoopMarkerActive: false,
-  magneticSnapping: false,
+  magneticSnapping: true,
   showAnnotations: true,
   isTextInputFocused: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),

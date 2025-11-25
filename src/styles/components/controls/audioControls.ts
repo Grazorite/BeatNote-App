@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const playPauseButtonStyles = StyleSheet.create({
+export const audioControlsStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: 8,

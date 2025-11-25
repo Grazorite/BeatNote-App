@@ -1,5 +1,6 @@
 import React from 'react';
-import Svg, { Polygon, Line } from 'react-native-svg';
+import { View } from 'react-native';
+import { ArrowLeft, Bookmark } from 'lucide-react-native';
 
 interface IconProps {
   size?: number;
@@ -7,39 +8,10 @@ interface IconProps {
 }
 
 const MarkerLeftIcon: React.FC<IconProps> = ({ size = 20, color = '#ffffff' }) => (
-  <Svg width={size * 2} height={size} viewBox="0 0 48 24" fill="none">
-    <Polygon
-      points="4,2 20,2 20,17 12,22 4,17"
-      fill={color}
-    />
-    <Line
-      x1="42"
-      y1="12"
-      x2="30"
-      y2="12"
-      stroke={color}
-      strokeWidth={3}
-      strokeLinecap="round"
-    />
-    <Line
-      x1="36"
-      y1="7.5"
-      x2="30"
-      y2="12"
-      stroke={color}
-      strokeWidth={3}
-      strokeLinecap="round"
-    />
-    <Line
-      x1="36"
-      y1="16.5"
-      x2="30"
-      y2="12"
-      stroke={color}
-      strokeWidth={3}
-      strokeLinecap="round"
-    />
-  </Svg>
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+    <ArrowLeft size={size * 0.8} color={color} />
+    <Bookmark size={size} color={color} />
+  </View>
 );
 
 export default MarkerLeftIcon;

@@ -6,7 +6,7 @@ import ProjectControls from '../ui/controls/ProjectControls';
 
 import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
 import TapButton from '../ui/controls/MarkerButton';
-import PlayPauseButton from '../ui/controls/PlayPauseButton';
+import AudioControls from '../ui/controls/AudioControls';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
 import WaveformCanvas from '../ui/waveform/WaveformCanvas';
@@ -115,7 +115,7 @@ const MainContent: React.FC<MainContentProps> = ({
       <TimelineScrollbar audioUri={audioUri || undefined} />
       
       <View style={styles.controlsRow}>
-        <PlayPauseButton 
+        <AudioControls 
           onTogglePlayback={togglePlayback}
           onSkipBack={() => seekToPosition(0)}
           onSkipForward={() => {
