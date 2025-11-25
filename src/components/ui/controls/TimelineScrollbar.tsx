@@ -86,14 +86,12 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const innerWidth = Math.max(0, Math.min(viewportWidth, TIMELINE_WIDTH - innerX - 6));
   const contentStartTime = (innerX / TIMELINE_WIDTH) * songDuration;
   const contentDuration = (innerWidth / TIMELINE_WIDTH) * songDuration;
-  // Map playhead positions to inner bounds only if within viewport
-  const playheadPositionOnTimeline = currentTime >= constrainedViewportStartTime && currentTime <= constrainedViewportStartTime + constrainedViewportDuration 
-    ? innerX + ((currentTime - constrainedViewportStartTime) / constrainedViewportDuration) * innerWidth
-    : -100; // Position off-screen if outside viewport
+  // Always show playhead in timeline, constrained to timeline bounds
+  const playheadPositionOnTimeline = Math.max(0, Math.min(TIMELINE_WIDTH, (currentTime / songDuration) * TIMELINE_WIDTH));
     
-  const ghostPlayheadPositionOnTimeline = ghostPlayheadTime && ghostPlayheadTime >= constrainedViewportStartTime && ghostPlayheadTime <= constrainedViewportStartTime + constrainedViewportDuration
-    ? innerX + ((ghostPlayheadTime - constrainedViewportStartTime) / constrainedViewportDuration) * innerWidth
-    : -100; // Position off-screen if outside viewport
+  const ghostPlayheadPositionOnTimeline = ghostPlayheadTime !== null
+    ? Math.max(0, Math.min(TIMELINE_WIDTH, (ghostPlayheadTime / songDuration) * TIMELINE_WIDTH))
+    : -100; // Position off-screen if no ghost playhead
   
   const timelineWaveformPath = React.useMemo(() => {
     if (!waveformData) {
@@ -107,13 +105,13 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     
     return generateWaveformPath(
       waveformData.peaks,
-      innerWidth,
+      TIMELINE_WIDTH,
       40,
-      contentStartTime,
-      contentDuration,
+      0,
+      songDuration,
       waveformData.duration
     );
-  }, [waveformData]);
+  }, [waveformData, TIMELINE_WIDTH, songDuration]);
 
   const dragState = useRef({
     initialViewportStart: 0,
@@ -243,7 +241,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               strokeWidth={1}
               fill="none"
               strokeOpacity={0.6}
-              transform={`translate(${innerX}, 20)`}
+              transform="translate(0, 20)"
             />
             
             {layers.flatMap(layer => 
@@ -281,7 +279,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             )}
             
             {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && 
-             ghostPlayheadPositionOnTimeline > 0 && (
+             ghostPlayheadPositionOnTimeline >= 0 && (
               <>
                 <Line
                   x1={ghostPlayheadPositionOnTimeline}
@@ -304,7 +302,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               </>
             )}
             
-            {playheadPositionOnTimeline > 0 && (
+            {playheadPositionOnTimeline >= 0 && (
               <>
                 <Line
                   x1={playheadPositionOnTimeline}

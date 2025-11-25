@@ -13,7 +13,7 @@ export const audioControlsStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playPauseButtonEnabled: {
+  audioControlsEnabled: {
     backgroundColor: '#ff8c00', // Prominent orange for main play/pause
   },
   skipButtonEnabled: {

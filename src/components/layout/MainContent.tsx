@@ -120,10 +120,8 @@ const MainContent: React.FC<MainContentProps> = ({
           onSkipBack={() => seekToPosition(0)}
           onSkipForward={() => {
             const state = useStudioStore.getState();
-            const newTime = state.songDuration - 100;
-            seekToPosition(newTime);
-            // Force marker button re-render by updating current time in store
-            state.setCurrentTime(newTime);
+            seekToPosition(state.songDuration);
+            state.setCurrentTime(state.songDuration);
           }}
         />
         <AnnotationField ref={annotationFieldRef} />

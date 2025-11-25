@@ -62,8 +62,6 @@ const AnnotationField = forwardRef<AnnotationFieldRef>((props, ref) => {
     }
   };
   
-  if (!showAnnotations) return null;
-  
   // Check if any layer has a marker at current position
   const hasNearbyMarker = allLayersData.some(layer => 
     layer.markers.some(marker => Math.abs(marker - currentTime) < 100)
@@ -76,6 +74,8 @@ const AnnotationField = forwardRef<AnnotationFieldRef>((props, ref) => {
       }
     }
   }), [hasNearbyMarker, songLoaded]);
+  
+  if (!showAnnotations) return null;
   
   return (
     <View style={{

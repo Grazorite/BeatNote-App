@@ -12,6 +12,8 @@ export const projectControlsStyles = StyleSheet.create({
     paddingHorizontal: dimensions.spacing.lg,
     paddingVertical: dimensions.spacing.sm,
     borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   buttonDisabled: {
     backgroundColor: colors.surface,

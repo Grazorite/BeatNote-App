@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
-import { Mic, Music, Piano, Guitar, Drum, Music2 } from 'lucide-react-native';
+import { Mic, Music, Piano, Guitar, Drum, Radio } from 'lucide-react-native';
 import { horizontalLayerSelectorStyles as styles } from '../../../styles/components/controls/horizontalLayerSelector';
 
 const HorizontalLayerSelector: React.FC = () => {
@@ -12,10 +12,10 @@ const HorizontalLayerSelector: React.FC = () => {
     switch (layerId) {
       case 'vocals': return <Mic {...iconProps} />;
       case 'drums': return <Drum {...iconProps} />;
-      case 'bass': return <Music {...iconProps} />;
+      case 'bass': return <Radio {...iconProps} />;
       case 'piano': return <Piano {...iconProps} />;
       case 'guitar': return <Guitar {...iconProps} />;
-      case 'other': return <Music2 {...iconProps} />;
+      case 'other': return <Music {...iconProps} />;
       default: return null;
     }
   };

@@ -3,12 +3,21 @@ import { colors } from '../../common';
 
 export const markerOptionsToggleStyles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    // marginBottom handled dynamically in component
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
   label: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
+  },
+  content: {
+    marginTop: 8,
+    paddingLeft: 16,
   },
 });

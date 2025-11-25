@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, Text, Alert } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
+import { Upload, Save, FolderOpen, Download, AudioLines } from 'lucide-react-native';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
 import ExportModal from '../modals/ExportModal';
@@ -64,8 +65,9 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         style={[styles.button, songLoaded && styles.buttonLoaded]} 
         onPress={onLoadSong}
       >
+        <AudioLines size={20} color="#ffffff" style={{ marginRight: 8 }} />
         <Text style={styles.buttonText}>
-          {songLoaded ? '♪ Song Loaded' : 'Load Song'}
+          {songLoaded ? 'Song Loaded' : 'Load Song'}
         </Text>
       </TouchableOpacity>
       
@@ -74,13 +76,16 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         onPress={songLoaded ? () => setShowSaveModal(true) : undefined}
         disabled={!songLoaded}
       >
+        <Save size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
         <Text style={styles.buttonText}>Save Project</Text>
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={styles.button} 
-        onPress={() => setShowProjectManager(true)}
+        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
+        onPress={songLoaded ? () => setShowProjectManager(true) : undefined}
+        disabled={!songLoaded}
       >
+        <FolderOpen size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
         <Text style={styles.buttonText}>Load Project</Text>
       </TouchableOpacity>
       
@@ -89,6 +94,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
         disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
       >
+        <Download size={20} color={songLoaded && layers.some(l => l.markers.length > 0) ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
         <Text style={styles.buttonText}>Export Data</Text>
       </TouchableOpacity>
       
@@ -97,6 +103,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         onPress={songLoaded ? () => setShowImportModal(true) : undefined}
         disabled={!songLoaded}
       >
+        <Upload size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
         <Text style={styles.buttonText}>Import Data</Text>
       </TouchableOpacity>
 

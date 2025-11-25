@@ -20,7 +20,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const canSkipBack = songLoaded && currentTime > 0;
   const canSkipForward = songLoaded && currentTime < songDuration;
 
-  const getAudioControlsStyle = (enabled: boolean) => [
+  const getPlayPauseButtonStyle = (enabled: boolean) => [
     styles.button,
     enabled ? styles.audioControlsEnabled : styles.buttonDisabled
   ];
@@ -49,7 +49,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getAudioControlsStyle(songLoaded)}
+        style={getPlayPauseButtonStyle(songLoaded)}
         onPress={songLoaded ? onTogglePlayback : undefined}
         disabled={!songLoaded}
         activeOpacity={1}
