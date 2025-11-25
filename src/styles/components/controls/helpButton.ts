@@ -14,6 +14,11 @@ export const helpButtonStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   buttonText: {
     color: '#ffffff',
     fontSize: 15,

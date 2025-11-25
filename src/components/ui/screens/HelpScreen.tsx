@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { HelpCircle } from 'lucide-react-native';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 
 interface HelpScreenProps {
@@ -18,9 +19,12 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
       <View style={styles.overlay}>
         <View style={styles.modal}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          BeatNote Help
-        </Text>
+        <View style={styles.titleContainer}>
+          <HelpCircle size={24} color="#ff6600" />
+          <Text style={styles.title}>
+            BeatNote Help
+          </Text>
+        </View>
         <TouchableOpacity
           onPress={onClose}
           style={styles.closeButton}

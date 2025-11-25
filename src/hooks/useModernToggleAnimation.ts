@@ -1,4 +1,4 @@
-import { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
+import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useEffect } from 'react';
 import { colors } from '../styles/common';
 
@@ -7,10 +7,7 @@ export const useModernToggleAnimation = (isEnabled: boolean) => {
   const trackOpacity = useSharedValue(isEnabled ? 1 : 0.3);
 
   useEffect(() => {
-    thumbPosition.value = withSpring(isEnabled ? 1 : 0, {
-      damping: 12,
-      stiffness: 200,
-    });
+    thumbPosition.value = withTiming(isEnabled ? 1 : 0, { duration: 150 });
     trackOpacity.value = withTiming(isEnabled ? 1 : 0.3, { duration: 100 });
   }, [isEnabled, thumbPosition, trackOpacity]);
 

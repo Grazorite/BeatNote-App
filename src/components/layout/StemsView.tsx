@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
-import { Layer, useStudioStore } from '../../hooks/useStudioStore';
+import { Mic, Drum, Radio, Piano, Guitar, Music } from 'lucide-react-native';
+import { Layer, useStudioStore, LayerId } from '../../hooks/useStudioStore';
 import StemWaveform from '../ui/waveform/StemWaveform';
 import RhythmicGrid from '../ui/waveform/RhythmicGrid';
 import LoadingSpinner from '../ui/common/LoadingSpinner';
@@ -20,6 +21,19 @@ interface StemsViewProps {
   onScrubStart: () => void;
   onScrubEnd: () => void;
 }
+
+const getStemIcon = (stemId: LayerId, color: string) => {
+  const iconProps = { size: 20, color };
+  switch (stemId) {
+    case 'vocals': return <Mic {...iconProps} />;
+    case 'drums': return <Drum {...iconProps} />;
+    case 'bass': return <Radio {...iconProps} />;
+    case 'piano': return <Piano {...iconProps} />;
+    case 'guitar': return <Guitar {...iconProps} />;
+    case 'other': return <Music {...iconProps} />;
+    default: return null;
+  }
+};
 
 const STEM_CONFIGS = [
   { name: 'Vocals', id: 'vocals', color: '#ff6666' },
@@ -160,7 +174,10 @@ const StemsView: React.FC<StemsViewProps> = ({
             return (
               <View key={stem.id} style={[styles.stemTrack, index < visibleStems.length - 1 && styles.stemTrackBorder]}>
                 <View style={styles.stemTrackLabel}>
-                  <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                  <View style={styles.stemLabelContent}>
+                    {getStemIcon(stem.id as LayerId, stemColor)}
+                    <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                  </View>
                 </View>
                 <StemWaveform
                   layers={layers}
@@ -213,7 +230,10 @@ const StemsView: React.FC<StemsViewProps> = ({
           return (
             <View key={stem.id} style={[styles.stemTrack, index < visibleStems.length - 1 && styles.stemTrackBorder]}>
               <View style={styles.stemTrackLabel}>
-                <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                <View style={styles.stemLabelContent}>
+                  {getStemIcon(stem.id as LayerId, stemColor)}
+                  <Text style={[styles.stemLabelText, { color: stemColor }]}>{stem.name}</Text>
+                </View>
               </View>
               <StemWaveform
                 layers={layers}

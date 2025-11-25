@@ -28,6 +28,10 @@ export const stemsViewStyles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: colors.border,
   },
+  stemLabelContent: {
+    alignItems: 'center',
+    gap: 4,
+  },
   stemLabelText: {
     fontSize: 12,
     fontWeight: '600',

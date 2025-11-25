@@ -25,6 +25,11 @@ export const helpScreenStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     color: '#ffffff',
     fontSize: 20,
