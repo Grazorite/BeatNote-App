@@ -80,8 +80,20 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   
   const viewportWidth = Math.min((constrainedViewportDuration / songDuration) * TIMELINE_WIDTH, TIMELINE_WIDTH);
   const viewportX = (constrainedViewportStartTime / songDuration) * TIMELINE_WIDTH;
-  const playheadPositionOnTimeline = (currentTime / songDuration) * TIMELINE_WIDTH;
-  const ghostPlayheadPositionOnTimeline = ghostPlayheadTime ? (ghostPlayheadTime / songDuration) * TIMELINE_WIDTH : 0;
+  
+  // Inner bounds for content (excluding resize handles)
+  const innerX = Math.max(6, viewportX);
+  const innerWidth = Math.max(0, Math.min(viewportWidth, TIMELINE_WIDTH - innerX - 6));
+  const contentStartTime = (innerX / TIMELINE_WIDTH) * songDuration;
+  const contentDuration = (innerWidth / TIMELINE_WIDTH) * songDuration;
+  // Map playhead positions to inner bounds only if within viewport
+  const playheadPositionOnTimeline = currentTime >= constrainedViewportStartTime && currentTime <= constrainedViewportStartTime + constrainedViewportDuration 
+    ? innerX + ((currentTime - constrainedViewportStartTime) / constrainedViewportDuration) * innerWidth
+    : -100; // Position off-screen if outside viewport
+    
+  const ghostPlayheadPositionOnTimeline = ghostPlayheadTime && ghostPlayheadTime >= constrainedViewportStartTime && ghostPlayheadTime <= constrainedViewportStartTime + constrainedViewportDuration
+    ? innerX + ((ghostPlayheadTime - constrainedViewportStartTime) / constrainedViewportDuration) * innerWidth
+    : -100; // Position off-screen if outside viewport
   
   const timelineWaveformPath = React.useMemo(() => {
     if (!waveformData) {
@@ -95,10 +107,10 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     
     return generateWaveformPath(
       waveformData.peaks,
-      TIMELINE_WIDTH,
+      innerWidth,
       40,
-      0,
-      waveformData.duration,
+      contentStartTime,
+      contentDuration,
       waveformData.duration
     );
   }, [waveformData]);
@@ -218,6 +230,11 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             style={[styles.cursorResize, { position: 'absolute', left: Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6), top: 18, width: 12, height: 44, zIndex: 10 }]}
           />
           <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
+            <defs>
+              <clipPath id="timelineClip">
+                <rect x={innerX} y={0} width={innerWidth} height={40} />
+              </clipPath>
+            </defs>
             <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
             
             <Path
@@ -226,39 +243,45 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               strokeWidth={1}
               fill="none"
               strokeOpacity={0.6}
-              transform="translate(0, 20)"
+              transform={`translate(${innerX}, 20)`}
             />
             
             {layers.flatMap(layer => 
-              layer.isVisible ? layer.markers.map((marker, index) => {
-                const x = (marker / songDuration) * TIMELINE_WIDTH;
-                const key = `${layer.id}-${marker}-${index}`;
-                
-                return (layer.id === 'piano' || layer.id === 'other') ? (
-                  <Circle
-                    key={key}
-                    cx={x}
-                    cy={40}
-                    r={5}
-                    fill={layer.color}
-                    stroke="#000000"
-                    strokeWidth={1}
-                  />
-                ) : (
-                  <Line
-                    key={key}
-                    x1={x}
-                    y1={25}
-                    x2={x}
-                    y2={55}
-                    stroke={layer.color}
-                    strokeWidth={2}
-                  />
-                );
-              }) : []
+              layer.isVisible ? layer.markers
+                .filter(marker => {
+                  const x = (marker / songDuration) * TIMELINE_WIDTH;
+                  return x >= innerX && x <= innerX + innerWidth;
+                })
+                .map((marker, index) => {
+                  const x = (marker / songDuration) * TIMELINE_WIDTH;
+                  const key = `${layer.id}-${marker}-${index}`;
+                  
+                  return (layer.id === 'piano' || layer.id === 'other') ? (
+                    <Circle
+                      key={key}
+                      cx={x}
+                      cy={40}
+                      r={5}
+                      fill={layer.color}
+                      stroke="#000000"
+                      strokeWidth={1}
+                    />
+                  ) : (
+                    <Line
+                      key={key}
+                      x1={x}
+                      y1={25}
+                      x2={x}
+                      y2={55}
+                      stroke={layer.color}
+                      strokeWidth={2}
+                    />
+                  );
+                }) : []
             )}
             
-            {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && (
+            {showGhostInTimeline && ghostPlayheadTime !== null && Math.abs(ghostPlayheadTime - currentTime) > 100 && 
+             ghostPlayheadPositionOnTimeline > 0 && (
               <>
                 <Line
                   x1={ghostPlayheadPositionOnTimeline}
@@ -281,20 +304,24 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
               </>
             )}
             
-            <Line
-              x1={playheadPositionOnTimeline}
-              y1={18}
-              x2={playheadPositionOnTimeline}
-              y2={62}
-              stroke="#ff6600"
-              strokeWidth={3}
-            />
-            <Polygon
-              points={`${playheadPositionOnTimeline - 4},62 ${playheadPositionOnTimeline + 4},62 ${playheadPositionOnTimeline + 4},55 ${playheadPositionOnTimeline},52 ${playheadPositionOnTimeline - 4},55`}
-              fill="#ff6600"
-              stroke="#000000"
-              strokeWidth={1}
-            />
+            {playheadPositionOnTimeline > 0 && (
+              <>
+                <Line
+                  x1={playheadPositionOnTimeline}
+                  y1={18}
+                  x2={playheadPositionOnTimeline}
+                  y2={62}
+                  stroke="#ff6600"
+                  strokeWidth={3}
+                />
+                <Polygon
+                  points={`${playheadPositionOnTimeline - 4},62 ${playheadPositionOnTimeline + 4},62 ${playheadPositionOnTimeline + 4},55 ${playheadPositionOnTimeline},52 ${playheadPositionOnTimeline - 4},55`}
+                  fill="#ff6600"
+                  stroke="#000000"
+                  strokeWidth={1}
+                />
+              </>
+            )}
             
             <Rect 
               x={viewportX}

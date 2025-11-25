@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, Text, Alert } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
+import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
 import ExportModal from '../modals/ExportModal';
+import ImportModal from '../modals/ImportModal';
 
-interface AudioControlsProps {
+interface ProjectControlsProps {
   onLoadSong: () => void;
   onTogglePlayback: () => void;
   hasSound: boolean;
@@ -14,7 +15,7 @@ interface AudioControlsProps {
   audioFilename: string | null;
 }
 
-const AudioControls: React.FC<AudioControlsProps> = ({
+const ProjectControls: React.FC<ProjectControlsProps> = ({
   onLoadSong,
   onTogglePlayback,
   hasSound,
@@ -25,6 +26,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const handleSaveProject = useCallback(async (projectName: string) => {
     if (!audioUri || !audioFilename) {
@@ -50,6 +52,11 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       Alert.alert('Error', 'Failed to load project');
     }
   }, [loadProject]);
+
+  const handleImportSuccess = useCallback(() => {
+    setShowImportModal(false);
+    Alert.alert('Import Successful', 'CSV data has been imported and merged with existing markers.');
+  }, []);
 
   return (
     <View style={styles.controls}>
@@ -82,7 +89,15 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
         disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
       >
-        <Text style={styles.buttonText}>Export Markers</Text>
+        <Text style={styles.buttonText}>Export Data</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
+        onPress={songLoaded ? () => setShowImportModal(true) : undefined}
+        disabled={!songLoaded}
+      >
+        <Text style={styles.buttonText}>Import Data</Text>
       </TouchableOpacity>
 
       <SaveProjectModal
@@ -102,10 +117,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         onClose={() => setShowExportModal(false)}
         projectName={audioFilename || 'Untitled'}
       />
+      
+      <ImportModal
+        visible={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={handleImportSuccess}
+      />
     </View>
   );
 };
 
-
-
-export default AudioControls;
+export default ProjectControls;

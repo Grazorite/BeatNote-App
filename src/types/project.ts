@@ -17,6 +17,7 @@ export interface BeatNoteProject {
     name: string;
     color: string;
     markers: number[];
+    annotations: { timestamp: number; text: string; }[];
     isVisible: boolean;
   }[];
   settings: {

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors } from '../../common';
 
-export const layerNavigationToggleStyles = StyleSheet.create({
+export const canvasOptionsToggleStyles = StyleSheet.create({
   container: {
     marginBottom: 16,
   },

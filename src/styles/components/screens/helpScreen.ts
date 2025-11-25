@@ -1,9 +1,21 @@
 import { StyleSheet } from 'react-native';
 
 export const helpScreenStyles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modal: {
     backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    maxWidth: 800,
+    maxHeight: '90%',
+    width: '90%',
+    borderWidth: 1,
+    borderColor: '#333333',
   },
   header: {
     flexDirection: 'row',
@@ -29,7 +41,7 @@ export const helpScreenStyles = StyleSheet.create({
     fontWeight: '600',
   },
   scrollContainer: {
-    flex: 1,
+    maxHeight: 600,
     padding: 16,
   },
   section: {

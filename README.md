@@ -16,7 +16,7 @@ A professional React Native audio annotation app for multi-track music analysis 
 - File loading with expo-document-picker
 - "Tap to beat" functionality with timestamp markers
 - Zustand state management
-- Modular component architecture (AudioControls, WaveformCanvas, MarkerButton)
+- Modular component architecture (ProjectControls, WaveformCanvas, MarkerButton)
 - Custom hooks (useAudioPlayer, useWaveformAnimation, useStudioStore)
 
 ### Phase 3: Professional Multi-Track System
@@ -67,7 +67,7 @@ npx expo start
 ```text
 src/
 ├── components/ui/          # Reusable UI components
-│   ├── AudioControls.tsx   # Play/pause and load controls
+│   ├── ProjectControls.tsx   # Play/pause and load controls
 │   ├── LayerControls.tsx   # Layer selection and visibility
 │   ├── StemSelector.tsx    # Stem count selection (2/4/5)
 │   ├── MarkerButton.tsx       # Marker placement button

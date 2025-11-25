@@ -11,6 +11,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import RhythmicGrid from './RhythmicGrid';
 import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
 import { colors } from '../../../styles/common';
+import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
 
 interface WaveformCanvasProps {
   audioUri?: string;
@@ -50,6 +51,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const isPlaying = useStudioStore(state => state.isPlaying);
   const showGridLines = useStudioStore(state => state.showGridLines);
   const bpm = useStudioStore(state => state.bpm);
+  const magneticSnapping = useStudioStore(state => state.magneticSnapping);
+  const allLayersData = useStudioStore(state => state.allLayersData);
   const setViewportStartTime = useStudioStore(state => state.setViewportStartTime);
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
@@ -96,13 +99,29 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     .maxDuration(250)
     .onStart((event) => {
       if (!songLoaded) return;
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
       const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newCurrentTime); // Immediate visual feedback
     })
     .onEnd((event) => {
       if (!songLoaded) return;
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
       const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
       onSeek(newCurrentTime);
     });
@@ -117,11 +136,19 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     })
     .onUpdate((event) => {
       if (!songLoaded) return;
-      updateTimeFromPosition(event.x, true); // Disable auto-scroll during dragging
-      // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
-      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
-      setGhostPlayheadTime(newGhostTime);
+      
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      setCurrentTime(newCurrentTime);
+      setGhostPlayheadTime(newCurrentTime);
     })
     .onEnd(() => {
       if (!songLoaded) return;

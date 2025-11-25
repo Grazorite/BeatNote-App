@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
-import AudioControls from '../ui/controls/AudioControls';
+import ProjectControls from '../ui/controls/ProjectControls';
 
 import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
 import TapButton from '../ui/controls/MarkerButton';
 import PlayPauseButton from '../ui/controls/PlayPauseButton';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
+import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
 import WaveformCanvas from '../ui/waveform/WaveformCanvas';
 
 import StemsView from './StemsView';
@@ -28,6 +29,7 @@ interface MainContentProps {
   seekToPosition: (position: number) => void;
   startWaveformScrub: () => void;
   endWaveformScrub: () => void;
+  onFocusTextInput: (fn: () => void) => void;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -45,9 +47,18 @@ const MainContent: React.FC<MainContentProps> = ({
   seekToPosition,
   startWaveformScrub,
   endWaveformScrub,
+  onFocusTextInput,
 }) => {
   const opacity = useSharedValue(1);
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const annotationFieldRef = useRef<AnnotationFieldRef>(null);
+  
+  // Pass focus function to parent
+  useEffect(() => {
+    onFocusTextInput(() => {
+      annotationFieldRef.current?.focus();
+    });
+  }, [onFocusTextInput]);
   
   useEffect(() => {
     const onChange = (result: any) => {
@@ -73,7 +84,7 @@ const MainContent: React.FC<MainContentProps> = ({
       contentContainerStyle={[styles.container, { minWidth: containerWidth }]}
     >
       
-      <AudioControls
+      <ProjectControls
         onLoadSong={loadSong}
         onTogglePlayback={() => {}}
         hasSound={!!sound}
@@ -115,6 +126,7 @@ const MainContent: React.FC<MainContentProps> = ({
             state.setCurrentTime(newTime);
           }}
         />
+        <AnnotationField ref={annotationFieldRef} />
         <View style={styles.markerButtonContainer}>
           <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
         </View>

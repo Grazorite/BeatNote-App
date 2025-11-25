@@ -39,6 +39,9 @@ export const exportModalStyles = StyleSheet.create({
   csvButton: {
     backgroundColor: '#0066cc',
   },
+  importButton: {
+    backgroundColor: '#009944',
+  },
   disabledButton: {
     opacity: 0.5,
   },
@@ -58,5 +61,6 @@ export const exportModalStyles = StyleSheet.create({
     backgroundColor: '#666666',
     padding: 12,
     borderRadius: 8,
+    marginTop: 8,
   },
 });

@@ -15,15 +15,15 @@ const ExportModal: React.FC<ExportModalProps> = ({
   onClose,
   projectName,
 }) => {
-  const { layers, bpm, songDuration } = useStudioStore();
+  const { allLayersData, bpm, songDuration } = useStudioStore();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async (format: 'midi' | 'csv') => {
     setIsExporting(true);
     try {
       const filename = format === 'midi' 
-        ? await ExportEngine.exportToMIDI({ format, layers, bpm, songDuration, projectName })
-        : await ExportEngine.exportToCSV({ format, layers, bpm, songDuration, projectName });
+        ? await ExportEngine.exportToMIDI({ format, layers: allLayersData, bpm, songDuration, projectName })
+        : await ExportEngine.exportToCSV({ format, layers: allLayersData, bpm, songDuration, projectName });
       
       Alert.alert(
         'Export Successful', 
@@ -32,13 +32,13 @@ const ExportModal: React.FC<ExportModalProps> = ({
       );
     } catch (error) {
       console.error('Export error:', error);
-      Alert.alert('Export Failed', 'Failed to export markers');
+      Alert.alert('Export Failed', 'Failed to export data');
     } finally {
       setIsExporting(false);
     }
   };
 
-  const visibleLayers = layers.filter(layer => layer.isVisible);
+  const visibleLayers = allLayersData.filter(layer => layer.isVisible);
   const totalMarkers = visibleLayers.reduce((sum, layer) => sum + layer.markers.length, 0);
 
   return (
@@ -51,7 +51,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>
-            Export Markers
+            Export Data
           </Text>
           
           <Text style={styles.subtitle}>

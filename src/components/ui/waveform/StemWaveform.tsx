@@ -6,6 +6,7 @@ import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 import { useZoomGesture } from '../../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
+import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
 
 interface StemWaveformProps {
   layers: Layer[];
@@ -41,7 +42,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
   
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
-  const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying } = useStudioStore();
+  const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, magneticSnapping, bpm, allLayersData } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
   const stemRef = useRef<View>(null);
@@ -56,12 +57,28 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   const tapGesture = Gesture.Tap()
     .maxDuration(250)
     .onStart((event) => {
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
       const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
       setGhostPlayheadTime(newCurrentTime); // Immediate visual feedback
     })
     .onEnd((event) => {
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
       const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
       updateTimeFromPosition(event.x);
       onSeek(newCurrentTime);
@@ -77,11 +94,18 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     .onUpdate((event) => {
       // Use absolute position within viewport bounds for consistent tracking
       const clampedX = Math.max(0, Math.min(event.x, VIEWPORT_WIDTH));
-      updateTimeFromPosition(clampedX);
-      // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (clampedX / VIEWPORT_WIDTH) * viewportDuration;
-      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
-      setGhostPlayheadTime(newGhostTime);
+      let targetTime = viewportStartTime + (clampedX / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      setCurrentTime(newCurrentTime);
+      setGhostPlayheadTime(newCurrentTime);
     })
     .onEnd(() => {
       onScrubEnd();

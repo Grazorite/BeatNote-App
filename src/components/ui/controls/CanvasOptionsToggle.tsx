@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import AnimatedToggle from '../common/AnimatedToggle';
-import { canvasToggleStyles as styles } from '../../../styles/components/controls/canvasToggle';
+import { canvasOptionsToggleStyles as styles } from '../../../styles/components/controls/canvasOptionsToggle';
 
-const CanvasToggle: React.FC = () => {
-  const { showGhostInTimeline, setShowGhostInTimeline, showTimeline, setShowTimeline, showGridLines, setShowGridLines } = useStudioStore();
+const CanvasOptionsToggle: React.FC = () => {
+  const { showGhostInTimeline, setShowGhostInTimeline, showTimeline, setShowTimeline, showGridLines, setShowGridLines, magneticSnapping, setMagneticSnapping, showAnnotations, setShowAnnotations } = useStudioStore();
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
-        Canvas
+        Canvas Options
       </Text>
       <AnimatedToggle
         label="Ghost Playhead in Timeline"
@@ -28,9 +28,15 @@ const CanvasToggle: React.FC = () => {
         label="Show Grid Lines"
         value={showGridLines}
         onToggle={() => setShowGridLines(!showGridLines)}
+        marginBottom={8}
+      />
+      <AnimatedToggle
+        label="Magnetic Snapping"
+        value={magneticSnapping}
+        onToggle={() => setMagneticSnapping(!magneticSnapping)}
       />
     </View>
   );
 };
 
-export default CanvasToggle;
+export default CanvasOptionsToggle;

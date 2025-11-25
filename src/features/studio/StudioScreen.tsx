@@ -13,10 +13,13 @@ export default function StudioScreen() {
   const { layers, activeLayerId, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
   const { sound, loadSong, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
+  let focusTextInput = () => {};
+  
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onTogglePlayback: togglePlayback,
     onAddMarker: tapToBeat,
+    onFocusTextInput: () => focusTextInput(),
     hasSound: !!sound,
   });
 
@@ -26,9 +29,7 @@ export default function StudioScreen() {
 
   const { isSidebarCollapsed } = useStudioStore();
 
-  if (showHelpScreen) {
-    return <HelpScreen onClose={() => setShowHelpScreen(false)} />;
-  }
+
 
   return (
     <View style={styles.mainContainer}>
@@ -55,9 +56,14 @@ export default function StudioScreen() {
         seekToPosition={seekToPosition}
         startWaveformScrub={startWaveformScrub}
         endWaveformScrub={endWaveformScrub}
+        onFocusTextInput={(fn) => { focusTextInput = fn; }}
         />
       </ScrollView>
       <Sidebar />
+      <HelpScreen 
+        visible={showHelpScreen}
+        onClose={() => setShowHelpScreen(false)} 
+      />
       <ErrorModal
         visible={error.visible}
         title={error.title}

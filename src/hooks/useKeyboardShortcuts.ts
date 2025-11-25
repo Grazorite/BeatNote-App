@@ -5,12 +5,14 @@ import { useStudioStore } from './useStudioStore';
 interface KeyboardShortcutsProps {
   onTogglePlayback: () => void;
   onAddMarker: () => void;
+  onFocusTextInput: () => void;
   hasSound: boolean;
 }
 
 export const useKeyboardShortcuts = ({ 
   onTogglePlayback, 
   onAddMarker, 
+  onFocusTextInput,
   hasSound 
 }: KeyboardShortcutsProps) => {
   const { 
@@ -22,7 +24,8 @@ export const useKeyboardShortcuts = ({
     zoomTimeline,
     skipPlayhead,
     toggleRepeat,
-    toggleLoopMarker
+    toggleLoopMarker,
+    isTextInputFocused
   } = useStudioStore();
 
   useEffect(() => {
@@ -30,6 +33,9 @@ export const useKeyboardShortcuts = ({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const { key, code, metaKey, ctrlKey, shiftKey } = event;
+      
+      // Disable all shortcuts when text input is focused
+      if (isTextInputFocused) return;
       
       // Space = Play/Pause
       if (key === ' ' || code === 'Space') {
@@ -125,9 +131,16 @@ export const useKeyboardShortcuts = ({
         }
         return;
       }
+      
+      // T = Focus Text Input
+      if (key === 't' || key === 'T' || code === 'KeyT') {
+        event.preventDefault();
+        onFocusTextInput();
+        return;
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onTogglePlayback, onAddMarker, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopMarker]);
+  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopMarker, isTextInputFocused]);
 };

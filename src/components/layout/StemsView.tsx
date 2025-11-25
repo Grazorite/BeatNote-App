@@ -9,6 +9,7 @@ import LoadingSpinner from '../ui/common/LoadingSpinner';
 import { useWaveformData } from '../../hooks/useWaveformData';
 import { useZoomGesture } from '../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../hooks/useScrollZoom';
+import { snapToNearestTarget, generateSnapTargets } from '../../utils/magneticSnapping';
 import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
 import { colors } from '../../styles/common';
 
@@ -50,7 +51,7 @@ const StemsView: React.FC<StemsViewProps> = ({
   
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
-  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded } = useStudioStore();
+  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded, magneticSnapping, bpm, allLayersData } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
   const stemsRef = useRef<View>(null);
@@ -85,7 +86,15 @@ const StemsView: React.FC<StemsViewProps> = ({
   
   const tapGesture = Gesture.Tap().onEnd((event) => {
     if (!audioUri) return;
-    const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+    let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+    
+    if (magneticSnapping) {
+      const allMarkers = allLayersData.flatMap(layer => layer.markers);
+      const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+      const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+      targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+    }
+    
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     setGhostPlayheadTime(newCurrentTime); // Set ghost playhead to clicked position
     onSeek(newCurrentTime);
@@ -100,11 +109,19 @@ const StemsView: React.FC<StemsViewProps> = ({
     })
     .onUpdate((event) => {
       if (!audioUri) return;
-      updateTimeFromPosition(event.x);
-      // Update ghost playhead during scrubbing
-      const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
-      const newGhostTime = Math.max(0, Math.min(targetTime, songDuration));
-      setGhostPlayheadTime(newGhostTime);
+      
+      let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
+      
+      if (magneticSnapping) {
+        const allMarkers = allLayersData.flatMap(layer => layer.markers);
+        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
+        targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
+      }
+      
+      const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
+      setCurrentTime(newCurrentTime);
+      setGhostPlayheadTime(newCurrentTime);
     })
     .onEnd(() => {
       if (!audioUri) return;

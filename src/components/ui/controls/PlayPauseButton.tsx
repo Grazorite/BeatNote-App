@@ -39,7 +39,8 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
     <View style={styles.container}>
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipBack)}
-        onPress={canSkipBack ? onSkipBack : undefined}
+        onPress={canSkipBack && songLoaded ? onSkipBack : undefined}
+        disabled={!songLoaded}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
@@ -50,6 +51,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       <TouchableOpacity
         style={getPlayPauseButtonStyle(songLoaded)}
         onPress={songLoaded ? onTogglePlayback : undefined}
+        disabled={!songLoaded}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
@@ -63,7 +65,8 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipForward)}
-        onPress={canSkipForward ? onSkipForward : undefined}
+        onPress={canSkipForward && songLoaded ? onSkipForward : undefined}
+        disabled={!songLoaded}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
@@ -74,6 +77,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       <TouchableOpacity
         style={getRepeatButtonStyle(songLoaded, isRepeatActive)}
         onPress={songLoaded ? toggleRepeat : undefined}
+        disabled={!songLoaded}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}

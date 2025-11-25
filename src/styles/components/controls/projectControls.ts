@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
 
-export const audioControlsStyles = StyleSheet.create({
+export const projectControlsStyles = StyleSheet.create({
   controls: {
     flexDirection: 'row',
     gap: dimensions.spacing.sm,

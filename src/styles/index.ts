@@ -2,7 +2,7 @@
 export * from './common';
 
 // Component styles
-export * from './components/controls/audioControls';
+export * from './components/controls/projectControls';
 export * from './components/controls/layerControls';
 export * from './components/controls/markerButton';
 export * from './components/waveform/rhythmicGrid';

@@ -10,23 +10,41 @@ export interface ExportOptions {
 }
 
 export class ExportEngine {
+
   static async exportToCSV(options: ExportOptions): Promise<string> {
     const { layers, projectName } = options;
     
     // CSV Header
-    let csvContent = 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats)\n';
+    let csvContent = 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Annotation\n';
     
-    // Add markers from all visible layers
+    // Collect all markers with layer info
+    const allMarkers: { time: number; layer: string; annotation: string }[] = [];
     layers.forEach(layer => {
       if (layer.isVisible && layer.markers.length > 0) {
         layer.markers.forEach(markerTime => {
-          const seconds = (markerTime / 1000).toFixed(3);
-          const bars = Math.floor(markerTime / (60000 / options.bpm * 4)) + 1;
-          const beats = Math.floor((markerTime % (60000 / options.bpm * 4)) / (60000 / options.bpm)) + 1;
-          
-          csvContent += `${layer.name},${markerTime},${seconds},${bars}:${beats}\n`;
+          const annotation = layer.annotations.find(ann => 
+            Math.abs(ann.timestamp - markerTime) < 100
+          );
+          allMarkers.push({
+            time: markerTime,
+            layer: layer.name,
+            annotation: annotation?.text || ''
+          });
         });
       }
+    });
+    
+    // Sort by marker time (ascending)
+    allMarkers.sort((a, b) => a.time - b.time);
+    console.log('Sorted markers:', allMarkers.map(m => ({ time: m.time, layer: m.layer })));
+    
+    // Add sorted markers to CSV
+    allMarkers.forEach(marker => {
+      const seconds = (marker.time / 1000).toFixed(3);
+      const bars = Math.floor(marker.time / (60000 / options.bpm * 4)) + 1;
+      const beats = Math.floor((marker.time % (60000 / options.bpm * 4)) / (60000 / options.bpm)) + 1;
+      
+      csvContent += `${marker.layer},${marker.time},${seconds},${bars}:${beats},"${marker.annotation.replace(/"/g, '""')}"\n`;
     });
     
     const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '_')}_markers.csv`;
@@ -68,11 +86,11 @@ export class ExportEngine {
     let trackData = new Uint8Array([...tempoEvent]);
     
     // Add markers as MIDI text events
-    const allMarkers: { time: number; layer: string }[] = [];
+    const allMarkers: { time: number; layer: string; layerObj: Layer }[] = [];
     layers.forEach(layer => {
       if (layer.isVisible) {
         layer.markers.forEach(markerTime => {
-          allMarkers.push({ time: markerTime, layer: layer.name });
+          allMarkers.push({ time: markerTime, layer: layer.name, layerObj: layer });
         });
       }
     });
@@ -82,7 +100,13 @@ export class ExportEngine {
     let lastTime = 0;
     allMarkers.forEach(marker => {
       const deltaTime = Math.max(0, Math.floor((marker.time - lastTime) * 480 / 1000));
-      const markerText = `${marker.layer} Marker`;
+      
+      // Find annotation for this marker
+      const annotation = marker.layerObj.annotations.find(ann => 
+        Math.abs(ann.timestamp - marker.time) < 100
+      );
+      const markerText = annotation?.text ? `${marker.layer}: ${annotation.text}` : `${marker.layer} Marker`;
+      
       const textBytes = new TextEncoder().encode(markerText);
       const deltaTimeBytes = this.encodeVariableLength(deltaTime);
       

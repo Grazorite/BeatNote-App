@@ -1,8 +1,8 @@
-export { default as AudioControls } from './AudioControls';
+export { default as ProjectControls } from './ProjectControls';
 export { default as BpmControl } from './BpmControl';
-export { default as CanvasToggle } from './CanvasToggle';
+export { default as CanvasOptionsToggle } from './CanvasOptionsToggle';
 export { default as LayerControls } from './LayerControls';
-export { default as LayerNavigationToggle } from './LayerNavigationToggle';
+export { default as MarkerOptionsToggle } from './MarkerOptionsToggle';
 export { default as MarkerButton } from './MarkerButton';
 export { default as SidebarToggle } from './SidebarToggle';
 export { default as StemSelector } from './StemSelector';

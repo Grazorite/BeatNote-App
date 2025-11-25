@@ -1,14 +1,21 @@
 import { create } from 'zustand';
 import { ProjectManager } from '../utils/projectManager';
 import { BeatNoteProject } from '../types/project';
+import { ImportEngine } from '../utils/importEngine';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
+
+export interface MarkerAnnotation {
+  timestamp: number;
+  text: string;
+}
 
 export interface Layer {
   id: LayerId;
   name: string;
   color: string;
   markers: number[];
+  annotations: MarkerAnnotation[];
   isVisible: boolean;
 }
 
@@ -34,9 +41,14 @@ interface StudioStore {
   showGridLines: boolean;
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
+  showExportModal: boolean;
+  showImportModal: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
   isRepeatActive: boolean;
   isLoopMarkerActive: boolean;
+  magneticSnapping: boolean;
+  showAnnotations: boolean;
+  isTextInputFocused: boolean;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
@@ -53,8 +65,14 @@ interface StudioStore {
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   setShowHelpScreen: (show: boolean) => void;
+  setShowExportModal: (show: boolean) => void;
+  setShowImportModal: (show: boolean) => void;
   toggleRepeat: () => void;
   toggleLoopMarker: () => void;
+  setMagneticSnapping: (enabled: boolean) => void;
+  setShowAnnotations: (show: boolean) => void;
+  updateMarkerAnnotation: (layerId: LayerId, timestamp: number, text: string) => void;
+  setTextInputFocused: (focused: boolean) => void;
   navigateToLeftMarker: () => void;
   navigateToRightMarker: () => void;
   addMarker: (timestamp: number) => void;
@@ -68,18 +86,19 @@ interface StudioStore {
   setSongLoaded: (loaded: boolean) => void;
   saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
   loadProject: (filename: string) => Promise<void>;
+  importFromCSV: (csvContent: string) => Promise<void>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
 }
 
 const allLayers: Layer[] = [
-  { id: 'vocals', name: 'Vocals', color: '#ff6666', markers: [], isVisible: true },
-  { id: 'drums', name: 'Drums', color: '#00ccff', markers: [], isVisible: true },
-  { id: 'bass', name: 'Bass', color: '#bb66ff', markers: [], isVisible: true },
-  { id: 'piano', name: 'Piano', color: '#ffcc00', markers: [], isVisible: true },
-  { id: 'guitar', name: 'Guitar', color: '#d2b48c', markers: [], isVisible: true },
-  { id: 'other', name: 'Other', color: '#ff69b4', markers: [], isVisible: true },
+  { id: 'vocals', name: 'Vocals', color: '#ff6666', markers: [], annotations: [], isVisible: true },
+  { id: 'drums', name: 'Drums', color: '#00ccff', markers: [], annotations: [], isVisible: true },
+  { id: 'bass', name: 'Bass', color: '#bb66ff', markers: [], annotations: [], isVisible: true },
+  { id: 'piano', name: 'Piano', color: '#ffcc00', markers: [], annotations: [], isVisible: true },
+  { id: 'guitar', name: 'Guitar', color: '#d2b48c', markers: [], annotations: [], isVisible: true },
+  { id: 'other', name: 'Other', color: '#ff69b4', markers: [], annotations: [], isVisible: true },
 ];
 
 const getVisibleLayerIds = (stemCount: 2 | 4 | 6): LayerId[] => {
@@ -122,9 +141,14 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   showGridLines: true,
   isSidebarCollapsed: false,
   showHelpScreen: false,
+  showExportModal: false,
+  showImportModal: false,
   lastRemovedMarker: null,
   isRepeatActive: false,
   isLoopMarkerActive: false,
+  magneticSnapping: false,
+  showAnnotations: true,
+  isTextInputFocused: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
@@ -161,8 +185,39 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
+  setShowExportModal: (show) => set({ showExportModal: show }),
+  setShowImportModal: (show) => set({ showImportModal: show }),
   toggleRepeat: () => set((state) => ({ isRepeatActive: !state.isRepeatActive })),
   toggleLoopMarker: () => set((state) => ({ isLoopMarkerActive: !state.isLoopMarkerActive })),
+  setMagneticSnapping: (enabled) => set({ magneticSnapping: enabled }),
+  setShowAnnotations: (show) => set({ showAnnotations: show }),
+  setTextInputFocused: (focused) => set({ isTextInputFocused: focused }),
+  updateMarkerAnnotation: (layerId, timestamp, text) => set((state) => {
+    const updatedAllLayers = state.allLayersData.map(layer => {
+      if (layer.id === layerId) {
+        const existingIndex = layer.annotations.findIndex(ann => Math.abs(ann.timestamp - timestamp) < 100);
+        const newAnnotations = [...layer.annotations];
+        
+        if (existingIndex >= 0) {
+          if (text.trim()) {
+            newAnnotations[existingIndex] = { timestamp, text };
+          } else {
+            newAnnotations.splice(existingIndex, 1);
+          }
+        } else if (text.trim()) {
+          newAnnotations.push({ timestamp, text });
+        }
+        
+        return { ...layer, annotations: newAnnotations };
+      }
+      return layer;
+    });
+    
+    return {
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
+    };
+  }),
   navigateToLeftMarker: () => set((state) => {
     const baseMarkers = state.layerSpecificNavigation 
       ? state.allLayersData.find(layer => layer.id === state.activeLayerId)?.markers || []
@@ -364,6 +419,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         name: layer.name,
         color: layer.color,
         markers: layer.markers,
+        annotations: layer.annotations,
         isVisible: layer.isVisible,
       })),
       settings: {
@@ -381,6 +437,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       return projectLayer ? {
         ...layer,
         markers: projectLayer.markers,
+        annotations: projectLayer.annotations || [],
         isVisible: projectLayer.isVisible,
       } : layer;
     });
@@ -396,6 +453,27 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       layerSpecificNavigation: project.settings.layerSpecificNavigation,
       songLoaded: true,
       currentTime: 0,
+    });
+  },
+  importFromCSV: async (csvContent: string) => {
+    const importData = await ImportEngine.importFromCSV(csvContent);
+    const state = get();
+    
+    const updatedAllLayers = state.allLayersData.map(layer => {
+      const importedLayer = importData.layers[layer.id];
+      if (importedLayer) {
+        return {
+          ...layer,
+          markers: [...layer.markers, ...importedLayer.markers],
+          annotations: [...layer.annotations, ...importedLayer.annotations]
+        };
+      }
+      return layer;
+    });
+    
+    set({
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
     });
   },
 }));

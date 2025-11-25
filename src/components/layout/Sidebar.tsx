@@ -7,8 +7,8 @@ import LayerControls from '../ui/controls/LayerControls';
 import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
-import CanvasToggle from '../ui/controls/CanvasToggle';
-import LayerNavigationToggle from '../ui/controls/LayerNavigationToggle';
+import CanvasOptionsToggle from '../ui/controls/CanvasOptionsToggle';
+import MarkerOptionsToggle from '../ui/controls/MarkerOptionsToggle';
 
 import HelpButton from '../ui/controls/HelpButton';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
@@ -48,10 +48,10 @@ const Sidebar: React.FC = () => {
             <BpmControl />
           </View>
           <View style={styles.sidebarSection}>
-            <CanvasToggle />
+            <CanvasOptionsToggle />
           </View>
           <View style={styles.sidebarSection}>
-            <LayerNavigationToggle />
+            <MarkerOptionsToggle />
           </View>
         </ScrollView>
       </Animated.View>
