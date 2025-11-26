@@ -1,73 +1,60 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Expo
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
-.kotlin/
+# Native builds
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.keystore
+!debug.keystore
 
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
+# Generated native folders (EAS Build)
 /ios
 /android
 
-# Playwright
+# Metro
+.metro-health-check*
+.metro-cache/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
 test-results/
 playwright-report/
 playwright/.cache/
+coverage/
+*.lcov
+.nyc_output
 
-# Test fixtures (keep dummy audio files)
+# Test fixtures - exclude large audio files but keep test samples
 tests/fixtures/*.wav
 tests/fixtures/*.mp3
 tests/fixtures/*.m4a
+tests/fixtures/*.flac
+tests/fixtures/*.aac
 !tests/fixtures/test-audio.wav
-
-# Test artifacts
-*.test-artifacts/
-*.spec-artifacts/
-test-results/
-playwright-report/
-playwright/.cache/
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
-Thumbs.db
-ehthumbs.db
 
 # Logs
 *.log
@@ -79,51 +66,89 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
+# Cache directories
 .npm
-
-# Optional eslint cache
+.yarn/cache
+.pnpm-store/
 .eslintcache
-
-# Microbundle cache
+.cache
+.parcel-cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
 
+# Build outputs
+build/
+dist/
+out/
+.next/
+.nuxt/
+.storybook-out/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Package manager files
+*.tgz
+.yarn-integrity
+.pnp.*
+.yarn/
+
 # Optional REPL history
 .node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-
-# Storybook build outputs
-.out
-.storybook-out
 
 # Temporary folders
 tmp/
 temp/
+
+# Audio project files (user data)
+*.beatnote
+*.bnp
+
+# Large media files that shouldn't be committed
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.aac
+*.ogg
+*.wma
+!assets/audio/samples/*.wav
+!assets/audio/samples/*.mp3
+
+# Security
+*.pem
+*.crt
+*.csr
+*.key
+secrets/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Documentation build
+docs/build/
+
+# Sentry
+.sentryclirc

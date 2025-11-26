@@ -1,7 +1,29 @@
 {
   "name": "beatnote-app",
   "version": "1.0.0",
+  "description": "Professional multi-track audio annotation and beat marking application",
   "main": "index.ts",
+  "keywords": [
+    "audio",
+    "annotation",
+    "beat-marking",
+    "music-production",
+    "react-native",
+    "expo",
+    "typescript",
+    "multi-track",
+    "waveform"
+  ],
+  "author": "BeatNote Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/BeatNote-App.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/BeatNote-App/issues"
+  },
+  "homepage": "https://github.com/yourusername/BeatNote-App#readme",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",

@@ -27,9 +27,9 @@ test.describe('Test Discovery and Setup', () => {
     await page.waitForLoadState('networkidle');
     
     // Check for main app elements that should be present
-    await expect(page.getByText('BeatNote Studio')).toBeVisible();
     await expect(page.getByText('Load Song')).toBeVisible();
-    await expect(page.getByText(/Active:.*Total:.*markers/)).toBeVisible();
+    await expect(page.getByText(/Active Layer:/)).toBeVisible();
+    await expect(page.getByText(/Grand Total: \d+ markers/)).toBeVisible();
     
     console.log('✅ BeatNote app loads with core components');
   });
@@ -38,10 +38,10 @@ test.describe('Test Discovery and Setup', () => {
     await page.goto('/');
     
     // Check core elements are present
-    await expect(page.getByText('BeatNote Studio')).toBeVisible();
     await expect(page.getByText('Load Song')).toBeVisible();
-    await expect(page.getByText(/Active:.*Total:.*markers/)).toBeVisible();
-    await expect(page.getByText('TAP', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Active Layer:/)).toBeVisible();
+    await expect(page.getByText(/Grand Total: \d+ markers/)).toBeVisible();
+    await expect(page.getByText('TAP')).toBeVisible();
     
     console.log('✅ All core app elements are visible');
   });

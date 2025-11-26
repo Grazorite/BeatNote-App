@@ -1,125 +1,187 @@
-# BeatNote App
+# BeatNote
 
-A professional React Native audio annotation app for multi-track music analysis and beat marking.
+> Professional multi-track audio annotation and beat marking application
+
+BeatNote is a cross-platform React Native application designed for musicians, producers, and audio engineers to annotate and mark beats across multiple audio stems with precision and ease.
 
 ## Features
 
-### Phase 1: Core Foundation
+### Multi-Track Audio Analysis
 
-- Expo + TypeScript React Native setup
-- Animated SVG waveform visualization using react-native-svg
-- Real-time waveform animation with react-native-reanimated
+- **6-Layer Stem Support**: Vocals, Drums, Bass, Piano, Guitar, Other
+- **Flexible Stem Modes**: Switch between 2, 4, or 6 stem configurations
+- **Visual Markers**: Distinct visual representations for each stem type
+- **Layer Management**: Toggle visibility and focus on specific stems
 
-### Phase 2: Audio Integration & Modularization
+### Precision Annotation
 
-- Audio playback with expo-av
-- File loading with expo-document-picker
-- "Tap to beat" functionality with timestamp markers
-- Zustand state management
-- Modular component architecture (ProjectControls, WaveformCanvas, MarkerButton)
-- Custom hooks (useAudioPlayer, useWaveformAnimation, useStudioStore)
+- **Tap-to-Beat**: Real-time marker placement during playback
+- **Timeline Navigation**: Precise scrubbing and positioning
+- **Magnetic Snapping**: Automatic alignment to beat grid
+- **Text Annotations**: Add contextual notes to markers
+- **Keyboard Shortcuts**: Professional workflow acceleration
 
-### Phase 3: Professional Multi-Track System
+### Professional Interface
 
-- **Music Stem Annotation**: Vocals, Drums, Bass, Piano, Guitar, Other (replaces generic beats/notes)
-- **Visual Markers**: Distinct markers per stem type (lines, circles, thickness variations)
-- **Timeline Navigation**: Scrollable timeline with viewport scrubber
-- **Adobe Audition-Style Workflow**: Auto-follow playhead, click-to-position, drag-to-scrub
-- **Forward-Compatible Data**: Layer persistence across stem count changes (2→4→6 stems)
-- **Modern Gesture System**: Migrated to react-native-gesture-handler v2 Gesture API
+- **Unified & Multitrack Views**: Switch between consolidated and separated stem views
+- **Responsive Design**: Optimized for desktop, tablet, and mobile
+- **Dark Theme**: Eye-friendly interface for extended sessions
+- **Collapsible Sidebar**: Maximize workspace when needed
+- **Help System**: Built-in shortcuts and usage guide
+
+### Project Management
+
+- **Save/Load Projects**: Persistent project storage with metadata
+- **CSV Import/Export**: Data interchange with external tools
+- **Audio File Support**: Multiple format compatibility
+- **Version Control**: Project versioning and modification tracking
 
 ## Tech Stack
 
 - **Framework**: Expo SDK 54 + React Native 0.81.5
 - **Language**: TypeScript
 - **State Management**: Zustand
-- **Audio**: expo-av
-- **Graphics**: react-native-svg, react-native-reanimated
-- **Gestures**: react-native-gesture-handler
-- **File Handling**: expo-document-picker
-- **Testing**: Playwright
+- **Audio Processing**: expo-audio
+- **Graphics**: react-native-svg + react-native-reanimated
+- **Gestures**: react-native-gesture-handler v2
+- **File System**: expo-document-picker + expo-file-system
+- **Testing**: Playwright (60+ E2E tests)
+- **Storage**: AsyncStorage for persistence
 
-## Installation
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Expo CLI
+
+### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/Grazorite/BeatNote-App.git
+git clone https://github.com/yourusername/BeatNote-App.git
 cd BeatNote-App
 
 # Install dependencies
 npm install
 
-# Start the development server
+# Start development server
 npx expo start
 ```
 
-## Usage
+### Platform-Specific Launch
 
-1. **Load Audio**: Tap "Load Song" to select an audio file
-2. **Select Stems**: Choose 2, 4, or 6 stem separation mode
-3. **Choose Layer**: Select which stem to annotate (vocals, drums, bass, piano, guitar, other)
-4. **Navigate**: Use timeline scrubber or click/drag on waveform to navigate
-5. **Add Markers**: Tap "TAP" button or click on waveform to place markers
-6. **Toggle Visibility**: Show/hide markers for each stem layer
+```bash
+# Web development
+npm run web
 
-## Project Structure
+# iOS Simulator
+npm run ios
+
+# Android Emulator
+npm run android
+```
+
+## Usage Guide
+
+### Basic Workflow
+
+1. **Load Audio**: Import your audio file using "Load Song"
+2. **Configure Stems**: Select 2, 4, or 6 stem mode based on your needs
+3. **Select Layer**: Choose which stem to annotate (vocals, drums, etc.)
+4. **Add Markers**: Use TAP button or click waveform to place markers
+5. **Navigate**: Use timeline controls or keyboard shortcuts
+6. **Annotate**: Add text descriptions to important markers
+7. **Save Project**: Export your work for future sessions
+
+### Keyboard Shortcuts
+
+- `Space`: Play/Pause
+- `T`: Add marker at current position
+- `←/→`: Navigate between markers
+- `Shift + ←/→`: Skip to start/end
+- `+/-`: Zoom timeline
+- `?`: Show help screen
+
+## Project Architecture
 
 ```text
 src/
-├── components/ui/          # Reusable UI components
-│   ├── ProjectControls.tsx   # Play/pause and load controls
-│   ├── LayerControls.tsx   # Layer selection and visibility
-│   ├── StemSelector.tsx    # Stem count selection (2/4/5)
-│   ├── MarkerButton.tsx       # Marker placement button
-│   ├── TimelineScrollbar.tsx # Timeline navigation
-│   └── WaveformCanvas.tsx  # Main waveform display
-├── features/studio/        # Feature-specific components
-│   └── StudioScreen.tsx    # Main studio interface
-└── hooks/                  # Custom React hooks
-    ├── useAudioPlayer.ts   # Audio playback logic
-    ├── useStudioStore.ts   # Global state management
-    └── useWaveformAnimation.ts # Waveform rendering
+├── components/
+│   ├── icons/              # Custom SVG icons
+│   ├── layout/             # Layout components (Sidebar, MainContent)
+│   ├── ui/
+│   │   ├── common/         # Reusable UI components
+│   │   ├── controls/       # Audio and marker controls
+│   │   ├── modals/         # Modal dialogs
+│   │   └── waveform/       # Waveform visualization
+│   └── ErrorBoundary.tsx   # Error handling
+├── features/
+│   └── studio/             # Main studio interface
+├── hooks/                  # Custom React hooks
+│   ├── useAudioPlayer.ts   # Audio playback logic
+│   ├── useStudioStore.ts   # Global state management
+│   └── useKeyboardShortcuts.ts # Keyboard handling
+├── styles/                 # Organized styling system
+├── types/                  # TypeScript definitions
+├── utils/                  # Utility functions
+│   ├── projectManager.ts   # Project save/load
+│   ├── exportEngine.ts     # Data export
+│   └── importEngine.ts     # Data import
+└── animations/             # Animation configurations
 ```
 
-## Key Features
-
-### Multi-Track Annotation
-
-- **Vocals**: Full-height red lines
-- **Drums**: Thick cyan lines (top section)
-- **Bass**: Purple lines (bottom section)  
-- **Piano**: Yellow circles (center)
-- **Guitar**: Light brown circles (center-bottom)
-- **Other**: Orange circles (bottom)
-
-### Timeline Navigation
-
-- Viewport shows 20-second window of full song
-- Auto-scroll follows playhead during playback
-- Drag viewport rectangle to navigate
-- Click timeline to jump to position
-
-### Professional Workflow
-
-- Pause/resume during scrubbing
-- Precise marker placement
-- Layer-based organization
-
-## Development
+## Testing
 
 ```bash
-# Run tests
+# Run all tests
 npm test
 
-# Run with UI
+# Interactive test UI
 npm run test:ui
 
-# Platform-specific builds
-npm run android
-npm run ios
-npm run web
+# Debug mode
+npm run test:debug
+
+# Generate test report
+npm run test:report
 ```
 
-## License
+**Test Coverage**: 60+ E2E tests covering:
 
-MIT License - see LICENSE file for details
+- Core functionality
+- UI components
+- Waveform features
+- Quality assurance
+- Performance benchmarks
+- Responsive design
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Maintain test coverage for new features
+- Use conventional commit messages
+- Update documentation for API changes
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Expo](https://expo.dev/) and [React Native](https://reactnative.dev/)
+- Icons from [Lucide React Native](https://lucide.dev/)
+- Testing powered by [Playwright](https://playwright.dev/)
+
+---
+
+Made with ❤️ for the music production community
