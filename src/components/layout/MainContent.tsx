@@ -77,11 +77,22 @@ const MainContent: React.FC<MainContentProps> = ({
     opacity: opacity.value
   }));
   
-  const containerWidth = Math.max(900, screenData.width - 320); // 320px for sidebar + margin
+  // Responsive container width
+  const isMobile = screenData.width < 768;
+  const containerWidth = isMobile 
+    ? screenData.width - 32 // Mobile: full width minus padding
+    : Math.max(900, screenData.width - 320); // Desktop: account for sidebar
+  
   return (
     <ScrollView 
       style={styles.scrollContainer} 
-      contentContainerStyle={[styles.container, { minWidth: containerWidth }]}
+      contentContainerStyle={[
+        styles.container, 
+        { 
+          minWidth: isMobile ? '100%' : containerWidth,
+          maxWidth: isMobile ? '100%' : undefined,
+        }
+      ]}
     >
       
       <ProjectControls
@@ -114,20 +125,44 @@ const MainContent: React.FC<MainContentProps> = ({
       
       <TimelineScrollbar audioUri={audioUri || undefined} />
       
-      <View style={styles.controlsRow}>
-        <AudioControls 
-          onTogglePlayback={togglePlayback}
-          onSkipBack={() => seekToPosition(0)}
-          onSkipForward={() => {
-            const state = useStudioStore.getState();
-            seekToPosition(state.songDuration);
-            state.setCurrentTime(state.songDuration);
-          }}
-        />
-        <AnnotationField ref={annotationFieldRef} />
-        <View style={styles.markerButtonContainer}>
-          <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
-        </View>
+      <View style={isMobile ? styles.controlsRowMobile : styles.controlsRow}>
+        {isMobile ? (
+          // Mobile: Stack vertically
+          <>
+            <View style={styles.controlsRowTop}>
+              <AudioControls 
+                onTogglePlayback={togglePlayback}
+                onSkipBack={() => seekToPosition(0)}
+                onSkipForward={() => {
+                  const state = useStudioStore.getState();
+                  seekToPosition(state.songDuration);
+                  state.setCurrentTime(state.songDuration);
+                }}
+              />
+              <View style={styles.markerButtonContainer}>
+                <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
+              </View>
+            </View>
+            <AnnotationField ref={annotationFieldRef} />
+          </>
+        ) : (
+          // Desktop: Horizontal layout
+          <>
+            <AudioControls 
+              onTogglePlayback={togglePlayback}
+              onSkipBack={() => seekToPosition(0)}
+              onSkipForward={() => {
+                const state = useStudioStore.getState();
+                seekToPosition(state.songDuration);
+                state.setCurrentTime(state.songDuration);
+              }}
+            />
+            <AnnotationField ref={annotationFieldRef} />
+            <View style={styles.markerButtonContainer}>
+              <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
+            </View>
+          </>
+        )}
       </View>
       
       <HorizontalLayerSelector />

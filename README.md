@@ -172,11 +172,11 @@ npm run test:report
 - Use conventional commit messages
 - Update documentation for API changes
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Expo](https://expo.dev/) and [React Native](https://reactnative.dev/)
 - Icons from [Lucide React Native](https://lucide.dev/)

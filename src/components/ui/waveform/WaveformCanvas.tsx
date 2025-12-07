@@ -38,7 +38,11 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     return () => subscription?.remove();
   }, []);
   
-  const VIEWPORT_WIDTH = Math.max(800, screenData.width - 350); // 350px for sidebar + margins
+  // Responsive viewport width
+  const isMobile = screenData.width < 768;
+  const VIEWPORT_WIDTH = isMobile 
+    ? screenData.width - 32 // Mobile: full width minus padding
+    : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
   
   // Optimized Zustand selectors - only subscribe to what we need
   const viewportStartTime = useStudioStore(state => state.viewportStartTime);
@@ -330,7 +334,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               <LoadingSpinner />
             </View>
           ) : (
-            <Svg width={VIEWPORT_WIDTH} height={300} style={styles.waveformSvg}>
+            <Svg width={VIEWPORT_WIDTH} height={isMobile ? 200 : 300} style={styles.waveformSvg}>
               {waveformData ? (
                 <Path
                   d={generateWaveformPath(

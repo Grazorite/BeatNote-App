@@ -24,7 +24,11 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     return () => subscription?.remove();
   }, []);
   
-  const TIMELINE_WIDTH = Math.max(800, screenData.width - 350); // 350px for sidebar + margins
+  // Responsive timeline width
+  const isMobile = screenData.width < 768;
+  const TIMELINE_WIDTH = isMobile 
+    ? screenData.width - 32 // Mobile: full width minus padding
+    : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
   const { 
     currentTime, 
     ghostPlayheadTime,

@@ -27,6 +27,18 @@ export const mainContentStyles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 20,
   },
+  controlsRowMobile: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: dimensions.spacing.md,
+    paddingHorizontal: dimensions.spacing.sm,
+  },
+  controlsRowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
   markerButtonContainer: {
     alignItems: 'center',
   },

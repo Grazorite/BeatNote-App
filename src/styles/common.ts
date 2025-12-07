@@ -24,6 +24,13 @@ export const colors = {
   gridBackground: '#1a1a1a',
 };
 
+// Responsive breakpoints
+export const breakpoints = {
+  mobile: 768,
+  tablet: 1024,
+  desktop: 1200,
+};
+
 // Common dimensions
 export const dimensions = {
   borderRadius: 8,
@@ -39,13 +46,29 @@ export const dimensions = {
     width: 800,
     stemHeight: 120,
     stemWidth: 720,
+    // Mobile responsive
+    mobile: {
+      height: 200,
+      width: '100%',
+      stemHeight: 80,
+    },
   },
   sidebar: {
     expanded: 280,
     collapsed: 60,
+    // Mobile: full overlay
+    mobile: {
+      expanded: '100%',
+      collapsed: 0,
+    },
   },
   ruler: {
     height: 30,
+  },
+  // Touch targets for mobile
+  touchTarget: {
+    minHeight: 44,
+    minWidth: 44,
   },
 };
 

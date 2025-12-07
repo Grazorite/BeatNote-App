@@ -96,6 +96,11 @@ out/
 .classpath
 .settings/
 
+# AI Coding Assistants
+.amazonq/
+.cursor/
+.copilot/
+
 # OS generated files
 .DS_Store
 .DS_Store?

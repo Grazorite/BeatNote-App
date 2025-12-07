@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import StemSelector from '../ui/controls/StemSelector';
@@ -15,18 +15,37 @@ import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
   const { isSidebarCollapsed } = useStudioStore();
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+  
+  const isMobile = screenData.width < 768;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: withTiming(isSidebarCollapsed ? 60 : 280, { duration: 300 }),
-    height: '100%',
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    if (isMobile) {
+      return {
+        width: withTiming(isSidebarCollapsed ? 0 : screenData.width, { duration: 300 }),
+        height: '100%',
+      };
+    }
+    return {
+      width: withTiming(isSidebarCollapsed ? 60 : 280, { duration: 300 }),
+      height: '100%',
+    };
+  });
 
   const contentOpacity = useAnimatedStyle(() => ({
     opacity: withTiming(isSidebarCollapsed ? 0 : 1, { duration: isSidebarCollapsed ? 150 : 300 }),
   }));
 
   return (
-    <Animated.View style={[styles.sidebar, animatedStyle]}>
+    <Animated.View style={[isMobile ? styles.sidebarMobile : styles.sidebar, animatedStyle]}>
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         <ScrollView 
