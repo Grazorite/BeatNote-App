@@ -1,187 +1,148 @@
 # BeatNote
 
-> Professional multi-track audio annotation and beat marking application
+> Professional multi-track audio annotation tool for choreographers, dancers, and music producers.
 
-BeatNote is a cross-platform React Native application designed for musicians, producers, and audio engineers to annotate and mark beats across multiple audio stems with precision and ease.
+BeatNote lets you load a song, split it into stems, annotate beats and movements across multiple layers, and export your work — all in a clean, dark, mobile-first interface.
+
+---
+
+## Who it's for
+
+Primarily choreographers and dancers who need to map music structure to movement. Also useful for music producers, session musicians, and audio engineers.
+
+---
+
+## Core workflow
+
+1. Load a song (MP3, WAV, M4A, AAC, OGG, FLAC)
+2. Split into stems (Vocals, Drums, Bass, Piano, Guitar, Other)
+3. Select a layer and tap to place beat markers during playback
+4. Add text annotations to markers (move names, cues, counts)
+5. Export as CSV, MIDI, or PDF choreography sheet
+
+---
 
 ## Features
 
-### Multi-Track Audio Analysis
+- 6-layer stem support (2 / 4 / 6 stem modes)
+- Unified and multitrack waveform views
+- Magnetic snapping to beat grid and existing markers
+- 8-count grid mode for dance phrase alignment
+- BPM control with rhythmic grid overlay
+- Ghost playhead for non-destructive position preview
+- Loop marker and repeat playback modes
+- Slow-down / pitch-preserve playback (iOS native)
+- Project save/load via AsyncStorage
+- iCloud sync and Files app integration (iOS)
+- CSV, MIDI, and PDF export
+- Share sheet import/export (iOS)
+- Keyboard shortcuts (web)
+- Responsive: desktop, tablet, mobile
 
-- **6-Layer Stem Support**: Vocals, Drums, Bass, Piano, Guitar, Other
-- **Flexible Stem Modes**: Switch between 2, 4, or 6 stem configurations
-- **Visual Markers**: Distinct visual representations for each stem type
-- **Layer Management**: Toggle visibility and focus on specific stems
+---
 
-### Precision Annotation
+## Tech stack
 
-- **Tap-to-Beat**: Real-time marker placement during playback
-- **Timeline Navigation**: Precise scrubbing and positioning
-- **Magnetic Snapping**: Automatic alignment to beat grid
-- **Text Annotations**: Add contextual notes to markers
-- **Keyboard Shortcuts**: Professional workflow acceleration
+| Layer | Technology |
+| --- | --- |
+| Framework | Expo SDK 54 + React Native 0.81.5 |
+| Language | TypeScript (strict) |
+| State | Zustand |
+| Audio | expo-audio + AVAudioEngine (iOS native) |
+| Stem separation | Demucs (CoreML on-device) + cloud fallback |
+| Graphics | react-native-svg + react-native-reanimated |
+| Gestures | react-native-gesture-handler v2 |
+| Storage | AsyncStorage + iCloud (iOS) |
+| Testing | Playwright (E2E, web) + Jest (unit, critical logic) |
+| CI/CD | EAS Build + TestFlight |
 
-### Professional Interface
+---
 
-- **Unified & Multitrack Views**: Switch between consolidated and separated stem views
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
-- **Dark Theme**: Eye-friendly interface for extended sessions
-- **Collapsible Sidebar**: Maximize workspace when needed
-- **Help System**: Built-in shortcuts and usage guide
-
-### Project Management
-
-- **Save/Load Projects**: Persistent project storage with metadata
-- **CSV Import/Export**: Data interchange with external tools
-- **Audio File Support**: Multiple format compatibility
-- **Version Control**: Project versioning and modification tracking
-
-## Tech Stack
-
-- **Framework**: Expo SDK 54 + React Native 0.81.5
-- **Language**: TypeScript
-- **State Management**: Zustand
-- **Audio Processing**: expo-audio
-- **Graphics**: react-native-svg + react-native-reanimated
-- **Gestures**: react-native-gesture-handler v2
-- **File System**: expo-document-picker + expo-file-system
-- **Testing**: Playwright (60+ E2E tests)
-- **Storage**: AsyncStorage for persistence
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- Expo CLI
-
-### Installation
+## Quick start
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/BeatNote-App.git
-cd BeatNote-App
-
-# Install dependencies
 npm install
-
-# Start development server
-npx expo start
+npx expo start          # web dev server
+npx expo start --ios    # iOS simulator
 ```
 
-### Platform-Specific Launch
+---
 
-```bash
-# Web development
-npm run web
+## Project structure
 
-# iOS Simulator
-npm run ios
-
-# Android Emulator
-npm run android
-```
-
-## Usage Guide
-
-### Basic Workflow
-
-1. **Load Audio**: Import your audio file using "Load Song"
-2. **Configure Stems**: Select 2, 4, or 6 stem mode based on your needs
-3. **Select Layer**: Choose which stem to annotate (vocals, drums, etc.)
-4. **Add Markers**: Use TAP button or click waveform to place markers
-5. **Navigate**: Use timeline controls or keyboard shortcuts
-6. **Annotate**: Add text descriptions to important markers
-7. **Save Project**: Export your work for future sessions
-
-### Keyboard Shortcuts
-
-- `Space`: Play/Pause
-- `T`: Add marker at current position
-- `←/→`: Navigate between markers
-- `Shift + ←/→`: Skip to start/end
-- `+/-`: Zoom timeline
-- `?`: Show help screen
-
-## Project Architecture
-
-```text
+```css
 src/
 ├── components/
-│   ├── icons/              # Custom SVG icons
-│   ├── layout/             # Layout components (Sidebar, MainContent)
-│   ├── ui/
-│   │   ├── common/         # Reusable UI components
-│   │   ├── controls/       # Audio and marker controls
-│   │   ├── modals/         # Modal dialogs
-│   │   └── waveform/       # Waveform visualization
-│   └── ErrorBoundary.tsx   # Error handling
+│   ├── icons/          # Custom SVG icons
+│   ├── layout/         # Sidebar, MainContent, StemsView
+│   └── ui/
+│       ├── common/     # Reusable primitives
+│       ├── controls/   # Audio, marker, layer controls
+│       ├── modals/     # Save, export, import, project manager
+│       ├── screens/    # HelpScreen
+│       └── waveform/   # WaveformCanvas, StemWaveform, RhythmicGrid
 ├── features/
-│   └── studio/             # Main studio interface
-├── hooks/                  # Custom React hooks
-│   ├── useAudioPlayer.ts   # Audio playback logic
-│   ├── useStudioStore.ts   # Global state management
-│   └── useKeyboardShortcuts.ts # Keyboard handling
-├── styles/                 # Organized styling system
-├── types/                  # TypeScript definitions
-├── utils/                  # Utility functions
-│   ├── projectManager.ts   # Project save/load
-│   ├── exportEngine.ts     # Data export
-│   └── importEngine.ts     # Data import
-└── animations/             # Animation configurations
+│   ├── studio/         # Main StudioScreen
+│   └── stemSeparation/ # Demucs integration (on-device + cloud)
+├── hooks/
+│   ├── useStudioStore.ts       # Global Zustand store
+│   ├── useAudioPlayer.ts       # Playback, scrub, tap-to-beat
+│   ├── useWaveformData.ts      # Waveform peak extraction
+│   ├── useKeyboardShortcuts.ts # Web keyboard bindings
+│   └── ...
+├── styles/             # Organised per-component styles
+├── types/              # TypeScript definitions
+└── utils/
+    ├── exportEngine.ts     # CSV, MIDI, PDF export
+    ├── importEngine.ts     # CSV import
+    ├── projectManager.ts   # AsyncStorage project CRUD
+    └── magneticSnapping.ts # Snap-to-grid logic
+tests/                  # Playwright E2E + Jest unit tests
+.kiro/steering/         # Project steering docs (always loaded)
 ```
+
+---
 
 ## Testing
 
 ```bash
-# Run all tests
-npm test
-
-# Interactive test UI
-npm run test:ui
-
-# Debug mode
-npm run test:debug
-
-# Generate test report
-npm run test:report
+npm test                    # Playwright E2E (web)
+npm run test:ui             # Playwright interactive UI
+npx jest --testPathPattern=unit  # Jest unit tests
 ```
-
-**Test Coverage**: 60+ E2E tests covering:
-
-- Core functionality
-- UI components
-- Waveform features
-- Quality assurance
-- Performance benchmarks
-- Responsive design
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Maintain test coverage for new features
-- Use conventional commit messages
-- Update documentation for API changes
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Built with [Expo](https://expo.dev/) and [React Native](https://reactnative.dev/)
-- Icons from [Lucide React Native](https://lucide.dev/)
-- Testing powered by [Playwright](https://playwright.dev/)
 
 ---
 
-Made with ❤️ for the music production community
+## iOS / TestFlight
+
+Requires Apple Developer account ($99/year). Once configured:
+
+```bash
+eas build --platform ios --profile preview   # TestFlight build
+eas submit --platform ios                    # Submit to TestFlight
+```
+
+See `.kiro/steering/ios-testflight.md` for full setup guide.
+
+---
+
+## Roadmap
+
+- [x] Multi-track annotation (web)
+- [x] Project save/load
+- [x] CSV + MIDI export
+- [ ] iOS port + TestFlight
+- [ ] Demucs stem separation (on-device CoreML + cloud fallback)
+- [ ] PDF choreography export
+- [ ] 8-count grid mode
+- [ ] Slow-down / pitch-preserve playback (iOS)
+- [ ] iCloud sync
+- [ ] Share sheet import/export
+- [ ] Customisable layer names
+- [ ] Storage management screen
+
+---
+
+## License
+
+MIT

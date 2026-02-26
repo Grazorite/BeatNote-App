@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Coding Standards Check",
+  "description": "After any source file is edited, checks for coding standard violations before the change is committed",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just saved. Quickly scan it for violations of the BeatNote coding standards (coding-standards.md). Specifically check: (1) any hardcoded hex colour values that should use tokens from src/styles/common.ts, (2) any inline styles in JSX that should be in a styles file, (3) any useStudioStore.getState() called inside a render path, (4) any new global state outside useStudioStore.ts, (5) any missing JSDoc on exported functions or hooks, (6) any `any` type that should be `unknown`. Report only real violations — do not flag things that are fine."
+  }
+}
