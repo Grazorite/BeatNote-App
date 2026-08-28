@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update Live Documentation",
+      "trigger": "PostTaskExec",
+      "description": "After a spec task completes, updates durable steering docs and the README roadmap to match the new state.",
+      "action": {
+        "type": "agent",
+        "prompt": "A spec task just completed. Update DURABLE documentation to reflect real changes — do NOT touch AGENTS.md volatile state (the global-project-orchestrator skill owns the Kanban board and handover log). Specifically: (1) if a limitation listed in .kiro/steering/project-overview.md is now resolved, remove or update it; (2) if an ADR-worthy decision was made, add it to .kiro/steering/architecture-decisions.md; (3) if an iOS feature landed, update .kiro/steering/ios-testflight.md status; (4) if stem separation progressed, update .kiro/steering/stem-separation.md; (5) tick completed items in the README.md Roadmap. Only update what actually changed, and run the markdown linter on any file you edit. Do not rewrite docs that are still accurate."
+      }
+    }
+  ]
+}

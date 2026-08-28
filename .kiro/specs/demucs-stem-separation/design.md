@@ -143,6 +143,7 @@ export function useStemSeparation(): UseStemSeparationReturn
 ```
 
 Key responsibilities:
+
 - Reads `songLoaded`, `stemCount`, and the current audio URI from the store
 - Computes `sourceHash` via `stemCache.computeHash(audioUri, stemCount)`
 - Checks cache before dispatching to a separator
@@ -188,6 +189,7 @@ export async function separateCloud(
 ```
 
 Internal flow:
+
 1. POST to `https://api.replicate.com/v1/predictions` with model `facebook/demucs`
 2. Poll `GET /v1/predictions/{id}` every 2 seconds until `status` is `succeeded` or `failed`
 3. Map Replicate status to progress: `starting→5`, `processing→5–95` (linear), `succeeded→100`
@@ -219,6 +221,7 @@ Modal overlay shown during processing.
 Props: none (reads directly from store)
 
 Displays:
+
 - Progress bar (`stemSeparationProgress`)
 - Estimated time remaining (computed from progress rate and song duration)
 - Cancel button → calls `cancelSeparation()` from `useStemSeparation`
@@ -228,6 +231,7 @@ Displays:
 New sidebar section added to `Sidebar.tsx`.
 
 Displays:
+
 - Mode selector: Auto / On-device only / Cloud only (stored in AsyncStorage under `beatnote_stem_mode`)
 - Replicate API key input (reads/writes via `expo-secure-store` key `beatnote_replicate_key`)
 - Warning when mode is "Cloud only" and no key is stored
@@ -297,7 +301,7 @@ Implemented using a pure JS SHA-256 (e.g. `js-sha256`) — no native dependency 
 
 ### Stem File Layout (`expo-file-system` Documents directory)
 
-```
+```text
 <DocumentsDir>/
   beatnote_stems/
     <sourceHash>/
@@ -359,6 +363,7 @@ public class StemSeparationModule: Module {
 ```
 
 Key implementation notes:
+
 - Model files bundled as `.mlmodelc` in the app bundle under `Resources/`
 - Inference dispatched on a background queue; progress emitted via `sendEvent("onProgress", ["progress": value])`
 - Output written to `FileManager.default.urls(for: .documentDirectory)` under `beatnote_stems/<hash>/`
@@ -427,80 +432,79 @@ Auto-mode fallback: when `DEVICE_ERROR`, `MODEL_MISSING`, or `INSUFFICIENT_MEMOR
 
 *For any* audio URI and stem count, storing a separation result in the cache and then looking it up by the same source hash should return an entry with identical stem URIs, stem count, and source hash.
 
-**Validates: Requirements 1.1, 1.2, 5.1, 5.3**
+**Validates:** Requirements 1.1, 1.2, 5.1, 5.3
 
 ### Property 2: Hash determinism
 
 *For any* (audioUri, stemCount) pair, calling `computeHash` multiple times should always return the same string.
 
-**Validates: Requirements 5.2**
+**Validates:** Requirements 5.2
 
 ### Property 3: Cache metadata completeness
 
 *For any* stored cache entry, the retrieved entry should contain all four required fields: `sourceHash`, `stemCount`, `stems` (with at least one LayerId key), and `createdAt`.
 
-**Validates: Requirements 5.4**
+**Validates:** Requirements 5.4
 
 ### Property 4: Cache deletion is a left inverse of storage
 
 *For any* source hash that has been stored in the cache, deleting it and then looking it up should return null.
 
-**Validates: Requirements 5.6**
+**Validates:** Requirements 5.6
 
 ### Property 5: Stem count output keys
 
 *For any* successful separation with stemCount=4, the result keys should be exactly `{vocals, drums, bass, other}`. For stemCount=6, the result keys should be exactly `{vocals, drums, bass, piano, guitar, other}`.
 
-**Validates: Requirements 2.2, 2.3**
+**Validates:** Requirements 2.2, 2.3
 
 ### Property 6: Separation produces existing file URIs
 
 *For any* successful separation (on-device or cloud), every LayerId in the result should map to a file URI that exists on the file system.
 
-**Validates: Requirements 2.6, 3.4**
+**Validates:** Requirements 2.6, 3.4
 
 ### Property 7: Progress values are monotonically non-decreasing and bounded
 
 *For any* separation run, the sequence of progress values emitted should be non-decreasing and every value should be in the range [0, 100].
 
-**Validates: Requirements 2.4, 3.3, 4.1**
+**Validates:** Requirements 2.4, 3.3, 4.1
 
 ### Property 8: Store state transitions on separation lifecycle
 
 *For any* separation initiation, the store should have `stemSeparationStatus = "processing"` and `stemSeparationProgress = 0` immediately after start. On successful completion, `stemSeparationStatus = "complete"` and `stemSeparationProgress = 100`.
 
-**Validates: Requirements 4.5, 4.6**
+**Validates:** Requirements 4.5, 4.6
 
 ### Property 9: Store invariants
 
 *For any* sequence of store actions, `stemSeparationStatus` should always be one of `{idle, processing, complete, error}`, `stemSeparationProgress` should always be in [0, 100], and all keys in `separatedStemUris` should be valid `LayerId` values.
 
-**Validates: Requirements 6.1, 6.2, 6.3**
+**Validates:** Requirements 6.1, 6.2, 6.3
 
 ### Property 10: In-progress guard
 
 *For any* store state where `stemSeparationStatus = "processing"`, calling `initiateSeparation` again should leave the status unchanged (still "processing") and not start a second separation.
 
-**Validates: Requirements 1.7**
+**Validates:** Requirements 1.7
 
 ### Property 11: View mode toggle does not trigger re-separation
 
 *For any* store state where `separatedStemUris` is populated, toggling `viewMode` between "unified" and "multitrack" should not change `separatedStemUris` or `stemSeparationStatus`.
 
-**Validates: Requirements 9.3**
+**Validates:** Requirements 9.3
 
 ### Property 12: WaveformCanvas URI invariant
 
 *For any* store state (with or without `separatedStemUris` populated), the URI passed to `WaveformCanvas` should always equal the original full-mix audio URI, never a stem URI.
 
-**Validates: Requirements 9.4, 6.6**
+**Validates:** Requirements 9.4, 6.6
 
 ### Property 13: Estimated time remaining is non-negative
 
 *For any* (songDuration, currentProgress, elapsedMs) triple where progress > 0, the computed estimated time remaining should be a non-negative number.
 
-**Validates: Requirements 4.2**
-
+**Validates:** Requirements 4.2
 ---
 
 ## Testing Strategy
@@ -509,7 +513,8 @@ Auto-mode fallback: when `DEVICE_ERROR`, `MODEL_MISSING`, or `INSUFFICIENT_MEMOR
 
 Target: `tests/unit/` — pure logic only, no React/RN environment needed.
 
-**`stemCache.test.ts`**
+#### `stemCache.test.ts`
+
 - Property 1: cache round-trip (store then lookup returns identical entry)
 - Property 2: hash determinism (same inputs → same hash, across 100+ random URI/stemCount pairs)
 - Property 3: metadata completeness (all four fields present after store)
@@ -517,7 +522,8 @@ Target: `tests/unit/` — pure logic only, no React/RN environment needed.
 - Edge case: lookup on empty cache returns null
 - Edge case: storing two entries with different hashes does not overwrite either
 
-**`cloudSeparator.test.ts`**
+#### `cloudSeparator.test.ts`
+
 - Property 7: progress sequence is non-decreasing and bounded (mock Replicate poll responses)
 - Property 13: estimated time remaining is non-negative
 - Example 3.1: correct Replicate endpoint and model are called
@@ -526,7 +532,8 @@ Target: `tests/unit/` — pure logic only, no React/RN environment needed.
 - Edge case 3.6: API error response → throws `API_ERROR` with message
 - Edge case 3.7: network failure → throws `NETWORK_ERROR`
 
-**`onDeviceSeparator.test.ts`**
+#### `onDeviceSeparator.test.ts`
+
 - Property 5: stemCount=4 result has exactly {vocals, drums, bass, other} keys (mocked native module)
 - Property 5: stemCount=6 result has exactly {vocals, drums, bass, piano, guitar, other} keys
 - Property 7: progress events are non-decreasing and bounded
@@ -534,7 +541,8 @@ Target: `tests/unit/` — pure logic only, no React/RN environment needed.
 - Edge case 2.7: native module rejection → throws `DEVICE_ERROR`
 - Edge case 8.6: model missing error code → throws `MODEL_MISSING`
 
-**`studioStore.test.ts`** (additions to existing file)
+#### `studioStore.test.ts` (additions to existing file)
+
 - Property 8: status and progress transitions on separation lifecycle
 - Property 9: store invariants after any sequence of stem separation actions
 - Property 10: in-progress guard (second initiation is a no-op)
@@ -543,7 +551,8 @@ Target: `tests/unit/` — pure logic only, no React/RN environment needed.
 **Property-based testing library**: `fast-check` (already compatible with Jest, no additional setup beyond `npm install fast-check --save-dev`)
 
 Each property test runs a minimum of 100 iterations. Tag format in test comments:
-```
+
+```text
 // Feature: demucs-stem-separation, Property 1: Cache round-trip
 ```
 

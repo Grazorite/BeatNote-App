@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Style File Reminder",
+      "trigger": "PostFileCreate",
+      "description": "When a new component is created, checks that its mirrored style file exists.",
+      "matcher": "src/(components|features)/.*\\.tsx$",
+      "action": {
+        "type": "agent",
+        "prompt": "A new component file was just created. Per ADR-006 in .kiro/steering/architecture-decisions.md, every component needs a mirrored style file. Determine the expected style path by mirroring the component path under src/styles/ (e.g. src/components/ui/controls/Foo.tsx maps to src/styles/components/controls/foo.ts). Check whether that style file already exists. If it does not, remind the user to create it and suggest the minimal boilerplate: import StyleSheet from 'react-native', import the colour tokens from src/styles/common, and export a const created via StyleSheet.create({}). Do not create the file unless asked."
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test File Conventions Check",
+      "trigger": "PostFileSave",
+      "description": "When a test file is saved, surfaces the right test command and checks naming conventions.",
+      "matcher": "tests/.*\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "A test file under tests/ was just saved. Based on its path, remind the user of the correct command: unit tests in tests/unit/ run with `npx jest --testPathPatterns=unit`; Playwright specs (*.spec.ts) run with `npm test`. Then check the file against .kiro/steering/testing-strategy.md conventions: behaviour-describing test names (not \"test 1\"), one describe block per module/feature, no committed test.only or test.skip, and each test independent with a fresh store instance where applicable. Flag any violations with file:line references. Do not edit the file unless asked."
+      }
+    }
+  ]
+}

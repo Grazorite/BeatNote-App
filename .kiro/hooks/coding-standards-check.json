@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Coding Standards Check",
+      "trigger": "PostFileSave",
+      "description": "After a TypeScript source file is saved, scans it for BeatNote coding-standard violations.",
+      "matcher": "src/.*\\.(ts|tsx)$",
+      "action": {
+        "type": "agent",
+        "prompt": "A source file under src/ was just saved. Quickly scan it against the BeatNote coding standards in .kiro/steering/coding-standards.md. Check specifically for: (1) hardcoded hex colour values that should use tokens from src/styles/common.ts, (2) inline styles in JSX that belong in a mirrored src/styles/ file, (3) useStudioStore.getState() called inside a render path (only allowed in event handlers/effects), (4) new global state created outside useStudioStore.ts, (5) missing JSDoc on exported functions or hooks, (6) any `any` type that should be `unknown`. Report only real violations with file:line references — do not flag code that is fine, and do not make edits unless asked."
+      }
+    }
+  ]
+}

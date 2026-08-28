@@ -33,7 +33,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-08-28
-**Branch:** `master` · **HEAD:** `570078c` · **Deploy:** Web (Netlify config present) · iOS pending
+**Branch:** `master` · **HEAD:** `d88b54b` · **Deploy:** Web (Netlify config present) · iOS pending
 **Build gate:** `npx jest --testPathPatterns=unit` (unit) and `npm test` (Playwright E2E)
 
 > **Gate caveat:** `npx tsc --noEmit` currently fails on two pre-existing issues unrelated to recent
@@ -132,6 +132,13 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 - [x] Jest unit test setup + Playwright E2E harness (5 spec files)
       <sub>**Key Artifacts:** `jest.config.js`, `tests/unit/`, `tests/*.spec.ts`, `playwright.config.ts`</sub>
 
+#### Repo hygiene & tooling
+
+- [x] Markdown lint clean across all 12 repo `.md` files (fixed 25 formatting issues in `design.md`)
+      <sub>**Key Artifacts:** `.kiro/specs/demucs-stem-separation/design.md`</sub>
+- [x] Migrated the 5 agent hooks from legacy `.kiro.hook` (v1) to v2 JSON; refined stale test command and scoped `update-live-docs` away from AGENTS.md
+      <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
+
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -205,6 +212,36 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 10 entries.*
+
+### 2026-08-28 — Markdown lint clean-up and hook migration to v2
+
+**Agent:** orchestrator (Claude Opus 4.8) · **Commit(s):** `9dde5f2`
+**Kanban moved:** Repo hygiene & tooling items → Done
+
+**Changed:**
+
+- `design.md`: fixed all 25 markdown lint findings (emphasis-as-heading `**Validates:**` labels,
+  blank lines around lists/headings, fenced-block languages). Formatting only — no content change.
+- Migrated all 5 agent hooks from legacy `.kiro/hooks/*.kiro.hook` (v1 `when`/`then`) to v2
+  `.kiro/hooks/*.json` (`trigger`/`action`). Deleted the 5 legacy files.
+- Corrected the stale Jest flag in the test hook (`--testPathPatterns`) and scoped `update-live-docs`
+  to durable steering/README only, leaving AGENTS.md to the orchestrator.
+
+**Verified:**
+
+- `mdlint.py` across all 12 repo `.md` files → 0 findings.
+- All 5 v2 hook JSON files parse as valid JSON; `.kiro/hooks/` now contains only the v2 files.
+- `git diff design.md` reviewed → purely whitespace/formatting.
+
+**Not verified / known gaps:**
+
+- Hooks are declared but not fired this session — v2 hooks activate on next session start.
+- `ts-check-on-save` will report the known pre-existing `tsc` errors on every save until the
+  "Fix pre-existing tsc errors" To Do item is done.
+
+**Next agent should:**
+
+- Continue the In Progress stem separation work (native module TS interface, spec task 3).
 
 ### 2026-08-28 — Board initialised; pending work committed
 

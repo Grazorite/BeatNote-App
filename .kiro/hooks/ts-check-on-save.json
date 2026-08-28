@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "TypeScript Check on Save",
+      "trigger": "PostFileSave",
+      "description": "Runs tsc --noEmit after a TypeScript source file is saved to surface type errors.",
+      "matcher": "src/.*\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "npx tsc --noEmit",
+        "timeout": 120
+      }
+    }
+  ]
+}
