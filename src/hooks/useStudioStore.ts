@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { ProjectManager } from '../utils/projectManager';
 import { BeatNoteProject } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
+import { StemSeparationStatus } from '../features/stemSeparation/types';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -90,6 +91,13 @@ interface StudioStore {
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
+  // Stem separation state (Requirements 6.1, 6.2, 6.3, 6.4)
+  stemSeparationStatus: StemSeparationStatus;
+  stemSeparationProgress: number;
+  separatedStemUris: Partial<Record<LayerId, string>>;
+  setStemSeparationStatus: (status: StemSeparationStatus) => void;
+  setStemSeparationProgress: (progress: number) => void;
+  setSeparatedStemUris: (uris: Partial<Record<LayerId, string>>) => void;
 }
 
 const allLayers: Layer[] = [
@@ -149,6 +157,9 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   magneticSnapping: true,
   showAnnotations: true,
   isTextInputFocused: false,
+  stemSeparationStatus: 'idle',
+  stemSeparationProgress: 0,
+  separatedStemUris: {},
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
@@ -192,6 +203,9 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setMagneticSnapping: (enabled) => set({ magneticSnapping: enabled }),
   setShowAnnotations: (show) => set({ showAnnotations: show }),
   setTextInputFocused: (focused) => set({ isTextInputFocused: focused }),
+  setStemSeparationStatus: (status) => set({ stemSeparationStatus: status }),
+  setStemSeparationProgress: (progress) => set({ stemSeparationProgress: progress }),
+  setSeparatedStemUris: (uris) => set({ separatedStemUris: uris }),
   updateMarkerAnnotation: (layerId, timestamp, text) => set((state) => {
     const updatedAllLayers = state.allLayersData.map(layer => {
       if (layer.id === layerId) {

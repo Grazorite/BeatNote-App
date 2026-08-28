@@ -17,7 +17,7 @@
     "preview": {
       "distribution": "internal",
       "ios": {
-        "simulator": true,
+        "simulator": false,
         "resourceClass": "m-medium"
       },
       "android": {
@@ -36,12 +36,12 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "your-apple-team-id"
+        "appleId": "REPLACE_WITH_APPLE_ID",
+        "ascAppId": "REPLACE_WITH_ASC_APP_ID",
+        "appleTeamId": "REPLACE_WITH_APPLE_TEAM_ID"
       },
       "android": {
-        "serviceAccountKeyPath": "./path/to/api-key.json",
+        "serviceAccountKeyPath": "./REPLACE_WITH_GOOGLE_SERVICE_ACCOUNT.json",
         "track": "internal"
       }
     }

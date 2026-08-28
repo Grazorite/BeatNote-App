@@ -71,7 +71,7 @@ Match output files directly to the existing `LayerId` type.
 
 ## Store integration
 
-Add to `useStudioStore`:
+`useStudioStore` already contains:
 
 ```typescript
 stemSeparationStatus: 'idle' | 'processing' | 'complete' | 'error'
@@ -81,6 +81,8 @@ setStemSeparationStatus: (status) => void
 setStemSeparationProgress: (progress: number) => void
 setSeparatedStemUris: (uris: Partial<Record<LayerId, string>>) => void
 ```
+
+Types live in `src/features/stemSeparation/types.ts` (`StemSeparationStatus`, `StemSeparationMode`, `StemSeparationResult`, `StemCacheEntry`, `StemCacheMetadata`, `StemProgressEvent`, `StemSeparationError`).
 
 ## Waveform display after separation
 

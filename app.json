@@ -15,7 +15,20 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.beatnote.app",
-      "requireFullScreen": false
+      "requireFullScreen": false,
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "BeatNote Project",
+            "CFBundleTypeExtensions": [
+              "beatnote"
+            ],
+            "CFBundleTypeRole": "Editor"
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +54,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
       }
     }
   }

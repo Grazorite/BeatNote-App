@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 
 interface ImportModalProps {
   visible: boolean;
@@ -23,15 +24,19 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
       });
       
       if (!result.canceled && result.assets[0]) {
-        const response = await fetch(result.assets[0].uri);
-        const csvContent = await response.text();
+        const csvContent = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
         await importFromCSV(csvContent);
         
         onSuccess();
       }
     } catch (error) {
       console.error('Import error:', error);
-      Alert.alert('Import Failed', 'Failed to import CSV data');
+      Alert.alert(
+        'Import Failed',
+        error instanceof Error ? error.message : 'Failed to import CSV data'
+      );
     } finally {
       setIsImporting(false);
     }

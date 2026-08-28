@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Alert, Platform } from 'react-native';
 import { ExportEngine } from '../../../utils/exportEngine';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
@@ -21,18 +21,28 @@ const ExportModal: React.FC<ExportModalProps> = ({
   const handleExport = async (format: 'midi' | 'csv') => {
     setIsExporting(true);
     try {
-      const filename = format === 'midi' 
+      const result = format === 'midi'
         ? await ExportEngine.exportToMIDI({ format, layers: allLayersData, bpm, songDuration, projectName })
         : await ExportEngine.exportToCSV({ format, layers: allLayersData, bpm, songDuration, projectName });
+
+      const title = 'Export Successful';
+      const message = Platform.OS === 'ios'
+        ? (result.shared
+          ? `${format.toUpperCase()} file "${result.filename}" was exported and opened in the share sheet.`
+          : `${format.toUpperCase()} file "${result.filename}" was saved locally at:\n${result.uri}`)
+        : `${format.toUpperCase()} file "${result.filename}" has been downloaded to your Downloads folder.`;
       
       Alert.alert(
-        'Export Successful', 
-        `${format.toUpperCase()} file "${filename}" has been downloaded to your Downloads folder.`,
+        title,
+        message,
         [{ text: 'OK', onPress: onClose }]
       );
     } catch (error) {
       console.error('Export error:', error);
-      Alert.alert('Export Failed', 'Failed to export data');
+      Alert.alert(
+        'Export Failed',
+        error instanceof Error ? error.message : 'Failed to export data'
+      );
     } finally {
       setIsExporting(false);
     }
