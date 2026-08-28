@@ -12,23 +12,22 @@ Implement hybrid stem separation in BeatNote using a layered approach: shared ty
   - Add `setStemSeparationStatus`, `setStemSeparationProgress`, and `setSeparatedStemUris` actions using the simple `set({})` form
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 1.1 Write unit tests for store stem separation actions
+  - [x] 1.1 Write unit tests for store stem separation actions
     - Test `setStemSeparationStatus`, `setStemSeparationProgress`, `setSeparatedStemUris` update state correctly
     - Create a fresh store instance per test (not the singleton)
     - Property 9: after any sequence of store actions, `stemSeparationStatus` is always one of `{idle, processing, complete, error}`, `stemSeparationProgress` is always in [0, 100], and all keys in `separatedStemUris` are valid `LayerId` values — use `fast-check` for 100+ iterations
     - Property 8: status is `"processing"` and progress is `0` immediately after initiation; `"complete"` and `100` after success
     - _Requirements: 6.1, 6.2, 6.3, 4.5, 4.6_
 
-- [ ] 2. Implement `stemCache.ts`
-  - Install `js-sha256` (`npm install js-sha256`) for pure-JS hashing
-  - Implement `computeHash(audioUri, stemCount)` using SHA-256 truncated to 16 hex chars
+- [x] 2. Implement `stemCache.ts`
+  - Implement `computeHash(audioUri, stemCount)` as a pure-JS deterministic hash truncated to 16 hex chars (implemented with FNV-1a, not SHA-256 — no extra dependency needed)
   - Implement `lookupCache(sourceHash)` reading from AsyncStorage key `beatnote_stem_cache`
   - Implement `storeCache(entry)` writing metadata to AsyncStorage and creating the stem directory under `<DocumentsDir>/beatnote_stems/<sourceHash>/`
   - Implement `deleteCache(sourceHash)` removing files from `expo-file-system` and the metadata entry from AsyncStorage
   - Implement `getAllCacheEntries()` and `getCacheSize()` for the storage management screen
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
 
-  - [-] 2.1 Write property tests for `stemCache.ts`
+  - [x] 2.1 Write property tests for `stemCache.ts`
     - Property 1: cache round-trip — store then lookup returns identical `sourceHash`, `stemCount`, `stems`, and `createdAt`
     - Property 2: hash determinism — same `(audioUri, stemCount)` always returns the same hash across 100+ random pairs
     - Property 3: metadata completeness — stored entry always has all four required fields

@@ -15,29 +15,38 @@ Primarily choreographers and dancers who need to map music structure to movement
 ## Core workflow
 
 1. Load a song (MP3, WAV, M4A, AAC, OGG, FLAC)
-2. Split into stems (Vocals, Drums, Bass, Piano, Guitar, Other)
+2. Split into stems (Vocals, Drums, Bass, Piano, Guitar, Other) — *planned, see Roadmap*
 3. Select a layer and tap to place beat markers during playback
 4. Add text annotations to markers (move names, cues, counts)
-5. Export as CSV, MIDI, or PDF choreography sheet
+5. Export as CSV or MIDI (PDF choreography sheet planned)
 
 ---
 
 ## Features
 
-- 6-layer stem support (2 / 4 / 6 stem modes)
+### Available now
+
+- 6-layer model with 2 / 4 / 6 stem-count modes
 - Unified and multitrack waveform views
 - Magnetic snapping to beat grid and existing markers
-- 8-count grid mode for dance phrase alignment
 - BPM control with rhythmic grid overlay
 - Ghost playhead for non-destructive position preview
 - Loop marker and repeat playback modes
-- Slow-down / pitch-preserve playback (iOS native)
+- Tap-to-beat marker placement with undo/redo and marker navigation
+- Per-marker text annotations
 - Project save/load via AsyncStorage
-- iCloud sync and Files app integration (iOS)
-- CSV, MIDI, and PDF export
-- Share sheet import/export (iOS)
+- CSV + MIDI export, CSV import
 - Keyboard shortcuts (web)
 - Responsive: desktop, tablet, mobile
+
+### Planned
+
+See the Roadmap section below for status. Not yet implemented: Demucs stem separation
+(on-device + cloud), 8-count grid mode, slow-down / pitch-preserve playback, PDF choreography
+export, customisable layer names, iCloud sync, and share-sheet import/export.
+
+> **Live project state** — features in flight, the task board, and the handover log live in
+> [`AGENTS.md`](./AGENTS.md), the single source of truth for current work.
 
 ---
 
