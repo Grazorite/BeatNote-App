@@ -50,7 +50,11 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(annotation.isHittable)
     annotation.tap()
     annotation.typeText("Dance note")
-    XCTAssertEqual(app.textFields["marker-annotation"].value as? String, "Dance note")
+    let annotationSavedToField = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "value == %@", "Dance note"),
+      object: annotation
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [annotationSavedToField], timeout: 5), .completed)
 
     let projectName = "UITest-\(UUID().uuidString.prefix(8))"
     let saveButton = element("save-project")
@@ -116,6 +120,35 @@ final class BeatNoteUITests: XCTestCase {
     app.alerts.buttons["OK"].tap()
   }
 
+  func testAudioContinuesWhileAppIsInBackground() {
+    loadBundledSimulatorAudio("background-audio.m4a")
+
+    let playbackTime = element("playback-current-time")
+    XCTAssertTrue(playbackTime.waitForExistence(timeout: 5))
+    element("play-pause").tap()
+    let pauseButton = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Pause playback")
+    ).firstMatch
+    XCTAssertTrue(pauseButton.waitForExistence(timeout: 5))
+    let timeBeforeBackground = playbackTime.label
+
+    XCUIDevice.shared.press(.home)
+    Thread.sleep(forTimeInterval: 1.5)
+    app.activate()
+
+    XCTAssertTrue(playbackTime.waitForExistence(timeout: 10))
+    let timeAdvanced = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", timeBeforeBackground),
+      object: playbackTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [timeAdvanced], timeout: 5), .completed)
+    XCTAssertTrue(pauseButton.exists, "Playback should remain active after returning from background.")
+
+    let secondsBefore = playbackSeconds(from: timeBeforeBackground)
+    let secondsAfter = playbackSeconds(from: playbackTime.label)
+    XCTAssertGreaterThan(secondsAfter, secondsBefore, "The playback clock should advance while the app is backgrounded.")
+  }
+
   func testLandscapeGesturesAndCompactControls() {
     XCUIDevice.shared.orientation = .landscapeLeft
     loadBundledSimulatorAudio()
@@ -141,10 +174,10 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
-  private func loadBundledSimulatorAudio() {
+  private func loadBundledSimulatorAudio(_ filename: String = "test-audio.wav") {
     XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
     element("load-song").tap()
-    selectDocument("test-audio.wav")
+    selectDocument(filename)
     dismissAlertIfPresent()
     XCTAssertEqual(element("load-song").label, "Song Loaded")
   }
@@ -174,6 +207,16 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertFalse(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "View config getter callback")).firstMatch.exists
     )
+  }
+
+  private func playbackSeconds(from label: String) -> Int {
+    let clock = label.components(separatedBy: "Current: ").last ?? ""
+    let parts = clock.split(separator: ":").compactMap { Int($0) }
+    guard parts.count == 2 else {
+      XCTFail("Unexpected playback clock label: \(label)")
+      return 0
+    }
+    return parts[0] * 60 + parts[1]
   }
 
   private func projectControl(containing prefix: String, suffix: String) -> XCUIElement {

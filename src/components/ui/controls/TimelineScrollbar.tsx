@@ -368,7 +368,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       
       <View style={styles.timeLabels}>
         <Text style={styles.timeText}>{formatTime(viewportStartTime)}</Text>
-        <Text style={styles.timeText}>Current: {formatTime(currentTime)}</Text>
+        <Text testID="playback-current-time" style={styles.timeText}>Current: {formatTime(currentTime)}</Text>
         <Text style={styles.timeText}>{formatTime(Math.min(viewportStartTime + viewportDuration, songDuration))}</Text>
       </View>
     </View>

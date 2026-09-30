@@ -19,6 +19,7 @@
       "infoPlist": {
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true,
+        "UIBackgroundModes": ["audio"],
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeName": "BeatNote Project",

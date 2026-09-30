@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAudioPlayer, AudioSource } from 'expo-audio';
+import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { useStudioStore } from './useStudioStore';
@@ -37,6 +37,16 @@ export const useCustomAudioPlayer = () => {
   const hideError = useCallback(() => {
     setError(prev => prev.visible ? { visible: false, title: '', message: '' } : prev);
   }, []);
+
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+    }).catch((audioModeError: unknown) => {
+      console.error('Audio mode configuration error:', audioModeError);
+      showError('Audio Setup Error', 'BeatNote could not configure audio playback. Please restart the app and try again.');
+    });
+  }, [showError]);
 
   const loadSong = async () => {
     try {

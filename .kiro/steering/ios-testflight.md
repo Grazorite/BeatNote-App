@@ -44,15 +44,16 @@ simulator works without prior picker history.
 
 The portrait suite covers app launch and document-picker presentation, settings drawer open/close,
 audio selection/playback, marker/annotation entry, project save/relaunch/restore, valid and invalid
-CSV imports, and CSV export to the iOS share sheet.
+CSV imports, CSV export to the iOS share sheet, and audio playback continuing while the app is
+backgrounded and then foregrounded in the simulator.
 `IOS_TEST_ONLY=<test-name>` runs one XCTest case; `IOS_SIMULATOR_ID=<simulator-udid>` chooses a
 specific simulator. Otherwise the script uses the booted iPhone or prefers iPhone 17 Pro. These UI
 tests run headlessly from the command line and do not replace interactive Device Hub or physical
 device acceptance.
 
-Background audio interruptions, physical-device audio behavior, waveform scrubbing, and completing
-a share to an external destination remain manual acceptance checks. The test command starts Metro
-only when port 8081 is not already serving the app.
+Real audio-session interruptions (such as calls), physical-device audio behavior, waveform scrubbing,
+and completing a share to an external destination remain manual acceptance checks. The test command
+starts Metro only when port 8081 is not already serving the app.
 
 ## Prerequisites checklist
 
@@ -104,8 +105,11 @@ eas submit --platform ios --profile preview
 
 ### Background audio
 
-- `expo-audio` handles background audio via the `AVAudioSession` category
-- Add `UIBackgroundModes: ["audio"]` to `app.json` → `ios.infoPlist` when implementing
+- Implemented for playback: `useCustomAudioPlayer` configures `expo-audio` with
+  `shouldPlayInBackground: true` and `playsInSilentMode: true`; `app.json` declares
+  `UIBackgroundModes: ["audio"]`.
+- The simulator verifies that playback time advances while backgrounded and that the UI recovers
+  when foregrounded. Test calls, route changes, and real-device audio interruptions before release.
 
 ### Haptic feedback (tap-to-beat)
 
