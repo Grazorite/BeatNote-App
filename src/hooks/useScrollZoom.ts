@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { useStudioStore } from './useStudioStore';
 
 const MIN_PIXELS_PER_SECOND = 5;
@@ -23,8 +24,9 @@ export const useScrollZoom = (elementRef?: React.RefObject<any>) => {
   };
 
   useEffect(() => {
-    if (elementRef?.current) {
+    if (Platform.OS === 'web' && elementRef?.current) {
       const element = elementRef.current;
+      if (typeof element.addEventListener !== 'function') return;
       
       const handleMouseEnter = () => { isHovering.current = true; };
       const handleMouseLeave = () => { isHovering.current = false; };

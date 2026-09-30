@@ -2,11 +2,15 @@ import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } f
 import { View, TextInput, Text } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 
+interface AnnotationFieldProps {
+  isMobile?: boolean;
+}
+
 export interface AnnotationFieldRef {
   focus: () => void;
 }
 
-const AnnotationField = forwardRef<AnnotationFieldRef>((props, ref) => {
+const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ isMobile = false }, ref) => {
   const { 
     currentTime, 
     activeLayerId, 
@@ -79,12 +83,14 @@ const AnnotationField = forwardRef<AnnotationFieldRef>((props, ref) => {
   
   return (
     <View style={{
-      flex: 1,
-      marginHorizontal: 16,
+      flex: isMobile ? 0 : 1,
+      width: isMobile ? '100%' : undefined,
+      marginHorizontal: isMobile ? 0 : 16,
       justifyContent: 'center',
     }}>
       <TextInput
         style={{
+          width: isMobile ? '100%' : undefined,
           backgroundColor: hasNearbyMarker ? '#333333' : '#222222',
           color: hasNearbyMarker ? '#ffffff' : '#666666',
           borderRadius: 12,
@@ -105,6 +111,7 @@ const AnnotationField = forwardRef<AnnotationFieldRef>((props, ref) => {
         ref={textInputRef}
         onFocus={() => setTextInputFocused(true)}
         onBlur={() => setTextInputFocused(false)}
+        testID="marker-annotation"
       />
     </View>
   );

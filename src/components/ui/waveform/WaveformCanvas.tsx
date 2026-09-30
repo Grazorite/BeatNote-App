@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Dimensions } from 'react-native';
+import { Platform, View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import Svg, { Line, Circle, Polygon, Path } from 'react-native-svg';
@@ -39,7 +39,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   }, []);
   
   // Responsive viewport width
-  const isMobile = screenData.width < 768;
+  const isMobile = Platform.OS === 'web'
+    ? screenData.width < 768
+    : Math.min(screenData.width, screenData.height) < 768;
   const VIEWPORT_WIDTH = isMobile 
     ? screenData.width - 32 // Mobile: full width minus padding
     : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
@@ -100,6 +102,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   };
   
   const tapGesture = Gesture.Tap()
+    .runOnJS(true)
     .maxDuration(250)
     .onStart((event) => {
       if (!songLoaded) return;
@@ -131,7 +134,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     });
   
   const panGesture = Gesture.Pan()
-    .minDistance(5)
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       if (!songLoaded) return;
       if (isPlaying) {
@@ -186,7 +191,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y2={300}
               stroke={layer.color}
               strokeWidth={4}
-              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
           );
@@ -200,7 +205,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y2={100}
               stroke={layer.color}
               strokeWidth={5}
-              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
           );
@@ -214,7 +219,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y2={300}
               stroke={layer.color}
               strokeWidth={4}
-              filter="drop-shadow(0 0 6px rgba(0,0,0,0.9))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
           );
@@ -228,7 +233,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
-              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
               fillOpacity={0.9}
             />
           );
@@ -242,7 +247,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
-              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
               fillOpacity={0.9}
             />
           );
@@ -256,7 +261,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               fill={layer.color}
               stroke="#000000"
               strokeWidth={2}
-              filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
               fillOpacity={0.9}
             />
           );
@@ -372,7 +377,11 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         
         {/* Transparent overlay for gesture detection */}
         <GestureDetector gesture={composedGesture}>
-          <View ref={waveformRef} style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH }]} />
+          <View
+            ref={waveformRef}
+            style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH }]}
+            testID="waveform-gesture-area"
+          />
         </GestureDetector>
         
         {/* Visual overlay for markers and playhead */}
@@ -393,7 +402,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   strokeWidth={2}
                   strokeOpacity={0.5}
                   strokeDasharray="8,4"
-                  filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
+                  filter={Platform.OS === 'web' ? 'drop-shadow(0 0 2px rgba(0,0,0,0.4))' : undefined}
                 />
                 <Polygon
                   points={`${ghostPlayheadX-6},300 ${ghostPlayheadX+6},300 ${ghostPlayheadX+6},288 ${ghostPlayheadX},284 ${ghostPlayheadX-6},288`}
@@ -416,7 +425,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   y2={300}
                   stroke={colors.accent}
                   strokeWidth={4}
-                  filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+                  filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
                 />
                 <Polygon
                   points={`${playheadX-8},300 ${playheadX+8},300 ${playheadX+8},285 ${playheadX},280 ${playheadX-8},285`}

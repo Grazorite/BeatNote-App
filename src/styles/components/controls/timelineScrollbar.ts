@@ -20,5 +20,5 @@ export const timelineScrollbarStyles = StyleSheet.create({
     fontSize: 10,
   },
   cursorAuto: Platform.OS === 'web' ? { cursor: 'auto' } : {},
-  cursorResize: Platform.OS === 'web' ? { cursor: 'ew-resize' } : {},
+  cursorResize: Platform.OS === 'web' ? { cursor: 'pointer' } : {},
 });

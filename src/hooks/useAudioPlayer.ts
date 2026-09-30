@@ -24,6 +24,7 @@ const PLAYBACK_UPDATE_INTERVAL_MS = 50;
  */
 export const useCustomAudioPlayer = () => {
   const [audioSource, setAudioSource] = useState<AudioSource | null>(null);
+  const [audioFilename, setAudioFilename] = useState<string | null>(null);
   const [wasPlayingBeforeScrub, setWasPlayingBeforeScrub] = useState(false);
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
   const player = useAudioPlayer(audioSource);
@@ -73,6 +74,7 @@ export const useCustomAudioPlayer = () => {
         
         try {
           setAudioSource({ uri: file.uri });
+          setAudioFilename(file.name);
           setSongLoaded(true);
           Alert.alert('Success', `Audio file "${file.name}" loaded successfully!`);
         } catch (audioError) {
@@ -90,6 +92,16 @@ export const useCustomAudioPlayer = () => {
       Alert.alert('Error', 'Failed to open file picker');
     }
   };
+
+  const loadProjectAudio = useCallback((uri: string, filename: string) => {
+    if (!uri) {
+      showError('Audio Unavailable', 'This project does not contain a saved audio file reference.');
+      return;
+    }
+    setAudioSource({ uri });
+    setAudioFilename(filename);
+    setSongLoaded(true);
+  }, [setSongLoaded, showError]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;
@@ -247,6 +259,8 @@ export const useCustomAudioPlayer = () => {
   return {
     sound: player,
     audioUri: typeof audioSource === 'object' && audioSource?.uri ? audioSource.uri : null,
+    audioFilename,
+    loadProjectAudio,
     loadSong,
     togglePlayback,
     tapToBeat,

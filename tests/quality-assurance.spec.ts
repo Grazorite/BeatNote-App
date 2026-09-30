@@ -1,4 +1,4 @@
-import { test, expect } from './setup';
+import { test, expect, loadTestAudio } from './setup';
 
 test.describe('Quality Assurance', () => {
   // Accessibility Tests
@@ -14,35 +14,26 @@ test.describe('Quality Assurance', () => {
     test('should have keyboard navigation support', async ({ page }) => {
       await page.goto('/');
       
-      // Test tab navigation through interactive elements
-      await page.keyboard.press('Tab');
-      
-      // Should be able to interact with buttons
-      const loadButton = page.getByText('Load Song');
-      const markerButton = page.getByText('TAP');
-      
-      // Verify buttons are visible and clickable
-      await expect(loadButton).toBeVisible();
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
       await expect(markerButton).toBeVisible();
-      
-      // Test that buttons respond to clicks
-      await loadButton.click();
-      await markerButton.click();
+      await markerButton.focus();
+      await expect(markerButton).toBeFocused();
+      await markerButton.press('Enter');
     });
     
     test('should support keyboard interactions', async ({ page }) => {
       await page.goto('/');
       
-      // Focus on TAP button
-      const markerButton = page.getByText('TAP');
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
       await markerButton.focus();
       
       // Get initial marker count
       const initialText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
-      // Test click interaction
-      await markerButton.click();
+      await markerButton.press('Enter');
       
       // Wait for state update
       await page.waitForTimeout(100);
@@ -71,8 +62,9 @@ test.describe('Quality Assurance', () => {
     
     test('should handle rapid interactions without lag', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
-      const markerButton = page.getByText('TAP');
+      const markerButton = page.getByTestId('add-marker');
       await expect(markerButton).toBeVisible();
       
       // Rapid clicks should not cause issues
@@ -89,7 +81,7 @@ test.describe('Quality Assurance', () => {
       expect(totalTime).toBeLessThan(2000);
       
       // App should remain responsive
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
     
     test('should not have memory leaks with view switching', async ({ page }) => {
@@ -135,16 +127,17 @@ test.describe('Quality Assurance', () => {
     
     test('should maintain app stability after errors', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
       // Verify core functionality still works
-      const markerButton = page.getByText('TAP');
+      const markerButton = page.getByTestId('add-marker');
       await expect(markerButton).toBeVisible();
       
       // Should be able to interact with UI
       await markerButton.click();
       
       // App should remain stable
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
   });
 
@@ -152,10 +145,9 @@ test.describe('Quality Assurance', () => {
   test.describe('State Persistence', () => {
     test('should maintain marker state across view mode changes', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
-      // Add some markers
-      const markerButton = page.getByText('TAP');
-      await markerButton.click();
+      const markerButton = page.getByTestId('add-marker');
       await markerButton.click();
       
       // Wait for state update
@@ -190,12 +182,13 @@ test.describe('Quality Assurance', () => {
     
     test('should maintain BPM setting across interactions', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
       // Verify default BPM
       await expect(page.getByText('120')).toBeVisible();
       
       // Interact with other controls
-      const markerButton = page.getByText('TAP');
+      const markerButton = page.getByTestId('add-marker');
       await markerButton.click();
       
       const multitrackButton = page.getByText('Multitrack');
@@ -233,8 +226,9 @@ test.describe('Quality Assurance', () => {
   test.describe('Edge Cases', () => {
     test('should handle rapid button clicks gracefully', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
-      const markerButton = page.getByText('TAP');
+      const markerButton = page.getByTestId('add-marker');
       
       // Get initial count
       const initialText = await page.getByText(/Grand Total: \d+ markers/).textContent();
@@ -252,14 +246,14 @@ test.describe('Quality Assurance', () => {
       // Wait for state to settle
       await page.waitForTimeout(200);
       
-      // Should have added markers (exact count may vary due to timing)
+      // Repeated taps at the same paused playhead toggle one marker on and off.
       const finalText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const finalCount = parseInt(finalText?.match(/\d+/)?.[0] || '0');
       
-      expect(finalCount).toBeGreaterThan(initialCount);
+      expect(finalCount).toBe(initialCount + 1);
       
       // App should remain stable
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
     
     test('should handle view mode toggle spam', async ({ page }) => {
@@ -304,7 +298,7 @@ test.describe('Quality Assurance', () => {
       
       // All controls should still be functional
       await expect(page.getByText('Load Song')).toBeVisible();
-      await expect(page.getByText('TAP')).toBeVisible();
+      await expect(page.getByTestId('add-marker')).toBeVisible();
       await expect(page.getByText('Unified')).toBeVisible();
       await expect(page.getByText('Multitrack')).toBeVisible();
     });
@@ -316,7 +310,8 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByText('Load Song')).toBeVisible();
       
       // Add some markers to create state
-      const markerButton = page.getByText('TAP');
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
       await markerButton.click();
       
       // Navigate away and back (simulate SPA routing)
@@ -326,7 +321,7 @@ test.describe('Quality Assurance', () => {
       });
       
       // App should remain functional
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
   });
 
@@ -338,7 +333,7 @@ test.describe('Quality Assurance', () => {
       
       // Core elements should still be visible
       await expect(page.getByText('Load Song')).toBeVisible();
-      await expect(page.getByText('TAP')).toBeVisible();
+      await expect(page.getByTestId('add-marker')).toBeVisible();
     });
     
     test('should work on tablet viewport', async ({ page }) => {
@@ -363,22 +358,28 @@ test.describe('Quality Assurance', () => {
     
     test('should handle viewport changes gracefully', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
       // Start with desktop
       await page.setViewportSize({ width: 1280, height: 720 });
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
       
       // Switch to mobile
       await page.setViewportSize({ width: 375, height: 667 });
-      await expect(page.getByText('Load Song')).toBeVisible();
+      const sidebarToggle = page.getByTestId('sidebar-toggle');
+      if (await sidebarToggle.isVisible()) {
+        await sidebarToggle.click();
+      }
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
       
       // App should remain functional
-      const markerButton = page.getByText('TAP');
+      const markerButton = page.getByTestId('add-marker');
+      await expect(markerButton).toBeEnabled();
       await markerButton.click();
       
       // Switch back to desktop
       await page.setViewportSize({ width: 1280, height: 720 });
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
   });
 });

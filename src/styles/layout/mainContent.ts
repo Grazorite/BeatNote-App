@@ -32,11 +32,12 @@ export const mainContentStyles = StyleSheet.create({
     alignItems: 'center',
     gap: dimensions.spacing.md,
     paddingHorizontal: dimensions.spacing.sm,
+    width: '100%',
   },
-  controlsRowTop: {
-    flexDirection: 'row',
+  controlsRowTopMobile: {
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: dimensions.spacing.sm,
     width: '100%',
   },
   markerButtonContainer: {

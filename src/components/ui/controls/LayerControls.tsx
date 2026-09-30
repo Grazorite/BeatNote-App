@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
+import { Mic, Drum, Radio, Piano, Guitar, Music } from 'lucide-react-native';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { layerControlsStyles as styles } from '../../../styles/components/controls/layerControls';
-import { VocalsIcon, DrumsIcon, BassIcon, PianoIcon, GuitarIcon, OtherIcon } from '../../icons';
 
 const LayerControls: React.FC = () => {
   const { layers, activeLayerId, setActiveLayer, toggleLayerVisibility } = useStudioStore();
@@ -15,12 +15,12 @@ const LayerControls: React.FC = () => {
   const getLayerIcon = (layerId: LayerId, color: string) => {
     const iconProps = { size: 18, color };
     switch (layerId) {
-      case 'vocals': return <VocalsIcon {...iconProps} />;
-      case 'drums': return <DrumsIcon {...iconProps} />;
-      case 'bass': return <BassIcon {...iconProps} />;
-      case 'piano': return <PianoIcon {...iconProps} />;
-      case 'guitar': return <GuitarIcon {...iconProps} />;
-      case 'other': return <OtherIcon {...iconProps} />;
+      case 'vocals': return <Mic {...iconProps} />;
+      case 'drums': return <Drum {...iconProps} />;
+      case 'bass': return <Radio {...iconProps} />;
+      case 'piano': return <Piano {...iconProps} />;
+      case 'guitar': return <Guitar {...iconProps} />;
+      case 'other': return <Music {...iconProps} />;
       default: return null;
     }
   };

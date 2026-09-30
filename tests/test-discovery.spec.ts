@@ -41,7 +41,7 @@ test.describe('Test Discovery and Setup', () => {
     await expect(page.getByText('Load Song')).toBeVisible();
     await expect(page.getByText(/Active Layer:/)).toBeVisible();
     await expect(page.getByText(/Grand Total: \d+ markers/)).toBeVisible();
-    await expect(page.getByText('TAP')).toBeVisible();
+    await expect(page.getByTestId('add-marker')).toBeVisible();
     
     console.log('✅ All core app elements are visible');
   });

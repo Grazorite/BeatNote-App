@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { Platform, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -10,8 +11,13 @@ import { ErrorModal } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
 
 export default function StudioScreen() {
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const isMobile = Platform.OS === 'web'
+    ? width < 768
+    : Math.min(width, height) < 768;
   const { layers, activeLayerId, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
-  const { sound, loadSong, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
+  const { sound, loadSong, loadProjectAudio, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
   let focusTextInput = () => {};
   
@@ -33,13 +39,15 @@ export default function StudioScreen() {
 
   return (
     <View style={styles.mainContainer}>
-      <ScrollView 
+      <View
         style={[
           styles.scrollView,
-          isSidebarCollapsed ? styles.scrollViewCollapsed : styles.scrollViewExpanded
+          {
+            marginLeft: isMobile ? 0 : isSidebarCollapsed ? 60 : 280,
+            paddingTop: 20 + insets.top,
+            paddingBottom: 50 + insets.bottom,
+          },
         ]}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
       >
         <MainContent
         viewMode={viewMode}
@@ -49,6 +57,8 @@ export default function StudioScreen() {
         totalMarkers={totalMarkers}
         layerSpecificNavigation={layerSpecificNavigation}
         audioUri={audioUri}
+        audioFilename={audioFilename}
+        loadProjectAudio={loadProjectAudio}
         sound={sound}
         loadSong={loadSong}
         togglePlayback={togglePlayback}
@@ -58,7 +68,7 @@ export default function StudioScreen() {
         endWaveformScrub={endWaveformScrub}
         onFocusTextInput={(fn) => { focusTextInput = fn; }}
         />
-      </ScrollView>
+      </View>
       <Sidebar />
       <HelpScreen 
         visible={showHelpScreen}
@@ -73,4 +83,3 @@ export default function StudioScreen() {
     </View>
   );
 }
-

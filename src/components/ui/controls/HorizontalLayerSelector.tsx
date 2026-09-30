@@ -46,6 +46,7 @@ const HorizontalLayerSelector: React.FC = () => {
           onPress={() => shouldBeVisible && setActiveLayer(layer.id)}
           onLongPress={() => shouldBeVisible && toggleLayerVisibility(layer.id)}
           disabled={!shouldBeVisible}
+          testID={`layer-${layer.id}`}
         >
           {getLayerIcon(layer.id, layer.isVisible ? layer.color : '#666666')}
           <Text style={[

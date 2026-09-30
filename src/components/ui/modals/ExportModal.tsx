@@ -76,6 +76,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
             ]}
             onPress={() => handleExport('midi')}
             disabled={isExporting}
+            testID="export-midi"
           >
             <Text style={styles.buttonText}>
               Export as MIDI
@@ -93,6 +94,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
             ]}
             onPress={() => handleExport('csv')}
             disabled={isExporting}
+            testID="export-csv"
           >
             <Text style={styles.buttonText}>
               Export as CSV

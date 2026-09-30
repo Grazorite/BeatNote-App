@@ -6,12 +6,20 @@ export const audioControlsStyles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
   },
+  containerMobile: {
+    gap: 6,
+  },
   button: {
     borderRadius: 12,
     width: 80,
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonMobile: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
   },
   audioControlsEnabled: {
     backgroundColor: '#ff8c00', // Prominent orange for main play/pause

@@ -7,6 +7,21 @@ export const projectControlsStyles = StyleSheet.create({
     gap: dimensions.spacing.sm,
     marginBottom: dimensions.spacing.lg,
   },
+  controlsMobile: {
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  sidebarToggleMobile: {
+    minWidth: 48,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  buttonMobile: {
+    minHeight: 44,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
   button: {
     backgroundColor: colors.border,
     paddingHorizontal: dimensions.spacing.lg,
@@ -24,5 +39,8 @@ export const projectControlsStyles = StyleSheet.create({
   buttonText: {
     color: colors.text,
     fontSize: 16,
+  },
+  buttonTextMobile: {
+    fontSize: 14,
   },
 });

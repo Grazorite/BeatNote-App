@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions, Platform } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 import ProjectControls from '../ui/controls/ProjectControls';
@@ -22,6 +22,8 @@ interface MainContentProps {
   totalMarkers: number;
   layerSpecificNavigation: boolean;
   audioUri: string | null;
+  audioFilename: string | null;
+  loadProjectAudio: (uri: string, filename: string) => void;
   sound: any;
   loadSong: () => void;
   togglePlayback: () => void;
@@ -40,6 +42,8 @@ const MainContent: React.FC<MainContentProps> = ({
   totalMarkers,
   layerSpecificNavigation,
   audioUri,
+  audioFilename,
+  loadProjectAudio,
   sound,
   loadSong,
   togglePlayback,
@@ -78,7 +82,9 @@ const MainContent: React.FC<MainContentProps> = ({
   }));
   
   // Responsive container width
-  const isMobile = screenData.width < 768;
+  const isMobile = Platform.OS === 'web'
+    ? screenData.width < 768
+    : Math.min(screenData.width, screenData.height) < 768;
   const containerWidth = isMobile 
     ? screenData.width - 32 // Mobile: full width minus padding
     : Math.max(900, screenData.width - 320); // Desktop: account for sidebar
@@ -86,6 +92,9 @@ const MainContent: React.FC<MainContentProps> = ({
   return (
     <ScrollView 
       style={styles.scrollContainer} 
+      stickyHeaderIndices={[0]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       contentContainerStyle={[
         styles.container, 
         { 
@@ -100,7 +109,9 @@ const MainContent: React.FC<MainContentProps> = ({
         onTogglePlayback={() => {}}
         hasSound={!!sound}
         audioUri={audioUri}
-        audioFilename={audioUri ? audioUri.split('/').pop() || 'unknown' : null}
+        audioFilename={audioFilename}
+        onLoadProjectAudio={loadProjectAudio}
+        isMobile={isMobile}
       />
       
       <Animated.View style={animatedStyle}>
@@ -129,7 +140,7 @@ const MainContent: React.FC<MainContentProps> = ({
         {isMobile ? (
           // Mobile: Stack vertically
           <>
-            <View style={styles.controlsRowTop}>
+            <View style={styles.controlsRowTopMobile}>
               <AudioControls 
                 onTogglePlayback={togglePlayback}
                 onSkipBack={() => seekToPosition(0)}
@@ -138,12 +149,13 @@ const MainContent: React.FC<MainContentProps> = ({
                   seekToPosition(state.songDuration);
                   state.setCurrentTime(state.songDuration);
                 }}
+                isMobile
               />
               <View style={styles.markerButtonContainer}>
-                <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
+                <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile />
               </View>
             </View>
-            <AnnotationField ref={annotationFieldRef} />
+            <AnnotationField ref={annotationFieldRef} isMobile />
           </>
         ) : (
           // Desktop: Horizontal layout
@@ -176,7 +188,7 @@ const MainContent: React.FC<MainContentProps> = ({
             Total: {activeLayerMarkers} markers
           </Text>
         )}
-        <Text style={styles.totalMarkersText}>
+        <Text style={styles.totalMarkersText} testID="grand-total-markers">
           Grand Total: {totalMarkers} markers
         </Text>
       </View>

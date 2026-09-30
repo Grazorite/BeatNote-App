@@ -47,6 +47,7 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
             placeholder="Enter project name"
             placeholderTextColor="#888888"
             autoFocus
+            testID="save-project-name"
           />
           
           <View style={styles.buttonRow}>
@@ -67,6 +68,7 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
               ]}
               onPress={handleSave}
               disabled={!projectName.trim()}
+              testID="confirm-save-project"
             >
               <Text style={styles.buttonText}>
                 Save

@@ -16,7 +16,7 @@ const SidebarToggle: React.FC = () => {
       {!isSidebarCollapsed && (
         <Text style={styles.title}>BeatNote Studio</Text>
       )}
-      <TouchableOpacity style={styles.toggle} onPress={toggleSidebar}>
+      <TouchableOpacity style={styles.toggle} onPress={toggleSidebar} testID="sidebar-toggle">
         <Animated.View style={animatedStyle}>
           <Svg width={16} height={16} viewBox="0 0 24 24">
             <Path

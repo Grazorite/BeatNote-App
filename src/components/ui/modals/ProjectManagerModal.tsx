@@ -131,6 +131,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                 onLoadProject(item.filename);
                 onClose();
               }}
+              testID={`load-saved-project-${item.name}`}
             >
               <Text style={styles.actionButtonText}>Load</Text>
             </TouchableOpacity>
@@ -146,6 +147,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
               onPress={() => handleDelete(item.filename, item.name)}
+              testID={`delete-saved-project-${item.name}`}
             >
               <Text style={styles.actionButtonText}>Delete</Text>
             </TouchableOpacity>

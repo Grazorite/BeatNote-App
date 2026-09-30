@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, Text, Alert } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
-import { Upload, Save, FolderOpen, Download, AudioLines } from 'lucide-react-native';
+import { Upload, Save, FolderOpen, Download, AudioLines, Menu } from 'lucide-react-native';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
 import ExportModal from '../modals/ExportModal';
@@ -14,6 +14,8 @@ interface ProjectControlsProps {
   hasSound: boolean;
   audioUri: string | null;
   audioFilename: string | null;
+  onLoadProjectAudio: (uri: string, filename: string) => void;
+  isMobile?: boolean;
 }
 
 const ProjectControls: React.FC<ProjectControlsProps> = ({
@@ -22,8 +24,10 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   hasSound,
   audioUri,
   audioFilename,
+  onLoadProjectAudio,
+  isMobile = false,
 }) => {
-  const { isPlaying, songLoaded, saveProject, loadProject, layers } = useStudioStore();
+  const { songLoaded, saveProject, loadProject, layers, toggleSidebar } = useStudioStore();
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -47,12 +51,13 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
 
   const handleLoadProject = useCallback(async (filename: string) => {
     try {
-      await loadProject(filename);
+      const audio = await loadProject(filename);
+      onLoadProjectAudio(audio.audioUri, audio.audioFilename);
       Alert.alert('Success', 'Project loaded successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to load project');
     }
-  }, [loadProject]);
+  }, [loadProject, onLoadProjectAudio]);
 
   const handleImportSuccess = useCallback(() => {
     setShowImportModal(false);
@@ -60,51 +65,65 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   }, []);
 
   return (
-    <View style={styles.controls}>
+    <View style={[styles.controls, isMobile && styles.controlsMobile]}>
+      {isMobile && (
+        <TouchableOpacity
+          style={[styles.button, styles.buttonMobile, styles.sidebarToggleMobile]}
+          onPress={toggleSidebar}
+          accessibilityLabel="Open settings sidebar"
+          testID="sidebar-open-toggle"
+        >
+          <Menu size={18} color="#ffffff" />
+        </TouchableOpacity>
+      )}
       <TouchableOpacity 
-        style={[styles.button, songLoaded && styles.buttonLoaded]} 
+        style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
         onPress={onLoadSong}
+        testID="load-song"
       >
-        <AudioLines size={20} color="#ffffff" style={{ marginRight: 8 }} />
-        <Text style={styles.buttonText}>
+        <AudioLines size={isMobile ? 18 : 20} color="#ffffff" style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>
           {songLoaded ? 'Song Loaded' : 'Load Song'}
         </Text>
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
+        style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
         onPress={songLoaded ? () => setShowSaveModal(true) : undefined}
         disabled={!songLoaded}
+        testID="save-project"
       >
-        <Save size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
-        <Text style={styles.buttonText}>Save Project</Text>
+        <Save size={isMobile ? 18 : 20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Save Project</Text>
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
-        onPress={songLoaded ? () => setShowProjectManager(true) : undefined}
-        disabled={!songLoaded}
+        style={[styles.button, isMobile && styles.buttonMobile]}
+        onPress={() => setShowProjectManager(true)}
+        testID="load-project"
       >
-        <FolderOpen size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
-        <Text style={styles.buttonText}>Load Project</Text>
+        <FolderOpen size={isMobile ? 18 : 20} color="#ffffff" style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Load Project</Text>
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.button, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]} 
+        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]}
         onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
         disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
+        testID="export-data"
       >
-        <Download size={20} color={songLoaded && layers.some(l => l.markers.length > 0) ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
-        <Text style={styles.buttonText}>Export Data</Text>
+        <Download size={isMobile ? 18 : 20} color={songLoaded && layers.some(l => l.markers.length > 0) ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Export Data</Text>
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.button, !songLoaded && styles.buttonDisabled]} 
+        style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
         onPress={songLoaded ? () => setShowImportModal(true) : undefined}
         disabled={!songLoaded}
+        testID="import-data"
       >
-        <Upload size={20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: 8 }} />
-        <Text style={styles.buttonText}>Import Data</Text>
+        <Upload size={isMobile ? 18 : 20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Import Data</Text>
       </TouchableOpacity>
 
       <SaveProjectModal

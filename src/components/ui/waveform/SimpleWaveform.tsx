@@ -31,7 +31,7 @@ const SimpleWaveform: React.FC<SimpleWaveformProps> = ({
     setCurrentTime(newCurrentTime);
   };
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
+  const tapGesture = Gesture.Tap().runOnJS(true).onEnd((event) => {
     const targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * VIEWPORT_DURATION;
     const newCurrentTime = Math.max(0, Math.min(targetTime, songDuration));
     updateTimeFromPosition(event.x);
@@ -41,6 +41,9 @@ const SimpleWaveform: React.FC<SimpleWaveformProps> = ({
   });
   
   const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       if (isPlaying) {
         onScrubStart();

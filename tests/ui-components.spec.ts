@@ -1,4 +1,4 @@
-import { test, expect } from './setup';
+import { test, expect, loadTestAudio } from './setup';
 
 test.describe('UI Components & Layout', () => {
   // Studio Screen Tests
@@ -18,9 +18,9 @@ test.describe('UI Components & Layout', () => {
       await expect(loadButton).toBeVisible();
       await expect(loadButton).toBeEnabled();
       
-      // Check for TAP button
-      const tapButton = page.getByText('TAP');
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByTestId('add-marker');
+      await expect(markerButton).toBeVisible();
+      await expect(markerButton).toBeDisabled();
     });
 
     test('should display layer information', async ({ page }) => {
@@ -34,8 +34,7 @@ test.describe('UI Components & Layout', () => {
     test('should have tap button available', async ({ page }) => {
       await page.goto('/');
       
-      // Look for TAP button
-      const tapButton = page.getByText('TAP');
+      const tapButton = page.getByTestId('add-marker');
       await expect(tapButton).toBeVisible();
     });
     
@@ -90,20 +89,20 @@ test.describe('UI Components & Layout', () => {
     test('should show tap button', async ({ page }) => {
       await page.goto('/');
       
-      // Look for TAP button
-      const tapButton = page.getByText('TAP');
+      const tapButton = page.getByTestId('add-marker');
       await expect(tapButton).toBeVisible();
     });
     
     test('should handle tap button interaction', async ({ page }) => {
       await page.goto('/');
+      await loadTestAudio(page);
       
       // Get initial marker count
       const initialMarkerText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const initialMarkerCount = parseInt(initialMarkerText?.match(/\d+/)?.[0] || '0');
       
       // Click TAP button
-      const tapButton = page.getByText('TAP');
+      const tapButton = page.getByTestId('add-marker');
       await tapButton.click();
       
       // Wait for state update
@@ -163,21 +162,21 @@ test.describe('UI Components & Layout', () => {
       
       // Basic smoke test - app should load without crashing
       await expect(page.getByText('Load Song')).toBeVisible();
-      await expect(page.getByText('TAP')).toBeVisible();
+      await expect(page.getByTestId('add-marker')).toBeVisible();
     });
     
     test('should show sidebar elements with layer selector', async ({ page }) => {
       await page.goto('/');
       
       // Check for layer selector elements
-      const vocalsButton = page.getByText('Vocals');
-      const otherButton = page.getByText('Other');
+      const vocalsButton = page.getByTestId('layer-vocals');
+      const otherButton = page.getByTestId('layer-other');
       
       await expect(vocalsButton).toBeVisible();
       await expect(otherButton).toBeVisible();
       
       // Check help text
-      const helpText = page.getByText(/Tap to select.*Long press to hide/);
+      const helpText = page.getByText('Tap to select • Long press to hide/show', { exact: true });
       await expect(helpText).toBeVisible();
     });
     

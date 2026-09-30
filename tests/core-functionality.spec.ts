@@ -1,4 +1,4 @@
-import { test, expect } from './setup';
+import { test, expect, loadTestAudio } from './setup';
 
 test.describe('Core Functionality', () => {
   // Basic UI Tests
@@ -21,9 +21,9 @@ test.describe('Core Functionality', () => {
     test('should show audio controls when available', async ({ page }) => {
       await page.goto('/');
       
-      // Look for TAP button which should always be visible
-      const tapButton = page.getByText('TAP');
-      await expect(tapButton).toBeVisible();
+      const markerButton = page.getByTestId('add-marker');
+      await expect(markerButton).toBeVisible();
+      await expect(markerButton).toBeDisabled();
     });
   });
 
@@ -32,16 +32,16 @@ test.describe('Core Functionality', () => {
     test('should place markers via tap button', async ({ page }) => {
       await page.goto('/');
       
-      // Find TAP button
-      const tapButton = page.getByText('TAP');
-      await expect(tapButton).toBeVisible();
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
+      await expect(markerButton).toBeEnabled();
       
       // Get initial marker count
       const initialText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
       // Click TAP button to add marker
-      await tapButton.click();
+      await markerButton.click();
       
       // Wait for state update
       await page.waitForTimeout(100);

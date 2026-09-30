@@ -1,4 +1,4 @@
-import { test, expect } from './setup';
+import { test, expect, loadTestAudio } from './setup';
 
 test.describe('Waveform Features', () => {
   // Waveform Interaction Tests
@@ -20,17 +20,14 @@ test.describe('Waveform Features', () => {
     test('should display markers via tap button', async ({ page }) => {
       await page.goto('/');
       
-      // Place markers via tap button (works without audio)
-      const markerButton = page.getByText('TAP');
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
       await expect(markerButton).toBeVisible();
       
       // Get initial marker count
       const initialText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
-      // Click tap button multiple times
-      await markerButton.click();
-      await markerButton.click();
       await markerButton.click();
       
       // Wait for state updates
@@ -171,16 +168,14 @@ test.describe('Waveform Features', () => {
     test('should display markers after placing them via tap', async ({ page }) => {
       await page.goto('/');
       
-      // Place markers via tap button (works without audio)
-      const markerButton = page.getByText('TAP');
+      await loadTestAudio(page);
+      const markerButton = page.getByTestId('add-marker');
       await expect(markerButton).toBeVisible();
       
       // Get initial count
       const initialText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const initialCount = parseInt(initialText?.match(/\d+/)?.[0] || '0');
       
-      // Place multiple markers
-      await markerButton.click();
       await markerButton.click();
       
       // Wait for state update

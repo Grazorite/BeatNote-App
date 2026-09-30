@@ -50,7 +50,17 @@
         {
           "initialOrientation": "DEFAULT"
         }
-      ]
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ],
+      "./plugins/withIosPodDeploymentTarget",
+      "./plugins/withIosUiTests"
     ],
     "extra": {
       "eas": {

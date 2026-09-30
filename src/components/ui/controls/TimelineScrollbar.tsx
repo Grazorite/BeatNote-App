@@ -25,7 +25,9 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   }, []);
   
   // Responsive timeline width
-  const isMobile = screenData.width < 768;
+  const isMobile = Platform.OS === 'web'
+    ? screenData.width < 768
+    : Math.min(screenData.width, screenData.height) < 768;
   const TIMELINE_WIDTH = isMobile 
     ? screenData.width - 32 // Mobile: full width minus padding
     : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
@@ -122,7 +124,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     initialViewportDuration: 0
   });
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
+  const tapGesture = Gesture.Tap().runOnJS(true).onEnd((event) => {
     const touchX = event.x;
     const newStartTime = Math.max(0, 
       Math.min((touchX / TIMELINE_WIDTH) * songDuration - (viewportDuration / 2), 
@@ -132,6 +134,9 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   });
   
   const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
     .onBegin((event) => {
       const touchX = event.x;
       setViewportLocked(false);
@@ -224,6 +229,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
         <View 
           ref={timelineRef}
           style={styles.cursorAuto}
+          testID="timeline-gesture-area"
         >
           <View 
             style={[styles.cursorResize, { position: 'absolute', left: Math.max(0, viewportX - 6), top: 18, width: 12, height: 44, zIndex: 10 }]}
@@ -232,11 +238,6 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
             style={[styles.cursorResize, { position: 'absolute', left: Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6), top: 18, width: 12, height: 44, zIndex: 10 }]}
           />
           <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
-            <defs>
-              <clipPath id="timelineClip">
-                <rect x={innerX} y={0} width={innerWidth} height={40} />
-              </clipPath>
-            </defs>
             <Rect x={0} y={20} width={TIMELINE_WIDTH} height={40} fill="#222222" stroke="#444444" />
             
             <Path

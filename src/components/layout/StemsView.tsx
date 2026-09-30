@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { Platform, View, Text, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { Mic, Drum, Radio, Piano, Guitar, Music } from 'lucide-react-native';
@@ -61,7 +61,12 @@ const StemsView: React.FC<StemsViewProps> = ({
     return () => subscription?.remove();
   }, []);
   
-  const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
+  const isMobile = Platform.OS === 'web'
+    ? screenData.width < 768
+    : Math.min(screenData.width, screenData.height) < 768;
+  const VIEWPORT_WIDTH = isMobile
+    ? screenData.width - 32
+    : Math.max(720, screenData.width - 350); // 350px for sidebar + margins
   
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
@@ -98,7 +103,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     }
   };
   
-  const tapGesture = Gesture.Tap().onEnd((event) => {
+  const tapGesture = Gesture.Tap().runOnJS(true).onEnd((event) => {
     if (!audioUri) return;
     let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
     
@@ -115,6 +120,9 @@ const StemsView: React.FC<StemsViewProps> = ({
   });
   
   const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       if (!audioUri) return;
       if (isPlaying) {
@@ -265,7 +273,7 @@ const StemsView: React.FC<StemsViewProps> = ({
                     strokeWidth={2}
                     strokeOpacity={0.5}
                     strokeDasharray="8,4"
-                    filter="drop-shadow(0 0 2px rgba(0,0,0,0.4))"
+                    filter={Platform.OS === 'web' ? 'drop-shadow(0 0 2px rgba(0,0,0,0.4))' : undefined}
                   />
                   <Polygon
                     points={`${ghostPlayheadX-6},${totalStemHeight} ${ghostPlayheadX+6},${totalStemHeight} ${ghostPlayheadX+6},${totalStemHeight-12} ${ghostPlayheadX},${totalStemHeight-16} ${ghostPlayheadX-6},${totalStemHeight-12}`}
@@ -288,7 +296,7 @@ const StemsView: React.FC<StemsViewProps> = ({
                     y2={totalStemHeight}
                     stroke={colors.accent}
                     strokeWidth={4}
-                    filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+                    filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
                   />
                   <Polygon
                     points={`${playheadX-8},${totalStemHeight} ${playheadX+8},${totalStemHeight} ${playheadX+8},${totalStemHeight-15} ${playheadX},${totalStemHeight-20} ${playheadX-8},${totalStemHeight-15}`}

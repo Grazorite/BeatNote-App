@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions, Platform } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import StemSelector from '../ui/controls/StemSelector';
 import LayerControls from '../ui/controls/LayerControls';
@@ -15,6 +16,7 @@ import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
   const { isSidebarCollapsed } = useStudioStore();
+  const insets = useSafeAreaInsets();
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
   
   useEffect(() => {
@@ -25,18 +27,18 @@ const Sidebar: React.FC = () => {
     return () => subscription?.remove();
   }, []);
   
-  const isMobile = screenData.width < 768;
+  const isMobile = Platform.OS === 'web'
+    ? screenData.width < 768
+    : Math.min(screenData.width, screenData.height) < 768;
 
   const animatedStyle = useAnimatedStyle(() => {
     if (isMobile) {
       return {
         width: withTiming(isSidebarCollapsed ? 0 : screenData.width, { duration: 300 }),
-        height: '100%',
       };
     }
     return {
       width: withTiming(isSidebarCollapsed ? 60 : 280, { duration: 300 }),
-      height: '100%',
     };
   });
 
@@ -45,7 +47,13 @@ const Sidebar: React.FC = () => {
   }));
 
   return (
-    <Animated.View style={[isMobile ? styles.sidebarMobile : styles.sidebar, animatedStyle]}>
+    <Animated.View
+      style={[
+        isMobile ? styles.sidebarMobile : styles.sidebar,
+        { top: insets.top, bottom: insets.bottom },
+        animatedStyle,
+      ]}
+    >
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         <ScrollView 

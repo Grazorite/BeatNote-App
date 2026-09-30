@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { Platform, StyleSheet, View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Path, Line, Circle, Polygon } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
@@ -55,6 +55,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   };
   
   const tapGesture = Gesture.Tap()
+    .runOnJS(true)
     .maxDuration(250)
     .onStart((event) => {
       let targetTime = viewportStartTime + (event.x / VIEWPORT_WIDTH) * viewportDuration;
@@ -85,7 +86,9 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     });
   
   const panGesture = Gesture.Pan()
-    .minDistance(5)
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
     .onBegin(() => {
       if (isPlaying) {
         onScrubStart();
@@ -156,7 +159,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             y2={120}
             stroke={layer.color}
             strokeWidth={3}
-            filter="drop-shadow(0 0 4px rgba(0,0,0,0.8))"
+            filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
             strokeOpacity={0.9}
           />
         );
@@ -196,7 +199,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
                 y2={120}
                 stroke="#ff6600"
                 strokeWidth={3}
-                filter="drop-shadow(0 0 3px rgba(0,0,0,0.8))"
+                filter={Platform.OS === 'web' ? 'drop-shadow(0 0 3px rgba(0,0,0,0.8))' : undefined}
               />
               <Polygon
                 points={`${playheadX-4},120 ${playheadX+4},120 ${playheadX+4},110 ${playheadX},105 ${playheadX-4},110`}

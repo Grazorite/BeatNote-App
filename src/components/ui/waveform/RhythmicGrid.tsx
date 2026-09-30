@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Svg, { Line, Text } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { rhythmicGridStyles as styles } from '../../../styles/components/waveform/rhythmicGrid';
@@ -62,7 +62,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
               fill={colors.text}
               fontSize={10}
               opacity={0.8}
-              filter="drop-shadow(0 1px 2px rgba(0,0,0,0.8))"
+              filter={Platform.OS === 'web' ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' : undefined}
             >
               {measureNumber}
             </Text>

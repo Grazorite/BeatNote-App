@@ -6,12 +6,20 @@ export const markerButtonStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  markerButtonContainerMobile: {
+    gap: 6,
+  },
   markerButton: {
     width: 80,
     height: 80,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  markerButtonMobile: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
   },
   markerButtonMain: {
     backgroundColor: '#ff8c00', // Prominent orange for main marker button

@@ -86,7 +86,7 @@ interface StudioStore {
   skipPlayhead: (direction: 'left' | 'right') => void;
   setSongLoaded: (loaded: boolean) => void;
   saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
-  loadProject: (filename: string) => Promise<void>;
+  loadProject: (filename: string) => Promise<{ audioUri: string; audioFilename: string }>;
   importFromCSV: (csvContent: string) => Promise<void>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
@@ -468,6 +468,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       songLoaded: true,
       currentTime: 0,
     });
+    return { audioUri: project.audio.uri, audioFilename: project.audio.filename };
   },
   importFromCSV: async (csvContent: string) => {
     const importData = await ImportEngine.importFromCSV(csvContent);

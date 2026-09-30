@@ -8,12 +8,14 @@ interface AudioControlsProps {
   onTogglePlayback: () => void;
   onSkipBack: () => void;
   onSkipForward: () => void;
+  isMobile?: boolean;
 }
 
 const AudioControls: React.FC<AudioControlsProps> = ({ 
   onTogglePlayback, 
   onSkipBack, 
-  onSkipForward 
+  onSkipForward,
+  isMobile = false,
 }) => {
   const { isPlaying, songLoaded, currentTime, songDuration, isRepeatActive, toggleRepeat } = useStudioStore();
 
@@ -22,21 +24,24 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
   const getPlayPauseButtonStyle = (enabled: boolean) => [
     styles.button,
+    isMobile && styles.buttonMobile,
     enabled ? styles.audioControlsEnabled : styles.buttonDisabled
   ];
   
   const getSkipButtonStyle = (enabled: boolean) => [
     styles.button,
+    isMobile && styles.buttonMobile,
     enabled ? styles.skipButtonEnabled : styles.buttonDisabled
   ];
   
   const getRepeatButtonStyle = (enabled: boolean, active: boolean) => [
     styles.button,
+    isMobile && styles.buttonMobile,
     enabled ? (active ? styles.repeatButtonActive : styles.repeatButtonInactive) : styles.buttonDisabled
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isMobile && styles.containerMobile]}>
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipBack)}
         onPress={canSkipBack && songLoaded ? onSkipBack : undefined}
@@ -44,8 +49,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="skip-back"
       >
-        <SkipBack size={32} color={canSkipBack ? "#ffffff" : "#666666"} />
+        <SkipBack size={isMobile ? 24 : 32} color={canSkipBack ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -55,11 +61,13 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="play-pause"
+        accessibilityLabel={isPlaying ? 'Pause playback' : 'Play playback'}
       >
         {isPlaying ? (
-          <Pause size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+          <Pause size={isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
         ) : (
-          <Play size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+          <Play size={isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
         )}
       </TouchableOpacity>
       
@@ -70,8 +78,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="skip-forward"
       >
-        <SkipForward size={32} color={canSkipForward ? "#ffffff" : "#666666"} />
+        <SkipForward size={isMobile ? 24 : 32} color={canSkipForward ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -82,7 +91,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <Repeat2 size={32} color={songLoaded ? "#ffffff" : "#666666"} />
+        <Repeat2 size={isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
     </View>
   );

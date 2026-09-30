@@ -7,9 +7,10 @@ import { markerButtonStyles as styles } from '../../../styles/components/control
 interface MarkerButtonProps {
   onTap: () => void;
   onSeek: (position: number) => void;
+  isMobile?: boolean;
 }
 
-const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
+const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek, isMobile = false }) => {
   const { songLoaded, currentTime, layers, activeLayerId, navigateToLeftMarker, navigateToRightMarker, removeLastMarker, allLayersData, ghostPlayheadTime, songDuration, layerSpecificNavigation, isLoopMarkerActive, toggleLoopMarker } = useStudioStore();
   
   // Check if there's an existing marker near current time
@@ -23,12 +24,12 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
   
   const getIcon = () => {
     if (!songLoaded || !isActiveLayerVisible) {
-      return <MarkerIcon size={24} color="#666666" />;
+      return <MarkerIcon size={isMobile ? 20 : 24} color="#666666" />;
     }
     if (hasNearbyMarker) {
-      return <MarkerRemoveIcon size={24} color="#ffffff" />;
+      return <MarkerRemoveIcon size={isMobile ? 20 : 24} color="#ffffff" />;
     }
-    return <MarkerAddIcon size={24} color="#ffffff" />;
+    return <MarkerAddIcon size={isMobile ? 20 : 24} color="#ffffff" />;
   };
   
   const canNavigateLeft = () => {
@@ -73,10 +74,11 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
   };
   
   return (
-    <View style={styles.markerButtonContainer}>
+    <View style={[styles.markerButtonContainer, isMobile && styles.markerButtonContainerMobile]}>
       <TouchableOpacity 
         style={[
           styles.markerButton,
+          isMobile && styles.markerButtonMobile,
           songLoaded && canRemoveLastMarker() ? styles.markerButtonSecondary : styles.markerButtonDisabled
         ]} 
         onPress={(songLoaded && canRemoveLastMarker()) ? removeLastMarker : undefined}
@@ -84,13 +86,15 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="remove-last-marker"
       >
-        <MarkerRemoveLastIcon size={24} color={(songLoaded && canRemoveLastMarker()) ? "#ffffff" : "#666666"} />
+        <MarkerRemoveLastIcon size={isMobile ? 20 : 24} color={(songLoaded && canRemoveLastMarker()) ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity 
         style={[
           styles.markerButton,
+          isMobile && styles.markerButtonMobile,
           songLoaded && canNavigateLeft() ? styles.markerButtonSecondary : styles.markerButtonDisabled
         ]} 
         onPress={(songLoaded && canNavigateLeft()) ? handleLeftNavigation : undefined}
@@ -98,20 +102,26 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="navigate-left-marker"
       >
-        <MarkerLeftIcon size={24} color={(songLoaded && canNavigateLeft()) ? "#ffffff" : "#666666"} />
+        <MarkerLeftIcon size={isMobile ? 20 : 24} color={(songLoaded && canNavigateLeft()) ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity 
         style={[
           styles.markerButton,
+          isMobile && styles.markerButtonMobile,
           songLoaded && isActiveLayerVisible ? styles.markerButtonMain : styles.markerButtonDisabled
         ]} 
         onPress={songLoaded && isActiveLayerVisible ? onTap : undefined}
         disabled={!songLoaded || !isActiveLayerVisible}
+        accessibilityRole="button"
+        accessibilityLabel={hasNearbyMarker ? 'Remove marker' : 'Add marker'}
+        accessibilityState={{ disabled: !songLoaded || !isActiveLayerVisible }}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="add-marker"
       >
         {getIcon()}
       </TouchableOpacity>
@@ -119,6 +129,7 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
       <TouchableOpacity 
         style={[
           styles.markerButton,
+          isMobile && styles.markerButtonMobile,
           songLoaded && canNavigateRight() ? styles.markerButtonSecondary : styles.markerButtonDisabled
         ]} 
         onPress={(songLoaded && canNavigateRight()) ? handleRightNavigation : undefined}
@@ -126,13 +137,15 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
+        testID="navigate-right-marker"
       >
-        <MarkerRightIcon size={24} color={(songLoaded && canNavigateRight()) ? "#ffffff" : "#666666"} />
+        <MarkerRightIcon size={isMobile ? 20 : 24} color={(songLoaded && canNavigateRight()) ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity 
         style={[
           styles.markerButton,
+          isMobile && styles.markerButtonMobile,
           songLoaded && isActiveLayerVisible ? (isLoopMarkerActive ? styles.markerButtonActive : styles.markerButtonInactive) : styles.markerButtonDisabled
         ]} 
         onPress={songLoaded && isActiveLayerVisible ? toggleLoopMarker : undefined}
@@ -141,7 +154,7 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek }) => {
         delayPressIn={0}
         delayPressOut={0}
       >
-        <LoopMarkerIcon size={24} color={songLoaded && isActiveLayerVisible ? "#ffffff" : "#666666"} />
+        <LoopMarkerIcon size={isMobile ? 20 : 24} color={songLoaded && isActiveLayerVisible ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
     </View>
   );

@@ -67,6 +67,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
             ]}
             onPress={handleImport}
             disabled={isImporting}
+            testID="select-csv-file"
           >
             <Text style={styles.buttonText}>
               {isImporting ? 'Importing...' : 'Select CSV File'}
