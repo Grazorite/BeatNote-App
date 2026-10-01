@@ -34,7 +34,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-10-01
-**Branch:** `master` · **HEAD:** `af87339` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
+**Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
 
@@ -190,7 +190,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-01 — Close mobile iOS acceptance defects
 
-**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `9fffab3`
 **Kanban moved:** iOS mobile acceptance defects → Done; physical-device acceptance remains In Progress
 
 **Changed:**
@@ -207,12 +207,13 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - `npm run test:ios:ui` → 9 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790818599021.xcresult`.
 - Focused save/relaunch/restore XCTest passed with the annotation keyboard open.
 - `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed; `PLAYWRIGHT_PORT=8082 npm test -- --reporter=list` → 60 passed; `git diff --check` → clean.
+- `git push origin master` → `origin/master` advanced to `9fffab3`; working tree clean after the implementation commit.
 
 **Not verified / known gaps:**
 
 - Physical iPhone audio interruptions, visual rotation/safe-area quality, and sharing to a real external destination remain manual acceptance checks. Simulator geometry assertions do not prove pixel-perfect layout on every device.
 - Xcode emits existing dependency/module-cache and post-test `simctl` diagnostics despite all nine XCTest cases passing.
-- Working tree is intentionally uncommitted; this change set and the new fixture remain local.
+- The implementation commit and long-track fixture are pushed; physical-device acceptance is still pending.
 
 **Next agent should:**
 
