@@ -11,10 +11,12 @@ const TIMELINE_HEIGHT = 80;
 
 interface TimelineScrollbarProps {
   audioUri?: string;
+  onSeek: (position: number) => void;
 }
 
-const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
+const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri, onSeek }) => {
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const [measuredWidth, setMeasuredWidth] = useState(0);
   
   useEffect(() => {
     const onChange = (result: any) => {
@@ -28,9 +30,9 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   const isMobile = Platform.OS === 'web'
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
-  const TIMELINE_WIDTH = isMobile 
-    ? screenData.width - 32 // Mobile: full width minus padding
-    : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
+  const TIMELINE_WIDTH = measuredWidth || (isMobile
+    ? screenData.width - 16
+    : Math.max(800, screenData.width - 350));
   const { 
     currentTime, 
     ghostPlayheadTime,
@@ -44,6 +46,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     layers,
     isPlaying,
     setCurrentTime,
+    setGhostPlayheadTime,
     songLoaded,
     setViewportLocked
   } = useStudioStore();
@@ -62,7 +65,6 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
     }
   }, [songLoaded]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null);
 
   // Auto-scroll viewport to follow playhead when playing and locked
   useEffect(() => {
@@ -121,16 +123,30 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
 
   const dragState = useRef({
     initialViewportStart: 0,
-    initialViewportDuration: 0
+    initialViewportDuration: 0,
+    seekTime: null as number | null,
+    mode: null as 'seek' | 'left' | 'right' | null,
   });
+
+  const timeAtTimelinePosition = (x: number) =>
+    Math.max(0, Math.min((x / TIMELINE_WIDTH) * songDuration, songDuration));
+
+  const centerViewportIfNeeded = (time: number) => {
+    if (time < viewportStartTime || time > viewportStartTime + viewportDuration) {
+      const nextStart = Math.max(0, Math.min(
+        time - viewportDuration / 2,
+        songDuration - viewportDuration
+      ));
+      setViewportStartTime(nextStart);
+    }
+  };
   
   const tapGesture = Gesture.Tap().runOnJS(true).onEnd((event) => {
-    const touchX = event.x;
-    const newStartTime = Math.max(0, 
-      Math.min((touchX / TIMELINE_WIDTH) * songDuration - (viewportDuration / 2), 
-      songDuration - viewportDuration)
-    );
-    setViewportStartTime(newStartTime);
+    const targetTime = timeAtTimelinePosition(event.x);
+    setViewportLocked(false);
+    setGhostPlayheadTime(null);
+    centerViewportIfNeeded(targetTime);
+    onSeek(targetTime);
   });
   
   const panGesture = Gesture.Pan()
@@ -145,52 +161,49 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
       const rightHandleX = Math.min(TIMELINE_WIDTH - 12, viewportX + viewportWidth - 6);
       
       if (touchX >= leftHandleX && touchX <= leftHandleX + 12) {
-        setIsResizing('left');
+        dragState.current.mode = 'left';
         dragState.current.initialViewportStart = viewportStartTime;
         dragState.current.initialViewportDuration = viewportDuration;
       } else if (touchX >= rightHandleX && touchX <= rightHandleX + 12) {
-        setIsResizing('right');
+        dragState.current.mode = 'right';
         dragState.current.initialViewportStart = viewportStartTime;
         dragState.current.initialViewportDuration = viewportDuration;
       } else {
+        dragState.current.mode = 'seek';
         setIsDragging(true);
-        
-        if (!(touchX >= viewportX && touchX <= viewportX + viewportWidth)) {
-          const newStartTime = Math.max(0, 
-            Math.min((touchX / TIMELINE_WIDTH) * songDuration - (viewportDuration / 2), 
-            songDuration - viewportDuration)
-          );
-          setViewportStartTime(newStartTime);
-          dragState.current.initialViewportStart = newStartTime;
-        } else {
-          dragState.current.initialViewportStart = viewportStartTime;
-        }
+        const targetTime = timeAtTimelinePosition(touchX);
+        dragState.current.seekTime = targetTime;
+        setCurrentTime(targetTime);
+        centerViewportIfNeeded(targetTime);
       }
     })
     .onUpdate((event) => {
-      if (isResizing === 'left') {
+      if (dragState.current.mode === 'left') {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
         const newStartTime = Math.max(0, dragState.current.initialViewportStart + dragDistance);
         const maxDuration = songDuration - newStartTime;
         const newDuration = Math.max(1000, Math.min(maxDuration, dragState.current.initialViewportDuration - dragDistance));
         setViewportStartTime(newStartTime);
         setViewportDuration(newDuration);
-      } else if (isResizing === 'right') {
+      } else if (dragState.current.mode === 'right') {
         const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
         const maxDuration = songDuration - viewportStartTime;
         const newDuration = Math.max(1000, Math.min(maxDuration, dragState.current.initialViewportDuration + dragDistance));
         setViewportDuration(newDuration);
-      } else if (isDragging) {
-        const dragDistance = (event.translationX / TIMELINE_WIDTH) * songDuration;
-        const newStartTime = Math.max(0, 
-          Math.min(dragState.current.initialViewportStart + dragDistance, songDuration - constrainedViewportDuration)
-        );
-        setViewportStartTime(newStartTime);
+      } else if (dragState.current.mode === 'seek') {
+        const targetTime = timeAtTimelinePosition(event.x);
+        dragState.current.seekTime = targetTime;
+        setCurrentTime(targetTime);
+        centerViewportIfNeeded(targetTime);
       }
     })
     .onEnd(() => {
+      if (dragState.current.seekTime !== null && dragState.current.mode === 'seek') {
+        onSeek(dragState.current.seekTime);
+      }
+      dragState.current.seekTime = null;
+      dragState.current.mode = null;
       setIsDragging(false);
-      setIsResizing(null);
     });
   
   const composedGesture = React.useMemo(() => 
@@ -210,7 +223,13 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
 
   if (!songLoaded) {
     return (
-      <View style={styles.container}>
+      <View
+        style={[styles.container, { width: '100%' }]}
+        onLayout={event => {
+          const width = event.nativeEvent.layout.width;
+          setMeasuredWidth(current => Math.abs(current - width) > 1 ? width : current);
+        }}
+      >
         <Svg width={TIMELINE_WIDTH} height={TIMELINE_HEIGHT} style={styles.timeline}>
           <Rect x={0} y={20} width={TIMELINE_WIDTH} height={20} fill="#222222" stroke="#444444" />
         </Svg>
@@ -224,11 +243,17 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { width: '100%' }]}
+      onLayout={event => {
+        const width = event.nativeEvent.layout.width;
+        setMeasuredWidth(current => Math.abs(current - width) > 1 ? width : current);
+      }}
+    >
       <GestureDetector gesture={composedGesture}>
         <View 
           ref={timelineRef}
-          style={styles.cursorAuto}
+          style={[styles.cursorAuto, { width: TIMELINE_WIDTH, height: TIMELINE_HEIGHT }]}
           testID="timeline-gesture-area"
         >
           <View 

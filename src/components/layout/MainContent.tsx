@@ -86,112 +86,120 @@ const MainContent: React.FC<MainContentProps> = ({
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
   const containerWidth = isMobile 
-    ? screenData.width - 32 // Mobile: full width minus padding
+    ? screenData.width - 16
     : Math.max(900, screenData.width - 320); // Desktop: account for sidebar
-  
+  const projectControls = (
+    <ProjectControls
+      onLoadSong={loadSong}
+      onTogglePlayback={() => {}}
+      hasSound={!!sound}
+      audioUri={audioUri}
+      audioFilename={audioFilename}
+      onLoadProjectAudio={loadProjectAudio}
+      isMobile={isMobile}
+    />
+  );
+  const waveform = (
+    <Animated.View style={[animatedStyle, isMobile && styles.mobileWaveform]}>
+      {viewMode === 'unified' ? (
+        <WaveformCanvas
+          audioUri={audioUri || undefined}
+          layers={layers}
+          onSeek={seekToPosition}
+          onScrubStart={startWaveformScrub}
+          onScrubEnd={endWaveformScrub}
+        />
+      ) : (
+        <StemsView
+          layers={layers}
+          audioUri={audioUri || undefined}
+          onSeek={seekToPosition}
+          onScrubStart={startWaveformScrub}
+          onScrubEnd={endWaveformScrub}
+        />
+      )}
+    </Animated.View>
+  );
+  const timeline = <TimelineScrollbar audioUri={audioUri || undefined} onSeek={seekToPosition} />;
+  const audioControls = (
+    <AudioControls
+      onTogglePlayback={togglePlayback}
+      onSkipBack={() => seekToPosition(0)}
+      onSkipForward={() => {
+        const duration = useStudioStore.getState().songDuration;
+        seekToPosition(duration);
+      }}
+      isMobile={isMobile}
+    />
+  );
+  const markerControls = <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile={isMobile} />;
+  const layerSelector = <HorizontalLayerSelector />;
+  const status = (
+    <View style={styles.statusContainer}>
+      <Text style={styles.activeLayerText}>
+        Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer?.name}</Text>
+      </Text>
+      {layerSpecificNavigation && (
+        <Text style={styles.totalMarkersText}>
+          Total: {activeLayerMarkers} markers
+        </Text>
+      )}
+      <Text style={styles.totalMarkersText} testID="grand-total-markers">
+        Grand Total: {totalMarkers} markers
+      </Text>
+    </View>
+  );
+
+  if (isMobile) {
+    return (
+      <View style={styles.mobileWorkspace}>
+        {projectControls}
+        <ScrollView
+          style={styles.mobileScrollContainer}
+          contentContainerStyle={styles.mobileContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          testID="mobile-workspace-scroll"
+        >
+          {waveform}
+          {timeline}
+          {layerSelector}
+          {status}
+        </ScrollView>
+        <View style={styles.mobileControlDock}>
+          <View style={styles.mobileTransportRow}>{audioControls}</View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.mobileMarkerScroller}
+            contentContainerStyle={styles.mobileMarkerActions}
+          >
+            {markerControls}
+          </ScrollView>
+          <AnnotationField ref={annotationFieldRef} isMobile />
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView 
-      style={styles.scrollContainer} 
+    <ScrollView
+      style={styles.scrollContainer}
       stickyHeaderIndices={[0]}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-      contentContainerStyle={[
-        styles.container, 
-        { 
-          minWidth: isMobile ? '100%' : containerWidth,
-          maxWidth: isMobile ? '100%' : undefined,
-        }
-      ]}
+      contentContainerStyle={[styles.container, { minWidth: containerWidth }]}
     >
-      
-      <ProjectControls
-        onLoadSong={loadSong}
-        onTogglePlayback={() => {}}
-        hasSound={!!sound}
-        audioUri={audioUri}
-        audioFilename={audioFilename}
-        onLoadProjectAudio={loadProjectAudio}
-        isMobile={isMobile}
-      />
-      
-      <Animated.View style={animatedStyle}>
-        {viewMode === 'unified' ? (
-          <WaveformCanvas
-            audioUri={audioUri || undefined}
-            layers={layers}
-            onSeek={seekToPosition}
-            onScrubStart={startWaveformScrub}
-            onScrubEnd={endWaveformScrub}
-          />
-        ) : (
-          <StemsView
-            layers={layers}
-            audioUri={audioUri || undefined}
-            onSeek={seekToPosition}
-            onScrubStart={startWaveformScrub}
-            onScrubEnd={endWaveformScrub}
-          />
-        )}
-      </Animated.View>
-      
-      <TimelineScrollbar audioUri={audioUri || undefined} />
-      
-      <View style={isMobile ? styles.controlsRowMobile : styles.controlsRow}>
-        {isMobile ? (
-          // Mobile: Stack vertically
-          <>
-            <View style={styles.controlsRowTopMobile}>
-              <AudioControls 
-                onTogglePlayback={togglePlayback}
-                onSkipBack={() => seekToPosition(0)}
-                onSkipForward={() => {
-                  const state = useStudioStore.getState();
-                  seekToPosition(state.songDuration);
-                  state.setCurrentTime(state.songDuration);
-                }}
-                isMobile
-              />
-              <View style={styles.markerButtonContainer}>
-                <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile />
-              </View>
-            </View>
-            <AnnotationField ref={annotationFieldRef} isMobile />
-          </>
-        ) : (
-          // Desktop: Horizontal layout
-          <>
-            <AudioControls 
-              onTogglePlayback={togglePlayback}
-              onSkipBack={() => seekToPosition(0)}
-              onSkipForward={() => {
-                const state = useStudioStore.getState();
-                seekToPosition(state.songDuration);
-                state.setCurrentTime(state.songDuration);
-              }}
-            />
-            <AnnotationField ref={annotationFieldRef} />
-            <View style={styles.markerButtonContainer}>
-              <TapButton onTap={tapToBeat} onSeek={seekToPosition} />
-            </View>
-          </>
-        )}
+      {projectControls}
+      {waveform}
+      {timeline}
+      <View style={styles.controlsRow}>
+        {audioControls}
+        <AnnotationField ref={annotationFieldRef} />
+        <View style={styles.markerButtonContainer}>{markerControls}</View>
       </View>
-      
-      <HorizontalLayerSelector />
-      
-      <View style={styles.statusContainer}>
-        <Text style={styles.activeLayerText}>
-          Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer?.name}</Text>
-        </Text>
-        {layerSpecificNavigation && (
-          <Text style={styles.totalMarkersText}>
-            Total: {activeLayerMarkers} markers
-          </Text>
-        )}
-        <Text style={styles.totalMarkersText} testID="grand-total-markers">
-          Grand Total: {totalMarkers} markers
-        </Text>
-      </View>
+      {layerSelector}
+      {status}
     </ScrollView>
   );
 };

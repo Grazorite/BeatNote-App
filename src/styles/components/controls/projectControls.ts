@@ -8,8 +8,19 @@ export const projectControlsStyles = StyleSheet.create({
     marginBottom: dimensions.spacing.lg,
   },
   controlsMobile: {
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 4,
+    backgroundColor: '#000000',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222222',
+    zIndex: 20,
+    elevation: 8,
+  },
+  mobileActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: dimensions.spacing.sm,
+    paddingHorizontal: dimensions.spacing.sm,
   },
   sidebarToggleMobile: {
     minWidth: 48,
@@ -21,6 +32,7 @@ export const projectControlsStyles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 10,
     paddingVertical: 8,
+    flexShrink: 0,
   },
   button: {
     backgroundColor: colors.border,

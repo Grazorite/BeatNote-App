@@ -42,18 +42,21 @@ Documents folder, and run the XCTest UI suite. The target and shared Xcode schem
 The test helper browses to Files > On My iPhone > BeatNote when Recents is empty, so a fresh
 simulator works without prior picker history.
 
-The portrait suite covers app launch and document-picker presentation, settings drawer open/close,
-audio selection/playback, marker/annotation entry, project save/relaunch/restore, valid and invalid
-CSV imports, CSV export to the iOS share sheet, and audio playback continuing while the app is
-backgrounded and then foregrounded in the simulator.
+The suite covers app launch and document-picker presentation, settings drawer open/close,
+audio selection/playback, marker/annotation entry (including annotation while playback continues),
+project save/relaunch/restore, valid and invalid CSV imports, CSV export to the iOS share sheet,
+background/foreground playback, long-track overview tap/drag seeking, and landscape waveform,
+toolbar, import, and export interactions. The 150-second `long-test-track.m4a` fixture is copied to
+Files > On My iPhone > BeatNote by the test script for manual simulator checks.
 `IOS_TEST_ONLY=<test-name>` runs one XCTest case; `IOS_SIMULATOR_ID=<simulator-udid>` chooses a
 specific simulator. Otherwise the script uses the booted iPhone or prefers iPhone 17 Pro. These UI
 tests run headlessly from the command line and do not replace interactive Device Hub or physical
 device acceptance.
 
-Real audio-session interruptions (such as calls), physical-device audio behavior, waveform scrubbing,
-and completing a share to an external destination remain manual acceptance checks. The test command
-starts Metro only when port 8081 is not already serving the app.
+Real audio-session interruptions (such as calls), physical-device audio behavior, touch/rotation
+visual quality, and completing a share to an external destination remain manual acceptance checks.
+The test command starts Metro only when port 8081 is not already serving the app. Set
+`PLAYWRIGHT_PORT=8082` when running web E2E alongside a simulator Metro server on 8081.
 
 ## Prerequisites checklist
 

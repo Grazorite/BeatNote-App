@@ -136,6 +136,7 @@ temp/
 *.aac
 *.ogg
 *.wma
+!tests/fixtures/long-test-track.m4a
 !assets/audio/samples/*.wav
 !assets/audio/samples/*.mp3
 

@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const webPort = process.env.PLAYWRIGHT_PORT || '8081';
+
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.ts',
@@ -10,7 +12,7 @@ export default defineConfig({
   reporter: [['html'], ['list']],
   globalSetup: require.resolve('./tests/global-setup.ts'),
   use: {
-    baseURL: 'http://localhost:8081',
+    baseURL: `http://localhost:${webPort}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -30,8 +32,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run web',
-    url: 'http://localhost:8081',
+    command: `npm run web -- --port ${webPort}`,
+    url: `http://localhost:${webPort}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

@@ -44,8 +44,10 @@ export default function StudioScreen() {
           styles.scrollView,
           {
             marginLeft: isMobile ? 0 : isSidebarCollapsed ? 60 : 280,
-            paddingTop: 20 + insets.top,
-            paddingBottom: 50 + insets.bottom,
+            paddingTop: (isMobile ? 0 : 20) + insets.top,
+            paddingBottom: (isMobile ? 0 : 50) + insets.bottom,
+            paddingLeft: isMobile ? insets.left : 0,
+            paddingRight: isMobile ? insets.right : 0,
           },
         ]}
       >

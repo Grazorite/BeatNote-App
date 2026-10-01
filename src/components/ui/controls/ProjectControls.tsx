@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, TouchableOpacity, Text, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
 import { Upload, Save, FolderOpen, Download, AudioLines, Menu } from 'lucide-react-native';
@@ -64,8 +64,8 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     Alert.alert('Import Successful', 'CSV data has been imported and merged with existing markers.');
   }, []);
 
-  return (
-    <View style={[styles.controls, isMobile && styles.controlsMobile]}>
+  const actions = (
+    <>
       {isMobile && (
         <TouchableOpacity
           style={[styles.button, styles.buttonMobile, styles.sidebarToggleMobile]}
@@ -76,7 +76,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           <Menu size={18} color="#ffffff" />
         </TouchableOpacity>
       )}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
         onPress={onLoadSong}
         testID="load-song"
@@ -86,18 +86,21 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           {songLoaded ? 'Song Loaded' : 'Load Song'}
         </Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
-        onPress={songLoaded ? () => setShowSaveModal(true) : undefined}
+        onPress={songLoaded ? () => {
+          Keyboard.dismiss();
+          setShowSaveModal(true);
+        } : undefined}
         disabled={!songLoaded}
         testID="save-project"
       >
-        <Save size={isMobile ? 18 : 20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Save size={isMobile ? 18 : 20} color={songLoaded ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Save Project</Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile]}
         onPress={() => setShowProjectManager(true)}
         testID="load-project"
@@ -105,26 +108,42 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <FolderOpen size={isMobile ? 18 : 20} color="#ffffff" style={{ marginRight: isMobile ? 6 : 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Load Project</Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]}
         onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
         disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
         testID="export-data"
       >
-        <Download size={isMobile ? 18 : 20} color={songLoaded && layers.some(l => l.markers.length > 0) ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Download size={isMobile ? 18 : 20} color={songLoaded && layers.some(l => l.markers.length > 0) ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Export Data</Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
         onPress={songLoaded ? () => setShowImportModal(true) : undefined}
         disabled={!songLoaded}
         testID="import-data"
       >
-        <Upload size={isMobile ? 18 : 20} color={songLoaded ? "#ffffff" : "#666666"} style={{ marginRight: isMobile ? 6 : 8 }} />
+        <Upload size={isMobile ? 18 : 20} color={songLoaded ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Import Data</Text>
       </TouchableOpacity>
+    </>
+  );
+
+  return (
+    <View style={isMobile ? styles.controlsMobile : styles.controls}>
+      {isMobile ? (
+        <ScrollView
+          horizontal
+          keyboardShouldPersistTaps="always"
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.mobileActions}
+          testID="project-actions-scroll"
+        >
+          {actions}
+        </ScrollView>
+      ) : actions}
 
       <SaveProjectModal
         visible={showSaveModal}

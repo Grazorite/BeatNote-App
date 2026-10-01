@@ -58,10 +58,11 @@ final class BeatNoteUITests: XCTestCase {
 
     let projectName = "UITest-\(UUID().uuidString.prefix(8))"
     let saveButton = element("save-project")
+    makeProjectActionVisible("save-project")
     XCTAssertTrue(saveButton.waitForExistence(timeout: 5) && saveButton.isHittable)
     saveButton.tap()
     let nameField = app.textFields["save-project-name"]
-    XCTAssertTrue(nameField.waitForExistence(timeout: 5))
+    XCTAssertTrue(nameField.waitForExistence(timeout: 10))
     nameField.tap()
     nameField.typeText(projectName)
     element("confirm-save-project").tap()
@@ -71,6 +72,7 @@ final class BeatNoteUITests: XCTestCase {
     app.launch()
     closeMobileSidebar()
     XCTAssertTrue(element("load-project").waitForExistence(timeout: 15))
+    makeProjectActionVisible("load-project")
     element("load-project").tap()
     let projectSuffix = String(projectName.suffix(8))
     let savedProject = projectControl(containing: "load-saved-project-", suffix: projectSuffix)
@@ -83,6 +85,7 @@ final class BeatNoteUITests: XCTestCase {
     element("navigate-right-marker").tap()
     XCTAssertEqual(app.textFields["marker-annotation"].value as? String, "Dance note")
 
+    makeProjectActionVisible("load-project")
     element("load-project").tap()
     projectControl(containing: "delete-saved-project-", suffix: projectSuffix).tap()
     let deleteConfirmation = app.alerts["Delete Project"]
@@ -90,15 +93,65 @@ final class BeatNoteUITests: XCTestCase {
     deleteConfirmation.buttons["Delete"].tap()
   }
 
+  func testAnnotationRemainsEditableWhilePlaybackContinues() {
+    loadBundledSimulatorAudio("background-audio.m4a")
+    element("play-pause").tap()
+
+    let pauseButton = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Pause playback")
+    ).firstMatch
+    XCTAssertTrue(pauseButton.waitForExistence(timeout: 5))
+    element("add-marker").tap()
+    Thread.sleep(forTimeInterval: 0.4)
+
+    let annotation = app.textFields["marker-annotation"]
+    XCTAssertTrue(annotation.waitForExistence(timeout: 5))
+    XCTAssertTrue(annotation.isHittable, "The annotation editor should stay enabled for the marker just added.")
+    annotation.tap()
+    annotation.typeText("Live marker note")
+    XCTAssertEqual(annotation.value as? String, "Live marker note")
+  }
+
+  func testLongTrackOverviewTapAndDragSeek() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let timeline = element("timeline-gesture-area")
+    scrollIntoView(timeline)
+    XCTAssertGreaterThan(timeline.frame.width, app.frame.width * 0.8)
+    XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.8)
+
+    let currentTime = element("playback-current-time")
+    let initialTime = currentTime.label
+    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
+    let tappedSeek = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", initialTime),
+      object: currentTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [tappedSeek], timeout: 5), .completed)
+    let tappedSeconds = playbackSeconds(from: currentTime.label)
+    XCTAssertTrue((100...110).contains(tappedSeconds), "Overview tap should seek to about 70% of the 150-second track.")
+
+    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)))
+    let draggedSeek = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", currentTime.label),
+      object: currentTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [draggedSeek], timeout: 5), .completed)
+    XCTAssertTrue((30...45).contains(playbackSeconds(from: currentTime.label)), "Overview drag should seek to about 25% of the track.")
+  }
+
   func testCsvImportAndShareSheetExport() {
     loadBundledSimulatorAudio()
     element("add-marker").tap()
+    makeProjectActionVisible("import-data")
     element("import-data").tap()
     element("select-csv-file").tap()
     selectDocument("valid-import.csv")
     dismissAlertIfPresent()
 
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("2 markers"))
+    makeProjectActionVisible("export-data")
     element("export-data").tap()
     element("export-csv").tap()
 
@@ -112,6 +165,7 @@ final class BeatNoteUITests: XCTestCase {
 
   func testInvalidCsvImportShowsError() {
     loadBundledSimulatorAudio()
+    makeProjectActionVisible("import-data")
     element("import-data").tap()
     element("select-csv-file").tap()
     selectDocument("invalid-import.csv")
@@ -160,6 +214,7 @@ final class BeatNoteUITests: XCTestCase {
     let waveform = element("waveform-gesture-area")
     scrollIntoView(waveform)
     XCTAssertTrue(waveform.isHittable, "Waveform gesture area should be visible.")
+    XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.8)
     waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)).tap()
     waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)))
@@ -172,6 +227,37 @@ final class BeatNoteUITests: XCTestCase {
     timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
     assertNoGestureRuntimeError()
+  }
+
+  func testLandscapeCsvImportAndExport() {
+    XCUIDevice.shared.orientation = .landscapeLeft
+    loadBundledSimulatorAudio("background-audio.m4a")
+    element("add-marker").tap()
+
+    let importButton = element("import-data")
+    makeProjectActionVisible("import-data")
+    XCTAssertTrue(importButton.isHittable, "Import should remain reachable from the landscape project toolbar.")
+    importButton.tap()
+    let selectCsv = element("select-csv-file")
+    XCTAssertTrue(selectCsv.waitForExistence(timeout: 5) && selectCsv.isHittable)
+    selectCsv.tap()
+    selectDocument("valid-import.csv")
+    dismissAlertIfPresent()
+
+    let exportButton = element("export-data")
+    makeProjectActionVisible("export-data")
+    XCTAssertTrue(exportButton.isHittable)
+    exportButton.tap()
+    let exportCsv = element("export-csv")
+    XCTAssertTrue(exportCsv.waitForExistence(timeout: 5) && exportCsv.isHittable)
+    exportCsv.tap()
+
+    let shareSheet = app.otherElements["ActivityListView"]
+    let copyAction = app.buttons["Copy"]
+    XCTAssertTrue(
+      shareSheet.waitForExistence(timeout: 10) || copyAction.waitForExistence(timeout: 2),
+      "CSV export should present the iOS share sheet in landscape.\n\(app.debugDescription)"
+    )
   }
 
   private func loadBundledSimulatorAudio(_ filename: String = "test-audio.wav") {
@@ -192,8 +278,17 @@ final class BeatNoteUITests: XCTestCase {
     toggle.tap()
   }
 
+  private func makeProjectActionVisible(_ identifier: String) {
+    let action = element(identifier)
+    let toolbar = element("project-actions-scroll")
+    for _ in 0..<5 {
+      if action.isHittable { return }
+      toolbar.swipeLeft()
+    }
+  }
+
   private func scrollIntoView(_ element: XCUIElement) {
-    let workspaceScroll = app.scrollViews.firstMatch
+    let workspaceScroll = self.element("mobile-workspace-scroll")
     for _ in 0..<12 {
       if element.isHittable { return }
       let start = workspaceScroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))

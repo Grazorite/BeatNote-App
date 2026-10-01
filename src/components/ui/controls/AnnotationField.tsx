@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { View, TextInput, Text } from 'react-native';
-import { useStudioStore } from '../../../hooks/useStudioStore';
+import { View, TextInput } from 'react-native';
+import { LayerId, useStudioStore } from '../../../hooks/useStudioStore';
+
+interface SelectedMarker {
+  layerId: LayerId;
+  timestamp: number;
+}
 
 interface AnnotationFieldProps {
   isMobile?: boolean;
@@ -16,68 +21,84 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
     activeLayerId, 
     allLayersData, 
     showAnnotations,
+    isPlaying,
+    isTextInputFocused,
     updateMarkerAnnotation,
     setTextInputFocused,
     songLoaded
   } = useStudioStore();
   
   const [annotation, setAnnotation] = useState('');
+  const [selectedMarker, setSelectedMarker] = useState<SelectedMarker | null>(null);
   const textInputRef = useRef<TextInput>(null);
-  
-  // Find annotation for current marker across all layers
+  const previousMarkers = useRef<string[]>([]);
+
   useEffect(() => {
-    // Check all layers for markers at current position
-    let foundMarker = null;
-    let foundLayer = null;
-    
+    const markers = allLayersData.flatMap(layer =>
+      layer.markers.map(timestamp => `${layer.id}:${timestamp}`)
+    );
+    const addedMarker = markers.find(marker => !previousMarkers.current.includes(marker));
+    previousMarkers.current = markers;
+
+    if (addedMarker) {
+      const [layerId, timestamp] = addedMarker.split(':');
+      setSelectedMarker({ layerId: layerId as LayerId, timestamp: Number(timestamp) });
+      return;
+    }
+
+    const markerStillExists = selectedMarker && allLayersData.some(layer =>
+      layer.id === selectedMarker.layerId && layer.markers.includes(selectedMarker.timestamp)
+    );
+    if (markerStillExists && (isPlaying || isTextInputFocused)) return;
+
+    let closestMarker: SelectedMarker | null = null;
+    let closestDistance = 100;
     for (const layer of allLayersData) {
-      const marker = layer.markers.find(marker => 
-        Math.abs(marker - currentTime) < 100
-      );
-      if (marker !== undefined) {
-        foundMarker = marker;
-        foundLayer = layer;
-        break;
+      for (const timestamp of layer.markers) {
+        const distance = Math.abs(timestamp - currentTime);
+        if (distance < closestDistance) {
+          closestMarker = { layerId: layer.id, timestamp };
+          closestDistance = distance;
+        }
       }
     }
-    
-    if (foundMarker !== null && foundLayer) {
-      const existingAnnotation = foundLayer.annotations.find(ann => 
-        Math.abs(ann.timestamp - foundMarker) < 100
-      );
-      setAnnotation(existingAnnotation?.text || '');
-    } else {
-      setAnnotation('');
+    const selectionIsUnchanged = selectedMarker?.layerId === closestMarker?.layerId
+      && selectedMarker?.timestamp === closestMarker?.timestamp;
+    if (!selectionIsUnchanged) {
+      setSelectedMarker(closestMarker);
     }
-  }, [currentTime, allLayersData]);
+  }, [currentTime, allLayersData, isPlaying, isTextInputFocused, selectedMarker]);
+
+  useEffect(() => {
+    if (!selectedMarker) {
+      setAnnotation('');
+      return;
+    }
+    const layer = allLayersData.find(item => item.id === selectedMarker.layerId);
+    const existingAnnotation = layer?.annotations.find(ann =>
+      Math.abs(ann.timestamp - selectedMarker.timestamp) < 100
+    );
+    setAnnotation(existingAnnotation?.text || '');
+  }, [selectedMarker, allLayersData]);
   
   const handleAnnotationChange = (text: string) => {
     setAnnotation(text);
-    
-    // Find marker across all layers
-    for (const layer of allLayersData) {
-      const marker = layer.markers.find(marker => 
-        Math.abs(marker - currentTime) < 100
-      );
-      if (marker !== undefined) {
-        updateMarkerAnnotation(layer.id, marker, text);
-        break;
-      }
+    if (selectedMarker) {
+      updateMarkerAnnotation(selectedMarker.layerId, selectedMarker.timestamp, text);
     }
   };
   
-  // Check if any layer has a marker at current position
-  const hasNearbyMarker = allLayersData.some(layer => 
-    layer.markers.some(marker => Math.abs(marker - currentTime) < 100)
-  );
+  const canEdit = Boolean(selectedMarker && allLayersData.some(layer =>
+    layer.id === selectedMarker.layerId && layer.markers.includes(selectedMarker.timestamp)
+  ));
   
   useImperativeHandle(ref, () => ({
     focus: () => {
-      if (hasNearbyMarker && songLoaded) {
+      if (canEdit && songLoaded) {
         textInputRef.current?.focus();
       }
     }
-  }), [hasNearbyMarker, songLoaded]);
+  }), [canEdit, songLoaded]);
   
   if (!showAnnotations) return null;
   
@@ -91,21 +112,21 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
       <TextInput
         style={{
           width: isMobile ? '100%' : undefined,
-          backgroundColor: hasNearbyMarker ? '#333333' : '#222222',
-          color: hasNearbyMarker ? '#ffffff' : '#666666',
+          backgroundColor: canEdit ? '#333333' : '#222222',
+          color: canEdit ? '#ffffff' : '#666666',
           borderRadius: 12,
           paddingHorizontal: 12,
           paddingVertical: 0,
           fontSize: 14,
           borderWidth: 1,
-          borderColor: hasNearbyMarker ? '#555555' : '#333333',
-          height: 80,
+          borderColor: canEdit ? '#555555' : '#333333',
+          height: isMobile ? 48 : 80,
         }}
         value={annotation}
         onChangeText={handleAnnotationChange}
-        placeholder={!songLoaded ? "Please load a song first" : hasNearbyMarker ? "Add annotation..." : "No marker at current position"}
+        placeholder={!songLoaded ? "Please load a song first" : canEdit ? "Add annotation..." : "Add a marker to annotate"}
         placeholderTextColor="#666666"
-        editable={hasNearbyMarker && songLoaded}
+        editable={canEdit && songLoaded}
         multiline={false}
         maxLength={100}
         ref={textInputRef}

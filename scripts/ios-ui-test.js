@@ -76,7 +76,14 @@ function stagePickerFixtures(simulatorId) {
   const container = capture('xcrun', ['simctl', 'get_app_container', simulatorId, 'com.beatnote.app', 'data']);
   const documents = path.join(container, 'Documents');
   fs.mkdirSync(documents, { recursive: true });
-  for (const filename of ['test-audio.wav', 'background-audio.m4a', 'valid-import.csv', 'invalid-import.csv']) {
+  const fixtureNames = [
+    'test-audio.wav',
+    'background-audio.m4a',
+    'long-test-track.m4a',
+    'valid-import.csv',
+    'invalid-import.csv',
+  ];
+  for (const filename of fixtureNames) {
     fs.copyFileSync(path.join(root, 'tests', 'fixtures', filename), path.join(documents, filename));
   }
 }

@@ -6,6 +6,49 @@ export const mainContentStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  mobileWorkspace: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: colors.background,
+  },
+  mobileScrollContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  mobileContent: {
+    flexGrow: 1,
+    width: '100%',
+    alignItems: 'stretch',
+    paddingHorizontal: dimensions.spacing.sm,
+    paddingTop: dimensions.spacing.sm,
+    paddingBottom: dimensions.spacing.md,
+  },
+  mobileWaveform: {
+    width: '100%',
+  },
+  mobileControlDock: {
+    width: '100%',
+    gap: dimensions.spacing.sm,
+    paddingHorizontal: dimensions.spacing.sm,
+    paddingTop: dimensions.spacing.sm,
+    paddingBottom: dimensions.spacing.sm,
+    backgroundColor: '#111111',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  mobileTransportRow: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  mobileMarkerScroller: {
+    width: '100%',
+    flexGrow: 0,
+  },
+  mobileMarkerActions: {
+    minWidth: '100%',
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
   container: {
     alignItems: 'center',
     padding: dimensions.spacing.sm,

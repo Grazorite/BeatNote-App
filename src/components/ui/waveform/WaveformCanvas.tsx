@@ -29,6 +29,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   onScrubEnd,
 }) => {
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const [measuredWidth, setMeasuredWidth] = useState(0);
   
   useEffect(() => {
     const onChange = (result: any) => {
@@ -42,9 +43,12 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const isMobile = Platform.OS === 'web'
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
-  const VIEWPORT_WIDTH = isMobile 
-    ? screenData.width - 32 // Mobile: full width minus padding
-    : Math.max(800, screenData.width - 350); // Desktop: account for sidebar
+  const VIEWPORT_WIDTH = measuredWidth || (isMobile
+    ? screenData.width - 16
+    : Math.max(800, screenData.width - 350));
+  const WAVEFORM_HEIGHT = isMobile
+    ? Math.min(240, Math.max(160, screenData.height * 0.5))
+    : 300;
   
   // Optimized Zustand selectors - only subscribe to what we need
   const viewportStartTime = useStudioStore(state => state.viewportStartTime);
@@ -188,7 +192,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               x1={x}
               y1={0}
               x2={x}
-              y2={300}
+              y2={WAVEFORM_HEIGHT}
               stroke={layer.color}
               strokeWidth={4}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
@@ -202,7 +206,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               x1={x}
               y1={0}
               x2={x}
-              y2={100}
+              y2={WAVEFORM_HEIGHT / 3}
               stroke={layer.color}
               strokeWidth={5}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
@@ -214,9 +218,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Line
               key={`${layer.id}-${marker}-${index}`}
               x1={x}
-              y1={200}
+              y1={(WAVEFORM_HEIGHT * 2) / 3}
               x2={x}
-              y2={300}
+              y2={WAVEFORM_HEIGHT}
               stroke={layer.color}
               strokeWidth={4}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
@@ -228,7 +232,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Circle
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
-              cy={150}
+              cy={WAVEFORM_HEIGHT / 2}
               r={8}
               fill={layer.color}
               stroke="#000000"
@@ -242,7 +246,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Circle
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
-              cy={220}
+              cy={WAVEFORM_HEIGHT * 0.73}
               r={7}
               fill={layer.color}
               stroke="#000000"
@@ -256,7 +260,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Circle
               key={`${layer.id}-${marker}-${index}`}
               cx={x}
-              cy={30}
+              cy={WAVEFORM_HEIGHT * 0.1}
               r={7}
               fill={layer.color}
               stroke="#000000"
@@ -269,7 +273,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
           return null;
       }
     });
-  }, [viewportStartTime, viewportDuration, VIEWPORT_WIDTH]);
+  }, [viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
   
   const renderGridLines = React.useCallback(() => {
     if (!showGridLines) return null;
@@ -290,7 +294,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             x1={x}
             y1={0}
             x2={x}
-            y2={300}
+            y2={WAVEFORM_HEIGHT}
             stroke="#666666"
             strokeWidth={2}
             opacity={0.5}
@@ -299,7 +303,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       }
     }
     return lines;
-  }, [showGridLines, pixelsPerSecond, bpm, viewportStartTime, viewportDuration, VIEWPORT_WIDTH]);
+  }, [showGridLines, pixelsPerSecond, bpm, viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
 
   // Current playhead position in viewport
   const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
@@ -314,38 +318,47 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
 
   if (!songLoaded || !audioUri) {
     return (
-      <View style={styles.containerRelative}>
-        <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
-        <View style={[styles.waveformContainer, styles.responsiveWidth, { width: VIEWPORT_WIDTH }]}>
-          <View style={[styles.waveform, { width: VIEWPORT_WIDTH }]} />
-          <View style={[styles.overlayContainer, styles.overlayZIndex, { width: VIEWPORT_WIDTH }]} pointerEvents="none">
-            {showGridLines && (
-              <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={300} showRuler={false} />
-            )}
-          </View>
+    <View
+      style={[styles.containerRelative, { width: isMobile ? '100%' : VIEWPORT_WIDTH }]}
+      onLayout={event => setMeasuredWidth(event.nativeEvent.layout.width)}
+    >
+      <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
+      <View style={[styles.waveformContainer, styles.responsiveWidth, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]}>
+        <View style={[styles.waveform, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]} />
+        <View style={[styles.overlayContainer, styles.overlayZIndex, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]} pointerEvents="none">
+          {showGridLines && (
+            <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={WAVEFORM_HEIGHT} showRuler={false} />
+          )}
         </View>
       </View>
+    </View>
     );
   }
 
   return (
-    <View style={styles.containerRelative}>
+    <View
+      style={[styles.containerRelative, { width: isMobile ? '100%' : VIEWPORT_WIDTH }]}
+      onLayout={event => {
+        const width = event.nativeEvent.layout.width;
+        setMeasuredWidth(current => Math.abs(current - width) > 1 ? width : current);
+      }}
+    >
       <RhythmicGrid width={VIEWPORT_WIDTH} pixelsPerSecond={pixelsPerSecond} overlayHeight={0} />
       
-      <View style={[styles.waveformContainer, styles.containerRelative]} testID="waveform-container">
-        <View style={styles.waveform}>
+      <View style={[styles.waveformContainer, styles.containerRelative, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]} testID="waveform-container">
+        <View style={[styles.waveform, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]}>
           {loading ? (
-            <View style={styles.loadingContainer}>
+            <View style={[styles.loadingContainer, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]}>
               <LoadingSpinner />
             </View>
           ) : (
-            <Svg width={VIEWPORT_WIDTH} height={isMobile ? 200 : 300} style={styles.waveformSvg}>
+            <Svg width={VIEWPORT_WIDTH} height={WAVEFORM_HEIGHT} style={styles.waveformSvg}>
               {waveformData ? (
                 <Path
                   d={generateWaveformPath(
                     waveformData.peaks, 
                     VIEWPORT_WIDTH, 
-                    300, 
+                    WAVEFORM_HEIGHT,
                     viewportStartTime, 
                     viewportDuration, 
                     waveformData.duration
@@ -358,9 +371,10 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               ) : (
                 <Path
                   d={(() => {
-                    let path = 'M 0 150';
+                    const middle = WAVEFORM_HEIGHT / 2;
+                    let path = `M 0 ${middle}`;
                     for (let x = 0; x < VIEWPORT_WIDTH; x += 4) {
-                      const y = 150 + Math.sin(x * 0.01) * 50 + Math.sin(x * 0.03) * 20;
+                      const y = middle + Math.sin(x * 0.01) * WAVEFORM_HEIGHT * 0.17 + Math.sin(x * 0.03) * WAVEFORM_HEIGHT * 0.07;
                       path += ` L ${x} ${y}`;
                     }
                     return path;
@@ -379,14 +393,14 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         <GestureDetector gesture={composedGesture}>
           <View
             ref={waveformRef}
-            style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH }]}
+            style={[styles.gestureOverlay, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]}
             testID="waveform-gesture-area"
           />
         </GestureDetector>
         
         {/* Visual overlay for markers and playhead */}
-        <View style={[styles.overlayContainer, styles.overlayZIndex]} pointerEvents="none">
-          <Svg width={VIEWPORT_WIDTH} height={300} style={styles.overlay}>
+        <View style={[styles.overlayContainer, styles.overlayZIndex, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]} pointerEvents="none">
+          <Svg width={VIEWPORT_WIDTH} height={WAVEFORM_HEIGHT} style={styles.overlay}>
             {renderGridLines()}
             {layers.map(layer => renderLayerMarkers(layer))}
             
@@ -397,7 +411,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   x1={ghostPlayheadX}
                   y1={0}
                   x2={ghostPlayheadX}
-                  y2={300}
+                  y2={WAVEFORM_HEIGHT}
                   stroke={colors.accent}
                   strokeWidth={2}
                   strokeOpacity={0.5}
@@ -405,7 +419,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   filter={Platform.OS === 'web' ? 'drop-shadow(0 0 2px rgba(0,0,0,0.4))' : undefined}
                 />
                 <Polygon
-                  points={`${ghostPlayheadX-6},300 ${ghostPlayheadX+6},300 ${ghostPlayheadX+6},288 ${ghostPlayheadX},284 ${ghostPlayheadX-6},288`}
+                  points={`${ghostPlayheadX-6},${WAVEFORM_HEIGHT} ${ghostPlayheadX+6},${WAVEFORM_HEIGHT} ${ghostPlayheadX+6},${WAVEFORM_HEIGHT - 12} ${ghostPlayheadX},${WAVEFORM_HEIGHT - 16} ${ghostPlayheadX-6},${WAVEFORM_HEIGHT - 12}`}
                   fill={colors.accent}
                   fillOpacity={0.5}
                   stroke="#000000"
@@ -422,13 +436,13 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   x1={playheadX}
                   y1={0}
                   x2={playheadX}
-                  y2={300}
+                  y2={WAVEFORM_HEIGHT}
                   stroke={colors.accent}
                   strokeWidth={4}
                   filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
                 />
                 <Polygon
-                  points={`${playheadX-8},300 ${playheadX+8},300 ${playheadX+8},285 ${playheadX},280 ${playheadX-8},285`}
+                  points={`${playheadX-8},${WAVEFORM_HEIGHT} ${playheadX+8},${WAVEFORM_HEIGHT} ${playheadX+8},${WAVEFORM_HEIGHT - 15} ${playheadX},${WAVEFORM_HEIGHT - 20} ${playheadX-8},${WAVEFORM_HEIGHT - 15}`}
                   fill={colors.accent}
                   stroke="#000000"
                   strokeWidth={1}

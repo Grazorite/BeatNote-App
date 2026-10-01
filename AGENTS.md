@@ -33,8 +33,8 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-09-30
-**Branch:** `master` · **HEAD:** `ade91cf` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
+**Last updated:** 2026-10-01
+**Branch:** `master` · **HEAD:** `af87339` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
 
@@ -50,7 +50,7 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 | Stem separation files | 2 of ~10 planned (`types.ts`, `stemCache.ts`) |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 26 passing (stem slice + stemCache) |
-| iOS UI tests | 6 passing on iPhone 17 Pro / iOS 26.2 simulator |
+| iOS UI tests | 9 passing on iPhone 17 Pro / iOS 26.2 simulator |
 | E2E spec files | 5 (Playwright, 60 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
@@ -58,8 +58,8 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 
 1. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
-   background audio playback, landscape waveform and overview timeline gestures, compact controls,
-   project save/relaunch/restore, settings drawer, audio/annotation, and CSV I/O. Interactive Xcode 27
+   background audio playback, long-track overview tap/drag seeking, annotation during playback,
+   landscape waveform and CSV I/O, compact controls, project save/relaunch/restore, and settings drawer. Interactive Xcode 27
    testing uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the
    Simulator app on this host.
 2. Close the unit-test coverage gap the testing strategy requires (utils + real store actions).
@@ -103,6 +103,8 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 
 #### Test & build harness
 
+- [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`</sub>
 - [x] Enable iOS background audio playback and verify time continuity through background/foreground in XCTest
       <sub>**Key Artifacts:** `app.json`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/background-audio.m4a`</sub>
 - [x] Route native timeline gestures to JS state safely, preserve vertical scrolling, and compact phone controls; cover landscape tap/drag in XCTest
@@ -111,8 +113,6 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
       <sub>**Key Artifacts:** `tests/setup.ts`, `tests/core-functionality.spec.ts`, `tests/quality-assurance.spec.ts`, `tests/test-discovery.spec.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`</sub>
 - [x] Make iOS document-picker UI tests select fixtures when Files Recents is empty
       <sub>**Key Artifacts:** `tests/ios/BeatNoteUITests.swift`</sub>
-- [x] Mobile workspace scroll/toolbar layout and an always-reachable settings drawer toggle
-      <sub>**Key Artifacts:** `src/features/studio/StudioScreen.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -187,6 +187,36 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 10 entries.*
+
+### 2026-10-01 — Close mobile iOS acceptance defects
+
+**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `uncommitted`
+**Kanban moved:** iOS mobile acceptance defects → Done; physical-device acceptance remains In Progress
+
+**Changed:**
+
+- Made the overview timeline seek on tap and drag, and resized it to its measured width.
+- Kept a newly added marker selected for annotation while playback advances; made the project toolbar respond to taps while the annotation keyboard is open.
+- Replaced the wrapping mobile toolbar with a fixed horizontal action row and bottom control dock; corrected waveform height/width and mobile safe-area padding.
+- Added a 150-second audio fixture and iOS UI coverage for overview seeking, live annotation, and landscape CSV actions; documented the manual simulator path.
+
+**Key Artifacts** (from `git diff --name-only`, plus the new fixture): `.gitignore`, `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `playwright.config.ts`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/components/controls/projectControls.ts`, `src/styles/layout/mainContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`.
+
+**Verified:**
+
+- `npm run test:ios:ui` → 9 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790818599021.xcresult`.
+- Focused save/relaunch/restore XCTest passed with the annotation keyboard open.
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed; `PLAYWRIGHT_PORT=8082 npm test -- --reporter=list` → 60 passed; `git diff --check` → clean.
+
+**Not verified / known gaps:**
+
+- Physical iPhone audio interruptions, visual rotation/safe-area quality, and sharing to a real external destination remain manual acceptance checks. Simulator geometry assertions do not prove pixel-perfect layout on every device.
+- Xcode emits existing dependency/module-cache and post-test `simctl` diagnostics despite all nine XCTest cases passing.
+- Working tree is intentionally uncommitted; this change set and the new fixture remain local.
+
+**Next agent should:**
+
+- Run physical-device acceptance, then close the unit-coverage gaps before advancing native stem separation.
 
 ### 2026-10-01 — Enable and verify iOS background playback
 
@@ -495,33 +525,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Continue the In Progress stem separation work with the native module TypeScript interface.
-
-### 2026-08-28 — Markdown lint clean-up and hook migration to v2
-
-**Agent:** orchestrator (Claude Opus 4.8) · **Commit(s):** `9dde5f2`
-**Kanban moved:** Repo hygiene & tooling items → Done
-
-**Changed:**
-
-- `design.md`: fixed all 25 markdown lint findings (emphasis-as-heading `**Validates:**` labels,
-  blank lines around lists/headings, fenced-block languages). Formatting only — no content change.
-- Migrated all 5 agent hooks from legacy `.kiro/hooks/*.kiro.hook` (v1 `when`/`then`) to v2
-  `.kiro/hooks/*.json` (`trigger`/`action`). Deleted the 5 legacy files.
-- Corrected the stale Jest flag in the test hook (`--testPathPatterns`) and scoped `update-live-docs`
-  to durable steering/README only, leaving AGENTS.md to the orchestrator.
-
-**Verified:**
-
-- `mdlint.py` across all 12 repo `.md` files → 0 findings.
-- All 5 v2 hook JSON files parse as valid JSON; `.kiro/hooks/` now contains only the v2 files.
-- `git diff design.md` reviewed → purely whitespace/formatting.
-
-**Not verified / known gaps:**
-
-- Hooks are declared but not fired this session — v2 hooks activate on next session start.
-- `ts-check-on-save` will report the known pre-existing `tsc` errors on every save until the
-  "Fix pre-existing tsc errors" To Do item is done.
-
-**Next agent should:**
-
-- Continue the In Progress stem separation work (native module TS interface, spec task 3).
