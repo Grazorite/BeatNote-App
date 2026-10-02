@@ -38,23 +38,21 @@ test.describe('UI Components & Layout', () => {
       await expect(tapButton).toBeVisible();
     });
     
-    test('should have view mode toggle with vertical layout', async ({ page }) => {
+    test('should hide unfinished view mode controls', async ({ page }) => {
       await page.goto('/');
-      
-      // Look for View Mode section and vertical toggle options
-      await expect(page.getByText('View Mode')).toBeVisible();
-      await expect(page.getByText('Unified')).toBeVisible();
-      await expect(page.getByText('Multitrack')).toBeVisible();
+
+      await expect(page.getByText('View Mode')).toHaveCount(0);
+      await expect(page.getByText('Multitrack')).toHaveCount(0);
+      await expect(page.getByTestId('layer-vocals')).toBeVisible();
     });
     
-    test('should have stem separation selector', async ({ page }) => {
+    test('should hide unfinished stem separation selector', async ({ page }) => {
       await page.goto('/');
-      
-      // Check for stem separation section
-      await expect(page.getByText('Stem Separation')).toBeVisible();
-      await expect(page.getByText('2 Stems')).toBeVisible();
-      await expect(page.getByText('4 Stems')).toBeVisible();
-      await expect(page.getByText('6 Stems')).toBeVisible();
+
+      await expect(page.getByText('Stem Separation')).toHaveCount(0);
+      await expect(page.getByText('2 Stems')).toHaveCount(0);
+      await expect(page.getByText('4 Stems')).toHaveCount(0);
+      await expect(page.getByText('6 Stems')).toHaveCount(0);
     });
     
     test('should have help button with icon', async ({ page }) => {
@@ -131,8 +129,8 @@ test.describe('UI Components & Layout', () => {
       await page.goto('/');
       
       // Check for core UI elements that should always be visible
-      await expect(page.getByText('Stem Separation')).toBeVisible();
-      await expect(page.getByText('View Mode')).toBeVisible();
+      await expect(page.getByText('Stem Separation')).toHaveCount(0);
+      await expect(page.getByText('View Mode')).toHaveCount(0);
       
       // Check for at least some toggle options (they may be collapsed)
       const markerOptions = page.getByText('Marker Options');

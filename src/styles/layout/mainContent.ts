@@ -11,9 +11,16 @@ export const mainContentStyles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.background,
   },
+  landscapeBody: {
+    flex: 1,
+    flexDirection: 'row',
+  },
   mobileScrollContainer: {
     flex: 1,
     width: '100%',
+  },
+  landscapeScrollContainer: {
+    width: undefined,
   },
   mobileContent: {
     flexGrow: 1,
@@ -35,6 +42,18 @@ export const mainContentStyles = StyleSheet.create({
     backgroundColor: '#111111',
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  landscapeControlRail: {
+    width: 264,
+    borderTopWidth: 0,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  landscapeMarkerActions: {
+    width: '100%',
+    alignItems: 'center',
   },
   mobileTransportRow: {
     width: '100%',

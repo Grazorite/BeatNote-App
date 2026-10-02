@@ -5,6 +5,13 @@ export const horizontalLayerSelectorStyles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 16,
   },
+  heading: {
+    alignSelf: 'flex-start',
+    color: '#bbbbbb',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   layersRow: {
     flexDirection: 'row',
     justifyContent: 'center',

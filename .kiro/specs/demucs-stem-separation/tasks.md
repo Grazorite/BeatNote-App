@@ -1,8 +1,20 @@
 # Implementation Plan: Demucs Stem Separation
 
+> **Status: deferred to V3.** Tasks 1–2 are preserved as completed foundation. Do not continue
+> with task 3 until the resumption gates in
+> [`.kiro/steering/release-roadmap.md`](../../steering/release-roadmap.md) are satisfied. When work
+> resumes, validate the V3 cloud-first sequence before implementing the later V3 CoreML path; the task
+> numbering below describes dependencies, not current release priority.
+> The API-key and direct-Replicate tasks reflect the earlier design and are superseded by ADR-010's
+> managed-backend decision. Rewrite those tasks before resuming implementation.
+
 ## Overview
 
-Implement hybrid stem separation in BeatNote using a layered approach: shared types and store additions first, then the cache layer, then the two separator modules (on-device and cloud), then the orchestration hook, then UI components, and finally wiring everything together. Each step is independently testable before the next builds on it.
+Implement the eventual hybrid stem-separation system in layers. Completed shared types and caching
+remain reusable. For V3, spike provider cost/quality and implement the managed cloud path,
+orchestration, progress/cancellation, caching, and a limited UI. Later in V3, benchmark and implement the
+native CoreML module, then add hybrid routing and expanded per-stem presentation. Each step must be
+independently testable before the next builds on it.
 
 ## Tasks
 

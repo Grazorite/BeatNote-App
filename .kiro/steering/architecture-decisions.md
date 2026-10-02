@@ -23,8 +23,11 @@ Rationale: Expo Modules integrate cleanly with EAS Build and don't require eject
 
 ### ADR-004: Hybrid stem separation (on-device + cloud)
 
-On-device CoreML for offline/fast use, Replicate API for higher quality. User controls preference in settings.
-Rationale: on-device alone is too slow for a good UX on older devices; cloud alone requires internet and ongoing cost. Hybrid gives the best of both.
+Target end state: on-device CoreML for offline use with an optional managed cloud fallback for
+quality or compatibility. No stem UI ships before V3. Sequence a cloud-first V3 beta, followed by
+on-device/hybrid implementation later in V3 if demand and physical-device benchmarks justify it.
+Rationale: cloud-first is the smaller experiment for validating user value and economics; committing
+to a large native model before that validation creates substantial delivery and maintenance risk.
 
 ### ADR-005: AsyncStorage for project persistence (web + mobile)
 
@@ -53,8 +56,11 @@ Rationale: integer milliseconds avoid floating point precision issues in marker 
 
 ### ADR-010: No default Replicate API key in binary
 
-Users must provide their own Replicate API key for cloud stem separation. Stored in `expo-secure-store`.
-Rationale: prevents API key abuse and unexpected costs. The app is heading toward commercial release where users should manage their own cloud costs or a subscription model can be introduced later.
+No provider service key is bundled in the app. A production cloud beta routes jobs through a managed
+backend that enforces entitlements, credits, retention, and abuse controls. User-provided keys are
+limited to development or an explicitly labelled experimental mode.
+Rationale: this prevents key extraction and unexpected cost while supporting a commercial credit or
+allowance model without coupling the client permanently to one provider.
 
 ## Patterns to follow
 

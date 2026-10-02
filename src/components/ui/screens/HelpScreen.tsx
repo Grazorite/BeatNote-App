@@ -39,13 +39,13 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
             1. Load an audio file using "Load Song"
           </Text>
           <Text style={styles.text}>
-            2. Select stem count (2, 4, or 6 layers) from sidebar
+            2. Choose an annotation layer from the horizontal selector
           </Text>
           <Text style={styles.text}>
-            3. Choose active layer from horizontal selector
+            3. Play or scrub to a moment you want to mark
           </Text>
           <Text style={styles.text}>
-            4. Add markers by clicking add markers button or pressing M
+            4. Add a marker and type a movement cue or note
           </Text>
         </Section>
 
@@ -81,11 +81,14 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
             • <Text style={styles.boldText}>CSV Export:</Text> For Excel, Adobe Audition
           </Text>
           <Text style={styles.text}>
-            Files are saved to your Downloads folder
+            On iOS, choose a destination from the share sheet. Web exports download to your browser.
           </Text>
         </Section>
 
         <Section title="Layer System">
+          <Text style={styles.text}>
+            Layers organize markers and notes over the original song. They are not separated audio tracks.
+          </Text>
           <Text style={styles.text}>
             • <Text style={styles.boldText}>Vocals:</Text> Red full-height lines (y: 0-300)
           </Text>

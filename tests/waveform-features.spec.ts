@@ -117,24 +117,12 @@ test.describe('Waveform Features', () => {
       }
     });
 
-    test('should handle view mode switching', async ({ page }) => {
+    test('should keep unified waveform while stem UI is deferred', async ({ page }) => {
       await page.goto('/');
-      
-      const unifiedButton = page.getByText('Unified');
-      const multitrackButton = page.getByText('Multitrack');
-      
-      // Both buttons should be present
-      await expect(unifiedButton).toBeVisible();
-      await expect(multitrackButton).toBeVisible();
-      
-      // Test switching between view modes
-      await multitrackButton.click();
-      await page.waitForTimeout(300);
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
-      
-      await unifiedButton.click();
-      await page.waitForTimeout(300);
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
+      await loadTestAudio(page);
+
+      await expect(page.getByText('View Mode')).toHaveCount(0);
+      await expect(page.getByTestId('waveform-container')).toBeVisible();
     });
     
     test('should show visual elements', async ({ page }) => {
@@ -188,22 +176,14 @@ test.describe('Waveform Features', () => {
       expect(markerCount).toBeGreaterThan(initialCount);
     });
     
-    test('should handle view mode switching', async ({ page }) => {
+    test('should retain waveform when switching annotation lanes', async ({ page }) => {
       await page.goto('/');
-      
-      const unifiedButton = page.getByText('Unified');
-      const multitrackButton = page.getByText('Multitrack');
-      
-      await expect(unifiedButton).toBeVisible();
-      await expect(multitrackButton).toBeVisible();
-      
-      await multitrackButton.click();
-      await page.waitForTimeout(300);
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
-      
-      await unifiedButton.click();
-      await page.waitForTimeout(300);
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
+      await loadTestAudio(page);
+
+      await page.getByTestId('layer-drums').click();
+      await expect(page.getByTestId('waveform-container')).toBeVisible();
+      await page.getByTestId('layer-vocals').click();
+      await expect(page.getByTestId('waveform-container')).toBeVisible();
     });
 
     test('should show waveform elements without audio', async ({ page }) => {

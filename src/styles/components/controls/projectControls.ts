@@ -16,6 +16,29 @@ export const projectControlsStyles = StyleSheet.create({
     zIndex: 20,
     elevation: 8,
   },
+  mobileActionsRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mobileActionsScroll: {
+    flex: 1,
+  },
+  scrollCue: {
+    width: 56,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#242424',
+    borderLeftWidth: 1,
+    borderLeftColor: '#555555',
+  },
+  scrollCueText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   mobileActions: {
     flexDirection: 'row',
     alignItems: 'center',

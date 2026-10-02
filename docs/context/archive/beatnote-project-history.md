@@ -48,6 +48,8 @@ keep `AGENTS.md` concise. Archived checklist items and the handover entry are co
 - [x] Local iOS simulator baseline — reproducible prebuild, Xcode 27 build, simulator launch,
       safe-area layout, and native-safe SVG rendering
       <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `App.tsx`, `app.json`, `package.json`, `package-lock.json`, `plugins/withIosPodDeploymentTarget.js`, `src/components/layout/Sidebar.tsx`, `src/components/layout/StemsView.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`</sub>
+- [x] Make iOS document-picker UI tests select fixtures when Files Recents is empty
+      <sub>**Key Artifacts:** `tests/ios/BeatNoteUITests.swift`</sub>
 
 #### Repo hygiene & tooling
 
@@ -57,6 +59,33 @@ keep `AGENTS.md` concise. Archived checklist items and the handover entry are co
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-09-23 — Restore clean TypeScript gate
+
+**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
+**Kanban moved:** Fix pre-existing `tsc` errors → Done
+
+**Changed:**
+
+- `LayerControls.tsx`: replaced imports for nonexistent custom layer icons with the established
+  `lucide-react-native` icon set already used by `StemsView`.
+- `timelineScrollbar.ts`: replaced the unsupported `ew-resize` React Native cursor value with the
+  typed `pointer` cursor for interactive resize handles.
+- `AGENTS.md`: promoted TypeScript checking into the standard build gate and reconciled the live
+  stem-separation status.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean, no TypeScript errors.
+- `npm run test:unit` → 26 passed, 2 suites.
+
+**Not verified / known gaps:**
+
+- Playwright E2E and visual cursor behavior were not run this session.
+
+**Next agent should:**
+
+- Continue the In Progress stem separation work with the native module TypeScript interface.
 
 ### 2026-08-28 — Markdown lint clean-up and hook migration to v2
 

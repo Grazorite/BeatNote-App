@@ -1,5 +1,11 @@
 # Design Document: Demucs Stem Separation
 
+> **Release status:** deferred. This document is the target V3 hybrid design, not the current
+> implementation priority. V3 should validate a managed cloud-first beta before the native CoreML
+> path. See [`.kiro/steering/release-roadmap.md`](../../steering/release-roadmap.md).
+> Direct client calls with a user-provided Replicate key are superseded by ADR-010 and must be
+> redesigned before implementation resumes.
+
 ## Overview
 
 This feature adds hybrid stem separation to BeatNote, allowing choreographers to split a loaded audio file into individual instrument stems (vocals, drums, bass, piano, guitar, other) using either on-device CoreML inference or the Replicate cloud API. The system is exposed as a single "Split Stems" action, automatically selects the processing tier based on device capability and user preference, caches results for instant reload, and integrates separated stems into the existing layer-based waveform display.

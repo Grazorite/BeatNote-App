@@ -16,9 +16,10 @@
 | Language, framework, and style conventions | [`.kiro/steering/coding-standards.md`](./.kiro/steering/coding-standards.md) |
 | Test strategy — what to unit-test vs E2E | [`.kiro/steering/testing-strategy.md`](./.kiro/steering/testing-strategy.md) |
 | Choreography feature designs (mostly planned) | [`.kiro/steering/choreography-features.md`](./.kiro/steering/choreography-features.md) |
-| Stem separation architecture (hybrid Demucs) | [`.kiro/steering/stem-separation.md`](./.kiro/steering/stem-separation.md) |
+| Release sequencing, Lite/Pro boundaries, monetisation gates | [`.kiro/steering/release-roadmap.md`](./.kiro/steering/release-roadmap.md) |
+| Deferred stem separation architecture (V3) | [`.kiro/steering/stem-separation.md`](./.kiro/steering/stem-separation.md) |
 | iOS build, entitlements, TestFlight setup | [`.kiro/steering/ios-testflight.md`](./.kiro/steering/ios-testflight.md) |
-| Active feature spec — Demucs stem separation | [`.kiro/specs/demucs-stem-separation/`](./.kiro/specs/demucs-stem-separation) |
+| Deferred feature spec — Demucs stem separation | [`.kiro/specs/demucs-stem-separation/`](./.kiro/specs/demucs-stem-separation) |
 | Archived completed work and older handovers | [`docs/context/archive/beatnote-project-history.md`](./docs/context/archive/beatnote-project-history.md) |
 
 > **Deviation from the orchestrator default:** BeatNote keeps durable reference in `.kiro/steering/`
@@ -33,21 +34,23 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-02
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
 
-### Milestone: M2 — Stem separation & choreography features (in progress)
+### Milestone: M2 — Core choreography and rehearsal workflow (in progress)
 
-M1 (core annotation MVP for web) is shipped. M2 moves BeatNote toward its choreographer-focused
-commercial release: real stem separation, dance-specific features, and an iOS build.
+M1 (core annotation MVP for web) is shipped. M2 makes annotation, rehearsal, persistence, and
+sharing dependable on physical iOS devices, then adds the dance-specific features needed for a V2
+Pro launch. Stem separation is deferred entirely to V3, beginning with a cloud-first beta and
+potentially adding a hybrid path later.
 
 | Metric | Value |
 |--------|-------|
-| Stem layers | 6 (`vocals, drums, bass, piano, guitar, other`), modes 2 / 4 / 6 |
+| Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
-| Stem separation files | 2 of ~10 planned (`types.ts`, `stemCache.ts`) |
+| Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 26 passing (stem slice + stemCache) |
 | iOS UI tests | 9 passing on iPhone 17 Pro / iOS 26.2 simulator |
@@ -63,7 +66,8 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
    testing uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the
    Simulator app on this host.
 2. Close the unit-test coverage gap the testing strategy requires (utils + real store actions).
-3. Advance the Demucs stem separation spec only after the core iOS workflow is stable.
+3. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+   stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
 
@@ -79,14 +83,12 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 
 ### 🔜 To Do
 
-- [ ] Implement `onDeviceSeparator.ts` — CoreML path via native module (spec task 4)
-- [ ] Implement `cloudSeparator.ts` — Replicate `facebook/demucs` polling path (spec task 5)
-- [ ] Implement `useStemSeparation.ts` hook + `index.ts` public API (spec task 7)
-- [ ] Implement the native `modules/stem-separation/` Expo Module (TS interface + Swift) (spec tasks 3, 14)
-- [ ] Build stem separation UI — progress overlay, settings, storage screen, `StemsView` per-stem URIs (spec tasks 8–13)
 - [ ] Add unit tests for `magneticSnapping`, `exportEngine`, `importEngine`, `projectManager` (testing strategy requires; none exist)
 - [ ] Add unit tests for real store actions — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, navigate, `setStemCount`, viewport constraints
 - [ ] Implement 8-count / phrase grid mode — `countSize` state, phrase snapping, transport count display
+- [ ] Implement wrapped waveform canvas (planned, spec ready) — pure row-layout/mapping utilities, virtualized wrapped rows, per-row seek/markers/progress, follow-playhead, responsive detail mode; see `.kiro/specs/wrapped-waveform-canvas/`
+- [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
+- [ ] Implement section looping for rehearsal and physical-device acceptance coverage
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add `Count (phrase:beat)` column to CSV export using `countSize`
@@ -96,10 +98,21 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
 
 ### 🚧 In Progress
 
+- [ ] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
-- [ ] Demucs stem separation feature — foundation landed (`types.ts`, `stemCache.ts`, store fields and property tests); next step is the native TS interface (spec task 3)
+
+### ⏸ Deferred — V2/V3
+
+- [ ] V2 purchase/restore/entitlement enforcement after the V1 core acceptance and tier matrix are stable
+- [ ] V3 managed cloud stem-separation beta — provider spike, backend job API, credits, progress/cancel, cache, limited UI
+- [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+#### Product planning
+
+- [x] Re-sequence releases around the core annotation/rehearsal workflow; define V1 monetisation groundwork, V2 Pro launch, V2.x cloud stem beta, and V3 on-device/hybrid stems
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `.kiro/steering/stem-separation.md`, `.kiro/steering/architecture-decisions.md`, `.kiro/specs/demucs-stem-separation/`, `README.md`, `AGENTS.md`</sub>
 
 #### Test & build harness
 
@@ -111,9 +124,6 @@ commercial release: real stem separation, dance-specific features, and an iOS bu
       <sub>**Key Artifacts:** `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/layout/StemsView.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/SimpleWaveform.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/markerButton.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 - [x] Repair Playwright marker, layer-selector, audio-loading, and responsive assertions; full suite is green
       <sub>**Key Artifacts:** `tests/setup.ts`, `tests/core-functionality.spec.ts`, `tests/quality-assurance.spec.ts`, `tests/test-discovery.spec.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`</sub>
-- [x] Make iOS document-picker UI tests select fixtures when Files Recents is empty
-      <sub>**Key Artifacts:** `tests/ios/BeatNoteUITests.swift`</sub>
-
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -187,6 +197,95 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 10 entries.*
+
+### 2026-10-02 — Specify wrapped waveform canvas (planning only)
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** Wrapped waveform canvas → To Do (new planned feature; spec authored)
+
+**Changed:**
+
+- Authored a new Design-First feature spec under `.kiro/specs/wrapped-waveform-canvas/`
+  (`design.md`, `requirements.md`, `tasks.md`) replacing the single long waveform with a wrapped,
+  score-like timeline while retaining the continuous waveform as a precision detail mode.
+- Design grounds all layout in pure utilities (`rowLayout.ts`, `timelineMapping.ts`) with a
+  half-open `[startMs, endMs)` boundary-ownership invariant; adds only derived row geometry (never
+  persisted) and a small set of new single-store fields (`primaryView`, `countSize`, `rowDensity`,
+  `followPlayhead`, `loopStartMs/loopEndMs`, `selectedRowIndex`).
+- Added the planned-feature card to the Kanban To Do column.
+- No application code changed; this is a specification/planning artifact only.
+
+**Key Artifacts** (new, from `git status`): `.kiro/specs/wrapped-waveform-canvas/design.md`,
+`.kiro/specs/wrapped-waveform-canvas/requirements.md`,
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`.kiro/specs/wrapped-waveform-canvas/.config.kiro`, `AGENTS.md`.
+
+**Verified:**
+
+- `validate_spec_format` → 0 issues for `requirements.md`, `design.md`, and `tasks.md`.
+- Spec grounded in the real code (store, `WaveformCanvas`, `TimelineScrollbar`, `useWaveformData`,
+  gesture config, `STEM_SEPARATION_UI_ENABLED`), read before writing.
+- Subsequent whole-tree pre-commit checks: `npx tsc --noEmit` → clean;
+  `npm run test:unit -- --runInBand` → 26 passed; elevated
+  `PLAYWRIGHT_PORT=8082 npm test -- --reporter=list` → 60 passed.
+- `npm run test:ios:ui` → 8 passed and 1 failed on iPhone 17 Pro / iOS 26.2; focused rerun
+  reproduced `testLongTrackOverviewTapAndDragSeek` timing out at `BeatNoteUITests.swift:147`.
+
+**Not verified / known gaps:**
+
+- The wrapped waveform feature is specified but not implemented.
+- The committed pre-existing mobile-layout work does not have a fully green iOS UI gate: overview
+  drag seeking failed to update the playback label within five seconds in both the full and focused
+  simulator runs. The other eight iOS UI tests passed; Xcode also emitted its existing post-test
+  `simctl` diagnostic warning.
+- Unresolved product decisions: final density presets, exact detail-panel geometry on tablets,
+  whether `countSize` ships with this feature or the separate 8-count task, and whether A/B loop
+  state (`loopStartMs/loopEndMs`) is introduced here or by the section-looping task.
+- Pre-existing uncommitted working-tree changes (unrelated prior work) were preserved untouched.
+
+**Next agent should:**
+
+- Begin Phase 1 of `.kiro/specs/wrapped-waveform-canvas/tasks.md` (pure `rowLayout.ts` +
+  `timelineMapping.ts` with unit/property tests) behind the existing unified-waveform structure.
+
+### 2026-10-02 — Re-sequence monetisation and stem separation
+
+**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `uncommitted`
+**Kanban moved:** Demucs stem separation → Deferred V2.x/V3; release and monetisation roadmap → Done
+
+**Changed:**
+
+- Added a durable release roadmap defining the complete Lite baseline, V1 entitlement groundwork,
+  V2 Pro launch, V2.x cloud stem beta, and V3 on-device/hybrid stem path.
+- Parked all unfinished Demucs work while preserving its completed types, store/cache foundation,
+  tests, requirements, and design.
+- Revised the future cloud architecture to keep service credentials behind a managed backend and
+  treat compute credits separately from local Pro capabilities.
+- Reordered the live board around physical-device acceptance, unit coverage, and the core
+  choreography/rehearsal workflow.
+
+**Key Artifacts** (from `git diff --name-only`): `.kiro/specs/demucs-stem-separation/design.md`,
+`.kiro/specs/demucs-stem-separation/requirements.md`, `.kiro/specs/demucs-stem-separation/tasks.md`,
+`.kiro/steering/architecture-decisions.md`, `.kiro/steering/project-overview.md`,
+`.kiro/steering/release-roadmap.md`, `.kiro/steering/stem-separation.md`, `AGENTS.md`, `README.md`,
+`docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- Documentation links and roadmap references reviewed; `git diff --check` and the project contract
+  checker pass.
+- No application code or entitlement behavior changed.
+
+**Not verified / known gaps:**
+
+- Lite/Pro limits, App Store products/prices, purchase provider, cloud provider economics, model
+  licensing, stem quality, latency, and physical-device CoreML performance remain product or
+  technical validation work.
+
+**Next agent should:**
+
+- Complete physical-device acceptance, then close the required unit-coverage gaps before starting
+  V1 entitlement groundwork or additional core choreography features.
 
 ### 2026-10-01 — Close mobile iOS acceptance defects
 
@@ -467,62 +566,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Complete the iOS core workflow acceptance checklist interactively in Simulator or on an iPhone, especially project reload and Files/share interoperability; fix any defects before starting native stem-separation work.
-
-### 2026-09-23 — Establish local iOS simulator baseline
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Local iOS simulator baseline → Done
-
-**Changed:**
-
-- Added reproducible iOS 15.1 deployment-target configuration for the app and third-party pods;
-  generated native files remain ignored and reproducible through Expo prebuild.
-- Added safe-area handling for the studio content and absolute mobile sidebar so controls no longer
-  overlap the iPhone status area or Dynamic Island.
-- Made SVG drop-shadow filters web-only because React Native SVG rejects CSS filter strings on iOS.
-- Documented the normal `npm run ios` workflow and when a manual prebuild is actually required.
-
-**Verified:**
-
-- Xcode 27 Debug build for the iPhone 17 Pro simulator → succeeded.
-- Installed and launched `com.beatnote.app`; Metro bundled 2,965 modules with no app runtime errors
-  or invalid SVG filter warnings.
-- Simulator screenshot inspected → sidebar and status-area layout render correctly.
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed, 2 suites.
-
-**Not verified / known gaps:**
-
-- The real-audio workflow (load/play/scrub/mark/save/import/export) still needs an interactive iOS
-  acceptance pass, preferably followed by a physical-device pass.
-- Playwright E2E was not run. Dependency installation reports 32 existing npm audit findings.
-
-**Next agent should:**
-
-- Run the iOS core workflow acceptance suite with a local audio file before adding native stem work.
-
-### 2026-09-23 — Restore clean TypeScript gate
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Fix pre-existing `tsc` errors → Done
-
-**Changed:**
-
-- `LayerControls.tsx`: replaced imports for nonexistent custom layer icons with the established
-  `lucide-react-native` icon set already used by `StemsView`.
-- `timelineScrollbar.ts`: replaced the unsupported `ew-resize` React Native cursor value with the
-  typed `pointer` cursor for interactive resize handles.
-- `AGENTS.md`: promoted TypeScript checking into the standard build gate and reconciled the live
-  stem-separation status.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean, no TypeScript errors.
-- `npm run test:unit` → 26 passed, 2 suites.
-
-**Not verified / known gaps:**
-
-- Playwright E2E and visual cursor behavior were not run this session.
-
-**Next agent should:**
-
-- Continue the In Progress stem separation work with the native module TypeScript interface.

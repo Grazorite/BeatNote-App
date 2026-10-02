@@ -4,14 +4,35 @@ inclusion: always
 
 # BeatNote — Stem Separation (Demucs)
 
-## Architecture: Hybrid approach
+## Release status
+
+Stem separation is deferred while BeatNote completes its core annotation and rehearsal workflow.
+The existing types, store state, cache implementation, tests, and detailed spec are preserved, but
+no additional separator, native-module, or UI work should start until the gates in
+[`release-roadmap.md`](./release-roadmap.md) are satisfied.
+
+The planned release sequence is:
+
+1. **V3 beta:** validate a managed, cloud-first 2-/4-stem workflow, demand, quality, latency, and
+   unit economics.
+2. **Later V3:** add on-device CoreML and hybrid routing only after benchmarks prove acceptable model size,
+   processing time, memory, battery, and thermal behaviour.
+
+The architecture below remains the target end state. Its original on-device-first implementation
+order is no longer the release order.
+
+## Target architecture: Hybrid approach
 
 Two-tier system with automatic fallback:
 
 1. **On-device (CoreML)** — lightweight model, ~30–60s processing, works offline
 2. **Cloud API (Replicate.com)** — full Demucs htdemucs model, higher quality, requires internet
 
-The user sees a single "Split Stems" action. The app attempts on-device first; if the device is too slow or the model unavailable, it offers cloud processing. The user can set a preference in settings.
+The user sees a single "Split Stems" action. In the eventual V3 hybrid release, the app can attempt
+on-device processing first and offer cloud processing when the model is unavailable or unsuitable.
+The V3 beta uses only the cloud path behind a feature flag. Until then,
+`STEM_SEPARATION_UI_ENABLED` remains false and the full-mix waveform is shown even for a saved
+multitrack view preference.
 
 ## Module location
 
@@ -97,15 +118,21 @@ When `separatedStemUris` is populated:
 Add to sidebar settings:
 
 - Stem separation mode: `Auto` | `On-device only` | `Cloud only`
-- Cloud API key input (Replicate) — stored in SecureStore, never in AsyncStorage
+- Cloud processing allowance/credit status and an upgrade or credit-purchase action
 - Cache management link → Storage screen
 
-## Cloud API (Replicate)
+An API-key input is not part of the production V3 experience. It may exist only in development or
+an explicitly labelled experimental build.
 
-- Model: `facebook/demucs` on Replicate
-- Auth: user-provided API key stored in `expo-secure-store`
-- Do not bundle a default API key in the app binary
-- Show a clear prompt to enter an API key if cloud mode is selected and no key exists
+## Cloud API
+
+- Replicate `facebook/demucs` remains the first provider candidate, not a permanent client contract.
+- Production requests go through a managed backend with short-lived job authorization; service API
+  keys are never bundled in the app binary.
+- The backend owns quotas/credits, provider substitution, deletion/retention enforcement, and abuse
+  controls.
+- A user-provided key may remain available only for development or an explicitly labelled
+  experimental mode.
 
 ## On-device model
 
@@ -113,3 +140,7 @@ Add to sidebar settings:
 - Model file bundled in the app binary (adds ~50–80MB to app size — acceptable)
 - Inference runs on the Neural Engine via CoreML, not CPU
 - Minimum iOS version for Neural Engine: iOS 14+ (already within Expo's target range)
+
+Before implementation, replace the current size/time assumptions with measurements from candidate
+models running on the minimum supported physical device. Model licensing and App Store distribution
+constraints must also be confirmed.

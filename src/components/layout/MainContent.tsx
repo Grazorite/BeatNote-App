@@ -12,6 +12,7 @@ import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationFi
 import WaveformCanvas from '../ui/waveform/WaveformCanvas';
 
 import StemsView from './StemsView';
+import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 
 interface MainContentProps {
@@ -85,6 +86,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const isMobile = Platform.OS === 'web'
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
+  const isLandscapePhone = isMobile && screenData.width > screenData.height;
   const containerWidth = isMobile 
     ? screenData.width - 16
     : Math.max(900, screenData.width - 320); // Desktop: account for sidebar
@@ -101,7 +103,7 @@ const MainContent: React.FC<MainContentProps> = ({
   );
   const waveform = (
     <Animated.View style={[animatedStyle, isMobile && styles.mobileWaveform]}>
-      {viewMode === 'unified' ? (
+      {!STEM_SEPARATION_UI_ENABLED || viewMode === 'unified' ? (
         <WaveformCanvas
           audioUri={audioUri || undefined}
           layers={layers}
@@ -130,9 +132,10 @@ const MainContent: React.FC<MainContentProps> = ({
         seekToPosition(duration);
       }}
       isMobile={isMobile}
+      compact={isLandscapePhone}
     />
   );
-  const markerControls = <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile={isMobile} />;
+  const markerControls = <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile={isMobile} compact={isLandscapePhone} />;
   const layerSelector = <HorizontalLayerSelector />;
   const status = (
     <View style={styles.statusContainer}>
@@ -151,23 +154,26 @@ const MainContent: React.FC<MainContentProps> = ({
   );
 
   if (isMobile) {
-    return (
-      <View style={styles.mobileWorkspace}>
-        {projectControls}
-        <ScrollView
-          style={styles.mobileScrollContainer}
-          contentContainerStyle={styles.mobileContent}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          testID="mobile-workspace-scroll"
-        >
-          {waveform}
-          {timeline}
-          {layerSelector}
-          {status}
-        </ScrollView>
-        <View style={styles.mobileControlDock}>
-          <View style={styles.mobileTransportRow}>{audioControls}</View>
+    const workspaceScroll = (
+      <ScrollView
+        style={[styles.mobileScrollContainer, isLandscapePhone && styles.landscapeScrollContainer]}
+        contentContainerStyle={styles.mobileContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        testID="mobile-workspace-scroll"
+      >
+        {waveform}
+        {timeline}
+        {layerSelector}
+        {status}
+      </ScrollView>
+    );
+    const controlDock = (
+      <View style={[styles.mobileControlDock, isLandscapePhone && styles.landscapeControlRail]} testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}>
+        <View style={styles.mobileTransportRow}>{audioControls}</View>
+        {isLandscapePhone ? (
+          <View style={styles.landscapeMarkerActions}>{markerControls}</View>
+        ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -176,8 +182,18 @@ const MainContent: React.FC<MainContentProps> = ({
           >
             {markerControls}
           </ScrollView>
-          <AnnotationField ref={annotationFieldRef} isMobile />
-        </View>
+        )}
+        <AnnotationField ref={annotationFieldRef} isMobile />
+      </View>
+    );
+    return (
+      <View style={styles.mobileWorkspace}>
+        {projectControls}
+        {isLandscapePhone ? (
+          <View style={styles.landscapeBody}>{workspaceScroll}{controlDock}</View>
+        ) : (
+          <>{workspaceScroll}{controlDock}</>
+        )}
       </View>
     );
   }

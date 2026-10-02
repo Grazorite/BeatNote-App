@@ -53,42 +53,15 @@ test.describe('Core Functionality', () => {
       expect(newCount).toBeGreaterThan(initialCount);
     });
 
-    test('should handle view mode and stem switching', async ({ page }) => {
+    test('should keep deferred stem controls hidden without blocking markers', async ({ page }) => {
       await page.goto('/');
-      
-      // Test view mode switching
-      const unifiedButton = page.getByText('Unified');
-      const multitrackButton = page.getByText('Multitrack');
-      
-      await expect(unifiedButton).toBeVisible();
-      await expect(multitrackButton).toBeVisible();
-      
-      // Switch to multitrack view
-      await multitrackButton.click();
-      await page.waitForTimeout(300);
-      
-      // Verify app still works
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
-      
-      // Test stem separation switching if visible
-      const twoStemsButton = page.getByText('2 Stems');
-      const sixStemsButton = page.getByText('6 Stems');
-      
-      if (await twoStemsButton.isVisible()) {
-        await twoStemsButton.click();
-        await page.waitForTimeout(300);
-      }
-      
-      if (await sixStemsButton.isVisible()) {
-        await sixStemsButton.click();
-        await page.waitForTimeout(300);
-      }
-      
-      // Switch back to unified view
-      await unifiedButton.click();
-      await page.waitForTimeout(300);
-      
-      await expect(page.getByText(/Active Layer:/)).toBeVisible();
+
+      await expect(page.getByText('View Mode')).toHaveCount(0);
+      await expect(page.getByText('Stem Separation')).toHaveCount(0);
+      await expect(page.getByTestId('layer-vocals')).toBeVisible();
+      await loadTestAudio(page);
+      await page.getByTestId('add-marker').click();
+      await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
     });
   });
 });

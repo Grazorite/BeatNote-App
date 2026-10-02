@@ -2,7 +2,7 @@
 
 > Professional multi-track audio annotation tool for choreographers, dancers, and music producers.
 
-BeatNote lets you load a song, split it into stems, annotate beats and movements across multiple layers, and export your work — all in a clean, dark, mobile-first interface.
+BeatNote lets you load a song, annotate beats and movements across multiple layers, and export your work. Stem splitting is planned for V3.
 
 ---
 
@@ -15,10 +15,9 @@ Primarily choreographers and dancers who need to map music structure to movement
 ## Core workflow
 
 1. Load a song (MP3, WAV, M4A, AAC, OGG, FLAC)
-2. Split into stems (Vocals, Drums, Bass, Piano, Guitar, Other) — *planned, see Roadmap*
-3. Select a layer and tap to place beat markers during playback
-4. Add text annotations to markers (move names, cues, counts)
-5. Export as CSV or MIDI (PDF choreography sheet planned)
+2. Select a layer and tap to place beat markers during playback
+3. Add text annotations to markers (move names, cues, counts)
+4. Export as CSV or MIDI (PDF choreography sheet planned)
 
 ---
 
@@ -26,8 +25,7 @@ Primarily choreographers and dancers who need to map music structure to movement
 
 ### Available now
 
-- 6-layer model with 2 / 4 / 6 stem-count modes
-- Unified and multitrack waveform views
+- Annotation layers with a unified full-mix waveform
 - Magnetic snapping to beat grid and existing markers
 - BPM control with rhythmic grid overlay
 - Ghost playhead for non-destructive position preview
@@ -41,9 +39,10 @@ Primarily choreographers and dancers who need to map music structure to movement
 
 ### Planned
 
-See the Roadmap section below for status. Not yet implemented: Demucs stem separation
-(on-device + cloud), 8-count grid mode, slow-down / pitch-preserve playback, PDF choreography
-export, customisable layer names, iCloud sync, and share-sheet import/export.
+See the Roadmap section below for status. Not yet implemented: 8-count grid mode, slow-down /
+pitch-preserve playback, PDF choreography export, customisable layer names, iCloud sync, and
+share-sheet import/export. Demucs stem separation is deliberately deferred to V3, beginning with
+a cloud-first beta and potentially adding an on-device/hybrid path later.
 
 > **Live project state** — features in flight, the task board, and the handover log live in
 > [`AGENTS.md`](./AGENTS.md), the single source of truth for current work.
@@ -141,7 +140,9 @@ See `.kiro/steering/ios-testflight.md` for full setup guide.
 - [x] Project save/load
 - [x] CSV + MIDI export
 - [ ] iOS port + TestFlight
-- [ ] Demucs stem separation (on-device CoreML + cloud fallback)
+- [ ] V2 Pro launch (monetisation architecture begins during V1)
+- [ ] V3 cloud stem-separation beta, subject to demand and unit economics
+- [ ] Later V3 on-device/hybrid stem separation, subject to physical-device benchmarks
 - [ ] PDF choreography export
 - [ ] 8-count grid mode
 - [ ] Slow-down / pitch-preserve playback (iOS)

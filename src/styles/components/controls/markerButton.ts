@@ -21,6 +21,10 @@ export const markerButtonStyles = StyleSheet.create({
     height: 52,
     borderRadius: 10,
   },
+  markerButtonCompact: {
+    width: 44,
+    height: 44,
+  },
   markerButtonMain: {
     backgroundColor: '#ff8c00', // Prominent orange for main marker button
   },

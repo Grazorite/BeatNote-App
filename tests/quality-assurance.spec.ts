@@ -84,24 +84,16 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
     
-    test('should not have memory leaks with view switching', async ({ page }) => {
+    test('should remain stable when changing annotation lanes', async ({ page }) => {
       await page.goto('/');
-      
-      const unifiedButton = page.getByText('Unified');
-      const multitrackButton = page.getByText('Multitrack');
-      
-      // Switch views multiple times
+
       for (let i = 0; i < 3; i++) {
-        await multitrackButton.click();
-        await page.waitForTimeout(100);
-        
-        await unifiedButton.click();
-        await page.waitForTimeout(100);
+        await page.getByTestId('layer-drums').click();
+        await page.getByTestId('layer-vocals').click();
       }
-      
-      // App should remain stable
+
       await expect(page.getByText(/Active Layer:/)).toBeVisible();
-      await expect(unifiedButton).toBeVisible();
+      await expect(page.getByText(/Active Layer:.*Vocals/)).toBeVisible();
     });
   });
 
@@ -143,7 +135,7 @@ test.describe('Quality Assurance', () => {
 
   // State Persistence Tests
   test.describe('State Persistence', () => {
-    test('should maintain marker state across view mode changes', async ({ page }) => {
+    test('should maintain marker state across annotation lane changes', async ({ page }) => {
       await page.goto('/');
       await loadTestAudio(page);
       
@@ -157,10 +149,7 @@ test.describe('Quality Assurance', () => {
       const markerText = await page.getByText(/Grand Total: \d+ markers/).textContent();
       const markerCount = parseInt(markerText?.match(/\d+/)?.[0] || '0');
       
-      // Switch view modes
-      const multitrackButton = page.getByText('Multitrack');
-      await multitrackButton.click();
-      await page.waitForTimeout(200);
+      await page.getByTestId('layer-drums').click();
       
       // Markers should persist
       const newMarkerText = await page.getByText(/Grand Total: \d+ markers/).textContent();
@@ -168,10 +157,7 @@ test.describe('Quality Assurance', () => {
       
       expect(newMarkerCount).toBe(markerCount);
       
-      // Switch back
-      const unifiedButton = page.getByText('Unified');
-      await unifiedButton.click();
-      await page.waitForTimeout(200);
+      await page.getByTestId('layer-vocals').click();
       
       // Markers should still persist
       const finalMarkerText = await page.getByText(/Grand Total: \d+ markers/).textContent();
@@ -185,39 +171,31 @@ test.describe('Quality Assurance', () => {
       await loadTestAudio(page);
       
       // Verify default BPM
-      await expect(page.getByText('120')).toBeVisible();
+      await expect(page.getByText('120', { exact: true })).toBeVisible();
       
       // Interact with other controls
       const markerButton = page.getByTestId('add-marker');
       await markerButton.click();
       
-      const multitrackButton = page.getByText('Multitrack');
-      await multitrackButton.click();
+      await page.getByTestId('layer-drums').click();
       
       // BPM should remain unchanged
-      await expect(page.getByText('120')).toBeVisible();
+      await expect(page.getByText('120', { exact: true })).toBeVisible();
     });
     
-    test('should maintain active layer across view changes', async ({ page }) => {
+    test('should maintain active layer across settings interactions', async ({ page }) => {
       await page.goto('/');
       
       // Check initial active layer (should be Vocals by default)
       await expect(page.getByText(/Active Layer:.*Vocals/)).toBeVisible();
       
-      // Switch view modes
-      const multitrackButton = page.getByText('Multitrack');
-      await multitrackButton.click();
-      await page.waitForTimeout(200);
+      await page.getByText('Canvas Options').click();
       
       // Active layer should persist
       await expect(page.getByText(/Active Layer:.*Vocals/)).toBeVisible();
       
-      // Switch back
-      const unifiedButton = page.getByText('Unified');
-      await unifiedButton.click();
-      await page.waitForTimeout(200);
-      
-      // Active layer should still be the same
+      await page.getByText('Canvas Options').click();
+
       await expect(page.getByText(/Active Layer:.*Vocals/)).toBeVisible();
     });
   });
@@ -256,22 +234,16 @@ test.describe('Quality Assurance', () => {
       await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
     });
     
-    test('should handle view mode toggle spam', async ({ page }) => {
+    test('should handle repeated lane selection', async ({ page }) => {
       await page.goto('/');
-      
-      const unifiedButton = page.getByText('Unified');
-      const multitrackButton = page.getByText('Multitrack');
-      
-      // Rapid view mode switching
+
       for (let i = 0; i < 10; i++) {
-        await multitrackButton.click();
-        await unifiedButton.click();
+        await page.getByTestId('layer-drums').click();
+        await page.getByTestId('layer-vocals').click();
       }
-      
-      // App should remain stable
+
       await expect(page.getByText(/Active Layer:/)).toBeVisible();
-      await expect(unifiedButton).toBeVisible();
-      await expect(multitrackButton).toBeVisible();
+      await expect(page.getByTestId('layer-vocals')).toBeVisible();
     });
     
     test('should handle load button spam', async ({ page }) => {
@@ -299,8 +271,7 @@ test.describe('Quality Assurance', () => {
       // All controls should still be functional
       await expect(page.getByText('Load Song')).toBeVisible();
       await expect(page.getByTestId('add-marker')).toBeVisible();
-      await expect(page.getByText('Unified')).toBeVisible();
-      await expect(page.getByText('Multitrack')).toBeVisible();
+      await expect(page.getByText('Stem Separation')).toHaveCount(0);
     });
     
     test('should handle browser back/forward navigation', async ({ page }) => {
@@ -342,8 +313,7 @@ test.describe('Quality Assurance', () => {
       
       // All controls should be accessible
       await expect(page.getByText('Load Song')).toBeVisible();
-      await expect(page.getByText('Unified')).toBeVisible();
-      await expect(page.getByText('Multitrack')).toBeVisible();
+      await expect(page.getByTestId('layer-vocals')).toBeVisible();
       await expect(page.getByText('BPM')).toBeVisible();
     });
     

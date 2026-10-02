@@ -21,6 +21,10 @@ export const audioControlsStyles = StyleSheet.create({
     height: 52,
     borderRadius: 10,
   },
+  buttonCompact: {
+    width: 44,
+    height: 44,
+  },
   audioControlsEnabled: {
     backgroundColor: '#ff8c00', // Prominent orange for main play/pause
   },

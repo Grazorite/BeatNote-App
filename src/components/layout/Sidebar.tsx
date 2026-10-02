@@ -10,6 +10,7 @@ import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
 import CanvasOptionsToggle from '../ui/controls/CanvasOptionsToggle';
 import MarkerOptionsToggle from '../ui/controls/MarkerOptionsToggle';
+import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 
 import HelpButton from '../ui/controls/HelpButton';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
@@ -46,6 +47,8 @@ const Sidebar: React.FC = () => {
     opacity: withTiming(isSidebarCollapsed ? 0 : 1, { duration: isSidebarCollapsed ? 150 : 300 }),
   }));
 
+  if (isMobile && isSidebarCollapsed) return null;
+
   return (
     <Animated.View
       style={[
@@ -65,12 +68,12 @@ const Sidebar: React.FC = () => {
           <View style={styles.sidebarSection}>
             <HelpButton />
           </View>
-          <View style={styles.sidebarSection}>
-            <ViewModeToggle />
-          </View>
-          <View style={styles.sidebarSection}>
-            <StemSelector />
-          </View>
+          {STEM_SEPARATION_UI_ENABLED && (
+            <>
+              <View style={styles.sidebarSection}><ViewModeToggle /></View>
+              <View style={styles.sidebarSection}><StemSelector /></View>
+            </>
+          )}
           <View style={styles.sidebarSection}>
             <BpmControl />
           </View>

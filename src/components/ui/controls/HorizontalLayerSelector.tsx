@@ -65,6 +65,7 @@ const HorizontalLayerSelector: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.heading}>Annotation layers</Text>
       <View style={styles.layersRow}>
         {layers.map((layer) => (
           <LayerButton key={layer.id} layer={layer} />

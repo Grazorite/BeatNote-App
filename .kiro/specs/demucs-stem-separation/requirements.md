@@ -1,5 +1,12 @@
 # Requirements Document
 
+> **Release status:** deferred. These requirements describe the eventual V3 hybrid feature. A V3
+> cloud-first beta may implement only the cloud, progress/cancellation, cache, store, error-handling,
+> and limited waveform requirements after the gates in
+> [`.kiro/steering/release-roadmap.md`](../../steering/release-roadmap.md) are satisfied.
+> Requirements that expose a user-provided Replicate key are superseded by ADR-010 and must be
+> rewritten around managed backend authorization before implementation resumes.
+
 ## Introduction
 
 Hybrid stem separation for BeatNote using Demucs. The feature provides a single "Split Stems" action that separates a loaded audio file into individual instrument stems (vocals, drums, bass, piano, guitar, other) using either on-device CoreML inference or the Replicate cloud API. The system automatically selects the processing tier based on device capability and user preference, caches results for instant reload, and integrates separated stems into the existing layer-based waveform display.

@@ -32,6 +32,7 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
   const [selectedMarker, setSelectedMarker] = useState<SelectedMarker | null>(null);
   const textInputRef = useRef<TextInput>(null);
   const previousMarkers = useRef<string[]>([]);
+  const syncedMarker = useRef<string | null>(null);
 
   useEffect(() => {
     const markers = allLayersData.flatMap(layer =>
@@ -71,15 +72,19 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
 
   useEffect(() => {
     if (!selectedMarker) {
+      syncedMarker.current = null;
       setAnnotation('');
       return;
     }
+    const markerKey = `${selectedMarker.layerId}:${selectedMarker.timestamp}`;
+    if (isTextInputFocused && syncedMarker.current === markerKey) return;
     const layer = allLayersData.find(item => item.id === selectedMarker.layerId);
     const existingAnnotation = layer?.annotations.find(ann =>
       Math.abs(ann.timestamp - selectedMarker.timestamp) < 100
     );
+    syncedMarker.current = markerKey;
     setAnnotation(existingAnnotation?.text || '');
-  }, [selectedMarker, allLayersData]);
+  }, [selectedMarker, allLayersData, isTextInputFocused]);
   
   const handleAnnotationChange = (text: string) => {
     setAnnotation(text);

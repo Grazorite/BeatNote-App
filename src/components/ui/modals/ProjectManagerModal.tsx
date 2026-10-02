@@ -119,7 +119,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             {item.name}
           </Text>
           <Text style={styles.projectInfo}>
-            {formatDuration(item.duration)} • {item.stemCount} stems
+            {formatDuration(item.duration)} • {item.stemCount} annotation layers
           </Text>
           <Text style={styles.projectDate}>
             Modified: {formatDate(item.modifiedAt)}
