@@ -3,6 +3,7 @@ import { ProjectManager } from '../utils/projectManager';
 import { BeatNoteProject } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
+import type { RowDensity } from '../utils/rowLayout';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -39,6 +40,13 @@ interface StudioStore {
   isViewportLocked: boolean; // Whether viewport follows playhead
   bpm: number;
   viewMode: 'unified' | 'multitrack';
+  primaryView: 'wrapped' | 'detail';
+  countSize: 4 | 6 | 8;
+  rowDensity: RowDensity;
+  followPlayhead: boolean;
+  loopStartMs: number | null;
+  loopEndMs: number | null;
+  selectedRowIndex: number | null;
   showGridLines: boolean;
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
@@ -63,6 +71,12 @@ interface StudioStore {
   setViewportLocked: (locked: boolean) => void;
   setBpm: (bpm: number) => void;
   setViewMode: (mode: 'unified' | 'multitrack') => void;
+  setPrimaryView: (view: 'wrapped' | 'detail') => void;
+  setCountSize: (size: 4 | 6 | 8) => void;
+  setRowDensity: (density: RowDensity) => void;
+  setFollowPlayhead: (follow: boolean) => void;
+  setLoopRange: (startMs: number | null, endMs: number | null) => void;
+  setSelectedRowIndex: (index: number | null) => void;
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   setShowHelpScreen: (show: boolean) => void;
@@ -146,6 +160,13 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   isViewportLocked: true,
   bpm: 120,
   viewMode: 'unified',
+  primaryView: 'wrapped',
+  countSize: 8,
+  rowDensity: { mode: 'phrase' },
+  followPlayhead: true,
+  loopStartMs: null,
+  loopEndMs: null,
+  selectedRowIndex: null,
   showGridLines: true,
   isSidebarCollapsed: false,
   showHelpScreen: false,
@@ -193,6 +214,12 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
   setViewMode: (mode) => set({ viewMode: mode }),
+  setPrimaryView: (view) => set({ primaryView: view }),
+  setCountSize: (size) => set({ countSize: size }),
+  setRowDensity: (density) => set({ rowDensity: density }),
+  setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
+  setLoopRange: (startMs, endMs) => set({ loopStartMs: startMs, loopEndMs: endMs }),
+  setSelectedRowIndex: (index) => set({ selectedRowIndex: index }),
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
@@ -440,6 +467,10 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         viewMode: state.viewMode,
         showGridLines: state.showGridLines,
         layerSpecificNavigation: state.layerSpecificNavigation,
+        primaryView: state.primaryView,
+        countSize: state.countSize,
+        rowDensity: state.rowDensity,
+        followPlayhead: state.followPlayhead,
       },
     };
     return await ProjectManager.saveProject(project);
@@ -463,6 +494,10 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       bpm: project.metadata.bpm,
       songDuration: project.metadata.duration,
       viewMode: project.settings.viewMode,
+      primaryView: project.settings.primaryView ?? 'wrapped',
+      countSize: project.settings.countSize ?? 8,
+      rowDensity: project.settings.rowDensity ?? { mode: 'phrase' },
+      followPlayhead: project.settings.followPlayhead ?? true,
       showGridLines: project.settings.showGridLines,
       layerSpecificNavigation: project.settings.layerSpecificNavigation,
       songLoaded: true,

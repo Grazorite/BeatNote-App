@@ -24,8 +24,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 1 — Pure core utilities + tests
 
-- [ ] 1. Implement the pure row-layout engine
-  - [ ] 1.1 Create `src/utils/rowLayout.ts` with types and `computeRows`
+- [x] 1. Implement the pure row-layout engine
+  - [x] 1.1 Create `src/utils/rowLayout.ts` with types and `computeRows`
     - Define `WrappedRow`, `RowDensityMode`, `RowDensity`, and `RowLayoutConfig`
       types as specified in the design Data Models section.
     - Implement `computeRows(config)` per the design algorithm: zero/unknown
@@ -38,7 +38,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
     - Clamp `phrasesPerRow` to `>= 1` and fixed `rowDurationMs` to `>= 2000`.
     - _Requirements: 2.1, 2.2, 2.5, 2.6, 2.7, 9.1, 9.2, 10.1, 10.2, 10.5, 15.1, 15.3, 17.4, 19.1, 19.2, 19.4_
 
-  - [ ]* 1.2 Write unit tests for `rowLayout.ts`
+  - [x]* 1.2 Write unit tests for `rowLayout.ts`
     - Cover partition/contiguity/final-row-inclusive; phrase vs fallback paths;
       `countSize` 4/6/8; zero, unknown, very-short, and long durations; invalid
       BPM; `phraseRowDurationMs` numeric values; `phrasesPerRow` and
@@ -46,14 +46,14 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
     - Place at `tests/unit/rowLayout.test.ts`.
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 10.3, 10.4, 10.5, 15.1, 15.3_
 
-  - [ ]* 1.3 Write property tests for `rowLayout.ts` (fast-check)
+  - [x]* 1.3 Write property tests for `rowLayout.ts` (fast-check)
     - **Property 1: Partition** — contiguous, non-overlapping, covering
       `[0, songDuration]`.
     - **Property 8: Determinism** — identical config yields identical output.
     - **Validates: Requirements 2.6, 2.7, 19.4**
 
-- [ ] 2. Implement the pure timeline mapper
-  - [ ] 2.1 Create `src/utils/timelineMapping.ts` with mapping functions
+- [x] 2. Implement the pure timeline mapper
+  - [x] 2.1 Create `src/utils/timelineMapping.ts` with mapping functions
     - Define `RowRenderContext` type.
     - Implement `timestampToRow(rows, t)` as an O(log rows) binary search under
       the half-open invariant, with `songDuration` owned by the final row and
@@ -67,7 +67,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       clipped segments via the `from < to` test.
     - _Requirements: 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 12.1, 12.3, 12.4, 12.5, 15.6, 15.7, 16.4, 19.1, 19.3_
 
-  - [ ]* 2.2 Write unit tests for `timelineMapping.ts`
+  - [x]* 2.2 Write unit tests for `timelineMapping.ts`
     - Cover `timestampToRow` boundary ownership and out-of-range; `pointerToTimestamp`
       clamping and round-trip; `clipRowProgress` 0/1/partial and monotonicity;
       `loopSegmentsForRows` coverage, boundary ownership, and inactive loop when
@@ -75,21 +75,21 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
     - Place at `tests/unit/timelineMapping.test.ts`.
     - _Requirements: 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 12.1, 12.4, 12.5, 15.6, 15.7_
 
-  - [ ]* 2.3 Write property tests for `timelineMapping.ts` (fast-check)
+  - [x]* 2.3 Write property tests for `timelineMapping.ts` (fast-check)
     - **Property 2: Single ownership** — exactly one owning row per timestamp.
     - **Property 3: Round-trip within a row** — `pointerToTimestamp(msToX(t)) ≈ t`.
     - **Property 4: Progress monotonic + clipped** — non-decreasing, clipped to 0/1.
     - **Property 5: Loop coverage** — segments reassemble to `[loopStartMs, loopEndMs]`.
     - **Validates: Requirements 15.6, 15.7, 19.3, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 12.1, 12.3, 12.4**
 
-- [ ] 3. Checkpoint — pure core
+- [x] 3. Checkpoint — pure core
   - Run `npx tsc --noEmit` and `npx jest --testPathPatterns=unit`.
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 2 — Store fields and actions
 
-- [ ] 4. Add wrapped-view state to the single store
-  - [ ] 4.1 Extend `src/hooks/useStudioStore.ts` with new fields and setters
+- [x] 4. Add wrapped-view state to the single store
+  - [x] 4.1 Extend `src/hooks/useStudioStore.ts` with new fields and setters
     - Add `primaryView` (default `'wrapped'`), `countSize` (default `8`),
       `rowDensity` (orientation default), `followPlayhead` (default `true`),
       `loopStartMs`/`loopEndMs` (default `null`), `selectedRowIndex` (default
@@ -103,7 +103,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       state. Leave existing viewport clamping untouched.
     - _Requirements: 2.2, 8.2, 12.5, 18.1, 18.2, 18.5_
 
-  - [ ]* 4.2 Write store-action unit tests (fresh store per test)
+  - [x]* 4.2 Write store-action unit tests (fresh store per test)
     - Test each new setter; test switch-neutrality (**Property 7**): toggling
       `primaryView` and setting `selectedRowIndex` leaves `isPlaying`, playback
       position, markers, annotations, loop bounds, repeat/loop flags, and
@@ -111,7 +111,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
     - Place at `tests/unit/studioStore.wrapped.test.ts`.
     - **Validates: Requirements 13.5, 18.1**
 
-- [ ] 5. Checkpoint — store
+- [x] 5. Checkpoint — store
   - Run `npx tsc --noEmit` and `npx jest --testPathPatterns=unit`.
   - Ensure all tests pass, ask the user if questions arise.
 
@@ -134,8 +134,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 4 — Wrapped rendering MVP
 
-- [ ] 8. Build the row gutter and style scaffolding
-  - [ ] 8.1 Create `src/components/ui/waveform/RowGutter.tsx` and mirrored styles
+- [x] 8. Build the row gutter and style scaffolding
+  - [x] 8.1 Create `src/components/ui/waveform/RowGutter.tsx` and mirrored styles
     - Render `mm:ss` row start time and, when phrase-aware, the phrase number and
       count label; fixed width so all rows align.
     - Add `src/styles/components/waveform/rowGutter.ts` using shared colour tokens
@@ -317,8 +317,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 13 — Persistence
 
-- [ ] 28. Persist wrapped-view preferences
-  - [ ] 28.1 Persist preferences in `projectManager.ts` with backwards-compatible defaults
+- [x] 28. Persist wrapped-view preferences
+  - [x] 28.1 Persist preferences in `projectManager.ts` with backwards-compatible defaults
     - Persist only `primaryView`, `countSize`, `rowDensity`, `followPlayhead`
       under project settings; never persist `loopStartMs`, `loopEndMs`,
       `selectedRowIndex`, the manual-scroll-suspension flag, or derived geometry;
@@ -326,12 +326,12 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       orientation default, `true`).
     - _Requirements: 18.3, 18.4, 18.5_
 
-  - [ ]* 28.2 Write a save/load round-trip unit test
+  - [x]* 28.2 Write a save/load round-trip unit test
     - Verify persisted fields round-trip and missing fields default correctly.
     - Place at `tests/unit/projectManager.wrapped.test.ts`.
     - _Requirements: 18.3, 18.4, 18.5_
 
-- [ ] 29. Checkpoint — persistence
+- [x] 29. Checkpoint — persistence
   - Run `npx jest --testPathPatterns=unit` and `npx tsc --noEmit`.
   - Ensure all tests pass, ask the user if questions arise.
 

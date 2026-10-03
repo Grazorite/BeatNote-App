@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-04
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -52,21 +52,28 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
-| Unit tests | 26 passing (stem slice + stemCache) |
-| iOS UI tests | 9 passing on iPhone 17 Pro / iOS 26.2 simulator |
+| Unit tests | 46 passing (6 suites; wrapped-core/store/persistence coverage added) |
+| iOS UI tests | 9/9 baseline; latest full rerun 8/9 (simulator stayed portrait in landscape case) |
 | E2E spec files | 5 (Playwright, 60 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
 
-1. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+1. Resolve simulator Portrait Orientation Lock / scene rotation, then rerun both landscape XCTest cases
+   and the full suite. The latest failure occurs before landscape layout assertions: XCTest sets
+   landscape but the app scene remains 402 x 874 portrait. Device Hub reproduces the sideways
+   portrait scene when rotating hardware. The user has been asked to check simulator orientation lock.
+2. Implement wrapped-canvas Phase 3 hook, then virtualized rendering and gestures; Phases 1-2 are
+   verified in TypeScript, unit tests, and web E2E, but the wrapped view is not yet user-visible.
+3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, long-track overview tap/drag seeking, annotation during playback,
-   landscape waveform and CSV I/O, compact controls, project save/relaunch/restore, and settings drawer. Interactive Xcode 27
+   compact controls, project save/relaunch/restore, CSV I/O, and settings drawer. Landscape waveform
+   and CSV I/O were covered by earlier runs but need revalidation after the rotation lock is resolved. Interactive Xcode 27
    testing uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the
    Simulator app on this host.
-2. Close the unit-test coverage gap the testing strategy requires (utils + real store actions).
-3. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+4. Close the remaining unit-test coverage gap the testing strategy requires (utils + real store actions).
+5. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -86,7 +93,6 @@ potentially adding a hybrid path later.
 - [ ] Add unit tests for `magneticSnapping`, `exportEngine`, `importEngine`, `projectManager` (testing strategy requires; none exist)
 - [ ] Add unit tests for real store actions — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, navigate, `setStemCount`, viewport constraints
 - [ ] Implement 8-count / phrase grid mode — `countSize` state, phrase snapping, transport count display
-- [ ] Implement wrapped waveform canvas (planned, spec ready) — pure row-layout/mapping utilities, virtualized wrapped rows, per-row seek/markers/progress, follow-playhead, responsive detail mode; see `.kiro/specs/wrapped-waveform-canvas/`
 - [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
 - [ ] Implement section looping for rehearsal and physical-device acceptance coverage
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
@@ -98,7 +104,8 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
+- [ ] Implement wrapped waveform canvas — Phases 1-2 verified; Phase 3 hook and Phases 4-5 UI/gestures next. DSH-Qwen tasks `session-278a3c6a-0b90-4d71-9aee-c60befec182d` and `session-9aa93a72-8217-4ed6-befa-9e5093653830` hit `max-tokens` without files; Codex completed this slice. See `.kiro/specs/wrapped-waveform-canvas/`.
+- [ ] Restore actual simulator landscape rotation, then rerun the two geometry-guarded landscape XCTest cases and full iOS suite
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
 ### ⏸ Deferred — V2/V3
@@ -116,14 +123,14 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phases 1-2: deterministic row geometry, timeline mapping, and single-store state with unit/property coverage
+      <sub>**Key Artifacts:** `src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
+- [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
+      <sub>**Key Artifacts:** `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/projectManager.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
+- [x] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`, `src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 - [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`</sub>
-- [x] Enable iOS background audio playback and verify time continuity through background/foreground in XCTest
-      <sub>**Key Artifacts:** `app.json`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/background-audio.m4a`</sub>
-- [x] Route native timeline gestures to JS state safely, preserve vertical scrolling, and compact phone controls; cover landscape tap/drag in XCTest
-      <sub>**Key Artifacts:** `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/layout/StemsView.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/SimpleWaveform.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/markerButton.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-- [x] Repair Playwright marker, layer-selector, audio-loading, and responsive assertions; full suite is green
-      <sub>**Key Artifacts:** `tests/setup.ts`, `tests/core-functionality.spec.ts`, `tests/quality-assurance.spec.ts`, `tests/test-discovery.spec.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -165,7 +172,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Static knowledge never goes in this file; volatile state never goes in `.kiro/steering/`.
 - No new Markdown files in the repo root beyond `README.md` and `AGENTS.md`.
 - State plainly what was verified and what was not. A command exiting 0 is not proof of correctness.
-- **Keep only the latest 10 Handover Log entries.** When adding an 11th, delete the oldest.
+- **Keep only the latest 5 Handover Log entries.** Move older entries verbatim to the linked archive.
 
 ### Handover Log entry template
 
@@ -196,7 +203,132 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ## 📝 Reverse-Chronological Handover Log
 
-*Newest first. Prepend new entries directly below this line. Keep only the latest 10 entries.*
+*Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-04 — Add wrapped gutter and preference persistence
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Wrapped gutter scaffolding + preference persistence → Done; wrapped UI integration remains In Progress
+
+**Changed:**
+
+- Added the standalone `RowGutter` component and mirrored token-based styles without exporting,
+  mounting, or adding gestures; UI integration remains under direct Codex review.
+- Persisted only `primaryView`, `countSize`, `rowDensity`, and `followPlayhead`; legacy projects are
+  normalized to wrapped/8/phrase/follow defaults. Added round-trip and exclusion tests for transient
+  loop, selection, manual-scroll, and derived-row state.
+- Fresh DSH sessions `session-8fccb6c4-90a1-4a23-9ee7-52746d510286` and
+  `session-cee5ed24-b3fc-44e2-984e-a131ffc279cc` failed before editing because Ollama could not open
+  the Qwen manifest on the external model volume (`operation not permitted`); Codex used the
+  orchestrator fallback and implemented/reviewed both bounded tasks directly.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `src/components/ui/waveform/RowGutter.tsx`,
+`src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`,
+`src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`,
+`tests/unit/projectManager.wrapped.test.ts`, `docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; focused persistence suite → 2 passed.
+- `npm run test:unit -- --runInBand` → 46 passed across 6 suites; elevated
+  `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed.
+- `git diff --check` → clean; contract checker with five-item Done/log limits → 0 errors.
+
+**Not verified / known gaps:**
+
+- `RowGutter` is intentionally not exported or rendered yet. Phase 3 hook, wrapped row/list
+  rendering, UI integration, and all wrapped gestures remain open and were not modified.
+- DSH-Qwen remains unavailable until host permissions allow Ollama to read
+  `/Volumes/s_cx_g/Ollama/models/manifests/registry.ollama.ai/library/qwen3.8-sharp-uncensored-q4/latest`.
+- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged. All
+  wrapped-canvas work in the shared worktree remains uncommitted.
+
+**Next agent should:**
+
+- Implement and directly review Phase 3 `useWrappedRows`, then build the non-gesture wrapped row/list
+  rendering around the completed gutter; keep `MainContent` integration and gestures in Codex.
+
+### 2026-10-03 — Build wrapped-canvas core and isolate simulator rotation
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Wrapped-canvas Phases 1-2 → Done; remaining canvas implementation → In Progress
+
+**Changed:**
+
+- Added pure integer-ms row layout and timeline mapping with half-open boundary ownership, loop
+  clipping, phrase labels, and fast-check properties. Added wrapped-view preferences/session fields
+  and setters to the existing Zustand store; no wrapped UI is rendered yet.
+- Switched `MainContent` to `useWindowDimensions` for orientation changes. Corrected the long-track
+  drag XCTest to capture its pre-drag clock before interacting, and made landscape tests require an
+  actual landscape app frame rather than accepting portrait execution.
+- Two bounded DSH-Qwen attempts ended at `max-tokens` with no files; Codex implemented and reviewed
+  the entire completed slice. The user was asked to check simulator Portrait Orientation Lock.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`,
+`src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `tests/ios/BeatNoteUITests.swift`,
+`tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`,
+`tests/unit/studioStore.wrapped.test.ts`, `docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 44 passed; `git diff --check` → clean.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed
+  against the final `MainContent` orientation-hook change.
+- Initial full `npm run test:ios:ui` on committed baseline → 9/9 passed. Post-change full rerun →
+  8/9 passed (`ios/build/BeatNoteUITests-1790958927382.xcresult`); long-track drag passed after
+  the assertion fix. Focused landscape rerun confirms the simulator did not rotate the app scene.
+
+**Not verified / known gaps:**
+
+- Latest iOS gate is not green. XCTest and Device Hub rotate the simulated hardware, but BeatNote
+  remains in a portrait 402 x 874 scene; the in-test AX dump shows the portrait dock. The app's
+  generated Info.plist supports landscape and source has no explicit orientation lock. The cause may
+  be the simulator's Portrait Orientation Lock; do not call this an app layout defect until that is
+  checked. The CSV landscape test now also asserts actual rotation and has not been rerun.
+- Wrapped rendering, virtualization, gestures, persistence, and physical-device acceptance are not
+  implemented/verified. All work listed above is uncommitted in the shared worktree.
+
+**Next agent should:**
+
+- Verify simulator orientation lock is off, rerun both focused landscape tests and the full suite,
+  then implement Phase 3 `useWrappedRows` and Phase 4 virtualized rendering against the completed
+  pure core. Keep integration/audio/gesture ownership in Codex; delegate only bounded, testable
+  leaf files to DSH-Qwen using the 32K local-model context.
+
+### 2026-10-03 — Verify committed mobile refinements
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b3e516b` (created by Kiro)
+**Kanban moved:** iOS mobile studio refinements → Done; wrapped waveform canvas → In Progress
+
+**Changed:**
+
+- No application files changed in this verification pass. The committed mobile layout, toolbar cue,
+  deferred stem UI, and annotation typing fix were rechecked before beginning the wrapped-canvas spec.
+- Resolved workflow selection conflict: the current user request controls the next task under
+  `/Users/galen/.codex/skills/local-agent-orchestrator/references/lifecycle.md`, rather than the
+  default top-card selection in `AGENTS.md`.
+
+**Key Artifacts** (from `git diff b3e516b^ b3e516b --name-only`): `src/components/layout/MainContent.tsx`,
+`src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`,
+`src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`,
+`src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npm run test:ios:ui` → 9 passed, 0 failed on iPhone 17 Pro / iOS 26.2 simulator; result bundle
+  `ios/build/BeatNoteUITests-1790957454247.xcresult`.
+- Xcode emitted its existing post-test `simctl` diagnostics warning without failing XCTest.
+
+**Not verified / known gaps:**
+
+- Physical-device interruption/share acceptance and pixel-level review across iPhone sizes remain open.
+- The earlier overview-drag timeout did not reproduce; no test or app change was made for it.
+
+**Next agent should:**
+
+- Implement and review Phase 1 pure wrapped-row utilities and tests before changing the store or UI.
 
 ### 2026-10-02 — Specify wrapped waveform canvas (planning only)
 
@@ -286,283 +418,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Complete physical-device acceptance, then close the required unit-coverage gaps before starting
   V1 entitlement groundwork or additional core choreography features.
-
-### 2026-10-01 — Close mobile iOS acceptance defects
-
-**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `9fffab3`
-**Kanban moved:** iOS mobile acceptance defects → Done; physical-device acceptance remains In Progress
-
-**Changed:**
-
-- Made the overview timeline seek on tap and drag, and resized it to its measured width.
-- Kept a newly added marker selected for annotation while playback advances; made the project toolbar respond to taps while the annotation keyboard is open.
-- Replaced the wrapping mobile toolbar with a fixed horizontal action row and bottom control dock; corrected waveform height/width and mobile safe-area padding.
-- Added a 150-second audio fixture and iOS UI coverage for overview seeking, live annotation, and landscape CSV actions; documented the manual simulator path.
-
-**Key Artifacts** (from `git diff --name-only`, plus the new fixture): `.gitignore`, `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `playwright.config.ts`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/components/controls/projectControls.ts`, `src/styles/layout/mainContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`.
-
-**Verified:**
-
-- `npm run test:ios:ui` → 9 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790818599021.xcresult`.
-- Focused save/relaunch/restore XCTest passed with the annotation keyboard open.
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed; `PLAYWRIGHT_PORT=8082 npm test -- --reporter=list` → 60 passed; `git diff --check` → clean.
-- `git push origin master` → `origin/master` advanced to `9fffab3`; working tree clean after the implementation commit.
-
-**Not verified / known gaps:**
-
-- Physical iPhone audio interruptions, visual rotation/safe-area quality, and sharing to a real external destination remain manual acceptance checks. Simulator geometry assertions do not prove pixel-perfect layout on every device.
-- Xcode emits existing dependency/module-cache and post-test `simctl` diagnostics despite all nine XCTest cases passing.
-- The implementation commit and long-track fixture are pushed; physical-device acceptance is still pending.
-
-**Next agent should:**
-
-- Run physical-device acceptance, then close the unit-coverage gaps before advancing native stem separation.
-
-### 2026-10-01 — Enable and verify iOS background playback
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Simulator background-playback acceptance → Done; physical-device acceptance remains In Progress
-
-**Changed:**
-
-- Enabled iOS background audio capability and configured Expo Audio to play in silent mode and continue while the app is backgrounded.
-- Added a 30-second AAC fixture and an XCTest that confirms the playback clock advances across a background/foreground transition; made annotation-field UI testing wait for the rendered value before saving.
-- Documented simulator coverage and real-device interruption gaps in `.kiro/steering/ios-testflight.md`.
-- **Workflow conflict resolved:** `AGENTS.md` had 20 live completed cards, while `~/.codex/skills/local-agent-orchestrator/references/lifecycle.md` defaults to five; archived 16 older cards and the oldest handover in `docs/context/archive/beatnote-project-history.md`. Preserved the explicit 10-entry log cap from `AGENTS.md`.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `app.json`, `scripts/ios-ui-test.js`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `docs/context/archive/beatnote-project-history.md`; `tests/fixtures/background-audio.m4a` is ignored by the repository's media pattern and must be force-added.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed.
-- `EXPO_NO_TELEMETRY=1 npm test -- --reporter=list` → 60 passed; initial sandbox run could not bind Expo's web server, elevated rerun passed.
-- `npm run test:ios:ui` → 6 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790790644556.xcresult`.
-- Focused background-playback XCTest → passed; `git diff --check` → clean.
-- `python3 ~/.codex/skills/local-agent-orchestrator/scripts/validate_contract.py <project-root>` → 0 contract errors before board compaction.
-
-**Not verified / known gaps:**
-
-- Real-device call/audio-route interruptions and external-destination sharing remain manual acceptance checks.
-- Xcode emits existing dependency/module-cache diagnostics and a post-test `simctl` lookup warning; XCTest reports all six cases Passed.
-
-**Next agent should:**
-
-- Run physical-device audio interruption and external-share acceptance, then return to the unit-coverage gap.
-
-### 2026-09-30 — Fix iOS timeline gestures and compact phone controls
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Native timeline gesture errors + phone control sizing → Done; physical-device acceptance remains In Progress
-
-**Changed:**
-
-- Routed tap/pan callbacks that access Zustand or React state through the JS thread, and constrained pans to horizontal movement so vertical page scrolling can reach the overview timeline.
-- Made phone detection orientation-aware on native platforms while preserving width-based web breakpoints; reduced mobile transport/marker controls to 52-point targets and tightened project actions.
-- Added a landscape iOS UI test covering waveform and overview timeline tap/drag, absence of the runtime error screen, and compact control dimensions.
-
-**Key Artifacts** (from `git diff --name-only`): `AGENTS.md`, `src/features/studio/StudioScreen.tsx`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/layout/StemsView.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/MarkerButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/SimpleWaveform.tsx`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/markerButton.ts`, `src/styles/components/controls/projectControls.ts`; `tests/ios/BeatNoteUITests.swift` is present as an untracked file in `git status`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed.
-- `EXPO_NO_TELEMETRY=1 npm test -- --reporter=list` → 60 passed across 5 Playwright specs.
-- `npm run test:ios:ui` → 5 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790758734538.xcresult`.
-- The landscape XCTest tapped and dragged both gesture surfaces and asserted the runtime error screen was absent; `git diff --check` → clean.
-
-**Not verified / known gaps:**
-
-- Physical-device playback/scrubbing/background/share acceptance remains outstanding.
-- Xcode still prints module-cache/debugger diagnostics and a post-test `simctl` diagnostic warning; XCTest passes despite these host-tooling warnings.
-
-**Next agent should:**
-
-- Complete the physical-device acceptance checklist, then return to the remaining unit-coverage and Demucs work.
-
-### 2026-09-30 — Rerun automated regression gates
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Automated regression gates → reverified; physical-device acceptance remains In Progress
-
-**Changed:**
-
-- Verification-only rerun; no implementation or test source files were changed. Updated this handover with current results and the native-runtime warning discovered after app relaunch.
-- Relaunched BeatNote in the iPhone 17 Pro simulator and left Metro serving for manual acceptance.
-
-**Key Artifacts** (from `git diff --name-only`): `AGENTS.md` (verification record; source changes remain from prior uncommitted work).
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 26 passed.
-- `EXPO_NO_TELEMETRY=1 npm test` → 60 passed across 5 Playwright spec files.
-- `npm run test:ios:ui` → 4 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790748329968.xcresult`.
-- Metro status endpoint → `packager-status:running`; simulator screenshot confirms BeatNote Studio renders after relaunch.
-
-**Not verified / known gaps:**
-
-- Metro logs Reanimated worklet errors for `setViewportLocked`, `setViewportStartTime`, and `dispatchSetState` on the UI thread. `TimelineScrollbar` pan callbacks call Zustand setters directly; waveform scrubbing needs investigation because XCTest does not cover this gesture path.
-- Physical-device playback/scrubbing/background/share acceptance remains outstanding.
-- Xcode emitted a post-test diagnostic that it could not find `simctl`; the XCTest result bundle reports all four cases Passed.
-
-**Next agent should:**
-
-- Investigate/fix the native TimelineScrollbar worklet callback errors, verify waveform scrubbing, then continue physical-device acceptance.
-
-### 2026-09-29 — Repair web regressions and verify the clean iOS picker path
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Playwright regression failures → Done; clean-simulator Files picker → Done; physical-device acceptance remains In Progress
-
-**Changed:**
-
-- Replaced ambiguous marker/layer text queries with stable test IDs, loaded the audio fixture through the real picker flow, and aligned responsive/accessibility checks with actual touch behavior.
-- Exposed the marker button's native/web accessibility role, label, and disabled state.
-- Updated XCTest Files navigation to browse `On My iPhone > BeatNote` when the simulator's Recents list is empty.
-- Documented the Xcode 27 Device Hub workflow and Expo CLI Simulator-app limitation.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/MarkerButton.tsx`, `tests/setup.ts`, `tests/core-functionality.spec.ts`, `tests/quality-assurance.spec.ts`, `tests/test-discovery.spec.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed.
-- `EXPO_NO_TELEMETRY=1 npm test` → 60 passed across 5 Playwright spec files.
-- `npm run test:ios:ui` → 4 passed on iPhone 17 Pro / iOS 26.2 simulator; result bundle `ios/build/BeatNoteUITests-1790673519618.xcresult`.
-- `git diff --check` → clean.
-- Xcode 27 Cmd+R built and launched BeatNote on iPhone 17 Pro; Metro bundled 2,957 modules and a simulator screenshot confirmed the Studio screen rendered.
-
-**Not verified / known gaps:**
-
-- Physical-device playback/scrubbing/background/share acceptance remains outstanding.
-- `npm run ios -- --device 'iPhone 17 Pro'` stops with `Can't determine id of Simulator app`; use the Xcode 27 workspace Run action and Device Hub on this host.
-- Native dependency deprecation/nullability warnings remain; they did not fail the iOS UI suite.
-
-**Next agent should:**
-
-- Complete the physical-device acceptance checklist, then address the missing utility/store unit-test coverage before advancing native stem separation.
-
-### 2026-09-24 — Make iOS project workflow reachable and automate restore
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Mobile layout blocker → Done; save/relaunch/restore acceptance → Done
-
-**Changed:**
-
-- `StudioScreen.tsx`, `MainContent.tsx`, and layout styles: removed the nested outer scroll view,
-  use the full phone viewport when the overlay sidebar is closed, pin project controls while scrolling,
-  stack transport/marker controls on narrow screens, and prevent the annotation field from flexing
-  beyond the visible mobile content.
-- `SidebarToggle.tsx`, `ProjectControls.tsx`, and `AnnotationField.tsx`: expose stable sidebar test IDs,
-  provide a drawer-reopen control, use compact wrapping project controls, and size annotations for mobile.
-- `BeatNoteUITests.swift`: run acceptance in portrait, close the overlay sidebar, enter an annotation,
-  save a project, terminate/relaunch, load the project, verify its marker/annotation/audio state, and
-  delete the temporary project.
-- `.kiro/steering/ios-testflight.md`: document current automated coverage and remaining physical
-  device checks.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/steering/ios-testflight.md`, `AGENTS.md`,
-`src/features/studio/StudioScreen.tsx`, `src/components/layout/MainContent.tsx`,
-`src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/controls/ProjectControls.tsx`,
-`src/components/ui/controls/AnnotationField.tsx`, `src/styles/features/studioScreen.ts`,
-`src/styles/layout/mainContent.ts`, `src/styles/components/controls/projectControls.ts`,
-`tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npm run test:ios:ui` → 4 passed on iPhone 17 Pro, iOS 26.1 simulator; includes drawer open/close,
-  project round-trip, valid/invalid import, and share-sheet export.
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed; `git diff --check` → clean.
-- `EXPO_NO_TELEMETRY=1 npm test` → 52 passed, 8 failed; older checks have stale marker, responsive,
-  and sidebar expectations. These web failures were not repaired as part of iOS hardening.
-- Result bundle: `ios/build/BeatNoteUITests-1790233343129.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical-device audio behavior, waveform scrubbing, background interruptions, and sharing to an
-  external app remain manual acceptance checks.
-- The Playwright suite is not a clean regression gate yet; its 8 failing checks need separate review.
-- Xcode reports a post-test simulator diagnostics `simctl` lookup warning and UIKit UIScene lifecycle
-  deprecation warnings; the XCTest run itself passes.
-
-**Next agent should:**
-
-- Complete physical-device audio/scrub/background/share acceptance. Separately update stale Playwright
-  assumptions and expand unit coverage before advancing the Demucs native interface.
-
-### 2026-09-24 — Add repeatable iOS XCTest acceptance workflow
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** Automated iOS acceptance tests → Done; core iOS acceptance → In Progress
-
-**Changed:**
-
-- `plugins/withIosUiTests.js`, `app.json`, `package.json`, `package-lock.json`: generate a
-  `BeatNoteUITests` Xcode target and shared scheme on Expo prebuild; add `npm run test:ios:ui`.
-- `scripts/ios-ui-test.js`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/`: automate simulator
-  build, Metro startup, fixture staging, launch, audio playback, annotation, CSV import validation,
-  and share-sheet export. Results are saved as ignored `.xcresult` bundles.
-- `src/hooks/useScrollZoom.ts`: guard the web-only DOM event hookup from native views. XCTest found
-  the `element.addEventListener is not a function` startup crash previously seen in the simulator.
-- Added test IDs to interactive controls and enabled loading saved projects when no audio is loaded.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/steering/ios-testflight.md`, `AGENTS.md`,
-`App.tsx`, `app.json`, `package-lock.json`, `package.json`, `src/components/layout/MainContent.tsx`,
-`src/components/layout/Sidebar.tsx`, `src/components/layout/StemsView.tsx`,
-`src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/AudioControls.tsx`,
-`src/components/ui/controls/LayerControls.tsx`, `src/components/ui/controls/MarkerButton.tsx`,
-`src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`,
-`src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ImportModal.tsx`,
-`src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectModal.tsx`,
-`src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/StemWaveform.tsx`,
-`src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`,
-`src/hooks/useAudioPlayer.ts`, `src/hooks/useScrollZoom.ts`, `src/hooks/useStudioStore.ts`,
-`src/styles/components/controls/timelineScrollbar.ts`, `tests/fixtures/test-audio.wav`,
-`plugins/withIosUiTests.js`, `scripts/ios-ui-test.js`, `tests/fixtures/invalid-import.csv`,
-`tests/fixtures/valid-import.csv`, `tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npm run test:ios:ui` → 4 passed on iPhone 17 Pro, iOS 26.1 simulator.
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 26 passed; `git diff --check` → clean.
-- Xcode 27 rebuild and XCTest result bundle at `ios/build/BeatNoteUITests-1790230527899.xcresult`.
-
-**Not verified / known gaps:**
-
-- Save/relaunch/restore remains manual: focusing the annotation field scrolls project controls out of
-  view, and the project controls are clipped in portrait. UI layout needs keyboard/scroll hardening.
-- Physical-device audio, scrubbing, background interruptions, and sharing to an external destination
-  are not covered by simulator automation. Xcode logs a simulator diagnostics warning after tests,
-  but the XCTest result itself passes.
-
-**Next agent should:**
-
-- Fix the mobile nested-scroll/keyboard layout so project controls remain reachable, then add project
-  save/relaunch/restore back to the UI suite and complete a physical-device acceptance pass.
-
-### 2026-09-24 — Partial iOS workflow acceptance; restore project audio
-
-**Agent:** orchestrator (Codex GPT-5) · **Commit(s):** `uncommitted`
-**Kanban moved:** iOS core workflow acceptance → In Progress (simulator UI interaction unavailable)
-
-**Changed:**
-
-- `src/components/ui/controls/TimelineScrollbar.tsx`: removed an unused lowercase web-SVG `<defs><clipPath><rect>` block that crashed React Native SVG when rendering the iOS studio; screenshots and Metro logs identified this as the load-screen error.
-- `src/hooks/useStudioStore.ts`, `src/hooks/useAudioPlayer.ts`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/layout/MainContent.tsx`, `src/features/studio/StudioScreen.tsx`: loading a saved project now routes its saved audio URI and original filename into the audio player. Previously project data restored but the player remained unset.
-- `AGENTS.md`, `.kiro/steering/ios-testflight.md`, `App.tsx`, `app.json`, `package.json`, `package-lock.json`, `plugins/withIosPodDeploymentTarget.js`, and the iOS-safe layout/SVG files under `src/`: local simulator baseline, earlier TypeScript fixes, and this acceptance pass remain uncommitted in the shared worktree.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `App.tsx`, `app.json`, `package-lock.json`, `package.json`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/layout/StemsView.tsx`, `src/components/ui/controls/LayerControls.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/timelineScrollbar.ts`; `plugins/withIosPodDeploymentTarget.js` is new and untracked.
-
-**Verified:**
-
-- Xcode 27 built and launched the app in the iPhone 17 Pro simulator; Metro bundled the app and the studio screen rendered.
-- The supplied simulator screenshot and Metro stack trace pinpointed the lowercase SVG tags in `TimelineScrollbar`; removed them. Metro is running in normal development mode at port 8081 for simulator reload.
-- `npx tsc --noEmit` → clean.
-- `npm run test:unit -- --runInBand` → 26 passed, 2 suites.
-- `git diff --check` → clean.
-
-**Not verified / known gaps:**
-
-- Simulator UI taps are unavailable through the exposed computer-control surface, so document-picker audio load, playback/scrub, markers, save/relaunch, import, and share-sheet export were not interactively exercised.
-- Physical-device behavior and `npm test` Playwright E2E were not run. Cached audio URI availability after OS cache eviction remains a risk for saved projects.
-
-**Next agent should:**
-
-- Complete the iOS core workflow acceptance checklist interactively in Simulator or on an iPhone, especially project reload and Files/share interoperability; fix any defects before starting native stem-separation work.

@@ -1,3 +1,5 @@
+import type { RowDensity } from '../utils/rowLayout';
+
 export interface BeatNoteProject {
   version: string;
   metadata: {
@@ -24,6 +26,10 @@ export interface BeatNoteProject {
     viewMode: 'unified' | 'multitrack';
     showGridLines: boolean;
     layerSpecificNavigation: boolean;
+    primaryView?: 'wrapped' | 'detail';
+    countSize?: 4 | 6 | 8;
+    rowDensity?: RowDensity;
+    followPlayhead?: boolean;
   };
 }
 

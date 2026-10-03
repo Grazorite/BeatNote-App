@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, Dimensions, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 import ProjectControls from '../ui/controls/ProjectControls';
@@ -55,7 +55,7 @@ const MainContent: React.FC<MainContentProps> = ({
   onFocusTextInput,
 }) => {
   const opacity = useSharedValue(1);
-  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   
   // Pass focus function to parent
@@ -64,14 +64,6 @@ const MainContent: React.FC<MainContentProps> = ({
       annotationFieldRef.current?.focus();
     });
   }, [onFocusTextInput]);
-  
-  useEffect(() => {
-    const onChange = (result: any) => {
-      setScreenData(result.window);
-    };
-    const subscription = Dimensions.addEventListener('change', onChange);
-    return () => subscription?.remove();
-  }, []);
   
   useEffect(() => {
     opacity.value = 0;

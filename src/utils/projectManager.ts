@@ -4,6 +4,17 @@ import { BeatNoteProject, ProjectListItem } from '../types/project';
 const PROJECTS_KEY = 'beatnote_projects';
 const PROJECT_VERSION = '1.0.0';
 
+const withWrappedViewDefaults = (project: BeatNoteProject): BeatNoteProject => ({
+  ...project,
+  settings: {
+    ...project.settings,
+    primaryView: project.settings.primaryView ?? 'wrapped',
+    countSize: project.settings.countSize ?? 8,
+    rowDensity: project.settings.rowDensity ?? { mode: 'phrase' },
+    followPlayhead: project.settings.followPlayhead ?? true,
+  },
+});
+
 export class ProjectManager {
   static async getStoredProjects(): Promise<Record<string, BeatNoteProject>> {
     try {
@@ -61,7 +72,7 @@ export class ProjectManager {
         throw new Error('Invalid project file format');
       }
       
-      return project;
+      return withWrappedViewDefaults(project);
     } catch (error) {
       console.error(`Failed to load project ${filename}:`, error);
       throw new Error('Failed to load project');

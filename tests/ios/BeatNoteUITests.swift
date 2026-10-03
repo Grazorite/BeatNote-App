@@ -138,10 +138,11 @@ final class BeatNoteUITests: XCTestCase {
     let tappedSeconds = playbackSeconds(from: currentTime.label)
     XCTAssertTrue((100...110).contains(tappedSeconds), "Overview tap should seek to about 70% of the 150-second track.")
 
+    let beforeDrag = currentTime.label
     timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)))
     let draggedSeek = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "label != %@", currentTime.label),
+      predicate: NSPredicate(format: "label != %@", beforeDrag),
       object: currentTime
     )
     XCTAssertEqual(XCTWaiter.wait(for: [draggedSeek], timeout: 5), .completed)
@@ -211,14 +212,14 @@ final class BeatNoteUITests: XCTestCase {
   }
 
   func testLandscapeGesturesAndCompactControls() {
-    XCUIDevice.shared.orientation = .landscapeLeft
     loadBundledSimulatorAudio()
+    rotateAppToLandscape()
 
+    let rail = element("landscape-control-rail")
+    XCTAssertTrue(rail.waitForExistence(timeout: 10))
     XCTAssertLessThanOrEqual(element("play-pause").frame.width, 44)
     XCTAssertLessThanOrEqual(element("add-marker").frame.width, 44)
     XCTAssertLessThanOrEqual(element("load-song").frame.height, 56)
-    let rail = element("landscape-control-rail")
-    XCTAssertTrue(rail.waitForExistence(timeout: 5))
     XCTAssertLessThanOrEqual(rail.frame.width, 280)
 
     let waveform = element("waveform-gesture-area")
@@ -243,6 +244,7 @@ final class BeatNoteUITests: XCTestCase {
   func testLandscapeCsvImportAndExport() {
     XCUIDevice.shared.orientation = .landscapeLeft
     loadBundledSimulatorAudio("background-audio.m4a")
+    rotateAppToLandscape()
     element("add-marker").tap()
 
     let importButton = element("import-data")
@@ -281,6 +283,18 @@ final class BeatNoteUITests: XCTestCase {
 
   private func element(_ identifier: String) -> XCUIElement {
     app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+  }
+
+  private func rotateAppToLandscape() {
+    for orientation in [UIDeviceOrientation.landscapeLeft, .landscapeRight] {
+      XCUIDevice.shared.orientation = orientation
+      app.activate()
+      for _ in 0..<20 {
+        if app.frame.width > app.frame.height { return }
+        Thread.sleep(forTimeInterval: 0.25)
+      }
+    }
+    XCTFail("The iOS simulator did not rotate the app into landscape.")
   }
 
   private func closeMobileSidebar() {
