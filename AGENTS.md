@@ -204,7 +204,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-04 — Complete wrapped MVP gestures and marker selection
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `fc96587`
 **Kanban moved:** Wrapped-canvas Phase 5 gestures → Done; Phase 6 follow-playhead remains In Progress
 
 **Changed:**
@@ -243,7 +243,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   blocks the geometry-guarded landscape cases; Phase 5 portrait native behavior is verified.
 - Vertical-scroll yielding is configured with the proven thresholds and exercised indirectly, but a
   dedicated XCTest scroll-offset assertion is not yet present.
-- Phase 4 and Phase 5 changes remain together and uncommitted in the shared worktree.
+- Phase 4 and Phase 5 changes were committed together in `fc96587`.
 
 **Next agent should:**
 
@@ -252,7 +252,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-04 — Integrate bounded wrapped waveform rendering
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `fc96587`
 **Kanban moved:** Wrapped-canvas Phase 4 rendering → Done; Phase 5 gestures remains In Progress
 
 **Changed:**
