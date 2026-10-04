@@ -1,5 +1,12 @@
 import * as fc from 'fast-check';
-import { computeRows, phraseRowDurationMs, RowLayoutConfig } from '../../src/utils/rowLayout';
+import {
+  computeRowPixelWidth,
+  computeRows,
+  computeVisibleRange,
+  phraseRowDurationMs,
+  resolveRowDensity,
+  RowLayoutConfig,
+} from '../../src/utils/rowLayout';
 
 const base: RowLayoutConfig = {
   songDuration: 15000,
@@ -79,5 +86,48 @@ describe('row layout', () => {
         });
       },
     ));
+  });
+});
+
+describe('wrapped row viewport helpers', () => {
+  it('computes a bounded visible range with overscan from row-height geometry', () => {
+    expect(computeVisibleRange(100, 250, 300, 100, 3)).toEqual({
+      firstIndex: 0,
+      lastIndex: 8,
+    });
+    expect(computeVisibleRange(100, 5000, 200, 100, 1)).toEqual({
+      firstIndex: 49,
+      lastIndex: 52,
+    });
+  });
+
+  it('handles empty rows and invalid viewport metrics safely', () => {
+    expect(computeVisibleRange(0, 0, 500, 100, 3)).toEqual({ firstIndex: 0, lastIndex: -1 });
+    expect(computeVisibleRange(3, Number.NaN, -1, 0, -2)).toEqual({
+      firstIndex: 0,
+      lastIndex: 0,
+    });
+  });
+
+  it('resolves orientation density defaults without mutating the stored preference', () => {
+    const phraseDensity = { mode: 'phrase' } as const;
+    expect(resolveRowDensity(phraseDensity, false)).toEqual({ mode: 'phrase', phrasesPerRow: 1 });
+    expect(resolveRowDensity(phraseDensity, true)).toEqual({ mode: 'phrase', phrasesPerRow: 2 });
+    expect(phraseDensity).toEqual({ mode: 'phrase' });
+
+    expect(resolveRowDensity({ mode: 'duration' }, false)).toEqual({
+      mode: 'duration',
+      rowDurationMs: 5000,
+    });
+    expect(resolveRowDensity({ mode: 'duration' }, true)).toEqual({
+      mode: 'duration',
+      rowDurationMs: 10000,
+    });
+  });
+
+  it('subtracts the orientation gutter and clamps drawable width', () => {
+    expect(computeRowPixelWidth(400, false)).toBe(320);
+    expect(computeRowPixelWidth(800, true)).toBe(704);
+    expect(computeRowPixelWidth(40, false)).toBe(0);
   });
 });

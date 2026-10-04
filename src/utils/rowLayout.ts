@@ -66,3 +66,78 @@ export function computeRows(config: RowLayoutConfig): WrappedRow[] {
   }
   return rows;
 }
+
+export interface VisibleRange {
+  firstIndex: number;
+  lastIndex: number;
+}
+
+export function finiteNonNegative(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : 0;
+}
+
+export function computeVisibleRange(
+  rowCount: number,
+  scrollOffset: number,
+  containerHeight: number,
+  rowHeight: number,
+  overscan: number,
+): VisibleRange {
+  const count = Number.isFinite(rowCount) ? Math.max(0, Math.floor(rowCount)) : 0;
+  if (count === 0) return { firstIndex: 0, lastIndex: -1 };
+
+  const offset = finiteNonNegative(scrollOffset);
+  const viewportHeight = finiteNonNegative(containerHeight);
+  const safeRowHeight = Math.max(1, finiteNonNegative(rowHeight));
+  const extra = Math.floor(finiteNonNegative(overscan));
+  const firstVisible = Math.min(count - 1, Math.floor(offset / safeRowHeight));
+  const lastVisible = viewportHeight > 0
+    ? Math.min(count - 1, Math.max(firstVisible, Math.ceil((offset + viewportHeight) / safeRowHeight) - 1))
+    : firstVisible;
+
+  return {
+    firstIndex: Math.max(0, firstVisible - extra),
+    lastIndex: Math.min(count - 1, lastVisible + extra),
+  };
+}
+
+export function resolveRowDensity(density: RowDensity, isLandscape: boolean): RowDensity {
+  if (density.mode === 'phrase') {
+    return { ...density, phrasesPerRow: density.phrasesPerRow ?? (isLandscape ? 2 : 1) };
+  }
+  return { ...density, rowDurationMs: density.rowDurationMs ?? (isLandscape ? 10000 : 5000) };
+}
+
+export function resolveBpmUsable(bpm: number, density: RowDensity): boolean {
+  return density.mode === 'phrase'
+    && typeof bpm === 'number'
+    && Number.isFinite(bpm)
+    && bpm > 0;
+}
+
+export function computeRowPixelWidth(
+  availableWidth: number,
+  isLandscape: boolean,
+  gutterWidth?: number,
+): number {
+  const width = finiteNonNegative(availableWidth);
+  const gutter = gutterWidth != null
+    ? finiteNonNegative(gutterWidth)
+    : (isLandscape ? 96 : 80);
+  return Math.max(0, Math.floor(width - gutter));
+}
+
+export function resolveRowHeight(isLandscape: boolean, rowHeight?: number): number {
+  if (rowHeight != null) return Math.max(1, Math.floor(finiteNonNegative(rowHeight)));
+  return isLandscape ? 96 : 112;
+}
+
+export function resolveOverscan(overscan?: number): number {
+  if (overscan != null) {
+    const value = finiteNonNegative(overscan);
+    return Math.max(0, Math.floor(value));
+  }
+  return 3;
+}

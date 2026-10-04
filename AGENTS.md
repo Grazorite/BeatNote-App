@@ -52,7 +52,7 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
-| Unit tests | 46 passing (6 suites; wrapped-core/store/persistence coverage added) |
+| Unit tests | 50 passing (6 suites; wrapped hook/window coverage added) |
 | iOS UI tests | 9/9 baseline; latest full rerun 8/9 (simulator stayed portrait in landscape case) |
 | E2E spec files | 5 (Playwright, 60 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
@@ -127,10 +127,10 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
       <sub>**Key Artifacts:** `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/projectManager.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
+- [x] Implement wrapped-canvas Phase 3 hook with orientation defaults and bounded visible-window geometry
+      <sub>**Key Artifacts:** `src/hooks/useWrappedRows.ts`, `src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`, `src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-- [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
-      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -205,9 +205,50 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-04 — Complete wrapped-row hook with Qwen draft review
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b829525` (prior slice); Phase 3 `uncommitted`
+**Kanban moved:** Wrapped-canvas Phase 3 hook → Done; Phase 4 rendering remains In Progress
+
+**Changed:**
+
+- Pushed the previously verified wrapped core, iOS test hardening, gutter, and persistence work to
+  `origin/master` as `b829525`.
+- DSH-Qwen session `session-57f59a58-d7e6-4679-8d27-5e71ef7d3c44` drafted
+  `useWrappedRows.ts` and pure row viewport helpers within its two-file assignment. The DSH host
+  exited after writing, so no reliable final worker message was available.
+- Direct review fixed the draft's visible-window divisor (it incorrectly used container height
+  instead of fixed row height), added focused unit coverage, and clarified the optional viewport
+  metrics contract in the wrapped-canvas design/tasks. No UI integration or gesture code changed.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useWrappedRows.ts`,
+`src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean.
+- `npm run test:unit -- --runInBand` → 50 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed.
+- `git diff --check` → clean; contract checker with five-item Done/log limits → 0 errors.
+
+**Not verified / known gaps:**
+
+- The hook is not mounted yet. `WrappedRow`, `WrappedWaveform`, `MainContent` integration, seeking,
+  marker gestures, and simulator acceptance remain open.
+- The DSH web profile was no longer running after the draft; its process lifecycle needs checking
+  before another delegated task. Phase 3 remains uncommitted in the shared worktree.
+- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged.
+
+**Next agent should:**
+
+- Implement Phase 4 `WrappedRow` and `WrappedWaveform` without gestures, then directly review the
+  `MainContent` integration before beginning Phase 5 gesture work.
+
 ### 2026-10-04 — Add wrapped gutter and preference persistence
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `b829525`
 **Kanban moved:** Wrapped gutter scaffolding + preference persistence → Done; wrapped UI integration remains In Progress
 
 **Changed:**
@@ -241,8 +282,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   rendering, UI integration, and all wrapped gestures remain open and were not modified.
 - DSH-Qwen remains unavailable until host permissions allow Ollama to read
   `/Volumes/s_cx_g/Ollama/models/manifests/registry.ollama.ai/library/qwen3.8-sharp-uncensored-q4/latest`.
-- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged. All
-  wrapped-canvas work in the shared worktree remains uncommitted.
+- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged. This
+  completed slice was committed and pushed in `b829525`.
 
 **Next agent should:**
 
@@ -251,7 +292,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-03 — Build wrapped-canvas core and isolate simulator rotation
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `b829525`
 **Kanban moved:** Wrapped-canvas Phases 1-2 → Done; remaining canvas implementation → In Progress
 
 **Changed:**
@@ -287,8 +328,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   generated Info.plist supports landscape and source has no explicit orientation lock. The cause may
   be the simulator's Portrait Orientation Lock; do not call this an app layout defect until that is
   checked. The CSV landscape test now also asserts actual rotation and has not been rerun.
-- Wrapped rendering, virtualization, gestures, persistence, and physical-device acceptance are not
-  implemented/verified. All work listed above is uncommitted in the shared worktree.
+- Wrapped rendering, gestures, and physical-device acceptance are not implemented/verified. The
+  core/persistence work listed above was committed and pushed in `b829525`.
 
 **Next agent should:**
 
@@ -379,42 +420,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Begin Phase 1 of `.kiro/specs/wrapped-waveform-canvas/tasks.md` (pure `rowLayout.ts` +
   `timelineMapping.ts` with unit/property tests) behind the existing unified-waveform structure.
-
-### 2026-10-02 — Re-sequence monetisation and stem separation
-
-**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `uncommitted`
-**Kanban moved:** Demucs stem separation → Deferred V2.x/V3; release and monetisation roadmap → Done
-
-**Changed:**
-
-- Added a durable release roadmap defining the complete Lite baseline, V1 entitlement groundwork,
-  V2 Pro launch, V2.x cloud stem beta, and V3 on-device/hybrid stem path.
-- Parked all unfinished Demucs work while preserving its completed types, store/cache foundation,
-  tests, requirements, and design.
-- Revised the future cloud architecture to keep service credentials behind a managed backend and
-  treat compute credits separately from local Pro capabilities.
-- Reordered the live board around physical-device acceptance, unit coverage, and the core
-  choreography/rehearsal workflow.
-
-**Key Artifacts** (from `git diff --name-only`): `.kiro/specs/demucs-stem-separation/design.md`,
-`.kiro/specs/demucs-stem-separation/requirements.md`, `.kiro/specs/demucs-stem-separation/tasks.md`,
-`.kiro/steering/architecture-decisions.md`, `.kiro/steering/project-overview.md`,
-`.kiro/steering/release-roadmap.md`, `.kiro/steering/stem-separation.md`, `AGENTS.md`, `README.md`,
-`docs/context/archive/beatnote-project-history.md`.
-
-**Verified:**
-
-- Documentation links and roadmap references reviewed; `git diff --check` and the project contract
-  checker pass.
-- No application code or entitlement behavior changed.
-
-**Not verified / known gaps:**
-
-- Lite/Pro limits, App Store products/prices, purchase provider, cloud provider economics, model
-  licensing, stem quality, latency, and physical-device CoreML performance remain product or
-  technical validation work.
-
-**Next agent should:**
-
-- Complete physical-device acceptance, then close the required unit-coverage gaps before starting
-  V1 entitlement groundwork or additional core choreography features.

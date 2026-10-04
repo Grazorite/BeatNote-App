@@ -519,12 +519,26 @@ interface UseWrappedRowsResult {
   recomputeKey: string; // stable key over inputs for memoization
 }
 
-export function useWrappedRows(availableWidth: number, isLandscape: boolean): UseWrappedRowsResult;
+interface WrappedViewportMetrics {
+  scrollOffset: number;
+  containerHeight: number;
+  rowHeight?: number;
+  gutterWidth?: number;
+  overscan?: number;
+}
+
+export function useWrappedRows(
+  availableWidth: number,
+  isLandscape: boolean,
+  viewport?: WrappedViewportMetrics,
+): UseWrappedRowsResult;
 ```
 
 Reads `songDuration`, `bpm`, `countSize`, `rowDensity`, `currentTime` from the store; resolves
 `bpmUsable`; calls `computeRows`; memoizes on `recomputeKey`; derives `activeRowIndex` via
-`timestampToRow`; computes the virtualization window from scroll offset + viewport height. Contains
+`timestampToRow`; computes the virtualization window from optional scroll offset + viewport height
+metrics supplied by `WrappedWaveform`. Omitting the third argument retains a stable initial window
+before the wrapped list has measured its viewport. Contains
 **no layout arithmetic itself** — all math lives in the pure utilities.
 
 ---

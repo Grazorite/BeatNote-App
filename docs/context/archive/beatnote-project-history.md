@@ -36,6 +36,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`</sub>
 - [x] Enable iOS background audio playback and verify time continuity through background/foreground in XCTest
       <sub>**Key Artifacts:** `app.json`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/background-audio.m4a`</sub>
 - [x] Repair Playwright marker, layer-selector, audio-loading, and responsive assertions; full suite is green
@@ -65,6 +67,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-02 — Re-sequence monetisation and stem separation
+
+**Agent:** orchestrator (Codex GPT-6) · **Commit(s):** `uncommitted`
+**Kanban moved:** Demucs stem separation → Deferred V2.x/V3; release and monetisation roadmap → Done
+
+**Changed:**
+
+- Added a durable release roadmap defining the complete Lite baseline, V1 entitlement groundwork,
+  V2 Pro launch, V2.x cloud stem beta, and V3 on-device/hybrid stem path.
+- Parked all unfinished Demucs work while preserving its completed types, store/cache foundation,
+  tests, requirements, and design.
+- Revised the future cloud architecture to keep service credentials behind a managed backend and
+  treat compute credits separately from local Pro capabilities.
+- Reordered the live board around physical-device acceptance, unit coverage, and the core
+  choreography/rehearsal workflow.
+
+**Key Artifacts** (from `git diff --name-only`): `.kiro/specs/demucs-stem-separation/design.md`,
+`.kiro/specs/demucs-stem-separation/requirements.md`, `.kiro/specs/demucs-stem-separation/tasks.md`,
+`.kiro/steering/architecture-decisions.md`, `.kiro/steering/project-overview.md`,
+`.kiro/steering/release-roadmap.md`, `.kiro/steering/stem-separation.md`, `AGENTS.md`, `README.md`,
+`docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- Documentation links and roadmap references reviewed; `git diff --check` and the project contract
+  checker pass.
+- No application code or entitlement behavior changed.
+
+**Not verified / known gaps:**
+
+- Lite/Pro limits, App Store products/prices, purchase provider, cloud provider economics, model
+  licensing, stem quality, latency, and physical-device CoreML performance remain product or
+  technical validation work.
+
+**Next agent should:**
+
+- Complete physical-device acceptance, then close the required unit-coverage gaps before starting
+  V1 entitlement groundwork or additional core choreography features.
 
 ### 2026-10-01 — Close mobile iOS acceptance defects
 

@@ -117,18 +117,20 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 3 — useWrappedRows hook
 
-- [ ] 6. Implement the thin `useWrappedRows` hook
-  - [ ] 6.1 Create `src/hooks/useWrappedRows.ts`
+- [x] 6. Implement the thin `useWrappedRows` hook
+  - [x] 6.1 Create `src/hooks/useWrappedRows.ts`
     - Read `songDuration`, `bpm`, `countSize`, `rowDensity`, `currentTime` via
       granular selectors; resolve `bpmUsable`; call `computeRows`; memoize on a
       stable `recomputeKey`; derive `activeRowIndex` via `timestampToRow`;
       compute the virtualization window (`firstIndex`/`lastIndex`) from scroll
-      offset and container height assuming fixed row height.
+      offset and container height assuming fixed row height. Accept those metrics
+      through an optional third argument so the documented two-argument call remains valid
+      before the wrapped list has measured its viewport.
     - Return `UseWrappedRowsResult` as specified. Contain no layout arithmetic in
       the hook — all math stays in the pure utilities.
     - _Requirements: 11.1, 15.4, 16.2, 16.4, 16.5_
 
-- [ ] 7. Checkpoint — hook
+- [x] 7. Checkpoint — hook
   - Run `npx tsc --noEmit`.
   - Ensure types are clean, ask the user if questions arise.
 
