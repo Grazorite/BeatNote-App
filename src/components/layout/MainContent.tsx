@@ -9,7 +9,7 @@ import TapButton from '../ui/controls/MarkerButton';
 import AudioControls from '../ui/controls/AudioControls';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
-import WaveformCanvas from '../ui/waveform/WaveformCanvas';
+import WrappedWaveform from '../ui/waveform/WrappedWaveform';
 
 import StemsView from './StemsView';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
@@ -96,7 +96,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const waveform = (
     <Animated.View style={[animatedStyle, isMobile && styles.mobileWaveform]}>
       {!STEM_SEPARATION_UI_ENABLED || viewMode === 'unified' ? (
-        <WaveformCanvas
+        <WrappedWaveform
           audioUri={audioUri || undefined}
           layers={layers}
           onSeek={seekToPosition}

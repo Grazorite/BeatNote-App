@@ -5,6 +5,11 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+#### Product planning
+
+- [x] Re-sequence releases around the core annotation/rehearsal workflow; define V1 monetisation groundwork, V2 Pro launch, V2.x cloud stem beta, and V3 on-device/hybrid stems
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `.kiro/steering/stem-separation.md`, `.kiro/steering/architecture-decisions.md`, `.kiro/specs/demucs-stem-separation/`, `README.md`, `AGENTS.md`</sub>
+
 #### Core annotation MVP (web)
 
 - [x] Global Zustand store — playback, viewport/zoom with centralized clamping, layers, markers, annotations, toggles
@@ -36,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`, `src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 - [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/fixtures/long-test-track.m4a`</sub>
 - [x] Enable iOS background audio playback and verify time continuity through background/foreground in XCTest
@@ -67,6 +74,89 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-03 — Verify committed mobile refinements
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b3e516b` (created by Kiro)
+**Kanban moved:** iOS mobile studio refinements → Done; wrapped waveform canvas → In Progress
+
+**Changed:**
+
+- No application files changed in this verification pass. The committed mobile layout, toolbar cue,
+  deferred stem UI, and annotation typing fix were rechecked before beginning the wrapped-canvas spec.
+- Resolved workflow selection conflict: the current user request controls the next task under
+  `/Users/galen/.codex/skills/local-agent-orchestrator/references/lifecycle.md`, rather than the
+  default top-card selection in `AGENTS.md`.
+
+**Key Artifacts** (from `git diff b3e516b^ b3e516b --name-only`): `src/components/layout/MainContent.tsx`,
+`src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`,
+`src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`,
+`src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npm run test:ios:ui` → 9 passed, 0 failed on iPhone 17 Pro / iOS 26.2 simulator; result bundle
+  `ios/build/BeatNoteUITests-1790957454247.xcresult`.
+- Xcode emitted its existing post-test `simctl` diagnostics warning without failing XCTest.
+
+**Not verified / known gaps:**
+
+- Physical-device interruption/share acceptance and pixel-level review across iPhone sizes remain open.
+- The earlier overview-drag timeout did not reproduce; no test or app change was made for it.
+
+**Next agent should:**
+
+- Implement and review Phase 1 pure wrapped-row utilities and tests before changing the store or UI.
+
+### 2026-10-02 — Specify wrapped waveform canvas (planning only)
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** Wrapped waveform canvas → To Do (new planned feature; spec authored)
+
+**Changed:**
+
+- Authored a new Design-First feature spec under `.kiro/specs/wrapped-waveform-canvas/`
+  (`design.md`, `requirements.md`, `tasks.md`) replacing the single long waveform with a wrapped,
+  score-like timeline while retaining the continuous waveform as a precision detail mode.
+- Design grounds all layout in pure utilities (`rowLayout.ts`, `timelineMapping.ts`) with a
+  half-open `[startMs, endMs)` boundary-ownership invariant; adds only derived row geometry (never
+  persisted) and a small set of new single-store fields (`primaryView`, `countSize`, `rowDensity`,
+  `followPlayhead`, `loopStartMs/loopEndMs`, `selectedRowIndex`).
+- Added the planned-feature card to the Kanban To Do column.
+- No application code changed; this is a specification/planning artifact only.
+
+**Key Artifacts** (new, from `git status`): `.kiro/specs/wrapped-waveform-canvas/design.md`,
+`.kiro/specs/wrapped-waveform-canvas/requirements.md`,
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`.kiro/specs/wrapped-waveform-canvas/.config.kiro`, `AGENTS.md`.
+
+**Verified:**
+
+- `validate_spec_format` → 0 issues for `requirements.md`, `design.md`, and `tasks.md`.
+- Spec grounded in the real code (store, `WaveformCanvas`, `TimelineScrollbar`, `useWaveformData`,
+  gesture config, `STEM_SEPARATION_UI_ENABLED`), read before writing.
+- Subsequent whole-tree pre-commit checks: `npx tsc --noEmit` → clean;
+  `npm run test:unit -- --runInBand` → 26 passed; elevated
+  `PLAYWRIGHT_PORT=8082 npm test -- --reporter=list` → 60 passed.
+- `npm run test:ios:ui` → 8 passed and 1 failed on iPhone 17 Pro / iOS 26.2; focused rerun
+  reproduced `testLongTrackOverviewTapAndDragSeek` timing out at `BeatNoteUITests.swift:147`.
+
+**Not verified / known gaps:**
+
+- The wrapped waveform feature is specified but not implemented.
+- The committed pre-existing mobile-layout work does not have a fully green iOS UI gate: overview
+  drag seeking failed to update the playback label within five seconds in both the full and focused
+  simulator runs. The other eight iOS UI tests passed; Xcode also emitted its existing post-test
+  `simctl` diagnostic warning.
+- Unresolved product decisions: final density presets, exact detail-panel geometry on tablets,
+  whether `countSize` ships with this feature or the separate 8-count task, and whether A/B loop
+  state (`loopStartMs/loopEndMs`) is introduced here or by the section-looping task.
+- Pre-existing uncommitted working-tree changes (unrelated prior work) were preserved untouched.
+
+**Next agent should:**
+
+- Begin Phase 1 of `.kiro/specs/wrapped-waveform-canvas/tasks.md` (pure `rowLayout.ts` +
+  `timelineMapping.ts` with unit/property tests) behind the existing unified-waveform structure.
 
 ### 2026-10-02 — Re-sequence monetisation and stem separation
 

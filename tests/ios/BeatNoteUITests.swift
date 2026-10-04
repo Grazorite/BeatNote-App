@@ -149,6 +149,43 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue((30...45).contains(playbackSeconds(from: currentTime.label)), "Overview drag should seek to about 25% of the track.")
   }
 
+  func testWrappedRowSeekMarkerAndDragGestures() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let row = element("wrapped-row-gesture-area-0")
+    scrollIntoView(row)
+    XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
+
+    let currentTime = element("playback-current-time")
+    let initialTime = currentTime.label
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.8)).tap()
+    let tappedSeek = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", initialTime),
+      object: currentTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [tappedSeek], timeout: 5), .completed)
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("0 markers"))
+
+    let markerPosition = row.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.1))
+    markerPosition.tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertTrue(element("marker-annotation").isEnabled)
+
+    markerPosition.tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"), "Selecting a marker must not duplicate it.")
+
+    let beforeDrag = currentTime.label
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.8))
+      .press(forDuration: 0.1, thenDragTo: row.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.8)))
+    let draggedSeek = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", beforeDrag),
+      object: currentTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [draggedSeek], timeout: 5), .completed)
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    assertNoGestureRuntimeError()
+  }
+
   func testCsvImportAndShareSheetExport() {
     loadBundledSimulatorAudio()
     element("add-marker").tap()
@@ -222,7 +259,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertLessThanOrEqual(element("load-song").frame.height, 56)
     XCTAssertLessThanOrEqual(rail.frame.width, 280)
 
-    let waveform = element("waveform-gesture-area")
+    let waveform = element("wrapped-row-gesture-area-0")
     scrollIntoView(waveform)
     XCTAssertTrue(waveform.isHittable, "Waveform gesture area should be visible.")
     XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.45)

@@ -753,6 +753,12 @@ const tapGesture = Gesture.Tap()
   `TimelineScrollbar`.
 - **Touch targets:** markers/indicators have a minimum ~44 px hit slop; row height is sized for
   comfortable tapping in each orientation.
+- **Marker lane:** the top 44 px of a row is the marker interaction lane. A tap selects the nearest
+  marker within 22 px or places a marker on the active layer when none is nearby; either action also
+  seeks to that timestamp so the shared annotation editor stays synchronized. Taps below the lane
+  seek without changing markers. Horizontal drags seek from any vertical position in the row.
+- **Selection contract:** `selectedMarker` is transient single-store state shared by wrapped rows and
+  `AnnotationField`; it is not persisted in project files.
 - **Safe areas / orientation / keyboard:** the wrapped scroll container respects safe-area insets and
   `keyboardShouldPersistTaps="handled"`; orientation changes trigger a row recompute (new width →
   new `phrasesPerRow`/`rowDurationMs` default) while marker timestamps are preserved.

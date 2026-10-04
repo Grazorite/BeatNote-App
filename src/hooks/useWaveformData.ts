@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 export interface WaveformData {
   peaks: number[];
   duration: number;
+  source: 'decoded' | 'synthetic';
 }
 
 const generateWaveformWeb = async (audioUri: string): Promise<WaveformData> => {
@@ -66,7 +67,7 @@ const generateWaveformWeb = async (audioUri: string): Promise<WaveformData> => {
       }
     }
     
-    return { peaks, duration: duration * 1000 };
+    return { peaks, duration: duration * 1000, source: 'decoded' };
   } catch (error) {
     console.error('Web waveform generation failed:', error);
     return generateFallbackWaveform();
@@ -81,7 +82,7 @@ const generateFallbackWaveform = (): WaveformData => {
     const noise = (Math.random() - 0.5) * 0.2;
     peaks.push(Math.abs(base + detail + noise));
   }
-  return { peaks, duration: 180000 };
+  return { peaks, duration: 180000, source: 'synthetic' };
 };
 
 // Simple cache for waveform data

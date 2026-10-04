@@ -124,6 +124,51 @@ test.describe('Waveform Features', () => {
       await expect(page.getByText('View Mode')).toHaveCount(0);
       await expect(page.getByTestId('waveform-container')).toBeVisible();
     });
+
+    test('should render the loaded song as wrapped rows', async ({ page }) => {
+      await page.goto('/');
+      await loadTestAudio(page);
+
+      await expect(page.getByTestId('wrapped-waveform')).toBeVisible();
+      await expect(page.getByTestId('wrapped-row-0')).toBeVisible();
+      await expect(page.getByTestId('wrapped-row-gutter-0')).toContainText('0:00');
+      await expect(page.getByTestId('wrapped-row-waveform-0')).toBeVisible();
+      await expect(page.getByTestId('wrapped-row-playhead-0')).toBeAttached();
+    });
+
+    test('should separate seek gestures from marker-lane gestures', async ({ page }) => {
+      await page.goto('/');
+      await loadTestAudio(page);
+
+      const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
+      await expect(gestureArea).toBeVisible();
+      const box = await gestureArea.boundingBox();
+      expect(box).not.toBeNull();
+      if (!box) return;
+
+      const markerCount = async () => Number(
+        (await page.getByTestId('grand-total-markers').textContent())?.match(/\d+/)?.[0] || 0,
+      );
+      const initialMarkers = await markerCount();
+
+      await gestureArea.click({ position: { x: box.width * 0.7, y: box.height - 12 } });
+      await expect.poll(markerCount).toBe(initialMarkers);
+
+      const markerPosition = { x: box.width * 0.6, y: 12 };
+      await gestureArea.click({ position: markerPosition });
+      await expect.poll(markerCount).toBe(initialMarkers + 1);
+      await expect(page.getByTestId('marker-annotation')).toBeEnabled();
+
+      await gestureArea.click({ position: markerPosition });
+      await expect.poll(markerCount).toBe(initialMarkers + 1);
+
+      await page.mouse.move(box.x + box.width * 0.2, box.y + box.height - 12);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * 0.8, box.y + box.height - 12, { steps: 5 });
+      await page.mouse.up();
+      await expect.poll(markerCount).toBe(initialMarkers + 1);
+      await expect(page.getByText('Something went wrong')).toHaveCount(0);
+    });
     
     test('should show visual elements', async ({ page }) => {
       await page.goto('/');

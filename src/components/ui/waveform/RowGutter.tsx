@@ -7,6 +7,7 @@ interface RowGutterProps {
   phraseNumber?: number;
   countLabel?: string;
   width: number;
+  testID?: string;
 }
 
 const formatTime = (milliseconds: number): string => {
@@ -21,11 +22,12 @@ const RowGutter: React.FC<RowGutterProps> = ({
   phraseNumber,
   countLabel,
   width,
+  testID,
 }) => {
   const hasPhraseLabel = phraseNumber !== undefined && countLabel !== undefined;
 
   return (
-    <View style={[styles.container, { width }]}>
+    <View style={[styles.container, { width }]} testID={testID}>
       <Text style={styles.time}>{formatTime(startMs)}</Text>
       {hasPhraseLabel && (
         <>

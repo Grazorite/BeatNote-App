@@ -4,6 +4,7 @@ import {
   computeRows,
   computeVisibleRange,
   phraseRowDurationMs,
+  resolveGutterWidth,
   resolveRowDensity,
   RowLayoutConfig,
 } from '../../src/utils/rowLayout';
@@ -129,5 +130,8 @@ describe('wrapped row viewport helpers', () => {
     expect(computeRowPixelWidth(400, false)).toBe(320);
     expect(computeRowPixelWidth(800, true)).toBe(704);
     expect(computeRowPixelWidth(40, false)).toBe(0);
+    expect(resolveGutterWidth(false)).toBe(80);
+    expect(resolveGutterWidth(true)).toBe(96);
+    expect(resolveGutterWidth(true, 72.9)).toBe(72);
   });
 });

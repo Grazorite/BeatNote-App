@@ -12,6 +12,11 @@ export interface MarkerAnnotation {
   text: string;
 }
 
+export interface SelectedMarker {
+  layerId: LayerId;
+  timestamp: number;
+}
+
 export interface Layer {
   id: LayerId;
   name: string;
@@ -47,6 +52,7 @@ interface StudioStore {
   loopStartMs: number | null;
   loopEndMs: number | null;
   selectedRowIndex: number | null;
+  selectedMarker: SelectedMarker | null;
   showGridLines: boolean;
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
@@ -77,6 +83,7 @@ interface StudioStore {
   setFollowPlayhead: (follow: boolean) => void;
   setLoopRange: (startMs: number | null, endMs: number | null) => void;
   setSelectedRowIndex: (index: number | null) => void;
+  setSelectedMarker: (marker: SelectedMarker | null) => void;
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   setShowHelpScreen: (show: boolean) => void;
@@ -167,6 +174,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   loopStartMs: null,
   loopEndMs: null,
   selectedRowIndex: null,
+  selectedMarker: null,
   showGridLines: true,
   isSidebarCollapsed: false,
   showHelpScreen: false,
@@ -220,6 +228,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
   setLoopRange: (startMs, endMs) => set({ loopStartMs: startMs, loopEndMs: endMs }),
   setSelectedRowIndex: (index) => set({ selectedRowIndex: index }),
+  setSelectedMarker: (marker) => set({ selectedMarker: marker }),
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
@@ -321,7 +330,12 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     );
     return {
       allLayersData: updatedAllLayers,
-      layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      selectedMarker: state.selectedMarker
+        && state.selectedMarker.layerId === state.activeLayerId
+        && Math.abs(state.selectedMarker.timestamp - timestamp) <= 100
+        ? null
+        : state.selectedMarker,
     };
   }),
   removeLastMarker: () => set((state) => {
@@ -357,7 +371,12 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     return {
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
-      lastRemovedMarker: { layerId: layerIdToRemoveFrom, timestamp: markerToRemove }
+      lastRemovedMarker: { layerId: layerIdToRemoveFrom, timestamp: markerToRemove },
+      selectedMarker: state.selectedMarker
+        && state.selectedMarker.layerId === layerIdToRemoveFrom
+        && state.selectedMarker.timestamp === markerToRemove
+        ? null
+        : state.selectedMarker,
     };
   }),
   redoLastMarker: () => set((state) => {
@@ -403,7 +422,8 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     return {
       allLayersData: clearedAllLayers,
       layers: getLayersForDisplay(clearedAllLayers, state.stemCount),
-      lastRemovedMarker: null
+      lastRemovedMarker: null,
+      selectedMarker: null,
     };
   }),
   setSongLoaded: (loaded) => set((state) => {
@@ -415,7 +435,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         pixelsPerSecond: 800 / (state.songDuration / 1000) // Fit entire song in 800px
       };
     }
-    return { songLoaded: loaded };
+    return { songLoaded: loaded, selectedMarker: null };
   }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
   toggleLayerVisibility: (layerId) => set((state) => {
@@ -502,6 +522,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       layerSpecificNavigation: project.settings.layerSpecificNavigation,
       songLoaded: true,
       currentTime: 0,
+      selectedMarker: null,
     });
     return { audioUri: project.audio.uri, audioFilename: project.audio.filename };
   },

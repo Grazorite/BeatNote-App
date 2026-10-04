@@ -144,8 +144,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       from `src/styles/common.ts`.
     - _Requirements: 1.2, 1.3, 9.1, 9.2, 10.6_
 
-- [ ] 9. Build the wrapped row renderer
-  - [ ] 9.1 Create `src/components/ui/waveform/WrappedRow.tsx` and mirrored styles
+- [x] 9. Build the wrapped row renderer
+  - [x] 9.1 Create `src/components/ui/waveform/WrappedRow.tsx` and mirrored styles
     - Render gutter + waveform segment with active/muted split driven by
       `clipRowProgress`; render markers at their mapped x positions in layer
       colour; render the playhead only when `isActiveRow`.
@@ -155,42 +155,42 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
     - Add `src/styles/components/waveform/wrappedRow.ts` using shared tokens.
     - _Requirements: 1.4, 1.5, 1.6, 1.7, 4.1, 4.2, 4.3, 5.2, 7.1, 7.2, 17.1, 17.2, 17.3, 17.5_
 
-- [ ] 10. Build the virtualized wrapped list
-  - [ ] 10.1 Create `src/components/ui/waveform/WrappedWaveform.tsx` and styles
-    - Use `useWrappedRows`; render only rows in the window with OVERSCAN = 3 via a
-      windowed list with `getItemLayout` (fixed row height); keep mounted rows
-      bounded and independent of song length; show empty/loading placeholder when
-      there are zero rows or an unknown duration.
+- [x] 10. Build the virtualized wrapped list
+  - [x] 10.1 Create `src/components/ui/waveform/WrappedWaveform.tsx` and styles
+    - Use `useWrappedRows`; render only rows in the window with OVERSCAN = 3 via
+      the design-approved fixed-height spacer window (or a windowed list with
+      `getItemLayout`); keep mounted rows bounded and independent of song length;
+      show an empty/loading placeholder when there are zero rows or an unknown duration.
     - Add `src/styles/components/waveform/wrappedWaveform.ts`.
     - _Requirements: 1.1, 15.1, 15.2, 15.4, 16.2_
 
-  - [ ] 10.2 Wire `WrappedWaveform` into the unified waveform slot
+  - [x] 10.2 Wire `WrappedWaveform` into the unified waveform slot
     - Render it in `src/components/layout/MainContent.tsx` where the continuous
       waveform sits for the unified path; preserve `StemsView` selection and the
       `STEM_SEPARATION_UI_ENABLED` gating and the overview `TimelineScrollbar`
       wiring unchanged.
     - _Requirements: 20.1, 20.2, 20.3_
 
-- [ ] 11. Checkpoint — wrapped rendering
+- [x] 11. Checkpoint — wrapped rendering
   - Run `npx tsc --noEmit` and `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 5 — Gestures, seeking, and marker placement
 
-- [ ] 12. Add seek and marker gestures to wrapped rows
-  - [ ] 12.1 Implement tap/drag seeking in `WrappedRow.tsx`
+- [x] 12. Add seek and marker gestures to wrapped rows
+  - [x] 12.1 Implement tap/drag seeking in `WrappedRow.tsx`
     - Use `Gesture.Pan().runOnJS(true).activeOffsetX([-6, 6]).failOffsetY([-12, 12])`
       and `Gesture.Tap().runOnJS(true).maxDuration(250)`; map pointer x via
       `pointerToTimestamp`; call `onScrubStart`/`onSeek`/`onScrubEnd`; preserve
       vertical page scroll by yielding to vertical intent.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [ ] 12.2 Implement marker placement and selection in the wrapped view
+  - [x] 12.2 Implement marker placement and selection in the wrapped view
     - Add a marker to the active layer at the mapped integer-ms timestamp; select
       an existing marker into the store; leave other layers' markers unchanged.
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 13. Checkpoint — gestures and seeking
+- [x] 13. Checkpoint — gestures and seeking
   - Run `npx tsc --noEmit` and `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { View, TextInput } from 'react-native';
-import { LayerId, useStudioStore } from '../../../hooks/useStudioStore';
-
-interface SelectedMarker {
-  layerId: LayerId;
-  timestamp: number;
-}
+import { LayerId, SelectedMarker, useStudioStore } from '../../../hooks/useStudioStore';
 
 interface AnnotationFieldProps {
   isMobile?: boolean;
@@ -18,18 +13,18 @@ export interface AnnotationFieldRef {
 const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ isMobile = false }, ref) => {
   const { 
     currentTime, 
-    activeLayerId, 
     allLayersData, 
     showAnnotations,
     isPlaying,
     isTextInputFocused,
+    selectedMarker,
+    setSelectedMarker,
     updateMarkerAnnotation,
     setTextInputFocused,
     songLoaded
   } = useStudioStore();
   
   const [annotation, setAnnotation] = useState('');
-  const [selectedMarker, setSelectedMarker] = useState<SelectedMarker | null>(null);
   const textInputRef = useRef<TextInput>(null);
   const previousMarkers = useRef<string[]>([]);
   const syncedMarker = useRef<string | null>(null);

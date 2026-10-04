@@ -11,7 +11,8 @@ describe('wrapped-view store state', () => {
     expect(state.countSize).toBe(8);
     expect(state.rowDensity).toEqual({ mode: 'phrase' });
     expect(state.followPlayhead).toBe(true);
-    expect([state.loopStartMs, state.loopEndMs, state.selectedRowIndex]).toEqual([null, null, null]);
+    expect([state.loopStartMs, state.loopEndMs, state.selectedRowIndex, state.selectedMarker])
+      .toEqual([null, null, null, null]);
   });
 
   it('updates each preference and the session-only loop and selection state', () => {
@@ -22,6 +23,7 @@ describe('wrapped-view store state', () => {
     state.setFollowPlayhead(false);
     state.setLoopRange(2000, 8000);
     state.setSelectedRowIndex(3);
+    state.setSelectedMarker({ layerId: 'drums', timestamp: 4500 });
 
     expect(useStudioStore.getState()).toMatchObject({
       primaryView: 'detail',
@@ -31,12 +33,24 @@ describe('wrapped-view store state', () => {
       loopStartMs: 2000,
       loopEndMs: 8000,
       selectedRowIndex: 3,
+      selectedMarker: { layerId: 'drums', timestamp: 4500 },
     });
 
     state.setLoopRange(null, null);
     state.setSelectedRowIndex(null);
+    state.setSelectedMarker(null);
     expect([useStudioStore.getState().loopStartMs, useStudioStore.getState().loopEndMs,
       useStudioStore.getState().selectedRowIndex]).toEqual([null, null, null]);
+    expect(useStudioStore.getState().selectedMarker).toBeNull();
+  });
+
+  it('clears selection when the selected marker is removed', () => {
+    const state = useStudioStore.getState();
+    state.addMarker(2500);
+    state.setSelectedMarker({ layerId: 'vocals', timestamp: 2500 });
+    state.removeMarker(2500);
+
+    expect(useStudioStore.getState().selectedMarker).toBeNull();
   });
 
   it('switches views and selects a row without changing playback or annotation state', () => {

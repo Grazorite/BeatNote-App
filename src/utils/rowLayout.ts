@@ -123,10 +123,13 @@ export function computeRowPixelWidth(
   gutterWidth?: number,
 ): number {
   const width = finiteNonNegative(availableWidth);
-  const gutter = gutterWidth != null
-    ? finiteNonNegative(gutterWidth)
-    : (isLandscape ? 96 : 80);
+  const gutter = resolveGutterWidth(isLandscape, gutterWidth);
   return Math.max(0, Math.floor(width - gutter));
+}
+
+export function resolveGutterWidth(isLandscape: boolean, gutterWidth?: number): number {
+  if (gutterWidth != null) return Math.floor(finiteNonNegative(gutterWidth));
+  return isLandscape ? 96 : 80;
 }
 
 export function resolveRowHeight(isLandscape: boolean, rowHeight?: number): number {
