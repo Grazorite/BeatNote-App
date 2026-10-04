@@ -207,7 +207,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-04 — Complete wrapped-row hook with Qwen draft review
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b829525` (prior slice); Phase 3 `uncommitted`
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b829525`, `7c3c0ef`
 **Kanban moved:** Wrapped-canvas Phase 3 hook → Done; Phase 4 rendering remains In Progress
 
 **Changed:**
@@ -238,7 +238,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - The hook is not mounted yet. `WrappedRow`, `WrappedWaveform`, `MainContent` integration, seeking,
   marker gestures, and simulator acceptance remain open.
 - The DSH web profile was no longer running after the draft; its process lifecycle needs checking
-  before another delegated task. Phase 3 remains uncommitted in the shared worktree.
+  before another delegated task. Phase 3 was committed in `7c3c0ef`.
 - Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged.
 
 **Next agent should:**
