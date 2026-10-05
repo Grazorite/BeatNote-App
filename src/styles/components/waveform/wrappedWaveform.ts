@@ -17,6 +17,38 @@ export const wrappedWaveformStyles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.background,
   },
+  followToolbar: {
+    minHeight: 36,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingHorizontal: dimensions.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  followToggle: {
+    minHeight: 28,
+    minWidth: 112,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: dimensions.spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: dimensions.borderRadius,
+    backgroundColor: colors.background,
+  },
+  followToggleActive: {
+    borderColor: colors.accent,
+    backgroundColor: '#2a1608',
+  },
+  followTogglePressed: {
+    opacity: 0.75,
+  },
+  followToggleText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   scrollContent: {
     width: '100%',
   },

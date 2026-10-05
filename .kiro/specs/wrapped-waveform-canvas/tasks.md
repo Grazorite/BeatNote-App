@@ -201,8 +201,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 6 — Follow-playhead auto-scroll
 
-- [ ] 14. Implement follow-playhead behaviour
-  - [ ] 14.1 Add auto-scroll, toggle, suspension, and re-arm to `WrappedWaveform.tsx`
+- [x] 14. Implement follow-playhead behaviour
+  - [x] 14.1 Add auto-scroll, toggle, suspension, and re-arm to `WrappedWaveform.tsx`
     - When `followPlayhead` is enabled and playback enters a new active row,
       scroll that row into view; add a `wrapped-follow-toggle` that writes
       `followPlayhead`; a manual scroll suspends follow via a transient
@@ -210,7 +210,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       active row scrolls back into the visible window during playback.
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 15. Checkpoint — follow-playhead
+- [x] 15. Checkpoint — follow-playhead
   - Run `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

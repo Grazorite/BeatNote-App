@@ -169,7 +169,64 @@ test.describe('Waveform Features', () => {
       await expect.poll(markerCount).toBe(initialMarkers + 1);
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
     });
-    
+
+    test('follow-playhead toggle and wrapped scroll on long track', async ({ page }) => {
+      await page.goto('/');
+      await loadTestAudio(page, 'long-test-track.m4a');
+
+      const followToggle = page.getByTestId('wrapped-follow-toggle');
+      await expect(followToggle).toHaveText('Follow: On');
+
+      await followToggle.click();
+      await expect(followToggle).toHaveText('Follow: Off');
+
+      await followToggle.click();
+      await expect(followToggle).toHaveText('Follow: On');
+
+      const waveform = page.getByTestId('wrapped-waveform');
+      await expect(waveform).toBeVisible();
+
+      // Start playback so follow-playhead is active.
+      const playPause = page.getByTestId('play-pause');
+      await expect(playPause).toBeVisible();
+      await playPause.click();
+
+      const gestureArea = page.getByTestId('timeline-gesture-area');
+      await gestureArea.scrollIntoViewIfNeeded();
+      await expect(gestureArea).toBeVisible();
+      const box = await gestureArea.boundingBox();
+      expect(box).not.toBeNull();
+      if (!box) return;
+
+      await gestureArea.click({ position: { x: box.width * 0.95, y: box.height / 2 } });
+
+      // While playing and tracking a distant row, waveform should have scrolled down.
+      await expect.poll(
+        () => waveform.evaluate(element => element.scrollTop),
+        { timeout: 5000 },
+      ).toBeGreaterThan(0);
+
+      await waveform.hover();
+      await page.mouse.wheel(0, -10000);
+      await expect(followToggle).toHaveText('Follow: Suspended');
+
+      await followToggle.click();
+      await expect(followToggle).toHaveText('Follow: On');
+      await expect.poll(
+        () => waveform.evaluate(element => element.scrollTop),
+        { timeout: 5000 },
+      ).toBeGreaterThan(0);
+
+      await waveform.hover();
+      await page.mouse.wheel(0, -10000);
+      await expect(followToggle).toHaveText('Follow: Suspended');
+      await page.mouse.wheel(0, 10000);
+      await expect(followToggle).toHaveText('Follow: On');
+
+      // No runtime error screen
+      await expect(page.getByText('Something went wrong')).toHaveCount(0);
+    });
+
     test('should show visual elements', async ({ page }) => {
       await page.goto('/');
       

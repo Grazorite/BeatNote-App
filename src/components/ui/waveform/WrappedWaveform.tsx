@@ -1,8 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
+  Pressable,
   ScrollView,
   Text,
   useWindowDimensions,
@@ -15,6 +17,7 @@ import { useWrappedRows } from '../../../hooks/useWrappedRows';
 import {
   resolveGutterWidth,
   resolveRowHeight,
+  computeVisibleRange,
   type WrappedRow as WrappedRowModel,
 } from '../../../utils/rowLayout';
 import { clipRowProgress, timestampToRow } from '../../../utils/timelineMapping';
@@ -43,11 +46,17 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const songDuration = useStudioStore(state => state.songDuration);
   const songLoaded = useStudioStore(state => state.songLoaded);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
+  const isPlaying = useStudioStore(state => state.isPlaying);
+  const followPlayhead = useStudioStore(state => state.followPlayhead);
+  const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
   const addMarker = useStudioStore(state => state.addMarker);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const [availableWidth, setAvailableWidth] = useState(Math.max(1, window.width - 16));
   const [scrollOffset, setScrollOffset] = useState(0);
   const [containerHeight, setContainerHeight] = useState(isLandscape ? 288 : 336);
+  const [followSuspended, setFollowSuspended] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const suspendedSawActiveOutside = useRef(false);
   const rowHeight = resolveRowHeight(isLandscape);
   const gutterWidth = resolveGutterWidth(isLandscape);
   const { waveformData, loading } = useWaveformData(audioUri || null);
@@ -63,6 +72,13 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       : [],
     [rows, visibleRange.firstIndex, visibleRange.lastIndex],
   );
+  const viewportRange = useMemo(() => computeVisibleRange(
+    rows.length,
+    scrollOffset,
+    containerHeight,
+    rowHeight,
+    0,
+  ), [containerHeight, rowHeight, rows.length, scrollOffset]);
   const topSpacerHeight = visibleRange.firstIndex * rowHeight;
   const bottomSpacerHeight = Math.max(0, rows.length - visibleRange.lastIndex - 1) * rowHeight;
   const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color || colors.accent;
@@ -90,6 +106,71 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     setScrollOffset(Math.max(0, event.nativeEvent.contentOffset.y));
   }, []);
 
+  const handleManualScrollStart = useCallback(() => {
+    if (!followPlayhead) return;
+    const activeIsVisible = activeRowIndex >= viewportRange.firstIndex
+      && activeRowIndex <= viewportRange.lastIndex;
+    suspendedSawActiveOutside.current = !activeIsVisible;
+    setFollowSuspended(true);
+  }, [activeRowIndex, followPlayhead, viewportRange.firstIndex, viewportRange.lastIndex]);
+
+  const centerActiveRow = useCallback((animated: boolean) => {
+    if (activeRowIndex < 0 || rows.length === 0) return;
+    const centeredOffset = activeRowIndex * rowHeight - (containerHeight - rowHeight) / 2;
+    const maxOffset = Math.max(0, rows.length * rowHeight - containerHeight);
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, Math.min(centeredOffset, maxOffset)),
+      animated,
+    });
+  }, [activeRowIndex, containerHeight, rowHeight, rows.length]);
+
+  useEffect(() => {
+    if (!followPlayhead) {
+      suspendedSawActiveOutside.current = false;
+      setFollowSuspended(false);
+      return;
+    }
+    if (isPlaying && !followSuspended) centerActiveRow(true);
+  }, [activeRowIndex, centerActiveRow, followPlayhead, followSuspended, isPlaying]);
+
+  useEffect(() => {
+    if (!followSuspended || !followPlayhead || !isPlaying || activeRowIndex < 0) return;
+    const activeIsVisible = activeRowIndex >= viewportRange.firstIndex
+      && activeRowIndex <= viewportRange.lastIndex;
+    if (!activeIsVisible) {
+      suspendedSawActiveOutside.current = true;
+    } else if (suspendedSawActiveOutside.current) {
+      suspendedSawActiveOutside.current = false;
+      setFollowSuspended(false);
+    }
+  }, [
+    activeRowIndex,
+    followPlayhead,
+    followSuspended,
+    isPlaying,
+    viewportRange.firstIndex,
+    viewportRange.lastIndex,
+  ]);
+
+  const handleFollowToggle = useCallback(() => {
+    if (!followPlayhead) {
+      setFollowPlayhead(true);
+      setFollowSuspended(false);
+      suspendedSawActiveOutside.current = false;
+      return;
+    }
+    if (followSuspended) {
+      setFollowSuspended(false);
+      suspendedSawActiveOutside.current = false;
+      centerActiveRow(true);
+      return;
+    }
+    setFollowPlayhead(false);
+  }, [centerActiveRow, followPlayhead, followSuspended, setFollowPlayhead]);
+  const webManualScrollProps = Platform.OS === 'web'
+    ? { onWheel: handleManualScrollStart }
+    : {};
+
   const handlePlaceMarker = useCallback((timestamp: number) => {
     addMarker(timestamp);
     setSelectedMarker({ layerId: activeLayerId, timestamp });
@@ -110,14 +191,35 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   return (
     <View style={styles.container} testID="waveform-container">
       {loading && <Text style={styles.loadingText}>Preparing waveform</Text>}
+      <View style={styles.followToolbar}>
+        <Pressable
+          accessibilityRole="switch"
+          accessibilityState={{ checked: followPlayhead && !followSuspended }}
+          onPress={handleFollowToggle}
+          style={({ pressed }) => [
+            styles.followToggle,
+            followPlayhead && !followSuspended && styles.followToggleActive,
+            pressed && styles.followTogglePressed,
+          ]}
+          testID="wrapped-follow-toggle"
+        >
+          <Text style={styles.followToggleText}>
+            {followPlayhead ? (followSuspended ? 'Follow: Suspended' : 'Follow: On') : 'Follow: Off'}
+          </Text>
+        </Pressable>
+      </View>
       <ScrollView
+        ref={scrollRef}
+        {...webManualScrollProps}
         style={[styles.viewport, { height: isLandscape ? 288 : 336 }]}
         contentContainerStyle={styles.scrollContent}
         nestedScrollEnabled
         onLayout={handleLayout}
         onScroll={handleScroll}
+        onScrollBeginDrag={handleManualScrollStart}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator
+        keyboardShouldPersistTaps="handled"
         testID="wrapped-waveform"
       >
         <View style={{ height: topSpacerHeight }} />

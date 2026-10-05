@@ -186,6 +186,33 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
+  func testWrappedFollowPlayheadTracksDistantRow() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let followToggle = element("wrapped-follow-toggle")
+    scrollIntoView(followToggle)
+    XCTAssertTrue(followToggle.waitForExistence(timeout: 10))
+    XCTAssertTrue(followToggle.label.contains("Follow: On"))
+
+    element("play-pause").tap()
+    let timeline = element("timeline-gesture-area")
+    scrollIntoView(timeline)
+    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
+
+    let distantRow = element("wrapped-row-26")
+    XCTAssertTrue(
+      distantRow.waitForExistence(timeout: 5),
+      "Follow-playhead should virtualize the row containing the new playback position."
+    )
+
+    scrollIntoView(followToggle)
+    followToggle.tap()
+    XCTAssertTrue(followToggle.label.contains("Follow: Off"))
+    followToggle.tap()
+    XCTAssertTrue(followToggle.label.contains("Follow: On"))
+    assertNoGestureRuntimeError()
+  }
+
   func testCsvImportAndShareSheetExport() {
     loadBundledSimulatorAudio()
     element("add-marker").tap()

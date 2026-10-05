@@ -8,7 +8,7 @@ export const test = base;
 // Use base expect
 export const expect = baseExpect;
 
-export async function loadTestAudio(page: Page) {
+export async function loadTestAudio(page: Page, fixtureName: string = 'test-audio.wav') {
   await page.evaluate(() => {
     const dispatchEvent = HTMLInputElement.prototype.dispatchEvent;
     HTMLInputElement.prototype.dispatchEvent = function (event) {
@@ -21,7 +21,7 @@ export async function loadTestAudio(page: Page) {
 
   const fileInput = page.locator('input[type="file"]').last();
   await expect(fileInput).toBeAttached({ timeout: 5000 });
-  await fileInput.setInputFiles(path.resolve('tests/fixtures/test-audio.wav'));
+  await fileInput.setInputFiles(path.resolve(`tests/fixtures/${fixtureName}`));
   await expect(page.getByTestId('load-song')).toContainText('Song Loaded', { timeout: 10000 });
 }
 
