@@ -108,6 +108,11 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         layerId: layer.id,
         color: layer.color,
         timestamps: layer.markers.filter(timestamp => timestampToRow(rows, timestamp) === row.index),
+        annotatedTimestamps: layer.markers.filter(timestamp =>
+          timestampToRow(rows, timestamp) === row.index
+          && layer.annotations.some(annotation =>
+            annotation.text.trim().length > 0
+            && Math.abs(annotation.timestamp - timestamp) < 100)),
       }))
       .filter(layer => layer.timestamps.length > 0)
   ), [layers, rows]);

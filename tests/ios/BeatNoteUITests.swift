@@ -169,7 +169,14 @@ final class BeatNoteUITests: XCTestCase {
     let markerPosition = row.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.1))
     markerPosition.tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
-    XCTAssertTrue(element("marker-annotation").isEnabled)
+    let annotation = app.textFields["marker-annotation"]
+    XCTAssertTrue(annotation.isEnabled)
+    annotation.tap()
+    annotation.typeText("Row note")
+    let annotationIndicator = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-annotation-vocals-")
+    ).firstMatch
+    XCTAssertTrue(annotationIndicator.waitForExistence(timeout: 5))
 
     markerPosition.tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"), "Selecting a marker must not duplicate it.")

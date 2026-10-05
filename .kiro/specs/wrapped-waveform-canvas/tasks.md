@@ -257,15 +257,15 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 9 — Annotation display
 
-- [ ] 20. Implement compact annotation display
-  - [ ] 20.1 Render annotation indicators and clusters in `WrappedRow.tsx`
+- [x] 20. Implement compact annotation display
+  - [x] 20.1 Render annotation indicators and clusters in `WrappedRow.tsx`
     - Render a dot/triangle indicator in the marker's layer colour for annotated
       markers; render a count badge when annotated markers cluster within a few
       pixels; open the annotation on tap using the existing annotation UI; never
       render annotation text inline.
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 21. Checkpoint — annotations
+- [x] 21. Checkpoint — annotations
   - Run `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

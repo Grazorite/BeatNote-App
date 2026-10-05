@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
+import { clusterAnnotationIndicators } from '../../../utils/annotationClusters';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
 import { pointerToTimestamp, type RowLoopSegment } from '../../../utils/timelineMapping';
 import RowGutter from './RowGutter';
@@ -15,6 +16,7 @@ export interface WrappedLayerMarkers {
   layerId: LayerId;
   color: string;
   timestamps: number[];
+  annotatedTimestamps: number[];
 }
 
 interface WrappedRowProps {
@@ -39,6 +41,10 @@ interface WrappedRowProps {
 
 const MARKER_LANE_HEIGHT = 44;
 const MARKER_HIT_RADIUS_PX = 22;
+const ANNOTATION_CLUSTER_THRESHOLD_PX = 8;
+const ANNOTATION_INDICATOR_Y = 12;
+const ANNOTATION_BADGE_WIDTH = 28;
+const ANNOTATION_BADGE_HEIGHT = 18;
 
 const markerX = (row: WrappedRowModel, timestamp: number, width: number): number => {
   const duration = Math.max(1, row.endMs - row.startMs);
@@ -109,6 +115,15 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const waveformHeight = Math.max(1, rowHeight - 2);
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
+  const annotationClusters = useMemo(() => clusterAnnotationIndicators(
+    markersByLayer.flatMap(layer => layer.annotatedTimestamps.map(timestamp => ({
+      layerId: layer.layerId,
+      color: layer.color,
+      timestamp,
+      x: markerX(row, timestamp, rowPixelWidth),
+    }))),
+    ANNOTATION_CLUSTER_THRESHOLD_PX,
+  ), [markersByLayer, row, rowPixelWidth]);
   const path = useMemo(() => {
     if (!peaks?.length || rowPixelWidth <= 0 || totalDuration <= 0) return '';
     return generateWaveformPath(
@@ -282,6 +297,54 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               testID={`wrapped-row-marker-${layer.layerId}-${timestamp}`}
             />
           )))}
+
+          {annotationClusters.map((cluster, clusterIndex) => {
+            const first = cluster.members[0];
+            if (cluster.members.length === 1) {
+              return (
+                <Circle
+                  key={`${first.layerId}-${first.timestamp}`}
+                  cx={cluster.x}
+                  cy={ANNOTATION_INDICATOR_Y}
+                  r={6}
+                  fill={first.color}
+                  stroke={colors.background}
+                  strokeWidth={2}
+                  testID={`wrapped-row-annotation-${first.layerId}-${first.timestamp}`}
+                />
+              );
+            }
+
+            const badgeX = Math.max(
+              0,
+              Math.min(rowPixelWidth - ANNOTATION_BADGE_WIDTH, cluster.x - ANNOTATION_BADGE_WIDTH / 2),
+            );
+            return (
+              <G key={`cluster-${clusterIndex}`}>
+                <Rect
+                  x={badgeX}
+                  y={ANNOTATION_INDICATOR_Y - ANNOTATION_BADGE_HEIGHT / 2}
+                  width={ANNOTATION_BADGE_WIDTH}
+                  height={ANNOTATION_BADGE_HEIGHT}
+                  rx={ANNOTATION_BADGE_HEIGHT / 2}
+                  fill={colors.surface}
+                  stroke={first.color}
+                  strokeWidth={2}
+                  testID={`wrapped-row-annotation-cluster-${row.index}-${clusterIndex}`}
+                />
+                <SvgText
+                  x={badgeX + ANNOTATION_BADGE_WIDTH / 2}
+                  y={ANNOTATION_INDICATOR_Y + 4}
+                  fill={colors.text}
+                  fontSize={10}
+                  fontWeight="700"
+                  textAnchor="middle"
+                >
+                  {`x${cluster.members.length}`}
+                </SvgText>
+              </G>
+            );
+          })}
 
           {isActiveRow && (
             <Line
