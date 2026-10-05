@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phases 1-2: deterministic row geometry, timeline mapping, and single-store state with unit/property coverage
+      <sub>**Key Artifacts:** `src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
       <sub>**Key Artifacts:** `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/projectManager.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 3 hook with orientation defaults and bounded visible-window geometry
@@ -78,6 +80,47 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-04 — Complete wrapped-row hook with Qwen draft review
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b829525`, `7c3c0ef`
+**Kanban moved:** Wrapped-canvas Phase 3 hook → Done; Phase 4 rendering remains In Progress
+
+**Changed:**
+
+- Pushed the previously verified wrapped core, iOS test hardening, gutter, and persistence work to
+  `origin/master` as `b829525`.
+- DSH-Qwen session `session-57f59a58-d7e6-4679-8d27-5e71ef7d3c44` drafted
+  `useWrappedRows.ts` and pure row viewport helpers within its two-file assignment. The DSH host
+  exited after writing, so no reliable final worker message was available.
+- Direct review fixed the draft's visible-window divisor (it incorrectly used container height
+  instead of fixed row height), added focused unit coverage, and clarified the optional viewport
+  metrics contract in the wrapped-canvas design/tasks. No UI integration or gesture code changed.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useWrappedRows.ts`,
+`src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean.
+- `npm run test:unit -- --runInBand` → 50 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed.
+- `git diff --check` → clean; contract checker with five-item Done/log limits → 0 errors.
+
+**Not verified / known gaps:**
+
+- The hook is not mounted yet. `WrappedRow`, `WrappedWaveform`, `MainContent` integration, seeking,
+  marker gestures, and simulator acceptance remain open.
+- The DSH web profile was no longer running after the draft; its process lifecycle needs checking
+  before another delegated task. Phase 3 was committed in `7c3c0ef`.
+- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged.
+
+**Next agent should:**
+
+- Implement Phase 4 `WrappedRow` and `WrappedWaveform` without gestures, then directly review the
+  `MainContent` integration before beginning Phase 5 gesture work.
 
 ### 2026-10-04 — Add wrapped gutter and preference persistence
 
