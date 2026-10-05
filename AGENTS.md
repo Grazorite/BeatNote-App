@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-04
+**Last updated:** 2026-10-05
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -53,8 +53,8 @@ potentially adding a hybrid path later.
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 51 passing (6 suites; wrapped selection coverage added) |
-| iOS UI tests | 9/9 baseline; Phase 5 focused gesture test 1/1; latest full rerun 8/9 (landscape lock) |
-| E2E spec files | 5 (Playwright, 62 passing) |
+| iOS UI tests | 9/9 baseline; Phase 6 focused follow test 1/1; latest full rerun 8/9 (landscape lock) |
+| E2E spec files | 5 (Playwright, 63 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -63,8 +63,8 @@ potentially adding a hybrid path later.
    and the full suite. The latest failure occurs before landscape layout assertions: XCTest sets
    landscape but the app scene remains 402 x 874 portrait. Device Hub reproduces the sideways
    portrait scene when rotating hardware. The user has been asked to check simulator orientation lock.
-2. Implement wrapped-canvas Phase 6 follow-playhead behavior. Phases 1-5 now form the wrapped MVP
-   and are verified in TypeScript, unit tests, web E2E, and focused portrait simulator acceptance.
+2. Implement wrapped-canvas Phase 7 precision detail mode. Phases 1-6 are verified in TypeScript,
+   unit tests, web E2E, and focused portrait simulator acceptance.
 3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, long-track overview tap/drag seeking, annotation during playback,
@@ -104,7 +104,7 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Implement wrapped waveform canvas — Phases 1-5 verified; Phase 6 follow-playhead next. DSH-Qwen session `session-0ba4df52-3819-4e5b-a278-cc11f63a79b1` completed the bounded Phase 5 gesture-contract review; Codex directly implemented and verified integration. See `.kiro/specs/wrapped-waveform-canvas/`.
+- [ ] Implement wrapped waveform canvas — Phases 1-6 verified; Phase 7 precision detail mode next. The Phase 6 DSH-Qwen test delegation timed out without a task ID after writing a bounded draft; Codex reviewed and corrected it directly. See `.kiro/specs/wrapped-waveform-canvas/`.
 - [ ] Restore actual simulator landscape rotation, then rerun the two geometry-guarded landscape XCTest cases and full iOS suite
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
@@ -118,6 +118,8 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 6 follow-playhead auto-scroll, suspension, re-arm, and toggle
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 5 seeking, marker placement/selection, and shared annotation selection
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/hooks/useStudioStore.ts`, `tests/unit/studioStore.wrapped.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 4 bounded row rendering and unified-slot integration
@@ -126,8 +128,6 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
       <sub>**Key Artifacts:** `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/projectManager.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 3 hook with orientation defaults and bounded visible-window geometry
-      <sub>**Key Artifacts:** `src/hooks/useWrappedRows.ts`, `src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -201,6 +201,53 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-05 — Complete follow-playhead refinement
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `47f95a5`
+**Kanban moved:** Wrapped-canvas Phase 6 follow-playhead → Done; Phase 7 precision detail mode remains In Progress
+
+**Changed:**
+
+- Added active-row auto-centering during playback, a persisted follow preference toggle, and a
+  transient manual-scroll suspension state. Suspended follow re-arms only after the active row first
+  leaves and then returns to the actual visible window; the toggle can also resume immediately.
+- Added compact `Follow: On`, `Follow: Off`, and `Follow: Suspended` states plus native drag and
+  web-wheel suspension handling without persisting transient scroll state.
+- Extended the long-track web fixture helper and acceptance coverage for follow toggling,
+  auto-scroll, suspension, explicit resume, and automatic re-arm. Added focused portrait XCTest
+  coverage for a distant-row seek and follow toggle behavior.
+- A bounded DSH-Qwen test delegation timed out without returning a task ID after writing only its
+  assigned test files. Direct review corrected pointer positioning and assertion reliability before
+  accepting the draft; UI integration remained under Codex ownership.
+
+**Key Artifacts** (from `git diff --name-only`): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `docs/context/archive/beatnote-project-history.md`,
+`src/components/ui/waveform/WrappedWaveform.tsx`,
+`src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`,
+`tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 51 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 63 passed.
+- Focused `IOS_TEST_ONLY=testWrappedFollowPlayheadTracksDistantRow npm run test:ios:ui` → 1 passed
+  on iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791174843069.xcresult`.
+- `git diff --check` → clean before documentation reconciliation.
+
+**Not verified / known gaps:**
+
+- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
+  blocks the geometry-guarded landscape cases; Phase 6 portrait native behavior is verified.
+- Native manual-scroll suspension and automatic re-arm are covered by the shared implementation and
+  web acceptance, but the focused XCTest covers distant-row tracking and toggling only.
+- Phase 7 precision detail mode is not implemented.
+
+**Next agent should:**
+
+- Implement Phase 7 `WaveformDetailPanel` and `WaveformWorkspace` under direct UI review, preserving
+  wrapped scroll restoration and keeping playback/markers neutral during view switches.
 
 ### 2026-10-04 — Complete wrapped MVP gestures and marker selection
 
@@ -381,51 +428,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement and directly review Phase 3 `useWrappedRows`, then build the non-gesture wrapped row/list
   rendering around the completed gutter; keep `MainContent` integration and gestures in Codex.
-
-### 2026-10-03 — Build wrapped-canvas core and isolate simulator rotation
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `b829525`
-**Kanban moved:** Wrapped-canvas Phases 1-2 → Done; remaining canvas implementation → In Progress
-
-**Changed:**
-
-- Added pure integer-ms row layout and timeline mapping with half-open boundary ownership, loop
-  clipping, phrase labels, and fast-check properties. Added wrapped-view preferences/session fields
-  and setters to the existing Zustand store; no wrapped UI is rendered yet.
-- Switched `MainContent` to `useWindowDimensions` for orientation changes. Corrected the long-track
-  drag XCTest to capture its pre-drag clock before interacting, and made landscape tests require an
-  actual landscape app frame rather than accepting portrait execution.
-- Two bounded DSH-Qwen attempts ended at `max-tokens` with no files; Codex implemented and reviewed
-  the entire completed slice. The user was asked to check simulator Portrait Orientation Lock.
-
-**Key Artifacts** (from `git diff --name-only` plus untracked source): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
-`AGENTS.md`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`,
-`src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `tests/ios/BeatNoteUITests.swift`,
-`tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`,
-`tests/unit/studioStore.wrapped.test.ts`, `docs/context/archive/beatnote-project-history.md`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 44 passed; `git diff --check` → clean.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed
-  against the final `MainContent` orientation-hook change.
-- Initial full `npm run test:ios:ui` on committed baseline → 9/9 passed. Post-change full rerun →
-  8/9 passed (`ios/build/BeatNoteUITests-1790958927382.xcresult`); long-track drag passed after
-  the assertion fix. Focused landscape rerun confirms the simulator did not rotate the app scene.
-
-**Not verified / known gaps:**
-
-- Latest iOS gate is not green. XCTest and Device Hub rotate the simulated hardware, but BeatNote
-  remains in a portrait 402 x 874 scene; the in-test AX dump shows the portrait dock. The app's
-  generated Info.plist supports landscape and source has no explicit orientation lock. The cause may
-  be the simulator's Portrait Orientation Lock; do not call this an app layout defect until that is
-  checked. The CSV landscape test now also asserts actual rotation and has not been rerun.
-- Wrapped rendering, gestures, and physical-device acceptance are not implemented/verified. The
-  core/persistence work listed above was committed and pushed in `b829525`.
-
-**Next agent should:**
-
-- Verify simulator orientation lock is off, rerun both focused landscape tests and the full suite,
-  then implement Phase 3 `useWrappedRows` and Phase 4 virtualized rendering against the completed
-  pure core. Keep integration/audio/gesture ownership in Codex; delegate only bounded, testable
-  leaf files to DSH-Qwen using the 32K local-model context.

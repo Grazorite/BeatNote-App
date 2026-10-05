@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 3 hook with orientation defaults and bounded visible-window geometry
+      <sub>**Key Artifacts:** `src/hooks/useWrappedRows.ts`, `src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/styles/layout/mainContent.ts`, `src/features/stemSeparation/featureFlags.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 - [x] Close iOS mobile acceptance defects — overview tap/drag seeks, live marker annotations, compact fixed controls, full-width waveform, landscape CSV actions, and long-track simulator coverage
@@ -74,6 +76,54 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-03 — Build wrapped-canvas core and isolate simulator rotation
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b829525`
+**Kanban moved:** Wrapped-canvas Phases 1-2 → Done; remaining canvas implementation → In Progress
+
+**Changed:**
+
+- Added pure integer-ms row layout and timeline mapping with half-open boundary ownership, loop
+  clipping, phrase labels, and fast-check properties. Added wrapped-view preferences/session fields
+  and setters to the existing Zustand store; no wrapped UI is rendered yet.
+- Switched `MainContent` to `useWindowDimensions` for orientation changes. Corrected the long-track
+  drag XCTest to capture its pre-drag clock before interacting, and made landscape tests require an
+  actual landscape app frame rather than accepting portrait execution.
+- Two bounded DSH-Qwen attempts ended at `max-tokens` with no files; Codex implemented and reviewed
+  the entire completed slice. The user was asked to check simulator Portrait Orientation Lock.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`,
+`src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `tests/ios/BeatNoteUITests.swift`,
+`tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`,
+`tests/unit/studioStore.wrapped.test.ts`, `docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 44 passed; `git diff --check` → clean.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed
+  against the final `MainContent` orientation-hook change.
+- Initial full `npm run test:ios:ui` on committed baseline → 9/9 passed. Post-change full rerun →
+  8/9 passed (`ios/build/BeatNoteUITests-1790958927382.xcresult`); long-track drag passed after
+  the assertion fix. Focused landscape rerun confirms the simulator did not rotate the app scene.
+
+**Not verified / known gaps:**
+
+- Latest iOS gate is not green. XCTest and Device Hub rotate the simulated hardware, but BeatNote
+  remains in a portrait 402 x 874 scene; the in-test AX dump shows the portrait dock. The app's
+  generated Info.plist supports landscape and source has no explicit orientation lock. The cause may
+  be the simulator's Portrait Orientation Lock; do not call this an app layout defect until that is
+  checked. The CSV landscape test now also asserts actual rotation and has not been rerun.
+- Wrapped rendering, gestures, and physical-device acceptance are not implemented/verified. The
+  core/persistence work listed above was committed and pushed in `b829525`.
+
+**Next agent should:**
+
+- Verify simulator orientation lock is off, rerun both focused landscape tests and the full suite,
+  then implement Phase 3 `useWrappedRows` and Phase 4 virtualized rendering against the completed
+  pure core. Keep integration/audio/gesture ownership in Codex; delegate only bounded, testable
+  leaf files to DSH-Qwen using the 32K local-model context.
 
 ### 2026-10-03 — Verify committed mobile refinements
 
