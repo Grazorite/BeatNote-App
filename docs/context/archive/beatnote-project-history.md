@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
+      <sub>**Key Artifacts:** `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/projectManager.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 3 hook with orientation defaults and bounded visible-window geometry
       <sub>**Key Artifacts:** `src/hooks/useWrappedRows.ts`, `src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Refine iOS mobile studio layout, expose toolbar scrolling, and hide deferred stem UI for V3
@@ -76,6 +78,50 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-04 — Add wrapped gutter and preference persistence
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b829525`
+**Kanban moved:** Wrapped gutter scaffolding + preference persistence → Done; wrapped UI integration remains In Progress
+
+**Changed:**
+
+- Added the standalone `RowGutter` component and mirrored token-based styles without exporting,
+  mounting, or adding gestures; UI integration remains under direct Codex review.
+- Persisted only `primaryView`, `countSize`, `rowDensity`, and `followPlayhead`; legacy projects are
+  normalized to wrapped/8/phrase/follow defaults. Added round-trip and exclusion tests for transient
+  loop, selection, manual-scroll, and derived-row state.
+- Fresh DSH sessions `session-8fccb6c4-90a1-4a23-9ee7-52746d510286` and
+  `session-cee5ed24-b3fc-44e2-984e-a131ffc279cc` failed before editing because Ollama could not open
+  the Qwen manifest on the external model volume (`operation not permitted`); Codex used the
+  orchestrator fallback and implemented/reviewed both bounded tasks directly.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `src/components/ui/waveform/RowGutter.tsx`,
+`src/styles/components/waveform/rowGutter.ts`, `src/types/project.ts`,
+`src/utils/projectManager.ts`, `src/hooks/useStudioStore.ts`,
+`tests/unit/projectManager.wrapped.test.ts`, `docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; focused persistence suite → 2 passed.
+- `npm run test:unit -- --runInBand` → 46 passed across 6 suites; elevated
+  `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 60 passed.
+- `git diff --check` → clean; contract checker with five-item Done/log limits → 0 errors.
+
+**Not verified / known gaps:**
+
+- `RowGutter` is intentionally not exported or rendered yet. Phase 3 hook, wrapped row/list
+  rendering, UI integration, and all wrapped gestures remain open and were not modified.
+- DSH-Qwen remains unavailable until host permissions allow Ollama to read
+  `/Volumes/s_cx_g/Ollama/models/manifests/registry.ollama.ai/library/qwen3.8-sharp-uncensored-q4/latest`.
+- Existing simulator landscape-rotation and physical-device acceptance gaps remain unchanged. This
+  completed slice was committed and pushed in `b829525`.
+
+**Next agent should:**
+
+- Implement and directly review Phase 3 `useWrappedRows`, then build the non-gesture wrapped row/list
+  rendering around the completed gutter; keep `MainContent` integration and gestures in Codex.
 
 ### 2026-10-03 — Build wrapped-canvas core and isolate simulator rotation
 
