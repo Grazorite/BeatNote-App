@@ -227,6 +227,41 @@ test.describe('Waveform Features', () => {
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
     });
 
+    test('precision detail switches responsively without mutating studio data', async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto('/');
+      await page.getByTestId('sidebar-toggle').click();
+      await loadTestAudio(page, 'long-test-track.m4a');
+
+      const initialTime = await page.getByTestId('playback-current-time').textContent();
+      const initialMarkers = await page.getByTestId('grand-total-markers').textContent();
+      await page.getByTestId('wrapped-row-detail-0').click();
+
+      await expect(page.getByTestId('waveform-detail-panel')).toBeVisible();
+      await expect(page.getByTestId('wrapped-waveform')).toHaveCount(0);
+      await expect(page.getByTestId('playback-current-time')).toHaveText(initialTime || '');
+      await expect(page.getByTestId('grand-total-markers')).toHaveText(initialMarkers || '');
+
+      const detailWaveform = page.getByTestId('waveform-container');
+      const detailBox = await detailWaveform.boundingBox();
+      expect(detailBox).not.toBeNull();
+      if (!detailBox) return;
+      await detailWaveform.click({ position: { x: detailBox.width / 2, y: detailBox.height / 2 } });
+      await expect(page.getByTestId('playback-current-time')).toContainText('0:02');
+      const detailTime = await page.getByTestId('playback-current-time').textContent();
+
+      await page.getByTestId('waveform-detail-close').click();
+      await expect(page.getByTestId('wrapped-waveform')).toBeVisible();
+      await expect(page.getByTestId('wrapped-row-detail-0')).toBeVisible();
+      await expect(page.getByTestId('playback-current-time')).toHaveText(detailTime || '');
+
+      await page.setViewportSize({ width: 844, height: 390 });
+      await page.getByTestId('wrapped-row-detail-0').click();
+      await expect(page.getByTestId('waveform-detail-panel')).toBeVisible();
+      await expect(page.getByTestId('wrapped-waveform')).toBeVisible();
+      await expect(page.getByText('Something went wrong')).toHaveCount(0);
+    });
+
     test('should show visual elements', async ({ page }) => {
       await page.goto('/');
       

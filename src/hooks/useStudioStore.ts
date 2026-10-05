@@ -522,6 +522,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       layerSpecificNavigation: project.settings.layerSpecificNavigation,
       songLoaded: true,
       currentTime: 0,
+      selectedRowIndex: null,
       selectedMarker: null,
     });
     return { audioUri: project.audio.uri, audioFilename: project.audio.filename };

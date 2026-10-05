@@ -216,15 +216,15 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 7 — Precision detail mode
 
-- [ ] 16. Build the detail panel and workspace owner
-  - [ ] 16.1 Create `src/components/ui/waveform/WaveformDetailPanel.tsx`
+- [x] 16. Build the detail panel and workspace owner
+  - [x] 16.1 Create `src/components/ui/waveform/WaveformDetailPanel.tsx`
     - Wrap the repurposed `WaveformCanvas`; set the viewport to the selected
       row's `[startMs, endMs)` on open; support accurate scrubbing and marker
       adjustment equivalent to the continuous waveform; expose a
       `waveform-detail-close` control.
     - _Requirements: 13.3, 13.4_
 
-  - [ ] 16.2 Create `src/components/ui/waveform/WaveformWorkspace.tsx` switcher
+  - [x] 16.2 Create `src/components/ui/waveform/WaveformWorkspace.tsx` switcher
     - Own the wrapped↔detail decision; responsive presentation (fixed panel on
       wide/landscape, full mode switch on phone portrait); on switch, mutate only
       `primaryView`, `selectedRowIndex`, and (on open) the viewport range; on
@@ -233,7 +233,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       of the direct `WrappedWaveform` mount.
     - _Requirements: 13.1, 13.2, 13.5, 13.6_
 
-- [ ] 17. Checkpoint — detail mode
+- [x] 17. Checkpoint — detail mode
   - Run `npx tsc --noEmit` and `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

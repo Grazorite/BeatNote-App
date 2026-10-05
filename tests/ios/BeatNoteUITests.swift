@@ -213,6 +213,26 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
+  func testPrecisionDetailModeOpensAndRestoresWrappedRow() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let detailAction = element("wrapped-row-detail-0")
+    scrollIntoView(detailAction)
+    XCTAssertTrue(detailAction.waitForExistence(timeout: 10) && detailAction.isHittable)
+    let timeBeforeSwitch = element("playback-current-time").label
+    detailAction.tap()
+
+    XCTAssertTrue(element("waveform-detail-panel").waitForExistence(timeout: 10))
+    XCTAssertFalse(element("wrapped-waveform").exists)
+    XCTAssertEqual(element("playback-current-time").label, timeBeforeSwitch)
+
+    element("waveform-detail-close").tap()
+    XCTAssertTrue(element("wrapped-waveform").waitForExistence(timeout: 10))
+    XCTAssertTrue(element("wrapped-row-detail-0").waitForExistence(timeout: 5))
+    XCTAssertEqual(element("playback-current-time").label, timeBeforeSwitch)
+    assertNoGestureRuntimeError()
+  }
+
   func testCsvImportAndShareSheetExport() {
     loadBundledSimulatorAudio()
     element("add-marker").tap()

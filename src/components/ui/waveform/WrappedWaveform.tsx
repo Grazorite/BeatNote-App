@@ -31,6 +31,7 @@ interface WrappedWaveformProps {
   onSeek: (positionMs: number) => void;
   onScrubStart: () => void;
   onScrubEnd: () => void;
+  onSelectForDetail: (rowIndex: number) => void;
 }
 
 const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
@@ -39,6 +40,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   onSeek,
   onScrubStart,
   onScrubEnd,
+  onSelectForDetail,
 }) => {
   const window = useWindowDimensions();
   const isLandscape = window.width > window.height;
@@ -51,6 +53,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
   const addMarker = useStudioStore(state => state.addMarker);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
+  const selectedRowIndex = useStudioStore(state => state.selectedRowIndex);
   const [availableWidth, setAvailableWidth] = useState(Math.max(1, window.width - 16));
   const [scrollOffset, setScrollOffset] = useState(0);
   const [containerHeight, setContainerHeight] = useState(isLandscape ? 288 : 336);
@@ -132,6 +135,16 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     }
     if (isPlaying && !followSuspended) centerActiveRow(true);
   }, [activeRowIndex, centerActiveRow, followPlayhead, followSuspended, isPlaying]);
+
+  useEffect(() => {
+    if (selectedRowIndex == null || selectedRowIndex < 0 || selectedRowIndex >= rows.length) return;
+    const centeredOffset = selectedRowIndex * rowHeight - (containerHeight - rowHeight) / 2;
+    const maxOffset = Math.max(0, rows.length * rowHeight - containerHeight);
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, Math.min(centeredOffset, maxOffset)),
+      animated: false,
+    });
+  }, [containerHeight, rowHeight, rows.length, selectedRowIndex]);
 
   useEffect(() => {
     if (!followSuspended || !followPlayhead || !isPlaying || activeRowIndex < 0) return;
@@ -241,6 +254,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
             onScrubEnd={onScrubEnd}
             onPlaceMarker={handlePlaceMarker}
             onSelectMarker={handleSelectMarker}
+            onSelectForDetail={onSelectForDetail}
           />
         ))}
         <View style={{ height: bottomSpacerHeight }} />

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
@@ -33,6 +33,7 @@ interface WrappedRowProps {
   onScrubEnd: () => void;
   onPlaceMarker: (timestamp: number) => void;
   onSelectMarker: (layerId: LayerId, timestamp: number) => void;
+  onSelectForDetail: (rowIndex: number) => void;
 }
 
 const MARKER_LANE_HEIGHT = 44;
@@ -59,6 +60,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   onScrubEnd,
   onPlaceMarker,
   onSelectMarker,
+  onSelectForDetail,
 }) => {
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
@@ -131,13 +133,21 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
 
   return (
     <View style={[styles.row, { height: rowHeight }]} testID={`wrapped-row-${row.index}`}>
-      <RowGutter
-        startMs={row.startMs}
-        phraseNumber={row.phraseNumber}
-        countLabel={row.countLabel}
-        width={gutterWidth}
-        testID={`wrapped-row-gutter-${row.index}`}
-      />
+      <Pressable
+        accessibilityLabel={`Open detail editor for row ${row.index + 1}`}
+        accessibilityRole="button"
+        onPress={() => onSelectForDetail(row.index)}
+        style={({ pressed }) => pressed && styles.gutterPressed}
+        testID={`wrapped-row-detail-${row.index}`}
+      >
+        <RowGutter
+          startMs={row.startMs}
+          phraseNumber={row.phraseNumber}
+          countLabel={row.countLabel}
+          width={gutterWidth}
+          testID={`wrapped-row-gutter-${row.index}`}
+        />
+      </Pressable>
       <GestureDetector gesture={composedGesture}>
         <View
           style={[styles.canvas, { width: rowPixelWidth, height: waveformHeight }]}
