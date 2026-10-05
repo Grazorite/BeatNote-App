@@ -196,6 +196,40 @@ test.describe('Waveform Features', () => {
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
     });
 
+    test('should reflow row-density presets without changing marker data', async ({ page }) => {
+      await page.goto('/');
+      await loadTestAudio(page, 'long-test-track.m4a');
+
+      const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
+      const box = await gestureArea.boundingBox();
+      expect(box).not.toBeNull();
+      if (!box) return;
+
+      await gestureArea.click({ position: { x: box.width * 0.25, y: 12 } });
+      const annotationField = page.getByTestId('marker-annotation');
+      await annotationField.fill('Keep me');
+      const marker = page.locator('[data-testid^="wrapped-row-marker-vocals-"]');
+      const indicator = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]');
+      await expect(marker).toHaveCount(1);
+      await expect(indicator).toHaveCount(1);
+
+      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:08');
+
+      await page.getByTestId('row-density-preset-spacious').click();
+      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:04');
+      await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
+      await expect(marker).toHaveCount(1);
+      await expect(indicator).toHaveCount(1);
+      await expect(annotationField).toHaveValue('Keep me');
+
+      await page.getByTestId('row-density-preset-compact').click();
+      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:12');
+      await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
+      await expect(marker).toHaveCount(1);
+      await expect(indicator).toHaveCount(1);
+      await expect(annotationField).toHaveValue('Keep me');
+    });
+
     test('follow-playhead toggle and wrapped scroll on long track', async ({ page }) => {
       await page.goto('/');
       await loadTestAudio(page, 'long-test-track.m4a');

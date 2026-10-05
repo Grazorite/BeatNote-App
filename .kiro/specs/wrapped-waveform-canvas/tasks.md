@@ -271,8 +271,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 10 — Row density presets
 
-- [ ] 22. Add row density controls
-  - [ ] 22.1 Add density preset UI driving `rowDensity`
+- [x] 22. Add row density controls
+  - [x] 22.1 Add density preset UI driving `rowDensity`
     - Provide explicit presets (`row-density-preset-{name}`) mapping to
       `phrasesPerRow` 1/2/3 in phrase mode or duration presets in fallback mode;
       changing density reflows rows but never changes marker timestamps.
@@ -280,7 +280,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       continuous).
     - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 23. Checkpoint — density presets
+- [x] 23. Checkpoint — density presets
   - Run `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

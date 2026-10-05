@@ -16,6 +16,7 @@ import { useWaveformData } from '../../../hooks/useWaveformData';
 import { useWrappedRows } from '../../../hooks/useWrappedRows';
 import {
   resolveGutterWidth,
+  resolveRowDensity,
   resolveRowHeight,
   computeVisibleRange,
   type WrappedRow as WrappedRowModel,
@@ -26,6 +27,7 @@ import {
   timestampToRow,
 } from '../../../utils/timelineMapping';
 import WrappedRow, { type WrappedLayerMarkers } from './WrappedRow';
+import RowDensityControls from './RowDensityControls';
 import { wrappedWaveformStyles as styles } from '../../../styles/components/waveform/wrappedWaveform';
 import { colors } from '../../../styles/common';
 
@@ -56,7 +58,9 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const followPlayhead = useStudioStore(state => state.followPlayhead);
   const loopStartMs = useStudioStore(state => state.loopStartMs);
   const loopEndMs = useStudioStore(state => state.loopEndMs);
+  const rowDensity = useStudioStore(state => state.rowDensity);
   const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
+  const setRowDensity = useStudioStore(state => state.setRowDensity);
   const addMarker = useStudioStore(state => state.addMarker);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const selectedRowIndex = useStudioStore(state => state.selectedRowIndex);
@@ -68,6 +72,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const suspendedSawActiveOutside = useRef(false);
   const rowHeight = resolveRowHeight(isLandscape);
   const gutterWidth = resolveGutterWidth(isLandscape);
+  const effectiveRowDensity = resolveRowDensity(rowDensity, isLandscape);
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const { rows, visibleRange, rowPixelWidth, activeRowIndex } = useWrappedRows(
     availableWidth,
@@ -223,6 +228,11 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     <View style={styles.container} testID="waveform-container">
       {loading && <Text style={styles.loadingText}>Preparing waveform</Text>}
       <View style={styles.followToolbar}>
+        <RowDensityControls
+          mode={effectiveRowDensity.mode}
+          density={effectiveRowDensity}
+          onChange={setRowDensity}
+        />
         <Pressable
           accessibilityRole="switch"
           accessibilityState={{ checked: followPlayhead && !followSuspended }}

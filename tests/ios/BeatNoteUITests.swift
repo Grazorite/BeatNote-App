@@ -193,6 +193,36 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
+  func testWrappedRowDensityPresetsReflowWithoutChangingMarkers() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let defaultDensity = element("row-density-preset-default")
+    scrollIntoView(defaultDensity)
+    XCTAssertTrue(defaultDensity.waitForExistence(timeout: 5) && defaultDensity.isHittable)
+    defaultDensity.tap()
+    assertSecondRowStarts(at: "0:08")
+
+    let row = element("wrapped-row-gesture-area-0")
+    scrollIntoView(row)
+    XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.1)).tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+
+    let spacious = element("row-density-preset-spacious")
+    scrollIntoView(spacious)
+    XCTAssertTrue(spacious.waitForExistence(timeout: 5) && spacious.isHittable)
+    spacious.tap()
+    assertSecondRowStarts(at: "0:04")
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+
+    let compact = element("row-density-preset-compact")
+    XCTAssertTrue(compact.waitForExistence(timeout: 5) && compact.isHittable)
+    compact.tap()
+    assertSecondRowStarts(at: "0:12")
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    assertNoGestureRuntimeError()
+  }
+
   func testWrappedFollowPlayheadTracksDistantRow() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
@@ -418,6 +448,12 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertFalse(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "View config getter callback")).firstMatch.exists
     )
+  }
+
+  private func assertSecondRowStarts(at timestamp: String) {
+    let gutter = element("wrapped-row-gutter-1")
+    XCTAssertTrue(gutter.waitForExistence(timeout: 5))
+    XCTAssertEqual(gutter.label, "Row starts at \(timestamp)")
   }
 
   private func playbackSeconds(from label: String) -> Int {

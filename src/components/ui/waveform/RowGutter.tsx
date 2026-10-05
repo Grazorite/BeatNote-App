@@ -25,10 +25,15 @@ const RowGutter: React.FC<RowGutterProps> = ({
   testID,
 }) => {
   const hasPhraseLabel = phraseNumber !== undefined && countLabel !== undefined;
+  const startTime = formatTime(startMs);
 
   return (
-    <View style={[styles.container, { width }]} testID={testID}>
-      <Text style={styles.time}>{formatTime(startMs)}</Text>
+    <View
+      style={[styles.container, { width }]}
+      accessibilityLabel={`Row starts at ${startTime}`}
+      testID={testID}
+    >
+      <Text style={styles.time}>{startTime}</Text>
       {hasPhraseLabel && (
         <>
           <Text style={styles.phrase}>Phrase {phraseNumber}</Text>
