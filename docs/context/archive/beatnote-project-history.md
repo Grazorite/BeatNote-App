@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 5 seeking, marker placement/selection, and shared annotation selection
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/hooks/useStudioStore.ts`, `tests/unit/studioStore.wrapped.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 4 bounded row rendering and unified-slot integration
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `src/components/layout/MainContent.tsx`, `src/hooks/useWaveformData.ts`, `tests/waveform-features.spec.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phases 1-2: deterministic row geometry, timeline mapping, and single-store state with unit/property coverage
@@ -82,6 +84,54 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-04 — Complete wrapped MVP gestures and marker selection
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `fc96587`
+**Kanban moved:** Wrapped-canvas Phase 5 gestures → Done; Phase 6 follow-playhead remains In Progress
+
+**Changed:**
+
+- Added JS-thread row gestures using the proven horizontal-intent and vertical-yield thresholds:
+  lower-row taps seek, horizontal drags scrub, and vertical intent remains available to the wrapped
+  scroll view.
+- Added a visible 44 px marker lane. Taps select the nearest marker within a 22 px radius or place a
+  new marker on the active layer, then seek to that timestamp; other layers remain unchanged.
+- Added transient single-store `selectedMarker` state and migrated `AnnotationField` from local
+  selection so wrapped marker selection and annotation editing share one contract. Selection clears
+  when its marker is removed, markers are cleared, a song is unloaded, or a project is loaded.
+- DSH-Qwen session `session-0ba4df52-3819-4e5b-a278-cc11f63a79b1` completed a read-only gesture and
+  test review. Codex retained direct ownership of all UI/store integration and adjusted the proposal
+  so marker actions seek as well, preserving deterministic annotation synchronization.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `docs/context/archive/beatnote-project-history.md`,
+`src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `src/hooks/useStudioStore.ts`,
+`tests/ios/BeatNoteUITests.swift`, `tests/unit/studioStore.wrapped.test.ts`,
+`tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 51 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 62 passed,
+  including seek-only, marker placement/selection, annotation enablement, and drag stability.
+- Focused `IOS_TEST_ONLY=testWrappedRowSeekMarkerAndDragGestures npm run test:ios:ui` → 1 passed on
+  iPhone 17 Pro / iOS 26.2; result bundle `ios/build/BeatNoteUITests-1791128250826.xcresult`.
+
+**Not verified / known gaps:**
+
+- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
+  blocks the geometry-guarded landscape cases; Phase 5 portrait native behavior is verified.
+- Vertical-scroll yielding is configured with the proven thresholds and exercised indirectly, but a
+  dedicated XCTest scroll-offset assertion is not yet present.
+- Phase 4 and Phase 5 changes were committed together in `fc96587`.
+
+**Next agent should:**
+
+- Implement Phase 6 follow-playhead suspension/re-arm behavior, then add focused scroll acceptance
+  before proceeding to the precision detail workspace.
 
 ### 2026-10-04 — Integrate bounded wrapped waveform rendering
 
