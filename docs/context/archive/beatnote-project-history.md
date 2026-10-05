@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 4 bounded row rendering and unified-slot integration
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `src/components/layout/MainContent.tsx`, `src/hooks/useWaveformData.ts`, `tests/waveform-features.spec.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phases 1-2: deterministic row geometry, timeline mapping, and single-store state with unit/property coverage
       <sub>**Key Artifacts:** `src/utils/rowLayout.ts`, `src/utils/timelineMapping.ts`, `src/hooks/useStudioStore.ts`, `tests/unit/rowLayout.test.ts`, `tests/unit/timelineMapping.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Add standalone wrapped-row gutter scaffolding and backwards-compatible wrapped preference persistence
@@ -80,6 +82,53 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-04 — Integrate bounded wrapped waveform rendering
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `fc96587`
+**Kanban moved:** Wrapped-canvas Phase 4 rendering → Done; Phase 5 gestures remains In Progress
+
+**Changed:**
+
+- Added `WrappedRow` and `WrappedWaveform` with aligned gutters, decoded per-row waveform slices,
+  native-safe flat timing bars when real peaks are unavailable, layer-coloured markers, clipped
+  progress, and an active-row-only playhead.
+- Mounted the wrapped view in the unified waveform slot while preserving stem feature gating and the
+  overview scrollbar. Rendering uses the design-approved fixed-height spacer window with three-row
+  overscan, so mounted row components remain bounded independently of song length.
+- Added stable wrapped-rendering selectors and a loaded-audio Playwright acceptance check. Direct
+  review also corrected the time-zero playhead so its stroke is inset within the SVG bounds.
+- Delegation was skipped after the required preflight found no running Ollama server or DSH process;
+  the local-agent fallback was used without starting host services automatically.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `AGENTS.md`,
+`docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`,
+`src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `src/hooks/useWaveformData.ts`,
+`src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`,
+`src/utils/rowLayout.ts`, `tests/unit/rowLayout.test.ts`, `tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 50 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 61 passed,
+  including the new loaded-song wrapped-row check.
+- `git diff --check` → clean before documentation reconciliation.
+
+**Not verified / known gaps:**
+
+- Phase 5 seeking and marker gestures are intentionally absent; the overview scrollbar remains the
+  available seek surface until that phase lands.
+- Native wrapped rendering, vertical nested scrolling, and touch behavior were not rerun in the iOS
+  simulator in this phase. Existing simulator landscape-rotation and physical-device gaps remain.
+- Expo reported the existing package-version compatibility warnings during web startup; dependencies
+  were not changed as part of this feature slice.
+
+**Next agent should:**
+
+- Implement Phase 5 row tap/drag seeking and marker placement under direct review, then run the web
+  gate and a focused iOS simulator acceptance pass before proceeding to follow-playhead behavior.
 
 ### 2026-10-04 — Complete wrapped-row hook with Qwen draft review
 
