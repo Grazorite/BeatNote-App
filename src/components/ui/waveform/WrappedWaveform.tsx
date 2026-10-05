@@ -20,7 +20,11 @@ import {
   computeVisibleRange,
   type WrappedRow as WrappedRowModel,
 } from '../../../utils/rowLayout';
-import { clipRowProgress, timestampToRow } from '../../../utils/timelineMapping';
+import {
+  clipRowProgress,
+  loopSegmentsForRows,
+  timestampToRow,
+} from '../../../utils/timelineMapping';
 import WrappedRow, { type WrappedLayerMarkers } from './WrappedRow';
 import { wrappedWaveformStyles as styles } from '../../../styles/components/waveform/wrappedWaveform';
 import { colors } from '../../../styles/common';
@@ -50,6 +54,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const activeLayerId = useStudioStore(state => state.activeLayerId);
   const isPlaying = useStudioStore(state => state.isPlaying);
   const followPlayhead = useStudioStore(state => state.followPlayhead);
+  const loopStartMs = useStudioStore(state => state.loopStartMs);
+  const loopEndMs = useStudioStore(state => state.loopEndMs);
   const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
   const addMarker = useStudioStore(state => state.addMarker);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
@@ -87,6 +93,13 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color || colors.accent;
   const realPeaks = waveformData?.source === 'decoded' ? waveformData.peaks : undefined;
   const peakDuration = waveformData?.source === 'decoded' ? waveformData.duration : songDuration;
+  const loopSegmentsByRow = useMemo(() => {
+    if (loopStartMs == null || loopEndMs == null) return new Map();
+    return new Map(
+      loopSegmentsForRows(rows, loopStartMs, loopEndMs)
+        .map(segment => [segment.rowIndex, segment] as const),
+    );
+  }, [loopEndMs, loopStartMs, rows]);
 
   const markersForRow = useCallback((row: WrappedRowModel): WrappedLayerMarkers[] => (
     layers
@@ -249,6 +262,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
             markersByLayer={markersForRow(row)}
             peaks={realPeaks}
             totalDuration={peakDuration}
+            loopSegment={loopSegmentsByRow.get(row.index)}
             onSeek={onSeek}
             onScrubStart={onScrubStart}
             onScrubEnd={onScrubEnd}

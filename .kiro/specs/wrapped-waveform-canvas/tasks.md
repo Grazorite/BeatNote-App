@@ -239,19 +239,19 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 8 — A/B loop multi-row highlight
 
-- [ ] 18. Wire multi-row A/B loop highlighting
-  - [ ] 18.1 Render loop segments in `WrappedRow.tsx` / `WrappedWaveform.tsx`
+- [x] 18. Wire multi-row A/B loop highlighting
+  - [x] 18.1 Render loop segments in `WrappedRow.tsx` / `WrappedWaveform.tsx`
     - Compute per-row segments with `loopSegmentsForRows` from `loopStartMs`/
       `loopEndMs`; highlight each segment on its row; treat `loopStartMs >
       loopEndMs` as inactive; assign boundary loop points to the later row.
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 15.7_
 
-  - [ ]* 18.2 Add unit tests for the loop-wiring selector/helper
+  - [x]* 18.2 Add unit tests for the loop-wiring selector/helper
     - If a non-pure helper selects active loop bounds from the store, test it;
       otherwise rely on the Phase 1 `loopSegmentsForRows` property tests.
     - _Requirements: 12.1, 12.5_
 
-- [ ] 19. Checkpoint — A/B loop
+- [x] 19. Checkpoint — A/B loop
   - Run `npx jest --testPathPatterns=unit` and `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

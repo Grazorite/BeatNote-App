@@ -6,7 +6,7 @@ import type { LayerId } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
-import { pointerToTimestamp } from '../../../utils/timelineMapping';
+import { pointerToTimestamp, type RowLoopSegment } from '../../../utils/timelineMapping';
 import RowGutter from './RowGutter';
 import { wrappedRowStyles as styles } from '../../../styles/components/waveform/wrappedRow';
 import { colors } from '../../../styles/common';
@@ -28,6 +28,7 @@ interface WrappedRowProps {
   markersByLayer: WrappedLayerMarkers[];
   peaks?: number[];
   totalDuration: number;
+  loopSegment?: RowLoopSegment;
   onSeek: (positionMs: number) => void;
   onScrubStart: () => void;
   onScrubEnd: () => void;
@@ -44,6 +45,41 @@ const markerX = (row: WrappedRowModel, timestamp: number, width: number): number
   return ((timestamp - row.startMs) / duration) * width;
 };
 
+interface LoopGeometry { x: number; width: number; }
+
+/**
+ * Map a RowLoopSegment into pixel geometry within the row.
+ * Returns null for missing/empty/non-finite/reversed segments or when the
+ * segment does not overlap the row's [startMs, endMs] window.
+ */
+const loopGeometry = (
+  row: WrappedRowModel,
+  width: number,
+  segment: RowLoopSegment | undefined,
+): LoopGeometry | null => {
+  if (
+    !segment
+    || !Number.isFinite(segment.fromMs)
+    || !Number.isFinite(segment.toMs)
+    || segment.toMs <= segment.fromMs
+    || width <= 0
+  ) return null;
+
+  const span = Math.max(0, row.endMs - row.startMs);
+  if (span <= 0) return null;
+
+  const fromMs = Math.max(segment.fromMs, row.startMs);
+  const toMs = Math.min(segment.toMs, row.endMs);
+  if (!(toMs > fromMs)) return null;
+
+  const x = Math.min(width, Math.max(0, ((fromMs - row.startMs) / span) * width));
+  const right = Math.min(width, Math.max(0, ((toMs - row.startMs) / span) * width));
+  const rectWidth = Math.max(0, right - x);
+  if (rectWidth <= 0) return null;
+
+  return { x, width: rectWidth };
+};
+
 const WrappedRow: React.FC<WrappedRowProps> = ({
   row,
   rowPixelWidth,
@@ -55,6 +91,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   markersByLayer,
   peaks,
   totalDuration,
+  loopSegment,
   onSeek,
   onScrubStart,
   onScrubEnd,
@@ -71,6 +108,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     : rowPixelWidth / 2;
   const waveformHeight = Math.max(1, rowHeight - 2);
   const clipId = `wrapped-row-progress-${row.index}`;
+  const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
   const path = useMemo(() => {
     if (!peaks?.length || rowPixelWidth <= 0 || totalDuration <= 0) return '';
     return generateWaveformPath(
@@ -158,6 +196,17 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             height={waveformHeight}
             testID={`wrapped-row-waveform-${row.index}`}
           >
+          {loopRect && (
+            <Rect
+              x={loopRect.x}
+              y={0}
+              width={loopRect.width}
+              height={waveformHeight}
+              fill={colors.accent}
+              opacity={0.15}
+              testID={`wrapped-row-loop-${row.index}`}
+            />
+          )}
           <Rect
             x={0}
             y={0}
