@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 6 follow-playhead auto-scroll, suspension, re-arm, and toggle
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 5 seeking, marker placement/selection, and shared annotation selection
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/hooks/useStudioStore.ts`, `tests/unit/studioStore.wrapped.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/design.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 4 bounded row rendering and unified-slot integration
@@ -84,6 +86,53 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-05 — Complete follow-playhead refinement
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `47f95a5`
+**Kanban moved:** Wrapped-canvas Phase 6 follow-playhead → Done; Phase 7 precision detail mode remains In Progress
+
+**Changed:**
+
+- Added active-row auto-centering during playback, a persisted follow preference toggle, and a
+  transient manual-scroll suspension state. Suspended follow re-arms only after the active row first
+  leaves and then returns to the actual visible window; the toggle can also resume immediately.
+- Added compact `Follow: On`, `Follow: Off`, and `Follow: Suspended` states plus native drag and
+  web-wheel suspension handling without persisting transient scroll state.
+- Extended the long-track web fixture helper and acceptance coverage for follow toggling,
+  auto-scroll, suspension, explicit resume, and automatic re-arm. Added focused portrait XCTest
+  coverage for a distant-row seek and follow toggle behavior.
+- A bounded DSH-Qwen test delegation timed out without returning a task ID after writing only its
+  assigned test files. Direct review corrected pointer positioning and assertion reliability before
+  accepting the draft; UI integration remained under Codex ownership.
+
+**Key Artifacts** (from `git diff --name-only`): `.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`AGENTS.md`, `docs/context/archive/beatnote-project-history.md`,
+`src/components/ui/waveform/WrappedWaveform.tsx`,
+`src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`,
+`tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 51 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 63 passed.
+- Focused `IOS_TEST_ONLY=testWrappedFollowPlayheadTracksDistantRow npm run test:ios:ui` → 1 passed
+  on iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791174843069.xcresult`.
+- `git diff --check` → clean before documentation reconciliation.
+
+**Not verified / known gaps:**
+
+- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
+  blocks the geometry-guarded landscape cases; Phase 6 portrait native behavior is verified.
+- Native manual-scroll suspension and automatic re-arm are covered by the shared implementation and
+  web acceptance, but the focused XCTest covers distant-row tracking and toggling only.
+- Phase 7 precision detail mode is not implemented.
+
+**Next agent should:**
+
+- Implement Phase 7 `WaveformDetailPanel` and `WaveformWorkspace` under direct UI review, preserving
+  wrapped scroll restoration and keeping playback/markers neutral during view switches.
 
 ### 2026-10-04 — Complete wrapped MVP gestures and marker selection
 
