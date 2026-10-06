@@ -7,15 +7,22 @@ export const waveformWorkspaceStyles = StyleSheet.create({
     alignSelf: 'center',
   },
   dockedWorkspace: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
     gap: dimensions.spacing.sm,
   },
   wrappedPane: {
     width: '100%',
   },
+  wrappedPaneDocked: {
+    flex: 1,
+    minWidth: 0,
+  },
   detailPane: {
     width: '100%',
   },
   detailPaneDocked: {
-    width: '100%',
+    flex: 1,
+    minWidth: 0,
   },
 });

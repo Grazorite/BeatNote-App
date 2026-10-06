@@ -293,6 +293,15 @@ test.describe('Waveform Features', () => {
       await page.getByTestId('sidebar-toggle').click();
       await loadTestAudio(page, 'long-test-track.m4a');
 
+      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:04');
+      const firstRow = page.getByTestId('wrapped-row-gesture-area-0');
+      const firstRowBox = await firstRow.boundingBox();
+      expect(firstRowBox).not.toBeNull();
+      if (!firstRowBox) return;
+      await firstRow.click({ position: { x: firstRowBox.width * 0.25, y: 12 } });
+      const annotationField = page.getByTestId('marker-annotation');
+      await annotationField.fill('Survives resize');
+
       const initialTime = await page.getByTestId('playback-current-time').textContent();
       const initialMarkers = await page.getByTestId('grand-total-markers').textContent();
       await page.getByTestId('wrapped-row-detail-0').click();
@@ -317,8 +326,31 @@ test.describe('Waveform Features', () => {
 
       await page.setViewportSize({ width: 844, height: 390 });
       await page.getByTestId('wrapped-row-detail-0').click();
-      await expect(page.getByTestId('waveform-detail-panel')).toBeVisible();
-      await expect(page.getByTestId('wrapped-waveform')).toBeVisible();
+      const wideDetail = page.getByTestId('waveform-detail-panel');
+      const wideWrapped = page.getByTestId('wrapped-waveform');
+      await expect(wideDetail).toBeVisible();
+      await expect(wideWrapped).toBeVisible();
+      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:08');
+      await expect(page.getByTestId('grand-total-markers')).toHaveText(initialMarkers || '');
+      const resizedIndicator = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]');
+      await expect(resizedIndicator).toHaveCount(1);
+
+      const wrappedBox = await wideWrapped.boundingBox();
+      const wideDetailBox = await wideDetail.boundingBox();
+      expect(wrappedBox).not.toBeNull();
+      expect(wideDetailBox).not.toBeNull();
+      if (!wrappedBox || !wideDetailBox) return;
+      expect(wrappedBox.x + wrappedBox.width).toBeLessThanOrEqual(wideDetailBox.x);
+      expect(wrappedBox.width).toBeGreaterThan(200);
+      expect(wideDetailBox.width).toBeGreaterThan(200);
+      await expect.poll(() => page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      )).toBe(true);
+
+      await page.getByTestId('waveform-detail-close').click();
+      await resizedIndicator.scrollIntoViewIfNeeded();
+      await resizedIndicator.click();
+      await expect(annotationField).toHaveValue('Survives resize');
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
     });
 

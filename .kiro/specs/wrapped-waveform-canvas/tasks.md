@@ -286,8 +286,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 11 — Responsive styling and reflow
 
-- [ ] 24. Finalize responsive layout and reflow
-  - [ ] 24.1 Apply portrait/landscape layout, safe areas, and keyboard handling
+- [x] 24. Finalize responsive layout and reflow
+  - [x] 24.1 Apply portrait/landscape layout, safe areas, and keyboard handling
     - Portrait stacks the scroll area above the overview scrollbar and control
       dock; landscape/wide docks the detail panel beside the rows; respect
       safe-area insets and `keyboardShouldPersistTaps="handled"`; orientation
@@ -295,7 +295,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       default) while preserving marker timestamps.
     - _Requirements: 11.1, 11.2, 16.5_
 
-- [ ] 25. Checkpoint — responsive styling
+- [x] 25. Checkpoint — responsive styling
   - Run `npx tsc --noEmit` and `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

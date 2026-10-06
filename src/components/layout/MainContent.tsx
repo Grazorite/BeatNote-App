@@ -79,9 +79,6 @@ const MainContent: React.FC<MainContentProps> = ({
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
   const isLandscapePhone = isMobile && screenData.width > screenData.height;
-  const containerWidth = isMobile 
-    ? screenData.width - 16
-    : Math.max(900, screenData.width - 320); // Desktop: account for sidebar
   const projectControls = (
     <ProjectControls
       onLoadSong={loadSong}
@@ -198,7 +195,7 @@ const MainContent: React.FC<MainContentProps> = ({
       stickyHeaderIndices={[0]}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-      contentContainerStyle={[styles.container, { minWidth: containerWidth }]}
+      contentContainerStyle={styles.container}
     >
       {projectControls}
       {waveform}

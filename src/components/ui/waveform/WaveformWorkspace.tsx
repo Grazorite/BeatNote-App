@@ -64,7 +64,7 @@ const WaveformWorkspace: React.FC<WaveformWorkspaceProps> = ({
       testID="waveform-workspace"
     >
       {showWrapped && (
-        <View style={styles.wrappedPane}>
+        <View style={[styles.wrappedPane, showDockedDetail && styles.wrappedPaneDocked]}>
           <WrappedWaveform
             audioUri={audioUri || undefined}
             layers={layers}
