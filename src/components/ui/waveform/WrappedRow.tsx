@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
@@ -14,6 +14,7 @@ import { colors } from '../../../styles/common';
 
 export interface WrappedLayerMarkers {
   layerId: LayerId;
+  name: string;
   color: string;
   timestamps: number[];
   annotatedTimestamps: number[];
@@ -45,6 +46,13 @@ const ANNOTATION_CLUSTER_THRESHOLD_PX = 8;
 const ANNOTATION_INDICATOR_Y = 12;
 const ANNOTATION_BADGE_WIDTH = 28;
 const ANNOTATION_BADGE_HEIGHT = 18;
+
+const formatAccessibleTime = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
 
 const markerX = (row: WrappedRowModel, timestamp: number, width: number): number => {
   const duration = Math.max(1, row.endMs - row.startMs);
@@ -115,6 +123,14 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const waveformHeight = Math.max(1, rowHeight - 2);
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
+  const rowDuration = Math.max(0, row.endMs - row.startMs);
+  const playbackPosition = Math.round(row.startMs + rowDuration * safeProgress);
+  const playbackValueText = `Playback at ${formatAccessibleTime(playbackPosition)}`;
+  const rowLabel = [
+    `Row ${row.index + 1}`,
+    `${formatAccessibleTime(row.startMs)} to ${formatAccessibleTime(row.endMs)}`,
+    row.phraseNumber == null ? null : `phrase ${row.phraseNumber}`,
+  ].filter(Boolean).join(', ');
   const annotationClusters = useMemo(() => clusterAnnotationIndicators(
     markersByLayer.flatMap(layer => layer.annotatedTimestamps.map(timestamp => ({
       layerId: layer.layerId,
@@ -185,7 +201,25 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const composedGesture = Gesture.Race(tapGesture, panGesture);
 
   return (
-    <View style={[styles.row, { height: rowHeight }]} testID={`wrapped-row-${row.index}`}>
+    <View style={[styles.row, { height: rowHeight }]}>
+      <View
+        accessible
+        accessibilityLabel={rowLabel}
+        accessibilityRole="adjustable"
+        accessibilityValue={isActiveRow ? {
+          min: row.startMs,
+          max: row.endMs,
+          now: playbackPosition,
+          text: playbackValueText,
+        } : undefined}
+        aria-valuemax={isActiveRow ? row.endMs : undefined}
+        aria-valuemin={isActiveRow ? row.startMs : undefined}
+        aria-valuenow={isActiveRow ? playbackPosition : undefined}
+        aria-valuetext={isActiveRow ? playbackValueText : undefined}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        testID={`wrapped-row-${row.index}`}
+      />
       <Pressable
         accessibilityLabel={`Open detail editor for row ${row.index + 1}`}
         accessibilityRole="button"
@@ -287,6 +321,10 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
           {markersByLayer.flatMap(layer => layer.timestamps.map(timestamp => (
             <Line
               key={`${layer.layerId}-${timestamp}`}
+              accessible
+              accessibilityLabel={`${layer.name} marker at ${formatAccessibleTime(timestamp)}, ${
+                layer.annotatedTimestamps.includes(timestamp) ? 'annotated' : 'not annotated'
+              }`}
               x1={markerX(row, timestamp, rowPixelWidth)}
               y1={0}
               x2={markerX(row, timestamp, rowPixelWidth)}

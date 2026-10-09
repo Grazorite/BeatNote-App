@@ -301,8 +301,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 12 — Accessibility and test identifiers
 
-- [ ] 26. Add accessibility metadata and stable test IDs
-  - [ ] 26.1 Apply roles, labels, values, and test IDs across wrapped components
+- [x] 26. Add accessibility metadata and stable test IDs
+  - [x] 26.1 Apply roles, labels, values, and test IDs across wrapped components
     - Row container: `accessibilityRole="adjustable"` with a label describing
       index, time range, and phrase; active row exposes an accessibility value
       reflecting playback position; marker indicators labelled with layer, time,
@@ -313,7 +313,7 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       and `row-density-preset-{name}`.
     - _Requirements: 14.1, 14.2, 14.3, 14.4_
 
-- [ ] 27. Checkpoint — accessibility
+- [x] 27. Checkpoint — accessibility
   - Run `npm test`.
   - Ensure all tests pass, ask the user if questions arise.
 

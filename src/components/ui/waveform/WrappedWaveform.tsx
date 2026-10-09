@@ -111,6 +111,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       .filter(layer => layer.isVisible)
       .map(layer => ({
         layerId: layer.id,
+        name: layer.name,
         color: layer.color,
         timestamps: layer.markers.filter(timestamp => timestampToRow(rows, timestamp) === row.index),
         annotatedTimestamps: layer.markers.filter(timestamp =>
@@ -234,6 +235,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
           onChange={setRowDensity}
         />
         <Pressable
+          accessibilityLabel="Follow playhead"
           accessibilityRole="switch"
           accessibilityState={{ checked: followPlayhead && !followSuspended }}
           onPress={handleFollowToggle}

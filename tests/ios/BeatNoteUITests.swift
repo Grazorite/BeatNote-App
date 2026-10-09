@@ -152,6 +152,12 @@ final class BeatNoteUITests: XCTestCase {
   func testWrappedRowSeekMarkerAndDragGestures() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
+    let accessibleRow = element("wrapped-row-0")
+    scrollIntoView(accessibleRow)
+    XCTAssertTrue(accessibleRow.waitForExistence(timeout: 10))
+    XCTAssertEqual(accessibleRow.label, "Row 1, 0:00 to 0:04, phrase 1")
+    XCTAssertTrue(String(describing: accessibleRow.value ?? "").contains("Playback at 0:00"))
+
     let row = element("wrapped-row-gesture-area-0")
     scrollIntoView(row)
     XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
@@ -169,10 +175,21 @@ final class BeatNoteUITests: XCTestCase {
     let markerPosition = row.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.1))
     markerPosition.tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    let markerIndicator = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-marker-vocals-")
+    ).firstMatch
+    XCTAssertTrue(markerIndicator.waitForExistence(timeout: 5))
+    XCTAssertTrue(markerIndicator.label.contains("Vocals marker"))
+    XCTAssertTrue(markerIndicator.label.contains("not annotated"))
     let annotation = app.textFields["marker-annotation"]
     XCTAssertTrue(annotation.isEnabled)
     annotation.tap()
     annotation.typeText("Row note")
+    let annotatedMarker = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", ", annotated"),
+      object: markerIndicator
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [annotatedMarker], timeout: 5), .completed)
     let annotationIndicator = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-annotation-vocals-")
     ).firstMatch

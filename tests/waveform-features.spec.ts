@@ -136,6 +136,54 @@ test.describe('Waveform Features', () => {
       await expect(page.getByTestId('wrapped-row-playhead-0')).toBeAttached();
     });
 
+    test('should expose wrapped controls and markers to assistive technology', async ({ page }) => {
+      await page.goto('/');
+      await loadTestAudio(page);
+
+      const activeRow = page.getByTestId('wrapped-row-0');
+      // React Native Web maps the native "adjustable" role to the ARIA slider role.
+      await expect(activeRow).toHaveAttribute('role', 'slider');
+      await expect(activeRow).toHaveAttribute('aria-label', /Row 1, 0:00 to 0:08, phrase 1/);
+      await expect(activeRow).toHaveAttribute('aria-valuetext', /Playback at 0:00/);
+
+      await expect(page.getByTestId('wrapped-row-gutter-0')).toHaveAttribute(
+        'aria-label',
+        'Row starts at 0:00',
+      );
+      await expect(page.getByTestId('wrapped-follow-toggle')).toHaveAttribute(
+        'aria-label',
+        'Follow playhead',
+      );
+      await expect(page.getByTestId('row-density-preset-default')).toHaveAttribute(
+        'aria-label',
+        'Default',
+      );
+
+      const detailAction = page.getByTestId('wrapped-row-detail-0');
+      await detailAction.focus();
+      await detailAction.press('Enter');
+      await expect(page.getByTestId('waveform-detail-panel')).toBeVisible();
+      await expect(page.getByTestId('waveform-detail-close')).toHaveAttribute(
+        'aria-label',
+        'Close waveform details',
+      );
+      await page.getByTestId('waveform-detail-close').click();
+      await expect(page.getByTestId('wrapped-waveform')).toBeVisible();
+
+      const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
+      const box = await gestureArea.boundingBox();
+      expect(box).not.toBeNull();
+      if (!box) return;
+
+      await gestureArea.click({ position: { x: box.width * 0.4, y: 12 } });
+      const marker = page.locator('[data-testid^="wrapped-row-marker-vocals-"]');
+      await expect(marker).toHaveAttribute('aria-label', /Vocals marker at 0:0[1-4], not annotated/);
+
+      await page.getByTestId('marker-annotation').fill('Accessible note');
+      await expect(marker).toHaveAttribute('aria-label', /Vocals marker at 0:0[1-4], annotated/);
+      await expect(page.locator('[data-testid^="wrapped-row-annotation-vocals-"]')).toBeVisible();
+    });
+
     test('should separate seek gestures from marker-lane gestures', async ({ page }) => {
       await page.goto('/');
       await loadTestAudio(page);
