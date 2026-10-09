@@ -54,7 +54,7 @@ potentially adding a hybrid path later.
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 68 passing (8 suites; row-density preset coverage added) |
 | iOS UI tests | 14/14 passing on iPhone 17 Pro Max / iOS 26.2, including portrait and landscape |
-| E2E spec files | 5 (Playwright, 67 passing) |
+| E2E spec files | 5 (Playwright, 68 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -110,6 +110,8 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Redesign the phone workspace as a fixed, single-layer canvas with no page/action-row scrolling
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/quality-assurance.spec.ts`, `tests/ui-components.spec.ts`</sub>
 - [x] Complete wrapped-canvas Phases 14-15 native acceptance and renderer cleanup
       <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`, `tests/ios/BeatNoteUITests.swift`; removed `src/components/ui/waveform/SimpleWaveform.tsx`</sub>
 - [x] Implement wrapped-canvas Phase 12 accessibility metadata and stable test identifiers
@@ -118,8 +120,6 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/styles/components/waveform/waveformWorkspace.ts`, `tests/waveform-features.spec.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 10 explicit row-density presets and timestamp-safe reflow
       <sub>**Key Artifacts:** `src/components/ui/waveform/RowDensityControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/rowDensityControls.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `src/utils/rowDensityPresets.ts`, `tests/unit/rowDensityPresets.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 9 compact annotation indicators, clustering, and detail-on-tap
-      <sub>**Key Artifacts:** `src/utils/annotationClusters.ts`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -193,6 +193,51 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-09 — Fix the phone workspace to one screen
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `8b51e7d`
+**Kanban moved:** Fixed single-layer phone workspace → Done
+
+**Changed:**
+
+- Replaced portrait's page and action-row scrollers with a fixed safe-area workspace. The wrapped
+  waveform is now the only vertically scrollable surface, while the overview, transport, marker
+  controls, and annotation field remain simultaneously reachable.
+- Converted phone project actions to a compact fixed icon row, reduced waveform rows and controls,
+  and hid phone-only layer, density, and follow chrome without removing desktop controls.
+- Pinned phone editing to the canonical `vocals` lane while retaining all six stable layer IDs in
+  persisted projects for compatibility, desktop use, and future V2 expansion.
+- Updated the durable V1 product scope and replaced superseded native scroll/density assertions with
+  fixed-layout, single-layer, gesture, follow-playhead, and reachability acceptance.
+
+**Key Artifacts** (from implementation commit `8b51e7d`):
+`.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`,
+`src/components/layout/MainContent.tsx`, `src/components/ui/controls/ProjectControls.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`,
+`src/styles/layout/mainContent.ts`, `tests/ios/BeatNoteUITests.swift`,
+`tests/quality-assurance.spec.ts`, `tests/ui-components.spec.ts`.
+
+**Verified:**
+
+- Device Hub visual inspection on iPhone 17 Pro Max / iOS 26.2 → six waveform rows, overview, both
+  control rows, annotation field, and all project actions fit in portrait without page scrolling.
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed,
+  including a loaded-track 375×667 viewport geometry check with no page/action-row overflow.
+- Elevated full `IOS_SIMULATOR_ID=8716E9DD-B2FC-4614-8691-DC517F86B82E npm run test:ios:ui`
+  → 14/14 passed; result bundle `ios/build/BeatNoteUITests-1791532193804.xcresult` was inspected.
+  The final focused single-layer case also passed in `BeatNoteUITests-1791532576347.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device audio interruptions, VoiceOver, safe-area/orientation behavior, and completion of
+  an external share remain outstanding. Additional stored lanes are preserved but intentionally not
+  selectable in the V1 phone editor.
+
+**Next agent should:**
+
+- Run the physical-device acceptance checklist, then address the utility/store unit-test backlog.
 
 ### 2026-10-09 — Complete wrapped waveform acceptance
 
@@ -372,46 +417,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Phase 11 responsive styling and automatic reflow across narrow portrait, wide
   landscape, and resizing while preserving current presets, gestures, and playback state.
-
-### 2026-10-06 — Add compact wrapped annotation display
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1ef5c47`
-**Kanban moved:** Wrapped-canvas Phase 9 annotation display → Done; Phase 10 density presets remains In Progress
-
-**Changed:**
-
-- Projected non-empty layer annotations onto their owning wrapped rows and rendered bounded colored
-  dots instead of inline text. Nearby cross-layer indicators collapse into an `xN` SVG badge.
-- Added deterministic first-member-anchored pixel clustering that filters invalid coordinates,
-  avoids transitive overgrowth, preserves input order, and averages each cluster's display position.
-- Reused the existing marker-lane nearest-marker gesture so tapping either a dot or badge selects and
-  seeks to that marker, reopening it in the shared `AnnotationField` without a competing recognizer.
-- DSH-Qwen session `session-2896f3f5-a762-4579-9ab0-84de7632928a` implemented only the pure helper
-  and focused unit tests. Codex reviewed it and directly owned projection, SVG, and interaction work.
-
-**Key Artifacts** (from `git diff --name-only` plus untracked source):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/utils/annotationClusters.ts`,
-`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
-`tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`,
-`tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 62 passed across 7 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 65 passed,
-  including real marker annotation, compact rendering, no inline text, and detail-on-tap restoration.
-- Focused `IOS_TEST_ONLY=testWrappedRowSeekMarkerAndDragGestures npm run test:ios:ui` → 1 passed on
-  iPhone 17 Pro / iOS 26.2; native SVG indicator and existing row tap/drag behavior both passed.
-
-**Not verified / known gaps:**
-
-- The count badge is covered by pure cluster tests and direct SVG review, but browser/native
-  acceptance creates a single annotation because the web import shim cannot inject deterministic
-  cross-layer annotations through Expo DocumentPicker.
-- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
-  blocks its geometry-guarded landscape case; physical-device acceptance remains outstanding.
-
-**Next agent should:**
-
-- Implement Phase 10 explicit row-density presets, preserving marker/annotation timestamps while
-  row geometry reflows; keep any optional pinch gesture out unless preset controls are stable first.

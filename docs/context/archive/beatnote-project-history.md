@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 9 compact annotation indicators, clustering, and detail-on-tap
+      <sub>**Key Artifacts:** `src/utils/annotationClusters.ts`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 8 multi-row A/B loop highlighting
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 7 responsive precision detail mode and wrapped-row restoration
@@ -90,6 +92,49 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-06 — Add compact wrapped annotation display
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1ef5c47`
+**Kanban moved:** Wrapped-canvas Phase 9 annotation display → Done; Phase 10 density presets remains In Progress
+
+**Changed:**
+
+- Projected non-empty layer annotations onto their owning wrapped rows and rendered bounded colored
+  dots instead of inline text. Nearby cross-layer indicators collapse into an `xN` SVG badge.
+- Added deterministic first-member-anchored pixel clustering that filters invalid coordinates,
+  avoids transitive overgrowth, preserves input order, and averages each cluster's display position.
+- Reused the existing marker-lane nearest-marker gesture so tapping either a dot or badge selects and
+  seeks to that marker, reopening it in the shared `AnnotationField` without a competing recognizer.
+- DSH-Qwen session `session-2896f3f5-a762-4579-9ab0-84de7632928a` implemented only the pure helper
+  and focused unit tests. Codex reviewed it and directly owned projection, SVG, and interaction work.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/utils/annotationClusters.ts`,
+`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
+`tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`,
+`tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 62 passed across 7 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 65 passed,
+  including real marker annotation, compact rendering, no inline text, and detail-on-tap restoration.
+- Focused `IOS_TEST_ONLY=testWrappedRowSeekMarkerAndDragGestures npm run test:ios:ui` → 1 passed on
+  iPhone 17 Pro / iOS 26.2; native SVG indicator and existing row tap/drag behavior both passed.
+
+**Not verified / known gaps:**
+
+- The count badge is covered by pure cluster tests and direct SVG review, but browser/native
+  acceptance creates a single annotation because the web import shim cannot inject deterministic
+  cross-layer annotations through Expo DocumentPicker.
+- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
+  blocks its geometry-guarded landscape case; physical-device acceptance remains outstanding.
+
+**Next agent should:**
+
+- Implement Phase 10 explicit row-density presets, preserving marker/annotation timestamps while
+  row geometry reflows; keep any optional pinch gesture out unless preset controls are stable first.
 
 ### 2026-10-05 — Add multi-row A/B loop highlighting
 
