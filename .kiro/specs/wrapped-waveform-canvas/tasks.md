@@ -339,8 +339,8 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 ### Phase 14 — iOS XCTest acceptance
 
-- [ ] 30. Add iOS acceptance coverage
-  - [ ] 30.1 Extend `tests/ios/BeatNoteUITests.swift` with wrapped-view cases
+- [x] 30. Add iOS acceptance coverage
+  - [x] 30.1 Extend `tests/ios/BeatNoteUITests.swift` with wrapped-view cases
     - Cover portrait full-mode-switch detail flow; landscape fixed-panel detail
       flow; horizontal seek within a row while preserving vertical page scroll
       (no runtime error screen); orientation change reflows rows and preserves
@@ -348,20 +348,20 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
       reusing the existing audio fixture.
     - _Requirements: 3.1, 3.2, 8.1, 11.1, 11.2, 13.1, 13.2_
 
-- [ ] 31. Checkpoint — iOS acceptance
+- [x] 31. Checkpoint — iOS acceptance
   - Run `npm run test:ios:ui`.
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 15 — Cleanup and final regression
 
-- [ ] 32. Retire superseded rendering and run the full gate
-  - [ ] 32.1 Verify and retire `SimpleWaveform.tsx`
+- [x] 32. Retire superseded rendering and run the full gate
+  - [x] 32.1 Verify and retire `SimpleWaveform.tsx`
     - Confirm there are no remaining references to `SimpleWaveform`; remove it (or
       document why it must stay) once the per-row timing-bar/peaks rendering
       supersedes it.
     - _Requirements: 17.3_
 
-- [ ] 33. Final checkpoint — full regression
+- [x] 33. Final checkpoint — full regression
   - Run `npx tsc --noEmit`, `npx jest --testPathPatterns=unit`, `npm test`, and
     `npm run test:ios:ui`.
   - Ensure all tests pass, ask the user if questions arise.

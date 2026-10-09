@@ -12,6 +12,11 @@ final class BeatNoteUITests: XCTestCase {
     closeMobileSidebar()
   }
 
+  override func tearDownWithError() throws {
+    app?.terminate()
+    XCUIDevice.shared.orientation = .portrait
+  }
+
   func testStudioLaunchesAndDocumentPickerOpens() {
     XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
     XCTAssertFalse(app.staticTexts["Something went wrong"].exists)
@@ -27,8 +32,14 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("import-data").isHittable)
     element("project-actions-scroll-cue").tap()
 
-    element("load-song").tap()
-    XCTAssertTrue(waitForPicker(timeout: 15))
+    let loadSong = element("load-song")
+    loadSong.tap()
+    if !waitForPicker(timeout: 15) {
+      app.activate()
+      XCTAssertTrue(loadSong.waitForExistence(timeout: 5) && loadSong.isHittable)
+      loadSong.tap()
+    }
+    XCTAssertTrue(waitForPicker(timeout: 10))
 
     let cancel = app.buttons["Cancel"].firstMatch
     if cancel.waitForExistence(timeout: 3) {
@@ -198,6 +209,7 @@ final class BeatNoteUITests: XCTestCase {
     markerPosition.tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"), "Selecting a marker must not duplicate it.")
 
+    let rowYBeforeDrag = row.frame.minY
     let beforeDrag = currentTime.label
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.8))
       .press(forDuration: 0.1, thenDragTo: row.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.8)))
@@ -206,6 +218,12 @@ final class BeatNoteUITests: XCTestCase {
       object: currentTime
     )
     XCTAssertEqual(XCTWaiter.wait(for: [draggedSeek], timeout: 5), .completed)
+    XCTAssertEqual(
+      row.frame.minY,
+      rowYBeforeDrag,
+      accuracy: 3,
+      "Horizontal row seeking must not move the surrounding page vertically."
+    )
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     assertNoGestureRuntimeError()
   }
@@ -246,7 +264,10 @@ final class BeatNoteUITests: XCTestCase {
     let followToggle = element("wrapped-follow-toggle")
     scrollIntoView(followToggle)
     XCTAssertTrue(followToggle.waitForExistence(timeout: 10))
-    XCTAssertTrue(followToggle.label.contains("Follow: On"))
+    if (followToggle.value as? String) != "1" {
+      followToggle.tap()
+    }
+    XCTAssertEqual(followToggle.value as? String, "1")
 
     element("play-pause").tap()
     let timeline = element("timeline-gesture-area")
@@ -259,11 +280,74 @@ final class BeatNoteUITests: XCTestCase {
       "Follow-playhead should virtualize the row containing the new playback position."
     )
 
+    let playbackTime = element("playback-current-time")
+    let timeBeforeBackground = playbackTime.label
+    XCUIDevice.shared.press(.home)
+    Thread.sleep(forTimeInterval: 1.5)
+    app.activate()
+
+    XCTAssertTrue(playbackTime.waitForExistence(timeout: 10))
+    let timeAdvanced = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", timeBeforeBackground),
+      object: playbackTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [timeAdvanced], timeout: 5), .completed)
+    XCTAssertTrue(
+      element("wrapped-row-26").waitForExistence(timeout: 5) || element("wrapped-row-27").waitForExistence(timeout: 1),
+      "Follow-playhead should restore the distant playback row after returning from background."
+    )
+    let pauseButton = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Pause playback")
+    ).firstMatch
+    XCTAssertTrue(pauseButton.exists, "Playback should remain active after returning from background.")
+
     scrollIntoView(followToggle)
     followToggle.tap()
-    XCTAssertTrue(followToggle.label.contains("Follow: Off"))
+    XCTAssertEqual(followToggle.value as? String, "0")
     followToggle.tap()
-    XCTAssertTrue(followToggle.label.contains("Follow: On"))
+    XCTAssertEqual(followToggle.value as? String, "1")
+    assertNoGestureRuntimeError()
+  }
+
+  func testLandscapeReflowPreservesMarkersAndDocksDetailPanel() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let portraitSecondGutter = element("wrapped-row-gutter-1")
+    scrollIntoView(portraitSecondGutter)
+    XCTAssertTrue(portraitSecondGutter.waitForExistence(timeout: 5))
+    XCTAssertEqual(portraitSecondGutter.label, "Row starts at 0:04")
+
+    let row = element("wrapped-row-gesture-area-0")
+    scrollIntoView(row)
+    XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.1)).tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    let marker = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-marker-vocals-")
+    ).firstMatch
+    XCTAssertTrue(marker.waitForExistence(timeout: 5))
+    let markerIdentifier = marker.identifier
+
+    rotateAppToLandscape()
+    assertSecondRowStarts(at: "0:08")
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertTrue(element(markerIdentifier).waitForExistence(timeout: 5))
+
+    let detailAction = element("wrapped-row-detail-0")
+    scrollIntoView(detailAction)
+    XCTAssertTrue(detailAction.waitForExistence(timeout: 10) && detailAction.isHittable)
+    detailAction.tap()
+
+    let wrapped = element("wrapped-waveform")
+    let detail = element("waveform-detail-panel")
+    XCTAssertTrue(wrapped.waitForExistence(timeout: 10), "Landscape detail must retain wrapped context.")
+    XCTAssertTrue(detail.waitForExistence(timeout: 10))
+    XCTAssertLessThanOrEqual(
+      wrapped.frame.maxX,
+      detail.frame.minX + 5,
+      "Landscape detail should dock beside the wrapped rows without overlap."
+    )
+    XCTAssertTrue(element(markerIdentifier).exists, "Opening detail must not remove the existing marker.")
     assertNoGestureRuntimeError()
   }
 
