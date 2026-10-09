@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 8 multi-row A/B loop highlighting
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 7 responsive precision detail mode and wrapped-row restoration
       <sub>**Key Artifacts:** `src/components/ui/waveform/WaveformDetailPanel.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`, `src/styles/components/waveform/`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 6 follow-playhead auto-scroll, suspension, re-arm, and toggle
@@ -88,6 +90,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-05 — Add multi-row A/B loop highlighting
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `87f2f66`
+**Kanban moved:** Wrapped-canvas Phase 8 A/B loop highlighting → Done; Phase 9 annotation display remains In Progress
+
+**Changed:**
+
+- Wired the existing session-only `loopStartMs`/`loopEndMs` bounds through the virtualized wrapped
+  waveform and indexed the pure `loopSegmentsForRows` result by row.
+- Added a defensive translucent SVG segment behind each affected row's waveform, markers, and
+  playhead. Empty, non-finite, reversed, and out-of-row ranges render nothing; exact row boundaries
+  retain the existing half-open ownership semantics.
+- DSH-Qwen session `session-41471e66-4bb5-4f0a-a647-ef9a3dbf4dd3` implemented only the bounded
+  `WrappedRow` overlay. Codex reviewed the geometry and directly implemented store/list integration.
+
+**Key Artifacts** (from `git diff --name-only`):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`,
+`src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 51 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 64 passed.
+- Existing loop utility tests cover clipped multi-row segments, exact-boundary ownership, full
+  coverage without overlap, equal endpoints, and reversed inactive ranges.
+
+**Not verified / known gaps:**
+
+- The production UI does not yet expose A/B loop-bound controls, so the new visual overlay was not
+  activated through browser or simulator UI. The later section-looping feature will supply that path.
+- No iOS suite was rerun because Phase 8 is passive rendering over existing state and its specified
+  gate is unit plus web regression; the existing landscape-lock and physical-device gaps remain.
+
+**Next agent should:**
+
+- Implement Phase 9 compact annotation indicators and clustering under direct interaction review,
+  reusing the shared selected-marker annotation flow without rendering text inline.
 
 ### 2026-10-05 — Complete responsive precision detail mode
 

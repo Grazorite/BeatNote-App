@@ -53,27 +53,21 @@ potentially adding a hybrid path later.
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 68 passing (8 suites; row-density preset coverage added) |
-| iOS UI tests | 9/9 baseline; Phase 12 focused native accessibility test 1/1; latest full rerun 8/9 (landscape lock) |
+| iOS UI tests | 14/14 passing on iPhone 17 Pro Max / iOS 26.2, including portrait and landscape |
 | E2E spec files | 5 (Playwright, 67 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
 
-1. Resolve simulator Portrait Orientation Lock / scene rotation, then rerun both landscape XCTest cases
-   and the full suite. The latest failure occurs before landscape layout assertions: XCTest sets
-   landscape but the app scene remains 402 x 874 portrait. Device Hub reproduces the sideways
-   portrait scene when rotating hardware. The user has been asked to check simulator orientation lock.
-2. Complete wrapped-canvas Phase 14 iOS acceptance, then Phase 15 cleanup and final regression.
-   Phases 1-13 are implemented and verified; two phases remain.
-3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+1. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, long-track overview tap/drag seeking, annotation during playback,
-   compact controls, project save/relaunch/restore, CSV I/O, and settings drawer. Landscape waveform
-   and CSV I/O were covered by earlier runs but need revalidation after the rotation lock is resolved. Interactive Xcode 27
-   testing uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the
-   Simulator app on this host.
-4. Close the remaining unit-test coverage gap the testing strategy requires (utils + real store actions).
-5. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+   compact controls, project save/relaunch/restore, CSV I/O, settings drawer, wrapped gestures,
+   responsive detail mode, orientation reflow, and landscape geometry. Interactive Xcode 27 testing
+   uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
+   app on this host.
+2. Close the remaining unit-test coverage gap the testing strategy requires (utils + real store actions).
+3. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -104,8 +98,6 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Implement wrapped waveform canvas — Phases 1-13 verified; Phase 14 iOS XCTest acceptance next, followed by Phase 15 cleanup and final regression. Phase 12 used DSH-Qwen session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` for a bounded read-only review while Codex retained implementation and verification ownership. See `.kiro/specs/wrapped-waveform-canvas/`.
-- [ ] Restore actual simulator landscape rotation, then rerun the two geometry-guarded landscape XCTest cases and full iOS suite
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
 ### ⏸ Deferred — V2/V3
@@ -118,6 +110,8 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Complete wrapped-canvas Phases 14-15 native acceptance and renderer cleanup
+      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`, `tests/ios/BeatNoteUITests.swift`; removed `src/components/ui/waveform/SimpleWaveform.tsx`</sub>
 - [x] Implement wrapped-canvas Phase 12 accessibility metadata and stable test identifiers
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 11 responsive reflow and side-by-side wide detail layout
@@ -126,8 +120,6 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `src/components/ui/waveform/RowDensityControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/rowDensityControls.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `src/utils/rowDensityPresets.ts`, `tests/unit/rowDensityPresets.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 9 compact annotation indicators, clustering, and detail-on-tap
       <sub>**Key Artifacts:** `src/utils/annotationClusters.ts`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 8 multi-row A/B loop highlighting
-      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -201,6 +193,49 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-09 — Complete wrapped waveform acceptance
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `4f54e80`
+**Kanban moved:** Wrapped-canvas Phases 14-15 → Done
+
+**Changed:**
+
+- Extended native acceptance to verify horizontal row seeking without vertical page movement,
+  follow-playhead continuity through background and foreground, portrait detail replacement,
+  landscape row reflow, marker preservation, and non-overlapping docked detail geometry.
+- Corrected follow-toggle XCTest assertions to use the native switch value introduced by Phase 12
+  accessibility semantics, then isolated each case with app termination and a controlled Files-picker
+  retry to remove order-dependent system-modal leakage.
+- Verified the prior iPhone 17 Pro failure was device-specific orientation-lock state. A fresh iPhone
+  17 Pro Max simulator rotated correctly and passed the full portrait and landscape suite.
+- Removed the unused `SimpleWaveform` renderer and its barrel export after repository search and
+  DSH-Qwen session `session-12ef6a00-97a4-4668-961f-17ef01f37dc0` independently confirmed zero live
+  consumers. Phase 12 review session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` also completed
+  with a pass and only non-blocking polish observations.
+
+**Key Artifacts** (from implementation commit `4f54e80`):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`,
+`src/components/ui/waveform/SimpleWaveform.tsx` (removed), `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed.
+- Focused wrapped-row seek, follow/background, and landscape reflow/detail XTests each passed.
+- Elevated full `IOS_SIMULATOR_ID=8716E9DD-B2FC-4614-8691-DC517F86B82E npm run test:ios:ui`
+  → 14/14 passed on iPhone 17 Pro Max / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791516777967.xcresult` was inspected for the aggregate result.
+
+**Not verified / known gaps:**
+
+- Physical-device audio interruption, VoiceOver, safe-area/orientation, and external share-destination
+  acceptance remain outstanding. The original iPhone 17 Pro simulator may still retain its local
+  orientation-lock state; the app configuration itself supports all orientations.
+
+**Next agent should:**
+
+- Run the physical-device acceptance checklist, then address the top unit-test coverage backlog item.
 
 ### 2026-10-09 — Complete wrapped accessibility semantics
 
@@ -380,42 +415,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Phase 10 explicit row-density presets, preserving marker/annotation timestamps while
   row geometry reflows; keep any optional pinch gesture out unless preset controls are stable first.
-
-### 2026-10-05 — Add multi-row A/B loop highlighting
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `87f2f66`
-**Kanban moved:** Wrapped-canvas Phase 8 A/B loop highlighting → Done; Phase 9 annotation display remains In Progress
-
-**Changed:**
-
-- Wired the existing session-only `loopStartMs`/`loopEndMs` bounds through the virtualized wrapped
-  waveform and indexed the pure `loopSegmentsForRows` result by row.
-- Added a defensive translucent SVG segment behind each affected row's waveform, markers, and
-  playhead. Empty, non-finite, reversed, and out-of-row ranges render nothing; exact row boundaries
-  retain the existing half-open ownership semantics.
-- DSH-Qwen session `session-41471e66-4bb5-4f0a-a647-ef9a3dbf4dd3` implemented only the bounded
-  `WrappedRow` overlay. Codex reviewed the geometry and directly implemented store/list integration.
-
-**Key Artifacts** (from `git diff --name-only`):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`,
-`src/components/ui/waveform/WrappedRow.tsx`,
-`src/components/ui/waveform/WrappedWaveform.tsx`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 51 passed across 6 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 64 passed.
-- Existing loop utility tests cover clipped multi-row segments, exact-boundary ownership, full
-  coverage without overlap, equal endpoints, and reversed inactive ranges.
-
-**Not verified / known gaps:**
-
-- The production UI does not yet expose A/B loop-bound controls, so the new visual overlay was not
-  activated through browser or simulator UI. The later section-looping feature will supply that path.
-- No iOS suite was rerun because Phase 8 is passive rendering over existing state and its specified
-  gate is unit plus web regression; the existing landscape-lock and physical-device gaps remain.
-
-**Next agent should:**
-
-- Implement Phase 9 compact annotation indicators and clustering under direct interaction review,
-  reusing the shared selected-marker annotation flow without rendering text inline.
