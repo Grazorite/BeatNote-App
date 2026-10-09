@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-09
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -53,8 +53,8 @@ potentially adding a hybrid path later.
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
 | Unit tests | 68 passing (8 suites; row-density preset coverage added) |
-| iOS UI tests | 9/9 baseline; Phase 11 focused portrait detail test 1/1; latest full rerun 8/9 (landscape lock) |
-| E2E spec files | 5 (Playwright, 66 passing) |
+| iOS UI tests | 9/9 baseline; Phase 12 focused native accessibility test 1/1; latest full rerun 8/9 (landscape lock) |
+| E2E spec files | 5 (Playwright, 67 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -63,8 +63,8 @@ potentially adding a hybrid path later.
    and the full suite. The latest failure occurs before landscape layout assertions: XCTest sets
    landscape but the app scene remains 402 x 874 portrait. Device Hub reproduces the sideways
    portrait scene when rotating hardware. The user has been asked to check simulator orientation lock.
-2. Implement wrapped-canvas Phase 12 accessibility metadata and stable test identifiers. Phases
-   1-11 are verified in TypeScript, unit tests, web E2E, and focused portrait simulator acceptance.
+2. Complete wrapped-canvas Phase 14 iOS acceptance, then Phase 15 cleanup and final regression.
+   Phases 1-13 are implemented and verified; two phases remain.
 3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, long-track overview tap/drag seeking, annotation during playback,
@@ -104,7 +104,7 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Implement wrapped waveform canvas — Phases 1-11 verified; Phase 12 accessibility metadata and stable test identifiers next. DSH-Qwen session `session-e4dac34e-c7cc-4084-8e01-1358eecff5a0` supplied the bounded Phase 11 docked-workspace style draft; Codex corrected portrait flex behavior and directly owned integration, overflow repair, and acceptance coverage. See `.kiro/specs/wrapped-waveform-canvas/`.
+- [ ] Implement wrapped waveform canvas — Phases 1-13 verified; Phase 14 iOS XCTest acceptance next, followed by Phase 15 cleanup and final regression. Phase 12 used DSH-Qwen session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` for a bounded read-only review while Codex retained implementation and verification ownership. See `.kiro/specs/wrapped-waveform-canvas/`.
 - [ ] Restore actual simulator landscape rotation, then rerun the two geometry-guarded landscape XCTest cases and full iOS suite
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
@@ -118,6 +118,8 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 12 accessibility metadata and stable test identifiers
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 11 responsive reflow and side-by-side wide detail layout
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/styles/components/waveform/waveformWorkspace.ts`, `tests/waveform-features.spec.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 10 explicit row-density presets and timestamp-safe reflow
@@ -126,8 +128,6 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `src/utils/annotationClusters.ts`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/unit/annotationClusters.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 8 multi-row A/B loop highlighting
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 7 responsive precision detail mode and wrapped-row restoration
-      <sub>**Key Artifacts:** `src/components/ui/waveform/WaveformDetailPanel.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`, `src/styles/components/waveform/`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -201,6 +201,50 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-09 — Complete wrapped accessibility semantics
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `659617d`
+**Kanban moved:** Wrapped-canvas Phase 12 accessibility → Done; Phase 14 iOS acceptance remains In Progress
+
+**Changed:**
+
+- Added adjustable row semantics with index, time range, phrase, and active playback value. Native
+  values use `accessibilityValue`; explicit ARIA aliases cover the current React Native Web mapping.
+- Added layer-aware marker labels with timestamp and annotated state, plus a descriptive follow
+  toggle label. Existing gutter, density, detail, and stable identifier contracts remain intact.
+- Separated the row accessibility surface from visual descendants so iOS VoiceOver can navigate the
+  row and each accessible SVG marker independently instead of grouping markers beneath the row.
+- Added focused web and iOS assertions for roles, labels, values, stable IDs, keyboard activation,
+  marker visibility, and the unannotated-to-annotated label transition.
+- DSH-Qwen session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` received a bounded read-only
+  review. It remained running without final findings at handover; Codex retained implementation and
+  verification ownership.
+
+**Key Artifacts** (from implementation commit `659617d`):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`,
+`tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed,
+  including the new focused assistive-technology flow.
+- Focused `IOS_TEST_ONLY='testWrappedRowSeekMarkerAndDragGestures()' npm run test:ios:ui` → 1 passed
+  on iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791507156618.xcresult` reports one executed, passing test.
+
+**Not verified / known gaps:**
+
+- The complete iOS suite and native landscape cases were not rerun because the existing simulator
+  scene-rotation lock remains unresolved; physical-device VoiceOver acceptance is also outstanding.
+- DSH-Qwen's read-only review had not completed at handover and supplied no accepted code changes.
+
+**Next agent should:**
+
+- Implement Phase 14 iOS acceptance coverage and resolve the simulator scene-rotation lock before
+  the full suite, then finish Phase 15 cleanup and final regression.
 
 ### 2026-10-06 — Complete responsive waveform reflow
 
@@ -375,59 +419,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Phase 9 compact annotation indicators and clustering under direct interaction review,
   reusing the shared selected-marker annotation flow without rendering text inline.
-
-### 2026-10-05 — Complete responsive precision detail mode
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `eeda468`
-**Kanban moved:** Wrapped-canvas Phase 7 precision detail mode → Done; Phase 8 A/B loop highlighting remains In Progress
-
-**Changed:**
-
-- Added `WaveformWorkspace` as the unified-path owner of wrapped/detail switching. Selecting a row
-  sets the detail viewport to its exact half-open range; phone portrait replaces the wrapped list,
-  while wide/landscape keeps wrapped context and docks the detail panel below it.
-- Added an accessible gutter action per wrapped row and restored the selected row on return. Project
-  loads now clear the session-only row selection so persisted detail preference opens deterministically
-  on the active row rather than inheriting stale edit state.
-- Added `WaveformDetailPanel` around the existing precision `WaveformCanvas`, retaining its scrub,
-  snap, marker-adjustment, and zoom behavior with stable panel/close identifiers.
-- DSH-Qwen session `session-d89e48a4-e4b4-4cb9-98bb-cd79f7877616` implemented only the bounded
-  detail-panel wrapper and styles. Direct review removed an unused import and non-ASCII glyph; Codex
-  owned and reviewed all responsive workspace, store, row, and `MainContent` integration.
-
-**Key Artifacts** (from `git diff --name-only` plus untracked source):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `AGENTS.md`,
-`docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`,
-`src/components/ui/waveform/WaveformDetailPanel.tsx`,
-`src/components/ui/waveform/WaveformWorkspace.tsx`,
-`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
-`src/components/ui/waveform/index.ts`, `src/hooks/useStudioStore.ts`,
-`src/styles/components/waveform/waveformDetailPanel.ts`,
-`src/styles/components/waveform/waveformWorkspace.ts`,
-`src/styles/components/waveform/wrappedRow.ts`, `tests/ios/BeatNoteUITests.swift`,
-`tests/waveform-features.spec.ts`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 51 passed across 6 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 64 passed,
-  including portrait replacement, exact selected-row viewport seeking, close-state neutrality,
-  selected-row restoration, and landscape docked presentation.
-- Focused `IOS_TEST_ONLY=testPrecisionDetailModeOpensAndRestoresWrappedRow npm run test:ios:ui`
-  → 1 passed on iPhone 17 Pro / iOS 26.2; result bundle
-  `ios/build/BeatNoteUITests-1791176105747.xcresult`.
-- `git diff --check` → clean before documentation reconciliation.
-
-**Not verified / known gaps:**
-
-- Native landscape detail docking was not rerun because the existing simulator scene-rotation lock
-  still blocks geometry-guarded landscape acceptance; the same presentation passed in browser E2E.
-- The detail panel inherits marker adjustment, snapping, zoom, and scrubbing from the existing
-  `WaveformCanvas`; midpoint scrubbing is covered, but no new dedicated marker-drag XCTest was added.
-- Phase 8 A/B loop highlighting is not implemented.
-
-**Next agent should:**
-
-- Implement Phase 8 multi-row A/B loop highlighting using the existing pure
-  `loopSegmentsForRows` helper, then verify boundary ownership and rendering without changing loop
-  semantics in either waveform view.

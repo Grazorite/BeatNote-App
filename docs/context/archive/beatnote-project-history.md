@@ -41,6 +41,8 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 #### Test & build harness
 
+- [x] Implement wrapped-canvas Phase 7 responsive precision detail mode and wrapped-row restoration
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WaveformDetailPanel.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/components/layout/MainContent.tsx`, `src/hooks/useStudioStore.ts`, `src/styles/components/waveform/`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 6 follow-playhead auto-scroll, suspension, re-arm, and toggle
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 - [x] Implement wrapped-canvas Phase 5 seeking, marker placement/selection, and shared annotation selection
@@ -86,6 +88,62 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-05 — Complete responsive precision detail mode
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `eeda468`
+**Kanban moved:** Wrapped-canvas Phase 7 precision detail mode → Done; Phase 8 A/B loop highlighting remains In Progress
+
+**Changed:**
+
+- Added `WaveformWorkspace` as the unified-path owner of wrapped/detail switching. Selecting a row
+  sets the detail viewport to its exact half-open range; phone portrait replaces the wrapped list,
+  while wide/landscape keeps wrapped context and docks the detail panel below it.
+- Added an accessible gutter action per wrapped row and restored the selected row on return. Project
+  loads now clear the session-only row selection so persisted detail preference opens deterministically
+  on the active row rather than inheriting stale edit state.
+- Added `WaveformDetailPanel` around the existing precision `WaveformCanvas`, retaining its scrub,
+  snap, marker-adjustment, and zoom behavior with stable panel/close identifiers.
+- DSH-Qwen session `session-d89e48a4-e4b4-4cb9-98bb-cd79f7877616` implemented only the bounded
+  detail-panel wrapper and styles. Direct review removed an unused import and non-ASCII glyph; Codex
+  owned and reviewed all responsive workspace, store, row, and `MainContent` integration.
+
+**Key Artifacts** (from `git diff --name-only` plus untracked source):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `AGENTS.md`,
+`docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`,
+`src/components/ui/waveform/WaveformDetailPanel.tsx`,
+`src/components/ui/waveform/WaveformWorkspace.tsx`,
+`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
+`src/components/ui/waveform/index.ts`, `src/hooks/useStudioStore.ts`,
+`src/styles/components/waveform/waveformDetailPanel.ts`,
+`src/styles/components/waveform/waveformWorkspace.ts`,
+`src/styles/components/waveform/wrappedRow.ts`, `tests/ios/BeatNoteUITests.swift`,
+`tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npm run test:unit -- --runInBand` → 51 passed across 6 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 64 passed,
+  including portrait replacement, exact selected-row viewport seeking, close-state neutrality,
+  selected-row restoration, and landscape docked presentation.
+- Focused `IOS_TEST_ONLY=testPrecisionDetailModeOpensAndRestoresWrappedRow npm run test:ios:ui`
+  → 1 passed on iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791176105747.xcresult`.
+- `git diff --check` → clean before documentation reconciliation.
+
+**Not verified / known gaps:**
+
+- Native landscape detail docking was not rerun because the existing simulator scene-rotation lock
+  still blocks geometry-guarded landscape acceptance; the same presentation passed in browser E2E.
+- The detail panel inherits marker adjustment, snapping, zoom, and scrubbing from the existing
+  `WaveformCanvas`; midpoint scrubbing is covered, but no new dedicated marker-drag XCTest was added.
+- Phase 8 A/B loop highlighting is not implemented.
+
+**Next agent should:**
+
+- Implement Phase 8 multi-row A/B loop highlighting using the existing pure
+  `loopSegmentsForRows` helper, then verify boundary ownership and rendering without changing loop
+  semantics in either waveform view.
 
 ### 2026-10-05 — Complete follow-playhead refinement
 
