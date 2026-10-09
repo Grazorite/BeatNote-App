@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStudioStore } from '../../hooks/useStudioStore';
@@ -16,7 +16,7 @@ export default function StudioScreen() {
   const isMobile = Platform.OS === 'web'
     ? width < 768
     : Math.min(width, height) < 768;
-  const { layers, activeLayerId, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
+  const { layers, activeLayerId, setActiveLayer, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
   const { sound, loadSong, loadProjectAudio, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
   let focusTextInput = () => {};
@@ -32,6 +32,10 @@ export default function StudioScreen() {
   const activeLayer = layers.find(layer => layer.id === activeLayerId);
   const activeLayerMarkers = activeLayer?.markers.length || 0;
   const totalMarkers = layers.reduce((sum, layer) => sum + layer.markers.length, 0);
+
+  useEffect(() => {
+    if (isMobile && activeLayerId !== 'vocals') setActiveLayer('vocals');
+  }, [activeLayerId, isMobile, setActiveLayer]);
 
   const { isSidebarCollapsed } = useStudioStore();
 

@@ -113,7 +113,7 @@ const MainContent: React.FC<MainContentProps> = ({
       )}
     </Animated.View>
   );
-  const timeline = <TimelineScrollbar audioUri={audioUri || undefined} onSeek={seekToPosition} />;
+  const timeline = <TimelineScrollbar audioUri={audioUri || undefined} onSeek={seekToPosition} compact={isMobile} />;
   const audioControls = (
     <AudioControls
       onTogglePlayback={togglePlayback}
@@ -123,10 +123,10 @@ const MainContent: React.FC<MainContentProps> = ({
         seekToPosition(duration);
       }}
       isMobile={isMobile}
-      compact={isLandscapePhone}
+      compact={isMobile}
     />
   );
-  const markerControls = <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile={isMobile} compact={isLandscapePhone} />;
+  const markerControls = <TapButton onTap={tapToBeat} onSeek={seekToPosition} isMobile={isMobile} compact={isMobile} />;
   const layerSelector = <HorizontalLayerSelector />;
   const status = (
     <View style={styles.statusContainer}>
@@ -145,35 +145,24 @@ const MainContent: React.FC<MainContentProps> = ({
   );
 
   if (isMobile) {
-    const workspaceScroll = (
-      <ScrollView
-        style={[styles.mobileScrollContainer, isLandscapePhone && styles.landscapeScrollContainer]}
-        contentContainerStyle={styles.mobileContent}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
+    const mobileCanvas = (
+      <View
+        style={[styles.mobileCanvas, isLandscapePhone && styles.landscapeCanvas]}
         testID="mobile-workspace-scroll"
       >
         {waveform}
         {timeline}
-        {layerSelector}
-        {status}
-      </ScrollView>
+        <Text style={styles.mobileMarkerStatus} testID="grand-total-markers">
+          Grand Total: {totalMarkers} markers
+        </Text>
+      </View>
     );
     const controlDock = (
       <View style={[styles.mobileControlDock, isLandscapePhone && styles.landscapeControlRail]} testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}>
         <View style={styles.mobileTransportRow}>{audioControls}</View>
-        {isLandscapePhone ? (
-          <View style={styles.landscapeMarkerActions}>{markerControls}</View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.mobileMarkerScroller}
-            contentContainerStyle={styles.mobileMarkerActions}
-          >
-            {markerControls}
-          </ScrollView>
-        )}
+        <View style={isLandscapePhone ? styles.landscapeMarkerActions : styles.mobileMarkerActions}>
+          {markerControls}
+        </View>
         <AnnotationField ref={annotationFieldRef} isMobile />
       </View>
     );
@@ -181,9 +170,9 @@ const MainContent: React.FC<MainContentProps> = ({
       <View style={styles.mobileWorkspace}>
         {projectControls}
         {isLandscapePhone ? (
-          <View style={styles.landscapeBody}>{workspaceScroll}{controlDock}</View>
+          <View style={styles.landscapeBody}>{mobileCanvas}{controlDock}</View>
         ) : (
-          <>{workspaceScroll}{controlDock}</>
+          <>{mobileCanvas}{controlDock}</>
         )}
       </View>
     );

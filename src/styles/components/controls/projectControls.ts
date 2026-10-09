@@ -16,46 +16,23 @@ export const projectControlsStyles = StyleSheet.create({
     zIndex: 20,
     elevation: 8,
   },
-  mobileActionsRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  mobileActionsScroll: {
-    flex: 1,
-  },
-  scrollCue: {
-    width: 56,
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#242424',
-    borderLeftWidth: 1,
-    borderLeftColor: '#555555',
-  },
-  scrollCueText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   mobileActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: dimensions.spacing.sm,
-    paddingHorizontal: dimensions.spacing.sm,
+    justifyContent: 'space-between',
+    gap: 4,
+    paddingHorizontal: 6,
   },
   sidebarToggleMobile: {
-    minWidth: 48,
-    minHeight: 44,
-    justifyContent: 'center',
-    paddingHorizontal: 12,
+    minWidth: 0,
   },
   buttonMobile: {
+    flex: 1,
+    minWidth: 0,
     minHeight: 44,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    flexShrink: 0,
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   button: {
     backgroundColor: colors.border,
@@ -75,7 +52,7 @@ export const projectControlsStyles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
   },
-  buttonTextMobile: {
-    fontSize: 14,
+  buttonTextHidden: {
+    display: 'none',
   },
 });

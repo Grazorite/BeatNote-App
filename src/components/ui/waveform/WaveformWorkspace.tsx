@@ -60,11 +60,11 @@ const WaveformWorkspace: React.FC<WaveformWorkspaceProps> = ({
 
   return (
     <View
-      style={[styles.workspace, showDockedDetail && styles.dockedWorkspace]}
+      style={[styles.workspace, isMobile && styles.workspaceMobile, showDockedDetail && styles.dockedWorkspace]}
       testID="waveform-workspace"
     >
       {showWrapped && (
-        <View style={[styles.wrappedPane, showDockedDetail && styles.wrappedPaneDocked]}>
+        <View style={[styles.wrappedPane, isMobile && styles.paneMobile, showDockedDetail && styles.wrappedPaneDocked]}>
           <WrappedWaveform
             audioUri={audioUri || undefined}
             layers={layers}
@@ -72,11 +72,12 @@ const WaveformWorkspace: React.FC<WaveformWorkspaceProps> = ({
             onScrubStart={onScrubStart}
             onScrubEnd={onScrubEnd}
             onSelectForDetail={selectRowForDetail}
+            isMobile={isMobile}
           />
         </View>
       )}
       {showDetail && (
-        <View style={[styles.detailPane, showDockedDetail && styles.detailPaneDocked]}>
+        <View style={[styles.detailPane, isMobile && styles.paneMobile, showDockedDetail && styles.detailPaneDocked]}>
           <WaveformDetailPanel
             audioUri={audioUri || undefined}
             layers={layers}

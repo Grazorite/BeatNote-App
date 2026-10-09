@@ -15,30 +15,28 @@ export const mainContentStyles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
-  mobileScrollContainer: {
+  mobileCanvas: {
     flex: 1,
+    minHeight: 0,
     width: '100%',
+    paddingHorizontal: dimensions.spacing.sm,
+    paddingTop: 4,
+    paddingBottom: 2,
   },
-  landscapeScrollContainer: {
+  landscapeCanvas: {
     width: undefined,
   },
-  mobileContent: {
-    flexGrow: 1,
-    width: '100%',
-    alignItems: 'stretch',
-    paddingHorizontal: dimensions.spacing.sm,
-    paddingTop: dimensions.spacing.sm,
-    paddingBottom: dimensions.spacing.md,
-  },
   mobileWaveform: {
+    flex: 1,
+    minHeight: 0,
     width: '100%',
   },
   mobileControlDock: {
     width: '100%',
-    gap: dimensions.spacing.sm,
+    gap: 4,
     paddingHorizontal: dimensions.spacing.sm,
-    paddingTop: dimensions.spacing.sm,
-    paddingBottom: dimensions.spacing.sm,
+    paddingTop: 6,
+    paddingBottom: 6,
     backgroundColor: '#111111',
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -59,14 +57,15 @@ export const mainContentStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  mobileMarkerScroller: {
-    width: '100%',
-    flexGrow: 0,
-  },
   mobileMarkerActions: {
-    minWidth: '100%',
-    justifyContent: 'center',
-    paddingVertical: 2,
+    width: '100%',
+    alignItems: 'center',
+  },
+  mobileMarkerStatus: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    lineHeight: 14,
+    textAlign: 'center',
   },
   container: {
     alignItems: 'center',

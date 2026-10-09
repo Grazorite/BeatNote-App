@@ -7,7 +7,7 @@ test.describe('Quality Assurance', () => {
       await page.goto('/');
       
       // Check for main UI elements
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toBeVisible();
       await expect(page.getByText(/Active Layer:/)).toBeVisible();
     });
     
@@ -303,7 +303,7 @@ test.describe('Quality Assurance', () => {
       await page.goto('/');
       
       // Core elements should still be visible
-      await expect(page.getByText('Load Song')).toBeVisible();
+      await expect(page.getByTestId('load-song')).toBeVisible();
       await expect(page.getByTestId('add-marker')).toBeVisible();
     });
     

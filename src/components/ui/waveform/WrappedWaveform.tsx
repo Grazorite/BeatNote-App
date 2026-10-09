@@ -38,6 +38,7 @@ interface WrappedWaveformProps {
   onScrubStart: () => void;
   onScrubEnd: () => void;
   onSelectForDetail: (rowIndex: number) => void;
+  isMobile?: boolean;
 }
 
 const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
@@ -47,6 +48,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   onScrubStart,
   onScrubEnd,
   onSelectForDetail,
+  isMobile = false,
 }) => {
   const window = useWindowDimensions();
   const isLandscape = window.width > window.height;
@@ -70,7 +72,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const [followSuspended, setFollowSuspended] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const suspendedSawActiveOutside = useRef(false);
-  const rowHeight = resolveRowHeight(isLandscape);
+  const rowHeight = resolveRowHeight(isLandscape, isMobile ? (isLandscape ? 80 : 88) : undefined);
   const gutterWidth = resolveGutterWidth(isLandscape);
   const effectiveRowDensity = resolveRowDensity(rowDensity, isLandscape);
   const { waveformData, loading } = useWaveformData(audioUri || null);
@@ -226,9 +228,9 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   }
 
   return (
-    <View style={styles.container} testID="waveform-container">
+    <View style={[styles.container, isMobile && styles.containerMobile]} testID="waveform-container">
       {loading && <Text style={styles.loadingText}>Preparing waveform</Text>}
-      <View style={styles.followToolbar}>
+      {!isMobile && <View style={styles.followToolbar}>
         <RowDensityControls
           mode={effectiveRowDensity.mode}
           density={effectiveRowDensity}
@@ -250,11 +252,11 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
             {followPlayhead ? (followSuspended ? 'Follow: Suspended' : 'Follow: On') : 'Follow: Off'}
           </Text>
         </Pressable>
-      </View>
+      </View>}
       <ScrollView
         ref={scrollRef}
         {...webManualScrollProps}
-        style={[styles.viewport, { height: isLandscape ? 288 : 336 }]}
+        style={[styles.viewport, isMobile ? styles.viewportMobile : { height: isLandscape ? 288 : 336 }]}
         contentContainerStyle={styles.scrollContent}
         nestedScrollEnabled
         onLayout={handleLayout}

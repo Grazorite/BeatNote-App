@@ -1,6 +1,42 @@
 import { test, expect, loadTestAudio } from './setup';
 
 test.describe('UI Components & Layout', () => {
+  test('phone workspace keeps all editor chrome fixed within the viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    const closeSidebar = page.getByTestId('sidebar-toggle');
+    if (await closeSidebar.isVisible()) await closeSidebar.click();
+    await loadTestAudio(page, 'long-test-track.m4a');
+
+    await expect(page.getByText('Annotation layers')).toHaveCount(0);
+    await expect(page.getByTestId('row-density-preset-default')).toHaveCount(0);
+    await expect(page.getByTestId('wrapped-follow-toggle')).toHaveCount(0);
+
+    for (const testId of [
+      'project-actions-scroll',
+      'wrapped-waveform',
+      'timeline-gesture-area',
+      'play-pause',
+      'add-marker',
+      'marker-annotation',
+    ]) {
+      await expect(page.getByTestId(testId)).toBeVisible();
+    }
+
+    const geometry = await page.evaluate(() => {
+      const actions = document.querySelector('[data-testid="project-actions-scroll"]');
+      return {
+        pageFits: document.documentElement.scrollHeight <= window.innerHeight + 1,
+        actionsFit: !!actions && actions.scrollWidth <= actions.clientWidth + 1,
+      };
+    });
+    expect(geometry.pageFits).toBe(true);
+    expect(geometry.actionsFit).toBe(true);
+
+    await page.getByTestId('add-marker').click();
+    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
+  });
+
   // Studio Screen Tests
   test.describe('Studio Screen', () => {
     test('should load the studio screen', async ({ page }) => {

@@ -5,6 +5,9 @@ export const timelineScrollbarStyles = StyleSheet.create({
     marginTop: 15,
     alignItems: 'center',
   },
+  containerCompact: {
+    marginTop: 2,
+  },
   timeline: {
     backgroundColor: '#111111',
     borderRadius: 4,

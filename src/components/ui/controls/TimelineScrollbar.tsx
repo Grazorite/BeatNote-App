@@ -12,9 +12,10 @@ const TIMELINE_HEIGHT = 80;
 interface TimelineScrollbarProps {
   audioUri?: string;
   onSeek: (position: number) => void;
+  compact?: boolean;
 }
 
-const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri, onSeek }) => {
+const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri, onSeek, compact = false }) => {
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
   const [measuredWidth, setMeasuredWidth] = useState(0);
   
@@ -224,7 +225,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri, onSeek 
   if (!songLoaded) {
     return (
       <View
-        style={[styles.container, { width: '100%' }]}
+        style={[styles.container, compact && styles.containerCompact, { width: '100%' }]}
         onLayout={event => {
           const width = event.nativeEvent.layout.width;
           setMeasuredWidth(current => Math.abs(current - width) > 1 ? width : current);
@@ -244,7 +245,7 @@ const TimelineScrollbar: React.FC<TimelineScrollbarProps> = ({ audioUri, onSeek 
 
   return (
     <View
-      style={[styles.container, { width: '100%' }]}
+      style={[styles.container, compact && styles.containerCompact, { width: '100%' }]}
       onLayout={event => {
         const width = event.nativeEvent.layout.width;
         setMeasuredWidth(current => Math.abs(current - width) > 1 ? width : current);

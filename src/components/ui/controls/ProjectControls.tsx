@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, ScrollView, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
-import { Upload, Save, FolderOpen, Download, AudioLines, Menu, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { Upload, Save, FolderOpen, Download, AudioLines, Menu } from 'lucide-react-native';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
 import ExportModal from '../modals/ExportModal';
@@ -32,12 +32,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const actionsRef = useRef<ScrollView>(null);
-  const [actionsWidth, setActionsWidth] = useState(0);
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const [actionsAtEnd, setActionsAtEnd] = useState(false);
-  const actionsOverflow = actionsWidth > viewportWidth + 2;
-
   const handleSaveProject = useCallback(async (projectName: string) => {
     if (!audioUri || !audioFilename) {
       Alert.alert('Error', 'No audio file loaded');
@@ -84,12 +78,11 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
         onPress={onLoadSong}
+        accessibilityLabel={songLoaded ? 'Song Loaded' : 'Load Song'}
         testID="load-song"
       >
-        <AudioLines size={isMobile ? 18 : 20} color="#ffffff" style={{ marginRight: isMobile ? 6 : 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>
-          {songLoaded ? 'Song Loaded' : 'Load Song'}
-        </Text>
+        <AudioLines size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>{songLoaded ? 'Song Loaded' : 'Load Song'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -99,39 +92,43 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           setShowSaveModal(true);
         } : undefined}
         disabled={!songLoaded}
+        accessibilityLabel="Save Project"
         testID="save-project"
       >
-        <Save size={isMobile ? 18 : 20} color={songLoaded ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Save Project</Text>
+        <Save size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Save Project</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile]}
         onPress={() => setShowProjectManager(true)}
+        accessibilityLabel="Load Project"
         testID="load-project"
       >
-        <FolderOpen size={isMobile ? 18 : 20} color="#ffffff" style={{ marginRight: isMobile ? 6 : 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Load Project</Text>
+        <FolderOpen size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Load Project</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]}
         onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
         disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
+        accessibilityLabel="Export Data"
         testID="export-data"
       >
-        <Download size={isMobile ? 18 : 20} color={songLoaded && layers.some(l => l.markers.length > 0) ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Export Data</Text>
+        <Download size={20} color={songLoaded && layers.some(l => l.markers.length > 0) ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export Data</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
         onPress={songLoaded ? () => setShowImportModal(true) : undefined}
         disabled={!songLoaded}
+        accessibilityLabel="Import Data"
         testID="import-data"
       >
-        <Upload size={isMobile ? 18 : 20} color={songLoaded ? '#ffffff' : '#666666'} style={{ marginRight: isMobile ? 6 : 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextMobile]}>Import Data</Text>
+        <Upload size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import Data</Text>
       </TouchableOpacity>
     </>
   );
@@ -139,37 +136,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   return (
     <View style={isMobile ? styles.controlsMobile : styles.controls}>
       {isMobile ? (
-        <View style={styles.mobileActionsRow}>
-          <ScrollView
-            ref={actionsRef}
-            horizontal
-            style={styles.mobileActionsScroll}
-            keyboardShouldPersistTaps="always"
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.mobileActions}
-            onLayout={event => setViewportWidth(event.nativeEvent.layout.width)}
-            onContentSizeChange={width => setActionsWidth(width)}
-            onScroll={event => {
-              const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
-              setActionsAtEnd(contentOffset.x + layoutMeasurement.width >= contentSize.width - 8);
-            }}
-            scrollEventThrottle={16}
-            testID="project-actions-scroll"
-          >
-            {actions}
-          </ScrollView>
-          {actionsOverflow && (
-            <TouchableOpacity
-              style={styles.scrollCue}
-              onPress={() => actionsRef.current?.scrollTo({ x: actionsAtEnd ? 0 : actionsWidth, animated: true })}
-              accessibilityLabel={actionsAtEnd ? 'Scroll actions to start' : 'More project actions'}
-              testID="project-actions-scroll-cue"
-            >
-              {actionsAtEnd ? <ChevronLeft size={16} color="#ffffff" /> : <ChevronRight size={16} color="#ffffff" />}
-              <Text style={styles.scrollCueText}>{actionsAtEnd ? 'Start' : 'More'}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <View style={styles.mobileActions} testID="project-actions-scroll">{actions}</View>
       ) : actions}
 
       <SaveProjectModal

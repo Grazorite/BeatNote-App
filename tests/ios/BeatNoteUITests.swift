@@ -27,10 +27,10 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertFalse(app.staticTexts["Stem Separation"].exists)
     XCTAssertFalse(app.staticTexts["View Mode"].exists)
     element("sidebar-toggle").tap()
-    XCTAssertTrue(element("project-actions-scroll-cue").waitForExistence(timeout: 5))
-    element("project-actions-scroll-cue").tap()
-    XCTAssertTrue(element("import-data").isHittable)
-    element("project-actions-scroll-cue").tap()
+    XCTAssertFalse(element("project-actions-scroll-cue").exists)
+    for action in ["load-song", "save-project", "load-project", "export-data", "import-data"] {
+      XCTAssertTrue(element(action).exists, "All project actions must fit without horizontal scrolling.")
+    }
 
     let loadSong = element("load-song")
     loadSong.tap()
@@ -228,32 +228,22 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
-  func testWrappedRowDensityPresetsReflowWithoutChangingMarkers() {
+  func testPortraitUsesFixedSingleLayerWorkspace() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
-    let defaultDensity = element("row-density-preset-default")
-    scrollIntoView(defaultDensity)
-    XCTAssertTrue(defaultDensity.waitForExistence(timeout: 5) && defaultDensity.isHittable)
-    defaultDensity.tap()
-    assertSecondRowStarts(at: "0:08")
+    XCTAssertFalse(app.staticTexts["Annotation layers"].exists)
+    XCTAssertFalse(element("row-density-preset-default").exists)
+    XCTAssertFalse(element("wrapped-follow-toggle").exists)
+    XCTAssertTrue(element("timeline-gesture-area").isHittable)
+    XCTAssertTrue(element("play-pause").isHittable)
+    XCTAssertTrue(element("add-marker").isHittable)
+    XCTAssertTrue(element("marker-annotation").exists)
+    assertSecondRowStarts(at: "0:04")
 
     let row = element("wrapped-row-gesture-area-0")
     scrollIntoView(row)
     XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.1)).tap()
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
-
-    let spacious = element("row-density-preset-spacious")
-    scrollIntoView(spacious)
-    XCTAssertTrue(spacious.waitForExistence(timeout: 5) && spacious.isHittable)
-    spacious.tap()
-    assertSecondRowStarts(at: "0:04")
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
-
-    let compact = element("row-density-preset-compact")
-    XCTAssertTrue(compact.waitForExistence(timeout: 5) && compact.isHittable)
-    compact.tap()
-    assertSecondRowStarts(at: "0:12")
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     assertNoGestureRuntimeError()
   }
@@ -261,13 +251,7 @@ final class BeatNoteUITests: XCTestCase {
   func testWrappedFollowPlayheadTracksDistantRow() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
-    let followToggle = element("wrapped-follow-toggle")
-    scrollIntoView(followToggle)
-    XCTAssertTrue(followToggle.waitForExistence(timeout: 10))
-    if (followToggle.value as? String) != "1" {
-      followToggle.tap()
-    }
-    XCTAssertEqual(followToggle.value as? String, "1")
+    XCTAssertFalse(element("wrapped-follow-toggle").exists)
 
     element("play-pause").tap()
     let timeline = element("timeline-gesture-area")
@@ -301,11 +285,6 @@ final class BeatNoteUITests: XCTestCase {
     ).firstMatch
     XCTAssertTrue(pauseButton.exists, "Playback should remain active after returning from background.")
 
-    scrollIntoView(followToggle)
-    followToggle.tap()
-    XCTAssertEqual(followToggle.value as? String, "0")
-    followToggle.tap()
-    XCTAssertEqual(followToggle.value as? String, "1")
     assertNoGestureRuntimeError()
   }
 
@@ -527,15 +506,11 @@ final class BeatNoteUITests: XCTestCase {
 
   private func makeProjectActionVisible(_ identifier: String) {
     let action = element(identifier)
-    let toolbar = element("project-actions-scroll")
-    for _ in 0..<5 {
-      if action.isHittable { return }
-      toolbar.swipeLeft()
-    }
+    XCTAssertTrue(action.waitForExistence(timeout: 5), "Project action \(identifier) should exist in the fixed toolbar.")
   }
 
   private func scrollIntoView(_ element: XCUIElement) {
-    let workspaceScroll = self.element("mobile-workspace-scroll")
+    let workspaceScroll = self.element("wrapped-waveform")
     for _ in 0..<12 {
       if element.isHittable { return }
       let start = workspaceScroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))

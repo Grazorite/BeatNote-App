@@ -6,6 +6,10 @@ export const waveformWorkspaceStyles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
+  workspaceMobile: {
+    flex: 1,
+    minHeight: 0,
+  },
   dockedWorkspace: {
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -13,6 +17,10 @@ export const waveformWorkspaceStyles = StyleSheet.create({
   },
   wrappedPane: {
     width: '100%',
+  },
+  paneMobile: {
+    flex: 1,
+    minHeight: 0,
   },
   wrappedPaneDocked: {
     flex: 1,

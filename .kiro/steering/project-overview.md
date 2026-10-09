@@ -13,7 +13,7 @@ The app is currently a personal tool with a clear path toward commercial release
 ## Core user workflow
 
 1. Load an audio file (MP3, WAV, M4A, AAC, OGG, FLAC)
-2. Select an annotation layer and tap to place beat markers during playback
+2. Tap to place beat markers during playback on the V1 annotation lane
 3. Add text annotations to markers (move names, choreography cues, 8-counts)
 4. Replay, seek, and rehearse the annotated music
 5. Export as CSV, MIDI, or PDF choreography sheet
@@ -28,9 +28,9 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 
 ## Key domain concepts
 
-- **Layer** — one of six annotation lanes using the stable internal IDs Vocals, Drums, Bass, Piano,
-  Guitar, and Other. Each has its own colour, markers, and annotations; future separated audio may
-  also be assigned to the matching layer.
+- **Layer** — the persisted project schema retains six stable internal IDs (Vocals, Drums, Bass,
+  Piano, Guitar, and Other) for compatibility and future expansion. The V1 phone editor exposes one
+  annotation lane and hides layer-selection UI; existing multi-layer projects remain readable.
 - **Marker** — a timestamp placed on a layer, representing a beat, cue, or movement moment.
 - **Annotation** — a text note attached to a marker.
 - **Stem count** — 2, 4, or 6 stems visible at once.

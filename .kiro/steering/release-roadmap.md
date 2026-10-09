@@ -29,6 +29,8 @@ Goal: prove that annotation and rehearsal are reliable on a physical iPhone and 
 
 - Reliable local audio import, playback, seeking, scrubbing, and background playback
 - Unlimited markers and text annotations within a project
+- One visible annotation lane in the V1 phone editor; preserve the six-layer project schema for
+  compatibility and V2 expansion
 - Marker editing, navigation, undo, and redo
 - Basic waveform navigation and BPM / 8-count guidance
 - Section looping and practical rehearsal controls
@@ -93,12 +95,12 @@ The Lite tier must complete a real project:
 - Add, edit, navigate, and delete unlimited markers and annotations
 - Use the basic beat and 8-count workflow
 - Save a small number of local projects
-- Use a practical subset of layers
+- Use one annotation lane on phone; additional layers are a V2 Pro expansion
 - Export basic CSV
 - Work without an account
 
-Initial hypotheses are three saved projects and three layers. Validate those limits with users before
-hard-coding them.
+The initial saved-project hypothesis is three projects. Validate that limit with users before
+hard-coding it; do not expose additional phone annotation lanes during V1 validation.
 
 ## Monetisation implementation timing
 
