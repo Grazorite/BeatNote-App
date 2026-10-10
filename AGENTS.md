@@ -196,7 +196,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-10 — Restrict marker creation to controls
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
 **Kanban moved:** Button-only marker creation → Done
 
 **Changed:**
@@ -224,7 +224,6 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - The full 14-case iOS aggregate was not rerun; focused native coverage exercises every changed
   marker-creation path. Physical-device acceptance remains outstanding.
-- The fixed phone-canvas work and this interaction correction remain uncommitted together.
 
 **Next agent should:**
 
@@ -232,7 +231,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-09 — Fit full songs into the fixed phone canvas
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
 **Kanban moved:** Timestamp-only compact phone gutters → Done
 
 **Changed:**
