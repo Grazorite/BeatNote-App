@@ -10,6 +10,9 @@ export const wrappedRowStyles = StyleSheet.create({
     borderBottomColor: colors.border,
     overflow: 'hidden',
   },
+  gutterAction: {
+    height: '100%',
+  },
   gutterPressed: {
     opacity: 0.7,
   },

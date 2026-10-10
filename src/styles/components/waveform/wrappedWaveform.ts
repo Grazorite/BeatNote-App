@@ -25,6 +25,7 @@ export const wrappedWaveformStyles = StyleSheet.create({
   viewportMobile: {
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
   },
   followToolbar: {
     minHeight: 52,

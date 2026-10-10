@@ -166,7 +166,8 @@ final class BeatNoteUITests: XCTestCase {
     let accessibleRow = element("wrapped-row-0")
     scrollIntoView(accessibleRow)
     XCTAssertTrue(accessibleRow.waitForExistence(timeout: 10))
-    XCTAssertEqual(accessibleRow.label, "Row 1, 0:00 to 0:04, phrase 1")
+    XCTAssertTrue(accessibleRow.label.hasPrefix("Row 1, 0:00 to "))
+    XCTAssertFalse(accessibleRow.label.contains("phrase"))
     XCTAssertTrue(String(describing: accessibleRow.value ?? "").contains("Playback at 0:00"))
 
     let row = element("wrapped-row-gesture-area-0")
@@ -185,6 +186,8 @@ final class BeatNoteUITests: XCTestCase {
 
     let markerPosition = row.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.1))
     markerPosition.tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("0 markers"))
+    element("add-marker").tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     let markerIndicator = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-marker-vocals-")
@@ -238,12 +241,25 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("play-pause").isHittable)
     XCTAssertTrue(element("add-marker").isHittable)
     XCTAssertTrue(element("marker-annotation").exists)
-    assertSecondRowStarts(at: "0:04")
+    assertStaticCanvasCoversSongEnd()
+    XCTAssertFalse(app.staticTexts["Phrase 1"].exists)
+    XCTAssertFalse(app.staticTexts["Count 1"].exists)
+    XCTAssertLessThanOrEqual(element("wrapped-row-0").frame.height, 56)
+    XCTAssertLessThanOrEqual(element("wrapped-row-gutter-0").frame.width, 52)
+
+    let gutter = element("wrapped-row-gutter-0")
+    XCTAssertTrue(gutter.waitForExistence(timeout: 10) && gutter.isHittable)
+    gutter.tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("0 markers"))
+    XCTAssertTrue(element("waveform-detail-close").waitForExistence(timeout: 5))
+    element("waveform-detail-close").tap()
 
     let row = element("wrapped-row-gesture-area-0")
     scrollIntoView(row)
     XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.1)).tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("0 markers"))
+    element("add-marker").tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     assertNoGestureRuntimeError()
   }
@@ -252,17 +268,15 @@ final class BeatNoteUITests: XCTestCase {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
     XCTAssertFalse(element("wrapped-follow-toggle").exists)
+    assertStaticCanvasCoversSongEnd()
+    let firstRowFrame = element("wrapped-row-0").frame
 
     element("play-pause").tap()
     let timeline = element("timeline-gesture-area")
     scrollIntoView(timeline)
     timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
 
-    let distantRow = element("wrapped-row-26")
-    XCTAssertTrue(
-      distantRow.waitForExistence(timeout: 5),
-      "Follow-playhead should virtualize the row containing the new playback position."
-    )
+    XCTAssertEqual(element("wrapped-row-0").frame.minY, firstRowFrame.minY, accuracy: 1)
 
     let playbackTime = element("playback-current-time")
     let timeBeforeBackground = playbackTime.label
@@ -276,10 +290,8 @@ final class BeatNoteUITests: XCTestCase {
       object: playbackTime
     )
     XCTAssertEqual(XCTWaiter.wait(for: [timeAdvanced], timeout: 5), .completed)
-    XCTAssertTrue(
-      element("wrapped-row-26").waitForExistence(timeout: 5) || element("wrapped-row-27").waitForExistence(timeout: 1),
-      "Follow-playhead should restore the distant playback row after returning from background."
-    )
+    assertStaticCanvasCoversSongEnd()
+    XCTAssertEqual(element("wrapped-row-0").frame.minY, firstRowFrame.minY, accuracy: 1)
     let pauseButton = app.descendants(matching: .any).matching(
       NSPredicate(format: "label == %@", "Pause playback")
     ).firstMatch
@@ -291,15 +303,14 @@ final class BeatNoteUITests: XCTestCase {
   func testLandscapeReflowPreservesMarkersAndDocksDetailPanel() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
-    let portraitSecondGutter = element("wrapped-row-gutter-1")
-    scrollIntoView(portraitSecondGutter)
-    XCTAssertTrue(portraitSecondGutter.waitForExistence(timeout: 5))
-    XCTAssertEqual(portraitSecondGutter.label, "Row starts at 0:04")
+    assertStaticCanvasCoversSongEnd()
 
     let row = element("wrapped-row-gesture-area-0")
     scrollIntoView(row)
     XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.1)).tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("0 markers"))
+    element("add-marker").tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     let marker = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-marker-vocals-")
@@ -308,7 +319,7 @@ final class BeatNoteUITests: XCTestCase {
     let markerIdentifier = marker.identifier
 
     rotateAppToLandscape()
-    assertSecondRowStarts(at: "0:08")
+    assertStaticCanvasCoversSongEnd()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     XCTAssertTrue(element(markerIdentifier).waitForExistence(timeout: 5))
 
@@ -526,10 +537,21 @@ final class BeatNoteUITests: XCTestCase {
     )
   }
 
-  private func assertSecondRowStarts(at timestamp: String) {
-    let gutter = element("wrapped-row-gutter-1")
-    XCTAssertTrue(gutter.waitForExistence(timeout: 5))
-    XCTAssertEqual(gutter.label, "Row starts at \(timestamp)")
+  private func assertStaticCanvasCoversSongEnd() {
+    let rows = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier MATCHES %@", "^wrapped-row-[0-9]+$")
+    )
+    XCTAssertGreaterThan(rows.count, 1, "The fitted canvas should contain multiple rows.")
+    let lastRow = rows.element(boundBy: rows.count - 1)
+    XCTAssertTrue(lastRow.exists)
+    XCTAssertTrue(
+      lastRow.label.contains("to 2:29") || lastRow.label.contains("to 3:00"),
+      "The final fitted row must reach the end of the loaded song. Found: \(lastRow.label)"
+    )
+    XCTAssertFalse(
+      app.scrollViews.matching(identifier: "wrapped-waveform").firstMatch.exists,
+      "The phone waveform canvas must not expose a vertical scroll view."
+    )
   }
 
   private func playbackSeconds(from label: String) -> Int {

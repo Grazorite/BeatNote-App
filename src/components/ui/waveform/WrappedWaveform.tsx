@@ -41,6 +41,9 @@ interface WrappedWaveformProps {
   isMobile?: boolean;
 }
 
+const MOBILE_TARGET_ROW_HEIGHT = 56;
+const MOBILE_GUTTER_WIDTH = 52;
+
 const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   audioUri,
   layers,
@@ -63,7 +66,6 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const rowDensity = useStudioStore(state => state.rowDensity);
   const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
   const setRowDensity = useStudioStore(state => state.setRowDensity);
-  const addMarker = useStudioStore(state => state.addMarker);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const selectedRowIndex = useStudioStore(state => state.selectedRowIndex);
   const [availableWidth, setAvailableWidth] = useState(Math.max(1, window.width - 16));
@@ -72,14 +74,19 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const [followSuspended, setFollowSuspended] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const suspendedSawActiveOutside = useRef(false);
-  const rowHeight = resolveRowHeight(isLandscape, isMobile ? (isLandscape ? 80 : 88) : undefined);
-  const gutterWidth = resolveGutterWidth(isLandscape);
+  const fittedRowCount = isMobile
+    ? Math.max(1, Math.ceil(containerHeight / MOBILE_TARGET_ROW_HEIGHT))
+    : undefined;
+  const rowHeight = isMobile && fittedRowCount != null
+    ? containerHeight / fittedRowCount
+    : resolveRowHeight(isLandscape);
+  const gutterWidth = resolveGutterWidth(isLandscape, isMobile ? MOBILE_GUTTER_WIDTH : undefined);
   const effectiveRowDensity = resolveRowDensity(rowDensity, isLandscape);
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const { rows, visibleRange, rowPixelWidth, activeRowIndex } = useWrappedRows(
     availableWidth,
     isLandscape,
-    { scrollOffset, containerHeight, rowHeight, gutterWidth },
+    { scrollOffset, containerHeight, rowHeight, gutterWidth, fittedRowCount },
   );
 
   const visibleRows = useMemo(
@@ -144,25 +151,27 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   }, [activeRowIndex, followPlayhead, viewportRange.firstIndex, viewportRange.lastIndex]);
 
   const centerActiveRow = useCallback((animated: boolean) => {
-    if (activeRowIndex < 0 || rows.length === 0) return;
+    if (isMobile || activeRowIndex < 0 || rows.length === 0) return;
     const centeredOffset = activeRowIndex * rowHeight - (containerHeight - rowHeight) / 2;
     const maxOffset = Math.max(0, rows.length * rowHeight - containerHeight);
     scrollRef.current?.scrollTo({
       y: Math.max(0, Math.min(centeredOffset, maxOffset)),
       animated,
     });
-  }, [activeRowIndex, containerHeight, rowHeight, rows.length]);
+  }, [activeRowIndex, containerHeight, isMobile, rowHeight, rows.length]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (!followPlayhead) {
       suspendedSawActiveOutside.current = false;
       setFollowSuspended(false);
       return;
     }
     if (isPlaying && !followSuspended) centerActiveRow(true);
-  }, [activeRowIndex, centerActiveRow, followPlayhead, followSuspended, isPlaying]);
+  }, [activeRowIndex, centerActiveRow, followPlayhead, followSuspended, isMobile, isPlaying]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (selectedRowIndex == null || selectedRowIndex < 0 || selectedRowIndex >= rows.length) return;
     const centeredOffset = selectedRowIndex * rowHeight - (containerHeight - rowHeight) / 2;
     const maxOffset = Math.max(0, rows.length * rowHeight - containerHeight);
@@ -170,9 +179,10 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       y: Math.max(0, Math.min(centeredOffset, maxOffset)),
       animated: false,
     });
-  }, [containerHeight, rowHeight, rows.length, selectedRowIndex]);
+  }, [containerHeight, isMobile, rowHeight, rows.length, selectedRowIndex]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (!followSuspended || !followPlayhead || !isPlaying || activeRowIndex < 0) return;
     const activeIsVisible = activeRowIndex >= viewportRange.firstIndex
       && activeRowIndex <= viewportRange.lastIndex;
@@ -187,6 +197,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     followPlayhead,
     followSuspended,
     isPlaying,
+    isMobile,
     viewportRange.firstIndex,
     viewportRange.lastIndex,
   ]);
@@ -210,14 +221,31 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     ? { onWheel: handleManualScrollStart }
     : {};
 
-  const handlePlaceMarker = useCallback((timestamp: number) => {
-    addMarker(timestamp);
-    setSelectedMarker({ layerId: activeLayerId, timestamp });
-  }, [activeLayerId, addMarker, setSelectedMarker]);
-
   const handleSelectMarker = useCallback((layerId: Layer['id'], timestamp: number) => {
     setSelectedMarker({ layerId, timestamp });
   }, [setSelectedMarker]);
+
+  const renderRow = (row: WrappedRowModel) => (
+    <WrappedRow
+      key={row.index}
+      row={row}
+      rowPixelWidth={rowPixelWidth}
+      rowHeight={rowHeight}
+      gutterWidth={gutterWidth}
+      isActiveRow={row.index === activeRowIndex}
+      progress={clipRowProgress(row, currentTime)}
+      activeLayerColor={activeLayerColor}
+      markersByLayer={markersForRow(row)}
+      peaks={realPeaks}
+      totalDuration={peakDuration}
+      loopSegment={loopSegmentsByRow.get(row.index)}
+      onSeek={onSeek}
+      onScrubStart={onScrubStart}
+      onScrubEnd={onScrubEnd}
+      onSelectMarker={handleSelectMarker}
+      onSelectForDetail={onSelectForDetail}
+    />
+  );
 
   if (!songLoaded || !audioUri || rows.length === 0) {
     return (
@@ -253,45 +281,34 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
           </Text>
         </Pressable>
       </View>}
-      <ScrollView
-        ref={scrollRef}
-        {...webManualScrollProps}
-        style={[styles.viewport, isMobile ? styles.viewportMobile : { height: isLandscape ? 288 : 336 }]}
-        contentContainerStyle={styles.scrollContent}
-        nestedScrollEnabled
-        onLayout={handleLayout}
-        onScroll={handleScroll}
-        onScrollBeginDrag={handleManualScrollStart}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator
-        keyboardShouldPersistTaps="handled"
-        testID="wrapped-waveform"
-      >
-        <View style={{ height: topSpacerHeight }} />
-        {visibleRows.map(row => (
-          <WrappedRow
-            key={row.index}
-            row={row}
-            rowPixelWidth={rowPixelWidth}
-            rowHeight={rowHeight}
-            gutterWidth={gutterWidth}
-            isActiveRow={row.index === activeRowIndex}
-            progress={clipRowProgress(row, currentTime)}
-            activeLayerColor={activeLayerColor}
-            markersByLayer={markersForRow(row)}
-            peaks={realPeaks}
-            totalDuration={peakDuration}
-            loopSegment={loopSegmentsByRow.get(row.index)}
-            onSeek={onSeek}
-            onScrubStart={onScrubStart}
-            onScrubEnd={onScrubEnd}
-            onPlaceMarker={handlePlaceMarker}
-            onSelectMarker={handleSelectMarker}
-            onSelectForDetail={onSelectForDetail}
-          />
-        ))}
-        <View style={{ height: bottomSpacerHeight }} />
-      </ScrollView>
+      {isMobile ? (
+        <View
+          style={[styles.viewport, styles.viewportMobile]}
+          onLayout={handleLayout}
+          testID="wrapped-waveform"
+        >
+          {rows.map(renderRow)}
+        </View>
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          {...webManualScrollProps}
+          style={[styles.viewport, { height: isLandscape ? 288 : 336 }]}
+          contentContainerStyle={styles.scrollContent}
+          nestedScrollEnabled
+          onLayout={handleLayout}
+          onScroll={handleScroll}
+          onScrollBeginDrag={handleManualScrollStart}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="handled"
+          testID="wrapped-waveform"
+        >
+          <View style={{ height: topSpacerHeight }} />
+          {visibleRows.map(renderRow)}
+          <View style={{ height: bottomSpacerHeight }} />
+        </ScrollView>
+      )}
     </View>
   );
 };

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useStudioStore } from './useStudioStore';
 import {
+  computeFittedRows,
   computeRows,
   computeRowPixelWidth,
   computeVisibleRange,
@@ -16,6 +17,7 @@ import { timestampToRow } from '../utils/timelineMapping';
 export interface WrappedViewportMetrics {
   scrollOffset: number;
   containerHeight: number;
+  fittedRowCount?: number;
   rowHeight?: number;
   gutterWidth?: number;
   overscan?: number;
@@ -47,6 +49,7 @@ export function useWrappedRows(
   const { rows, recomputeKey } = useMemo(() => {
     const duration = Math.max(0, Math.round(toFiniteNumber(songDuration)));
     const safeBpm = Math.max(0, toFiniteNumber(bpm));
+    const fittedRowCount = viewport?.fittedRowCount;
     const density = resolveRowDensity(rowDensity, isLandscape);
     const bpmUsable = resolveBpmUsable(toFiniteNumber(bpm), density);
     const keyParts = [
@@ -58,15 +61,18 @@ export function useWrappedRows(
       density.rowDurationMs ?? 'default',
       Math.max(0, Math.floor(toFiniteNumber(availableWidth))),
       isLandscape ? 'landscape' : 'portrait',
+      fittedRowCount ?? 'density',
     ];
     const recomputeKey = keyParts.join('|');
-    const computedRows = computeRows({
-      songDuration: duration,
-      bpm: safeBpm,
-      countSize,
-      density,
-      bpmUsable,
-    });
+    const computedRows = fittedRowCount == null
+      ? computeRows({
+        songDuration: duration,
+        bpm: safeBpm,
+        countSize,
+        density,
+        bpmUsable,
+      })
+      : computeFittedRows(duration, fittedRowCount);
     return { rows: computedRows, recomputeKey };
   }, [
     songDuration,
@@ -75,6 +81,7 @@ export function useWrappedRows(
     rowDensity,
     availableWidth,
     isLandscape,
+    viewport?.fittedRowCount,
   ]);
 
   const rowPixelWidth = computeRowPixelWidth(availableWidth, isLandscape, viewport?.gutterWidth);

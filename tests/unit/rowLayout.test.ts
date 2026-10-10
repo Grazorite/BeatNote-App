@@ -1,5 +1,6 @@
 import * as fc from 'fast-check';
 import {
+  computeFittedRows,
   computeRowPixelWidth,
   computeRows,
   computeVisibleRange,
@@ -18,6 +19,35 @@ const base: RowLayoutConfig = {
 };
 
 describe('row layout', () => {
+  it('fits the whole song into an exact static row budget', () => {
+    expect(computeFittedRows(150000, 6)).toEqual([
+      { index: 0, startMs: 0, endMs: 25000 },
+      { index: 1, startMs: 25000, endMs: 50000 },
+      { index: 2, startMs: 50000, endMs: 75000 },
+      { index: 3, startMs: 75000, endMs: 100000 },
+      { index: 4, startMs: 100000, endMs: 125000 },
+      { index: 5, startMs: 125000, endMs: 150000 },
+    ]);
+  });
+
+  it('partitions arbitrary durations contiguously within the fitted row budget', () => {
+    fc.assert(fc.property(
+      fc.integer({ min: 1, max: 7_200_000 }),
+      fc.integer({ min: 1, max: 20 }),
+      (songDuration, rowBudget) => {
+        const rows = computeFittedRows(songDuration, rowBudget);
+        expect(rows.length).toBeLessThanOrEqual(rowBudget);
+        expect(rows[0].startMs).toBe(0);
+        expect(rows.at(-1)?.endMs).toBe(songDuration);
+        rows.forEach((row, index) => {
+          expect(row.index).toBe(index);
+          expect(row.endMs).toBeGreaterThan(row.startMs);
+          if (index > 0) expect(row.startMs).toBe(rows[index - 1].endMs);
+        });
+      },
+    ));
+  });
+
   it('computes phrase durations for 4, 6, and 8 counts', () => {
     expect(phraseRowDurationMs(120, 4, 1)).toBe(2000);
     expect(phraseRowDurationMs(120, 6, 1)).toBe(3000);

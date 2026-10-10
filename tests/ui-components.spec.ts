@@ -11,6 +11,10 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByText('Annotation layers')).toHaveCount(0);
     await expect(page.getByTestId('row-density-preset-default')).toHaveCount(0);
     await expect(page.getByTestId('wrapped-follow-toggle')).toHaveCount(0);
+    await expect(page.getByTestId('wrapped-row-gutter-0')).toHaveText('0:00');
+    const fittedRows = page.locator('[data-testid^="wrapped-row-"][role="slider"]');
+    expect(await fittedRows.count()).toBeGreaterThan(1);
+    await expect(fittedRows.last()).toHaveAttribute('aria-label', /to 3:00$/);
 
     for (const testId of [
       'project-actions-scroll',
@@ -25,13 +29,28 @@ test.describe('UI Components & Layout', () => {
 
     const geometry = await page.evaluate(() => {
       const actions = document.querySelector('[data-testid="project-actions-scroll"]');
+      const waveform = document.querySelector('[data-testid="wrapped-waveform"]');
+      const row = document.querySelector('[data-testid="wrapped-row-0"]');
+      const gutter = document.querySelector('[data-testid="wrapped-row-gutter-0"]');
       return {
         pageFits: document.documentElement.scrollHeight <= window.innerHeight + 1,
         actionsFit: !!actions && actions.scrollWidth <= actions.clientWidth + 1,
+        waveformFits: !!waveform && waveform.scrollHeight <= waveform.clientHeight + 1,
+        waveformOverflow: waveform ? window.getComputedStyle(waveform).overflowY : '',
+        rowHeight: row?.getBoundingClientRect().height ?? 0,
+        gutterWidth: gutter?.getBoundingClientRect().width ?? 0,
+        gutterHeight: gutter?.getBoundingClientRect().height ?? 0,
+        gutterJustify: gutter ? window.getComputedStyle(gutter).justifyContent : '',
       };
     });
     expect(geometry.pageFits).toBe(true);
     expect(geometry.actionsFit).toBe(true);
+    expect(geometry.waveformFits).toBe(true);
+    expect(geometry.waveformOverflow).toBe('hidden');
+    expect(geometry.rowHeight).toBeLessThanOrEqual(56);
+    expect(geometry.gutterWidth).toBeLessThanOrEqual(52);
+    expect(geometry.gutterHeight).toBe(geometry.rowHeight);
+    expect(geometry.gutterJustify).toBe('center');
 
     await page.getByTestId('add-marker').click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);

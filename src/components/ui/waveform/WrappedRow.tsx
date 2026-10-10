@@ -35,12 +35,12 @@ interface WrappedRowProps {
   onSeek: (positionMs: number) => void;
   onScrubStart: () => void;
   onScrubEnd: () => void;
-  onPlaceMarker: (timestamp: number) => void;
   onSelectMarker: (layerId: LayerId, timestamp: number) => void;
   onSelectForDetail: (rowIndex: number) => void;
 }
 
 const MARKER_LANE_HEIGHT = 44;
+const MARKER_LANE_HEIGHT_RATIO = 0.45;
 const MARKER_HIT_RADIUS_PX = 22;
 const ANNOTATION_CLUSTER_THRESHOLD_PX = 8;
 const ANNOTATION_INDICATOR_Y = 12;
@@ -109,7 +109,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   onSeek,
   onScrubStart,
   onScrubEnd,
-  onPlaceMarker,
   onSelectMarker,
   onSelectForDetail,
 }) => {
@@ -121,6 +120,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     ? Math.max(1, Math.min(rowPixelWidth - 1, activeWidth))
     : rowPixelWidth / 2;
   const waveformHeight = Math.max(1, rowHeight - 2);
+  const markerLaneHeight = Math.min(MARKER_LANE_HEIGHT, waveformHeight * MARKER_LANE_HEIGHT_RATIO);
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
   const rowDuration = Math.max(0, row.endMs - row.startMs);
@@ -129,7 +129,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const rowLabel = [
     `Row ${row.index + 1}`,
     `${formatAccessibleTime(row.startMs)} to ${formatAccessibleTime(row.endMs)}`,
-    row.phraseNumber == null ? null : `phrase ${row.phraseNumber}`,
   ].filter(Boolean).join(', ');
   const annotationClusters = useMemo(() => clusterAnnotationIndicators(
     markersByLayer.flatMap(layer => layer.annotatedTimestamps.map(timestamp => ({
@@ -169,16 +168,13 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     .maxDuration(250)
     .onEnd(event => {
       const targetTime = timeAtPosition(event.x);
-      if (event.y <= MARKER_LANE_HEIGHT) {
+      if (event.y <= markerLaneHeight) {
         const marker = markerAtPosition(event.x);
         if (marker) {
           onSelectMarker(marker.layerId, marker.timestamp);
           onSeek(marker.timestamp);
-        } else {
-          onPlaceMarker(targetTime);
-          onSeek(targetTime);
+          return;
         }
-        return;
       }
       onSeek(targetTime);
     });
@@ -224,13 +220,11 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
         accessibilityLabel={`Open detail editor for row ${row.index + 1}`}
         accessibilityRole="button"
         onPress={() => onSelectForDetail(row.index)}
-        style={({ pressed }) => pressed && styles.gutterPressed}
+        style={({ pressed }) => [styles.gutterAction, pressed && styles.gutterPressed]}
         testID={`wrapped-row-detail-${row.index}`}
       >
         <RowGutter
           startMs={row.startMs}
-          phraseNumber={row.phraseNumber}
-          countLabel={row.countLabel}
           width={gutterWidth}
           testID={`wrapped-row-gutter-${row.index}`}
         />
@@ -260,16 +254,16 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             x={0}
             y={0}
             width={rowPixelWidth}
-            height={Math.min(MARKER_LANE_HEIGHT, waveformHeight)}
+            height={markerLaneHeight}
             fill={activeLayerColor}
             opacity={0.05}
             testID={`wrapped-row-marker-lane-${row.index}`}
           />
           <Line
             x1={0}
-            y1={Math.min(MARKER_LANE_HEIGHT, waveformHeight)}
+            y1={markerLaneHeight}
             x2={rowPixelWidth}
-            y2={Math.min(MARKER_LANE_HEIGHT, waveformHeight)}
+            y2={markerLaneHeight}
             stroke={colors.gridMinor}
             strokeWidth={1}
             opacity={0.45}

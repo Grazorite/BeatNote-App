@@ -143,7 +143,7 @@ test.describe('Waveform Features', () => {
       const activeRow = page.getByTestId('wrapped-row-0');
       // React Native Web maps the native "adjustable" role to the ARIA slider role.
       await expect(activeRow).toHaveAttribute('role', 'slider');
-      await expect(activeRow).toHaveAttribute('aria-label', /Row 1, 0:00 to 0:08, phrase 1/);
+      await expect(activeRow).toHaveAttribute('aria-label', 'Row 1, 0:00 to 0:08');
       await expect(activeRow).toHaveAttribute('aria-valuetext', /Playback at 0:00/);
 
       await expect(page.getByTestId('wrapped-row-gutter-0')).toHaveAttribute(
@@ -176,6 +176,8 @@ test.describe('Waveform Features', () => {
       if (!box) return;
 
       await gestureArea.click({ position: { x: box.width * 0.4, y: 12 } });
+      await expect(page.getByTestId('grand-total-markers')).toContainText('0 markers');
+      await page.getByTestId('add-marker').click();
       const marker = page.locator('[data-testid^="wrapped-row-marker-vocals-"]');
       await expect(marker).toHaveAttribute('aria-label', /Vocals marker at 0:0[1-4], not annotated/);
 
@@ -184,7 +186,7 @@ test.describe('Waveform Features', () => {
       await expect(page.locator('[data-testid^="wrapped-row-annotation-vocals-"]')).toBeVisible();
     });
 
-    test('should separate seek gestures from marker-lane gestures', async ({ page }) => {
+    test('should reserve marker creation for the marker controls', async ({ page }) => {
       await page.goto('/');
       await loadTestAudio(page);
 
@@ -204,8 +206,10 @@ test.describe('Waveform Features', () => {
 
       const markerPosition = { x: box.width * 0.6, y: 12 };
       await gestureArea.click({ position: markerPosition });
+      await expect.poll(markerCount).toBe(initialMarkers);
+
+      await page.getByTestId('add-marker').click();
       await expect.poll(markerCount).toBe(initialMarkers + 1);
-      await expect(page.getByTestId('marker-annotation')).toBeEnabled();
 
       await gestureArea.click({ position: markerPosition });
       await expect.poll(markerCount).toBe(initialMarkers + 1);
@@ -228,6 +232,7 @@ test.describe('Waveform Features', () => {
       if (!box) return;
 
       await gestureArea.click({ position: { x: box.width * 0.4, y: 12 } });
+      await page.getByTestId('add-marker').click();
       const annotationField = page.getByTestId('marker-annotation');
       await annotationField.fill('Turn');
 
@@ -254,6 +259,7 @@ test.describe('Waveform Features', () => {
       if (!box) return;
 
       await gestureArea.click({ position: { x: box.width * 0.25, y: 12 } });
+      await page.getByTestId('add-marker').click();
       const annotationField = page.getByTestId('marker-annotation');
       await annotationField.fill('Keep me');
       const marker = page.locator('[data-testid^="wrapped-row-marker-vocals-"]');
@@ -341,12 +347,13 @@ test.describe('Waveform Features', () => {
       await page.getByTestId('sidebar-toggle').click();
       await loadTestAudio(page, 'long-test-track.m4a');
 
-      await expect(page.getByTestId('wrapped-row-gutter-1')).toContainText('0:04');
+      await expect(page.getByTestId('wrapped-row-gutter-1')).not.toContainText('0:04');
       const firstRow = page.getByTestId('wrapped-row-gesture-area-0');
       const firstRowBox = await firstRow.boundingBox();
       expect(firstRowBox).not.toBeNull();
       if (!firstRowBox) return;
       await firstRow.click({ position: { x: firstRowBox.width * 0.25, y: 12 } });
+      await page.getByTestId('add-marker').click();
       const annotationField = page.getByTestId('marker-annotation');
       await annotationField.fill('Survives resize');
 

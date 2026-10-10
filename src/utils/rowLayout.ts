@@ -67,6 +67,24 @@ export function computeRows(config: RowLayoutConfig): WrappedRow[] {
   return rows;
 }
 
+export function computeFittedRows(songDuration: number, requestedRowCount: number): WrappedRow[] {
+  if (!Number.isFinite(songDuration) || songDuration <= 0) return [];
+
+  const duration = Math.round(songDuration);
+  if (duration <= 0) return [];
+
+  const safeRequestedCount = Number.isFinite(requestedRowCount)
+    ? Math.max(1, Math.floor(requestedRowCount))
+    : 1;
+  const rowCount = Math.min(duration, safeRequestedCount);
+
+  return Array.from({ length: rowCount }, (_, index) => ({
+    index,
+    startMs: Math.round((index * duration) / rowCount),
+    endMs: Math.round(((index + 1) * duration) / rowCount),
+  }));
+}
+
 export interface VisibleRange {
   firstIndex: number;
   lastIndex: number;

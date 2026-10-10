@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-09
+**Last updated:** 2026-10-10
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -52,8 +52,8 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 0 of 6 (all in steering, none in code) |
-| Unit tests | 68 passing (8 suites; row-density preset coverage added) |
-| iOS UI tests | 14/14 passing on iPhone 17 Pro Max / iOS 26.2, including portrait and landscape |
+| Unit tests | 70 passing (8 suites; fitted full-song row coverage added) |
+| iOS UI tests | 14 cases; latest aggregate 12/14, with all corrected/changed cases passing focused reruns |
 | E2E spec files | 5 (Playwright, 68 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
@@ -110,16 +110,16 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Restrict marker creation to the bottom marker controls; gutter and waveform taps only seek or select
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/ios/BeatNoteUITests.swift`, `tests/waveform-features.spec.ts`</sub>
+- [x] Fit the complete song into a fixed, non-scrolling phone waveform with timestamp-only gutters
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/hooks/useWrappedRows.ts`, `src/styles/components/waveform/`, `src/utils/rowLayout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/unit/rowLayout.test.ts`, `tests/waveform-features.spec.ts`</sub>
 - [x] Redesign the phone workspace as a fixed, single-layer canvas with no page/action-row scrolling
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/TimelineScrollbar.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/quality-assurance.spec.ts`, `tests/ui-components.spec.ts`</sub>
 - [x] Complete wrapped-canvas Phases 14-15 native acceptance and renderer cleanup
       <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`, `tests/ios/BeatNoteUITests.swift`; removed `src/components/ui/waveform/SimpleWaveform.tsx`</sub>
 - [x] Implement wrapped-canvas Phase 12 accessibility metadata and stable test identifiers
       <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 11 responsive reflow and side-by-side wide detail layout
-      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/waveform/WaveformWorkspace.tsx`, `src/styles/components/waveform/waveformWorkspace.ts`, `tests/waveform-features.spec.ts`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
-- [x] Implement wrapped-canvas Phase 10 explicit row-density presets and timestamp-safe reflow
-      <sub>**Key Artifacts:** `src/components/ui/waveform/RowDensityControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/rowDensityControls.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `src/utils/rowDensityPresets.ts`, `tests/unit/rowDensityPresets.test.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`</sub>
 ---
 
 ## 🔄 Zero-Instruction Handover Protocol
@@ -193,6 +193,84 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-10 — Restrict marker creation to controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Button-only marker creation → Done
+
+**Changed:**
+
+- Removed marker creation from wrapped-row taps. Blank waveform taps now seek, gutter taps open
+  precision detail, and existing marker taps continue to select and seek.
+- Kept marker creation exclusively on the bottom add-marker control and documented that interaction
+  as a durable V1 product rule.
+- Updated browser and native acceptance to assert that gutter, waveform, marker, and drag gestures
+  never increase the marker count while the add-marker button does.
+
+**Key Artifacts** (from `git diff --name-only`):
+`.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `tests/ios/BeatNoteUITests.swift`,
+`tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 70 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed.
+- Focused portrait fixed-workspace, wrapped-row gesture, and landscape reflow XTests each passed on
+  iPhone 17 Pro / iOS 26.2; all three result bundles were inspected.
+
+**Not verified / known gaps:**
+
+- The full 14-case iOS aggregate was not rerun; focused native coverage exercises every changed
+  marker-creation path. Physical-device acceptance remains outstanding.
+- The fixed phone-canvas work and this interaction correction remain uncommitted together.
+
+**Next agent should:**
+
+- Run physical-device acceptance, then address the top utility/store unit-test coverage item.
+
+### 2026-10-09 — Fit full songs into the fixed phone canvas
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Timestamp-only compact phone gutters → Done
+
+**Changed:**
+
+- Replaced the mobile wrapped-waveform `ScrollView` with a fixed canvas that renders every row at
+  once. Row count follows available screen height, while timestamps partition the complete song.
+- Reduced gutters to timestamp-only, vertically centered labels and made the compact marker lane
+  proportional to row height so lower-row taps seek instead of accidentally adding markers.
+- Kept desktop virtualization, density presets, and follow-playhead scrolling unchanged; documented
+  the fixed full-song phone canvas as a durable product rule.
+
+**Key Artifacts** (from `git diff --name-only`):
+`.kiro/steering/project-overview.md`, `src/components/ui/waveform/RowGutter.tsx`,
+`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
+`src/hooks/useWrappedRows.ts`, `src/styles/components/waveform/rowGutter.ts`,
+`src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`,
+`src/utils/rowLayout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`,
+`tests/unit/rowLayout.test.ts`, `tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 70 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed,
+  including fixed-canvas overflow, full-duration coverage, and compact gesture behavior.
+- Native portrait fixed-canvas, compact row seek/marker gestures, landscape reflow/detail docking,
+  and background playback continuity each passed focused on iPhone 17 Pro / iOS 26.2.
+- Latest full native aggregate ran 14 cases: 12 passed; its two duration-expectation failures were
+  corrected and both then passed focused (`BeatNoteUITests-1791535636043.xcresult` and
+  `BeatNoteUITests-1791535683002.xcresult`).
+
+**Not verified / known gaps:**
+
+- A final all-14 aggregate was not rerun after the assertion-only fixture-duration correction.
+- Physical-device safe-area, VoiceOver, interruption, and external share-destination checks remain.
+
+**Next agent should:**
+
+- Run physical-device acceptance, then address the top utility/store unit-test coverage item.
 
 ### 2026-10-09 — Fix the phone workspace to one screen
 
@@ -325,95 +403,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Phase 14 iOS acceptance coverage and resolve the simulator scene-rotation lock before
   the full suite, then finish Phase 15 cleanup and final regression.
-
-### 2026-10-06 — Complete responsive waveform reflow
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `c05b9ff`
-**Kanban moved:** Wrapped-canvas Phase 11 responsive styling → Done; Phase 12 accessibility remains In Progress
-
-**Changed:**
-
-- Added a true side-by-side wrapped/detail workspace for wide and landscape layouts while retaining
-  phone portrait's full detail-mode replacement. Docked panes share available width and may shrink
-  without overlap.
-- Removed the desktop/tablet 900 px minimum-content-width floor that caused clipping and horizontal
-  page overflow on 844 px landscape and intermediate tablet widths.
-- Strengthened responsive acceptance to cover portrait-to-landscape orientation-default row reflow,
-  non-overlapping pane geometry, zero page overflow, and marker/annotation preservation and
-  re-selection after resize.
-- DSH-Qwen session `session-e4dac34e-c7cc-4084-8e01-1358eecff5a0` drafted only the docked style.
-  Direct review fixed its portrait-pane `flex: 1` regression and owned the component integration,
-  overflow repair, and tests. Existing safe-area and `keyboardShouldPersistTaps="handled"` paths were
-  preserved.
-
-**Key Artifacts** (from implementation commit `c05b9ff`):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/layout/MainContent.tsx`,
-`src/components/ui/waveform/WaveformWorkspace.tsx`,
-`src/styles/components/waveform/waveformWorkspace.ts`, `tests/waveform-features.spec.ts`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 66 passed,
-  including wide side-by-side geometry, no horizontal overflow, reflow, and data preservation.
-- Focused `IOS_TEST_ONLY='testPrecisionDetailModeOpensAndRestoresWrappedRow()' npm run test:ios:ui`
-  → 1 passed on iPhone 17 Pro / iOS 26.2; result bundle
-  `ios/build/BeatNoteUITests-1791251332686.xcresult` was inspected and reports one executed test.
-
-**Not verified / known gaps:**
-
-- Native landscape side-by-side geometry and orientation reflow remain unverified because the
-  simulator scene-rotation lock persists; equivalent browser geometry/reflow acceptance is green.
-- Physical-device safe-area, keyboard, and orientation acceptance remains outstanding.
-
-**Next agent should:**
-
-- Implement Phase 12 accessibility roles, labels, values, and stable identifiers across wrapped
-  rows, markers, annotation indicators, density controls, and detail actions.
-
-### 2026-10-06 — Add wrapped row-density presets
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `cd410fb`
-**Kanban moved:** Wrapped-canvas Phase 10 density presets → Done; Phase 11 responsive reflow remains In Progress
-
-**Changed:**
-
-- Added explicit Spacious, Default, and Compact controls with stable identifiers. Presets map to
-  1/2/3 phrases per row or 5/10/15-second duration rows and reuse the persisted single-store
-  `rowDensity` contract.
-- Kept density mapping pure and independently tested. Reflow changes only row projection geometry;
-  marker timestamps and annotations remain unchanged across preset switches.
-- Added semantic native gutter labels and portrait XCTest coverage for all three preset boundaries
-  plus marker preservation. Optional landscape pinch remains intentionally omitted.
-- DSH-Qwen session `session-fd5e84f5-c9e8-4ee7-ab0b-121d2eeb3625` drafted only the bounded control
-  component and styles. Codex reviewed and refined that draft and directly owned mapping, store
-  integration, accessibility, and browser/native acceptance.
-
-**Key Artifacts** (from implementation commit `cd410fb`):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/RowDensityControls.tsx`,
-`src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
-`src/styles/components/waveform/rowDensityControls.ts`,
-`src/styles/components/waveform/wrappedWaveform.ts`, `src/utils/rowDensityPresets.ts`,
-`tests/unit/rowDensityPresets.test.ts`, `tests/waveform-features.spec.ts`,
-`tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 66 passed,
-  including marker and annotation preservation while row boundaries reflow.
-- Focused `IOS_TEST_ONLY='testWrappedRowDensityPresetsReflowWithoutChangingMarkers()' npm run test:ios:ui`
-  → 1 passed on iPhone 17 Pro / iOS 26.2; result bundle
-  `ios/build/BeatNoteUITests-1791225205452.xcresult` was inspected and reports one executed test.
-
-**Not verified / known gaps:**
-
-- The complete iOS suite was not rerun because the existing simulator scene-rotation lock still
-  blocks its geometry-guarded landscape cases; physical-device acceptance remains outstanding.
-- Optional preset-snapping landscape pinch was deliberately omitted until explicit controls and
-  responsive Phase 11 styling are stable.
-
-**Next agent should:**
-
-- Implement Phase 11 responsive styling and automatic reflow across narrow portrait, wide
-  landscape, and resizing while preserving current presets, gestures, and playback state.

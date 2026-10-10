@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { colors, dimensions } from '../../common';
+import { colors } from '../../common';
 
 export const rowGutterStyles = StyleSheet.create({
   container: {
+    flex: 1,
     alignSelf: 'stretch',
     justifyContent: 'center',
-    paddingHorizontal: dimensions.spacing.sm,
-    paddingVertical: dimensions.spacing.xs,
+    paddingHorizontal: 6,
     backgroundColor: colors.surface,
     borderRightWidth: 1,
     borderRightColor: colors.border,
@@ -16,16 +16,5 @@ export const rowGutterStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-  },
-  phrase: {
-    marginTop: dimensions.spacing.xs,
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  count: {
-    color: colors.accent,
-    fontSize: 11,
-    fontWeight: '600',
   },
 });

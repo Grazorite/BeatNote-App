@@ -4,8 +4,6 @@ import { rowGutterStyles as styles } from '../../../styles/components/waveform/r
 
 interface RowGutterProps {
   startMs: number;
-  phraseNumber?: number;
-  countLabel?: string;
   width: number;
   testID?: string;
 }
@@ -19,12 +17,9 @@ const formatTime = (milliseconds: number): string => {
 
 const RowGutter: React.FC<RowGutterProps> = ({
   startMs,
-  phraseNumber,
-  countLabel,
   width,
   testID,
 }) => {
-  const hasPhraseLabel = phraseNumber !== undefined && countLabel !== undefined;
   const startTime = formatTime(startMs);
 
   return (
@@ -34,12 +29,6 @@ const RowGutter: React.FC<RowGutterProps> = ({
       testID={testID}
     >
       <Text style={styles.time}>{startTime}</Text>
-      {hasPhraseLabel && (
-        <>
-          <Text style={styles.phrase}>Phrase {phraseNumber}</Text>
-          <Text style={styles.count}>Count {countLabel}</Text>
-        </>
-      )}
     </View>
   );
 };
