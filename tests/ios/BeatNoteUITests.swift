@@ -50,6 +50,14 @@ final class BeatNoteUITests: XCTestCase {
   func testAudioAnnotationAndProjectRestore() {
     loadBundledSimulatorAudio()
 
+    let overview = element("loop-overview")
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
+    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
+    element("loop-region-toggle").tap()
+    let savedLoopSummary = element("loop-overview-summary").label
+    let savedLoopToggleValue = String(describing: element("loop-region-toggle").value ?? "")
+
     let playback = element("play-pause")
     XCTAssertTrue(playback.waitForExistence(timeout: 10))
     playback.tap()
@@ -68,11 +76,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(annotation.isHittable)
     annotation.tap()
     annotation.typeText("Dance note")
-    let annotationSavedToField = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "value == %@", "Dance note"),
-      object: annotation
-    )
-    XCTAssertEqual(XCTWaiter.wait(for: [annotationSavedToField], timeout: 5), .completed)
+    XCTAssertEqual(annotation.value as? String, "Dance note")
 
     let projectName = "UITest-\(UUID().uuidString.prefix(8))"
     let saveButton = element("save-project")
@@ -100,6 +104,9 @@ final class BeatNoteUITests: XCTestCase {
 
     XCTAssertEqual(element("load-song").label, "Song Loaded")
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertEqual(element("loop-overview-summary").label, savedLoopSummary)
+    XCTAssertTrue(element("loop-overview-range").exists, "Saved loop range should restore after relaunch.")
+    XCTAssertEqual(String(describing: element("loop-region-toggle").value ?? ""), savedLoopToggleValue)
     element("navigate-right-marker").tap()
     XCTAssertEqual(app.textFields["marker-annotation"].value as? String, "Dance note")
 
@@ -130,34 +137,91 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(annotation.value as? String, "Live marker note")
   }
 
-  func testLongTrackOverviewTapAndDragSeek() {
+  func testLongTrackOverviewTapDoesNotSeekAndDragCreatesLoop() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
-    let timeline = element("timeline-gesture-area")
-    scrollIntoView(timeline)
-    XCTAssertGreaterThan(timeline.frame.width, app.frame.width * 0.8)
+    let overview = element("loop-overview")
+    scrollIntoView(overview)
+    XCTAssertGreaterThan(overview.frame.width, app.frame.width * 0.8)
     XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.8)
 
     let currentTime = element("playback-current-time")
     let initialTime = currentTime.label
-    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
-    let tappedSeek = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "label != %@", initialTime),
-      object: currentTime
-    )
-    XCTAssertEqual(XCTWaiter.wait(for: [tappedSeek], timeout: 5), .completed)
-    let tappedSeconds = playbackSeconds(from: currentTime.label)
-    XCTAssertTrue((100...110).contains(tappedSeconds), "Overview tap should seek to about 70% of the 150-second track.")
+    let initialMarkers = app.staticTexts["grand-total-markers"].label
+    let initialFrame = overview.frame
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
+    XCTAssertEqual(currentTime.label, initialTime, "Overview taps must not seek playback.")
 
-    let beforeDrag = currentTime.label
-    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
-      .press(forDuration: 0.1, thenDragTo: timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)))
-    let draggedSeek = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "label != %@", beforeDrag),
-      object: currentTime
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+    XCTAssertEqual(overview.frame.minY, initialFrame.minY, accuracy: 1, "Vertical overview motion must not scroll the page.")
+
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
+    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("loop-overview-handle-start").exists)
+    XCTAssertTrue(element("loop-overview-handle-end").exists)
+    XCTAssertEqual(currentTime.label, initialTime, "Creating a loop must not seek playback.")
+    XCTAssertEqual(app.staticTexts["grand-total-markers"].label, initialMarkers)
+
+    let startHandle = element("loop-overview-handle-start")
+    let startBeforeMove = String(describing: startHandle.value ?? "")
+    let range = element("loop-overview-range")
+    range.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: range.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)))
+    XCTAssertNotEqual(String(describing: startHandle.value ?? ""), startBeforeMove, "Dragging the range should move both bounds.")
+
+    let startBeforeResize = String(describing: startHandle.value ?? "")
+    startHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: startHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)))
+    XCTAssertNotEqual(String(describing: startHandle.value ?? ""), startBeforeResize, "Dragging a handle should resize the range.")
+    XCTAssertGreaterThanOrEqual(startHandle.frame.height, 44, "Native handle target should be at least 44 points tall.")
+
+    XCTAssertTrue(startHandle.label.hasPrefix("Loop start "), "The start handle should expose its adjustable value label.")
+    XCTAssertFalse(String(describing: startHandle.value ?? "").isEmpty, "The start handle should expose its current value.")
+    XCTAssertEqual(currentTime.label, initialTime)
+    XCTAssertEqual(app.staticTexts["grand-total-markers"].label, initialMarkers)
+  }
+
+  func testLoopRangeToggleWrapsAndTransportFits() {
+    loadBundledSimulatorAudio("long-test-track.m4a")
+
+    let transportIDs = ["skip-back", "play-pause", "skip-forward", "repeat-toggle", "loop-region-toggle"]
+    let transport = transportIDs.map { element($0) }
+    for control in transport {
+      XCTAssertTrue(control.exists && control.isHittable)
+      XCTAssertGreaterThanOrEqual(control.frame.width, 44)
+      XCTAssertGreaterThanOrEqual(control.frame.height, 44)
+    }
+    let rowMidY = transport[0].frame.midY
+    for control in transport.dropFirst() {
+      XCTAssertEqual(control.frame.midY, rowMidY, accuracy: 4, "All five transport buttons should remain on one row.")
+    }
+    for markerControl in ["remove-last-marker", "navigate-left-marker", "add-marker", "navigate-right-marker"] {
+      XCTAssertTrue(element(markerControl).exists, "Marker row should retain its four non-loop controls.")
+    }
+
+    let overview = element("loop-overview")
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.002, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.5)))
+    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
+    let toggle = element("loop-region-toggle")
+    let toggleBefore = String(describing: toggle.value ?? "")
+    toggle.tap()
+    let toggleAfter = String(describing: toggle.value ?? "")
+    XCTAssertNotEqual(toggleAfter, toggleBefore, "Loop toggle should expose its changed checked state (before: \(toggleBefore), after: \(toggleAfter)).")
+
+    let row = element("wrapped-row-gesture-area-0")
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.16, dy: 0.5)).tap()
+    let playbackTime = element("playback-current-time")
+    XCTAssertGreaterThan(playbackSeconds(from: playbackTime.label), 0, "The wrap check must begin inside the loop range.")
+    element("play-pause").tap()
+    Thread.sleep(forTimeInterval: 4.0)
+    XCTAssertLessThanOrEqual(
+      playbackSeconds(from: playbackTime.label),
+      5,
+      "Playback should wrap to the loop start instead of continuing beyond the selected range."
     )
-    XCTAssertEqual(XCTWaiter.wait(for: [draggedSeek], timeout: 5), .completed)
-    XCTAssertTrue((30...45).contains(playbackSeconds(from: currentTime.label)), "Overview drag should seek to about 25% of the track.")
   }
 
   func testWrappedRowSeekMarkerAndDragGestures() {
@@ -237,7 +301,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertFalse(app.staticTexts["Annotation layers"].exists)
     XCTAssertFalse(element("row-density-preset-default").exists)
     XCTAssertFalse(element("wrapped-follow-toggle").exists)
-    XCTAssertTrue(element("timeline-gesture-area").isHittable)
+    XCTAssertTrue(element("loop-overview").exists)
+    XCTAssertGreaterThan(element("loop-overview").frame.width, app.frame.width * 0.8)
     XCTAssertTrue(element("play-pause").isHittable)
     XCTAssertTrue(element("add-marker").isHittable)
     XCTAssertTrue(element("marker-annotation").exists)
@@ -271,14 +336,20 @@ final class BeatNoteUITests: XCTestCase {
     assertStaticCanvasCoversSongEnd()
     let firstRowFrame = element("wrapped-row-0").frame
 
+    let distantRow = element("wrapped-row-gesture-area-4")
+    scrollIntoView(distantRow)
+    distantRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let playbackTime = element("playback-current-time")
+    let timeBeforePlayback = playbackTime.label
     element("play-pause").tap()
-    let timeline = element("timeline-gesture-area")
-    scrollIntoView(timeline)
-    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
+    let playbackStarted = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", timeBeforePlayback),
+      object: playbackTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [playbackStarted], timeout: 5), .completed)
 
     XCTAssertEqual(element("wrapped-row-0").frame.minY, firstRowFrame.minY, accuracy: 1)
 
-    let playbackTime = element("playback-current-time")
     let timeBeforeBackground = playbackTime.label
     XCUIDevice.shared.press(.home)
     Thread.sleep(forTimeInterval: 1.5)
@@ -444,12 +515,13 @@ final class BeatNoteUITests: XCTestCase {
       .press(forDuration: 0.1, thenDragTo: waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)))
     assertNoGestureRuntimeError()
 
-    let timeline = element("timeline-gesture-area")
-    scrollIntoView(timeline)
-    XCTAssertTrue(timeline.isHittable, "Timeline scrollbar gesture area should be visible.")
-    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)).tap()
-    timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.5))
-      .press(forDuration: 0.1, thenDragTo: timeline.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
+    let overview = element("loop-overview")
+    scrollIntoView(overview)
+    XCTAssertTrue(overview.exists, "Loop overview should exist in landscape.")
+    XCTAssertGreaterThan(overview.frame.width, app.frame.width * 0.45, "Loop overview should span the landscape canvas.")
+    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
+      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
+    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
     assertNoGestureRuntimeError()
   }
 

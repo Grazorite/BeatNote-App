@@ -25,7 +25,9 @@ import {
   clipRowProgress,
   loopSegmentsForRows,
   timestampToRow,
+  type RowLoopSegment,
 } from '../../../utils/timelineMapping';
+import { isValidLoopRange, outsideLoopSegmentsForRow } from '../../../utils/loopRange';
 import WrappedRow, { type WrappedLayerMarkers } from './WrappedRow';
 import RowDensityControls from './RowDensityControls';
 import { wrappedWaveformStyles as styles } from '../../../styles/components/waveform/wrappedWaveform';
@@ -63,6 +65,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const followPlayhead = useStudioStore(state => state.followPlayhead);
   const loopStartMs = useStudioStore(state => state.loopStartMs);
   const loopEndMs = useStudioStore(state => state.loopEndMs);
+  const isLoopRangeEnabled = useStudioStore(state => state.isLoopRangeEnabled);
   const rowDensity = useStudioStore(state => state.rowDensity);
   const setFollowPlayhead = useStudioStore(state => state.setFollowPlayhead);
   const setRowDensity = useStudioStore(state => state.setRowDensity);
@@ -108,12 +111,23 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const realPeaks = waveformData?.source === 'decoded' ? waveformData.peaks : undefined;
   const peakDuration = waveformData?.source === 'decoded' ? waveformData.duration : songDuration;
   const loopSegmentsByRow = useMemo(() => {
-    if (loopStartMs == null || loopEndMs == null) return new Map();
+    if (!isValidLoopRange({ loopStartMs, loopEndMs }, songDuration)) return new Map();
     return new Map(
-      loopSegmentsForRows(rows, loopStartMs, loopEndMs)
+      loopSegmentsForRows(rows, loopStartMs as number, loopEndMs as number)
         .map(segment => [segment.rowIndex, segment] as const),
     );
-  }, [loopEndMs, loopStartMs, rows]);
+  }, [loopEndMs, loopStartMs, rows, songDuration]);
+  const outsideLoopSegmentsByRow = useMemo(() => {
+    const range = { loopStartMs, loopEndMs };
+    if (!isValidLoopRange(range, songDuration)) return new Map<number, RowLoopSegment[]>();
+    return new Map(rows.map(row => [
+      row.index,
+      outsideLoopSegmentsForRow(row.startMs, row.endMs, range).map(segment => ({
+        rowIndex: row.index,
+        ...segment,
+      })),
+    ]));
+  }, [loopEndMs, loopStartMs, rows, songDuration]);
 
   const markersForRow = useCallback((row: WrappedRowModel): WrappedLayerMarkers[] => (
     layers
@@ -239,6 +253,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       peaks={realPeaks}
       totalDuration={peakDuration}
       loopSegment={loopSegmentsByRow.get(row.index)}
+      outsideLoopSegments={outsideLoopSegmentsByRow.get(row.index)}
+      isLoopRangeEnabled={isLoopRangeEnabled}
       onSeek={onSeek}
       onScrubStart={onScrubStart}
       onScrubEnd={onScrubEnd}

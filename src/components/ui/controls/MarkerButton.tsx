@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { MarkerIcon, MarkerAddIcon, MarkerRemoveIcon, MarkerLeftIcon, MarkerRightIcon, MarkerRemoveLastIcon, LoopMarkerIcon } from '../../icons';
+import { MarkerIcon, MarkerAddIcon, MarkerRemoveIcon, MarkerLeftIcon, MarkerRightIcon, MarkerRemoveLastIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { markerButtonStyles as styles } from '../../../styles/components/controls/markerButton';
 
@@ -12,7 +12,7 @@ interface MarkerButtonProps {
 }
 
 const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek, isMobile = false, compact = false }) => {
-  const { songLoaded, currentTime, layers, activeLayerId, navigateToLeftMarker, navigateToRightMarker, removeLastMarker, allLayersData, ghostPlayheadTime, songDuration, layerSpecificNavigation, isLoopMarkerActive, toggleLoopMarker } = useStudioStore();
+  const { songLoaded, currentTime, layers, activeLayerId, navigateToLeftMarker, navigateToRightMarker, removeLastMarker, allLayersData, ghostPlayheadTime, songDuration, layerSpecificNavigation } = useStudioStore();
   
   // Check if there's an existing marker near current time
   const activeLayer = layers.find(layer => layer.id === activeLayerId);
@@ -147,21 +147,6 @@ const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek, isMobile = f
         <MarkerRightIcon size={compact ? 18 : isMobile ? 20 : 24} color={(songLoaded && canNavigateRight()) ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
-      <TouchableOpacity 
-        style={[
-          styles.markerButton,
-          isMobile && styles.markerButtonMobile,
-          compact && styles.markerButtonCompact,
-          songLoaded && isActiveLayerVisible ? (isLoopMarkerActive ? styles.markerButtonActive : styles.markerButtonInactive) : styles.markerButtonDisabled
-        ]} 
-        onPress={songLoaded && isActiveLayerVisible ? toggleLoopMarker : undefined}
-        disabled={!songLoaded || !isActiveLayerVisible}
-        activeOpacity={1}
-        delayPressIn={0}
-        delayPressOut={0}
-      >
-        <LoopMarkerIcon size={compact ? 18 : isMobile ? 20 : 24} color={songLoaded && isActiveLayerVisible ? "#ffffff" : "#666666"} />
-      </TouchableOpacity>
     </View>
   );
 };

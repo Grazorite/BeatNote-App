@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { useStudioStore } from './useStudioStore';
+import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap } from '../utils/loopRange';
 
 interface ErrorState {
   visible: boolean;
@@ -27,8 +28,12 @@ export const useCustomAudioPlayer = () => {
   const [audioFilename, setAudioFilename] = useState<string | null>(null);
   const [wasPlayingBeforeScrub, setWasPlayingBeforeScrub] = useState(false);
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
+  const previousSampleRef = useRef<number | null>(null);
+  const loopDecisionSuspendedRef = useRef(false);
+  const loopSeekInFlightRef = useRef(false);
+  const failedLoopRangeKeyRef = useRef<string | null>(null);
   const player = useAudioPlayer(audioSource);
-  const { isPlaying, layers, activeLayerId, isRepeatActive, isLoopMarkerActive, layerSpecificNavigation, allLayersData, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime } = useStudioStore();
+  const { isPlaying, layers, activeLayerId, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime, resetLoopForNewAudio } = useStudioStore();
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });
@@ -83,6 +88,7 @@ export const useCustomAudioPlayer = () => {
         }
         
         try {
+          resetLoopForNewAudio();
           setAudioSource({ uri: file.uri });
           setAudioFilename(file.name);
           setSongLoaded(true);
@@ -128,8 +134,11 @@ export const useCustomAudioPlayer = () => {
           setCurrentTime(0);
           setViewportStartTime(0); // Reset viewport for both single and stems modes
           player.seekTo(0);
+          previousSampleRef.current = 0;
+          failedLoopRangeKeyRef.current = null;
         } else {
           player.seekTo(currentTime / 1000); // Convert to seconds
+          previousSampleRef.current = currentTime;
         }
         player.play();
         setIsPlaying(true);
@@ -142,7 +151,8 @@ export const useCustomAudioPlayer = () => {
 
   const seekToPosition = useCallback(async (position: number) => {
     if (!player) return;
-    
+
+    loopDecisionSuspendedRef.current = true;
     try {
       const { songDuration } = useStudioStore.getState();
       // Clamp position to valid range
@@ -154,6 +164,8 @@ export const useCustomAudioPlayer = () => {
       
       // Seek the audio player
       await player.seekTo(clampedPosition / 1000); // Convert to seconds
+      previousSampleRef.current = clampedPosition;
+      failedLoopRangeKeyRef.current = null;
       
       // Continue playing if it was playing before
       if (wasPlaying) {
@@ -163,10 +175,16 @@ export const useCustomAudioPlayer = () => {
     } catch (error) {
       console.error('Seek error:', error);
       Alert.alert('Seek Error', 'Failed to seek to position');
+      const reportedPosition = (player.currentTime ?? 0) * 1000;
+      previousSampleRef.current = reportedPosition;
+      setCurrentTime(reportedPosition);
+    } finally {
+      loopDecisionSuspendedRef.current = false;
     }
   }, [player, isPlaying, setIsPlaying, setCurrentTime]);
 
   const startWaveformScrub = async () => {
+    loopDecisionSuspendedRef.current = true;
     if (player && isPlaying) {
       setWasPlayingBeforeScrub(true);
       player.pause();
@@ -177,13 +195,25 @@ export const useCustomAudioPlayer = () => {
   };
 
   const endWaveformScrub = async () => {
-    if (player && wasPlayingBeforeScrub) {
+    if (player) {
       const { currentTime } = useStudioStore.getState();
-      player.seekTo(currentTime / 1000); // Convert to seconds
-      player.play();
-      setIsPlaying(true);
+      try {
+        await player.seekTo(currentTime / 1000); // Convert to seconds
+        previousSampleRef.current = currentTime;
+        failedLoopRangeKeyRef.current = null;
+        if (wasPlayingBeforeScrub) {
+          player.play();
+          setIsPlaying(true);
+        }
+      } catch (scrubError) {
+        console.error('Scrub seek error:', scrubError);
+        const reportedPosition = (player.currentTime ?? 0) * 1000;
+        previousSampleRef.current = reportedPosition;
+        setCurrentTime(reportedPosition);
+      }
     }
     setWasPlayingBeforeScrub(false);
+    loopDecisionSuspendedRef.current = false;
   };
 
   const tapToBeat = async () => {
@@ -214,37 +244,76 @@ export const useCustomAudioPlayer = () => {
   // Handle playback position updates and end-of-track detection
   useEffect(() => {
     if (!player || !isPlaying) return;
-    
+
     const interval = setInterval(() => {
       if (player.currentTime !== undefined) {
         const currentTimeMs = player.currentTime * 1000; // Convert to milliseconds
-        const { songDuration } = useStudioStore.getState();
-        
-        // Check for loop marker functionality
-        if (isLoopMarkerActive) {
-          const baseMarkers = layerSpecificNavigation 
-            ? allLayersData.find(layer => layer.id === activeLayerId)?.markers || []
-            : allLayersData.flatMap(layer => layer.markers);
-          
-          const sortedMarkers = [...baseMarkers, 0, songDuration].sort((a, b) => a - b);
-          
-          // Find current position in marker array
-          const currentIndex = sortedMarkers.findIndex(marker => marker > currentTimeMs);
-          
-          if (currentIndex > 0) {
-            const nextMarker = sortedMarkers[currentIndex];
-            const prevMarker = sortedMarkers[currentIndex - 1];
-            
-            // If reached next marker, loop back to previous marker
-            if (currentTimeMs >= nextMarker - END_OF_TRACK_TOLERANCE_MS) {
-              setCurrentTime(prevMarker);
-              player.seekTo(prevMarker / 1000);
-              player.play();
-              return;
-            }
-          }
+        const {
+          isLoopRangeEnabled,
+          loopStartMs,
+          loopEndMs,
+          songDuration,
+          isRepeatActive,
+        } = useStudioStore.getState();
+
+        if (loopDecisionSuspendedRef.current || loopSeekInFlightRef.current) {
+          previousSampleRef.current = currentTimeMs;
+          setCurrentTime(currentTimeMs);
+          return;
         }
-        
+
+        const previousSampleMs = previousSampleRef.current ?? currentTimeMs;
+        const loopRangeKey = `${loopStartMs}:${loopEndMs}`;
+        if (failedLoopRangeKeyRef.current !== null && failedLoopRangeKeyRef.current !== loopRangeKey) {
+          failedLoopRangeKeyRef.current = null;
+        }
+        if (failedLoopRangeKeyRef.current === loopRangeKey
+          && (!isLoopRangeEnabled
+            || loopStartMs === null
+            || loopEndMs === null
+            || currentTimeMs < loopStartMs
+            || currentTimeMs < loopEndMs - LOOP_BOUNDARY_TOLERANCE_MS)) {
+          failedLoopRangeKeyRef.current = null;
+        }
+        const decision = failedLoopRangeKeyRef.current === loopRangeKey
+          ? { kind: 'noWrap' as const }
+          : decideLoopWrap({
+              isEnabled: isLoopRangeEnabled,
+              isPlaying,
+              loopStartMs,
+              loopEndMs,
+              previousSampleMs,
+              currentSampleMs: currentTimeMs,
+              toleranceMs: LOOP_BOUNDARY_TOLERANCE_MS,
+            });
+
+        if (decision.kind === 'wrap') {
+          loopSeekInFlightRef.current = true;
+          void Promise.resolve(player.seekTo(decision.targetMs / 1000))
+            .then(() => {
+              player.play();
+              setCurrentTime(decision.targetMs);
+              previousSampleRef.current = decision.targetMs;
+              failedLoopRangeKeyRef.current = null;
+            })
+            .catch((seekError: unknown) => {
+              console.error('Loop range seek failed', {
+                error: seekError,
+                targetMs: decision.targetMs,
+              });
+              const reportedPosition = (player.currentTime ?? 0) * 1000;
+              setCurrentTime(reportedPosition);
+              previousSampleRef.current = reportedPosition;
+              failedLoopRangeKeyRef.current = loopRangeKey;
+            })
+            .finally(() => {
+              loopSeekInFlightRef.current = false;
+            });
+          return;
+        }
+
+        previousSampleRef.current = currentTimeMs;
+
         // Check if reached end of track
         if (currentTimeMs >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
           if (isRepeatActive) {
@@ -252,6 +321,8 @@ export const useCustomAudioPlayer = () => {
             setCurrentTime(0);
             player.seekTo(0);
             player.play(); // Continue playing
+            previousSampleRef.current = 0;
+            failedLoopRangeKeyRef.current = null;
           } else {
             player.pause();
             setIsPlaying(false);
@@ -262,9 +333,9 @@ export const useCustomAudioPlayer = () => {
         }
       }
     }, PLAYBACK_UPDATE_INTERVAL_MS);
-    
+
     return () => clearInterval(interval);
-  }, [player, isPlaying, setCurrentTime, setIsPlaying, isLoopMarkerActive, layerSpecificNavigation, activeLayerId, allLayersData]);
+  }, [player, isPlaying, setCurrentTime, setIsPlaying]);
 
   return {
     sound: player,

@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 
 export const audioControlsStyles = StyleSheet.create({
+  wrapper: {
+    alignItems: 'center',
+  },
   container: {
     flexDirection: 'row',
     gap: 8,
@@ -40,5 +43,11 @@ export const audioControlsStyles = StyleSheet.create({
   },
   repeatButtonInactive: {
     backgroundColor: '#666666', // Gray when inactive
+  },
+  currentTime: {
+    color: '#999999',
+    fontSize: 10,
+    lineHeight: 12,
+    marginTop: 2,
   },
 });

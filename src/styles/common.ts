@@ -9,6 +9,12 @@ export const colors = {
   textSecondary: '#999999',
   accent: '#ff6600',
   success: '#00ff00',
+  loopTrack: '#222222',
+  loopEnabled: '#ff6600',
+  loopDisabled: '#8a5a3b',
+  loopHandle: '#ffffff',
+  loopOutside: '#000000',
+  loopPlayhead: '#ff8c00',
   
   // Layer colors
   vocals: '#ff6666',

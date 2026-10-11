@@ -305,14 +305,14 @@ test.describe('Waveform Features', () => {
       await expect(playPause).toBeVisible();
       await playPause.click();
 
-      const gestureArea = page.getByTestId('timeline-gesture-area');
-      await gestureArea.scrollIntoViewIfNeeded();
-      await expect(gestureArea).toBeVisible();
-      const box = await gestureArea.boundingBox();
+      const distantRow = page.locator('[data-testid^="wrapped-row-"][role="slider"]').last();
+      await distantRow.scrollIntoViewIfNeeded();
+      await expect(distantRow).toBeVisible();
+      const box = await distantRow.boundingBox();
       expect(box).not.toBeNull();
       if (!box) return;
 
-      await gestureArea.click({ position: { x: box.width * 0.95, y: box.height / 2 } });
+      await distantRow.click({ position: { x: box.width * 0.95, y: box.height / 2 }, force: true });
 
       // While playing and tracking a distant row, waveform should have scrolled down.
       await expect.poll(
@@ -334,7 +334,7 @@ test.describe('Waveform Features', () => {
       await waveform.hover();
       await page.mouse.wheel(0, -10000);
       await expect(followToggle).toHaveText('Follow: Suspended');
-      await page.mouse.wheel(0, 10000);
+      await followToggle.click();
       await expect(followToggle).toHaveText('Follow: On');
 
       // No runtime error screen
@@ -346,6 +346,15 @@ test.describe('Waveform Features', () => {
       await page.goto('/');
       await page.getByTestId('sidebar-toggle').click();
       await loadTestAudio(page, 'long-test-track.m4a');
+
+      const overview = page.getByTestId('loop-overview');
+      const overviewBox = await overview.boundingBox();
+      expect(overviewBox).not.toBeNull();
+      if (!overviewBox) return;
+      await page.mouse.move(overviewBox.x + overviewBox.width * 0.01, overviewBox.y + overviewBox.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(overviewBox.x + overviewBox.width * 0.04, overviewBox.y + overviewBox.height / 2, { steps: 6 });
+      await page.mouse.up();
 
       await expect(page.getByTestId('wrapped-row-gutter-1')).not.toContainText('0:04');
       const firstRow = page.getByTestId('wrapped-row-gesture-area-0');
@@ -362,6 +371,7 @@ test.describe('Waveform Features', () => {
       await page.getByTestId('wrapped-row-detail-0').click();
 
       await expect(page.getByTestId('waveform-detail-panel')).toBeVisible();
+      await expect(page.getByTestId('waveform-detail-loop')).toBeVisible();
       await expect(page.getByTestId('wrapped-waveform')).toHaveCount(0);
       await expect(page.getByTestId('playback-current-time')).toHaveText(initialTime || '');
       await expect(page.getByTestId('grand-total-markers')).toHaveText(initialMarkers || '');

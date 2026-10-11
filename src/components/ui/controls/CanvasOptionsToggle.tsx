@@ -36,7 +36,7 @@ const CanvasOptionsToggle: React.FC = () => {
             marginBottom={8}
           />
           <ModernToggle
-            label="Show Timeline"
+            label="Show Loop Overview"
             value={showTimeline}
             onToggle={() => setShowTimeline(!showTimeline)}
             marginBottom={8}

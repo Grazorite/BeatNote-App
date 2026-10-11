@@ -4,7 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-na
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
 import ProjectControls from '../ui/controls/ProjectControls';
 
-import TimelineScrollbar from '../ui/controls/TimelineScrollbar';
+import LoopRangeOverview from '../ui/controls/LoopRangeOverview';
 import TapButton from '../ui/controls/MarkerButton';
 import AudioControls from '../ui/controls/AudioControls';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
@@ -113,7 +113,7 @@ const MainContent: React.FC<MainContentProps> = ({
       )}
     </Animated.View>
   );
-  const timeline = <TimelineScrollbar audioUri={audioUri || undefined} onSeek={seekToPosition} compact={isMobile} />;
+  const timeline = <LoopRangeOverview audioUri={audioUri} />;
   const audioControls = (
     <AudioControls
       onTogglePlayback={togglePlayback}

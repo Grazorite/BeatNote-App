@@ -61,7 +61,6 @@ describe('wrapped-view store state', () => {
     state.updateMarkerAnnotation('vocals', 4000, 'Turn');
     state.setLoopRange(2000, 8000);
     state.toggleRepeat();
-    state.toggleLoopMarker();
     const before = useStudioStore.getState();
     const protectedState = {
       isPlaying: before.isPlaying,
@@ -70,7 +69,6 @@ describe('wrapped-view store state', () => {
       loopStartMs: before.loopStartMs,
       loopEndMs: before.loopEndMs,
       isRepeatActive: before.isRepeatActive,
-      isLoopMarkerActive: before.isLoopMarkerActive,
       activeLayerId: before.activeLayerId,
     };
 

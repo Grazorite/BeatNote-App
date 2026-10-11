@@ -19,7 +19,7 @@ test.describe('UI Components & Layout', () => {
     for (const testId of [
       'project-actions-scroll',
       'wrapped-waveform',
-      'timeline-gesture-area',
+      'loop-overview',
       'play-pause',
       'add-marker',
       'marker-annotation',
@@ -54,6 +54,89 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('add-marker').click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
+  });
+
+  test('loop overview creates, toggles, clears, restores, and never seeks on tap', async ({ page }) => {
+    await page.goto('/');
+    await loadTestAudio(page, 'long-test-track.m4a');
+
+    const overview = page.getByTestId('loop-overview');
+    await expect(overview).toBeVisible();
+    await expect(page.getByText('Show Loop Overview', { exact: true })).toBeVisible();
+    const currentTime = page.getByTestId('playback-current-time');
+    const beforeTap = await currentTime.textContent();
+    const box = await overview.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) return;
+
+    await overview.click({ position: { x: box.width * 0.7, y: box.height / 2 } });
+    await expect(currentTime).toHaveText(beforeTap || '');
+    await expect(page.getByTestId('loop-overview-range')).toHaveCount(0);
+
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2, { steps: 8 });
+    await page.mouse.up();
+
+    await expect(page.getByTestId('loop-overview-range')).toBeVisible();
+    await expect(page.getByTestId('loop-overview-handle-start')).toBeVisible();
+    await expect(page.getByTestId('loop-overview-handle-end')).toBeVisible();
+    const startHandle = page.getByTestId('loop-overview-handle-start');
+    const endHandle = page.getByTestId('loop-overview-handle-end');
+    await expect(startHandle).toHaveAttribute('role', 'slider');
+    await expect(endHandle).toHaveAttribute('role', 'slider');
+    await expect(startHandle).toHaveAttribute('aria-valuetext', /^Loop start \d+:\d{2}\.\d$/);
+    await expect(endHandle).toHaveAttribute('aria-valuetext', /^Loop end \d+:\d{2}\.\d$/);
+    await expect(startHandle).toHaveCSS('cursor', 'ew-resize');
+    expect(await startHandle.evaluate((start, end) => Boolean(
+      start.compareDocumentPosition(end as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ), await endHandle.elementHandle())).toBe(true);
+    await expect(page.getByTestId('loop-overview-summary')).toHaveAttribute(
+      'aria-label',
+      /^Loop \d+:\d{2}\.\d to \d+:\d{2}\.\d, \d+\.\d seconds$/,
+    );
+    await expect(page.getByRole('button', { name: 'Set loop start at playhead' })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Set loop end at playhead' })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Clear loop', exact: true })).toHaveCount(1);
+    await expect(page.getByTestId('loop-region-toggle')).toBeEnabled();
+    await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]').first()).toBeVisible();
+    const startBeforeMove = await page.getByTestId('loop-overview-handle-start').boundingBox();
+    const rangeBox = await page.getByTestId('loop-overview-range').boundingBox();
+    expect(startBeforeMove).not.toBeNull();
+    expect(rangeBox).not.toBeNull();
+    if (!startBeforeMove || !rangeBox) return;
+    await page.mouse.move(rangeBox.x + rangeBox.width / 2, rangeBox.y + rangeBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(rangeBox.x + rangeBox.width / 2 + box.width * 0.08, rangeBox.y + rangeBox.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await expect.poll(async () => (await page.getByTestId('loop-overview-handle-start').boundingBox())?.x ?? 0)
+      .toBeGreaterThan(startBeforeMove.x);
+
+    const startBeforeResize = await page.getByTestId('loop-overview-handle-start').boundingBox();
+    expect(startBeforeResize).not.toBeNull();
+    if (!startBeforeResize) return;
+    await page.mouse.move(startBeforeResize.x + startBeforeResize.width / 2, startBeforeResize.y + startBeforeResize.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(startBeforeResize.x - box.width * 0.04, startBeforeResize.y + startBeforeResize.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await expect.poll(async () => (await page.getByTestId('loop-overview-handle-start').boundingBox())?.x ?? Number.MAX_SAFE_INTEGER)
+      .toBeLessThan(startBeforeResize.x);
+
+    const startValueBeforeKey = Number(await startHandle.getAttribute('aria-valuenow'));
+    await startHandle.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(async () => Number(await startHandle.getAttribute('aria-valuenow')))
+      .toBeGreaterThan(startValueBeforeKey);
+
+    await page.keyboard.press('l');
+    await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByTestId('loop-overview-clear').click();
+    await expect(page.getByTestId('loop-overview-range')).toHaveCount(0);
+    await expect(page.getByTestId('loop-overview-clear')).toHaveText('Restore');
+    await expect(page.getByTestId('loop-overview-clear')).toBeFocused();
+    await page.getByTestId('loop-overview-clear').click();
+    await expect(page.getByTestId('loop-overview-range')).toBeVisible();
   });
 
   // Studio Screen Tests

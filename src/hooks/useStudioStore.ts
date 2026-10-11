@@ -1,9 +1,18 @@
-import { create } from 'zustand';
-import { ProjectManager } from '../utils/projectManager';
+import { create, type StateCreator } from 'zustand';
+import { ProjectManager, PROJECT_VERSION, compareProjectVersion } from '../utils/projectManager';
 import { BeatNoteProject } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
 import type { RowDensity } from '../utils/rowLayout';
+import {
+  MIN_LOOP_DURATION_MS,
+  RESTORE_WINDOW_MS,
+  beatStepMs,
+  isValidLoopRange,
+  normalizeLoopRange,
+  reclampLoopRangeToDuration,
+  resizeLoopBound,
+} from '../utils/loopRange';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -26,7 +35,14 @@ export interface Layer {
   isVisible: boolean;
 }
 
-interface StudioStore {
+export interface LoopRestoreSnapshot {
+  loopStartMs: number | null;
+  loopEndMs: number | null;
+  isLoopRangeEnabled: boolean;
+  expiresAtMs: number;
+}
+
+export interface StudioStore {
   isPlaying: boolean;
   currentTime: number;
   ghostPlayheadTime: number | null; // Last clicked position on waveform
@@ -51,6 +67,10 @@ interface StudioStore {
   followPlayhead: boolean;
   loopStartMs: number | null;
   loopEndMs: number | null;
+  isLoopRangeEnabled: boolean;
+  loopRestoreSnapshot: LoopRestoreSnapshot | null;
+  pendingLoopRangeEnabled: boolean;
+  loadedProjectSource: BeatNoteProject | null;
   selectedRowIndex: number | null;
   selectedMarker: SelectedMarker | null;
   showGridLines: boolean;
@@ -60,7 +80,6 @@ interface StudioStore {
   showImportModal: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
   isRepeatActive: boolean;
-  isLoopMarkerActive: boolean;
   magneticSnapping: boolean;
   showAnnotations: boolean;
   isTextInputFocused: boolean;
@@ -81,7 +100,16 @@ interface StudioStore {
   setCountSize: (size: 4 | 6 | 8) => void;
   setRowDensity: (density: RowDensity) => void;
   setFollowPlayhead: (follow: boolean) => void;
-  setLoopRange: (startMs: number | null, endMs: number | null) => void;
+  setLoopRange: (startMs: number | null, endMs: number | null) => boolean;
+  setLoopStartAtPlayhead: (playheadMs: number) => void;
+  setLoopEndAtPlayhead: (playheadMs: number) => void;
+  nudgeLoopBound: (bound: 'start' | 'end', steps: number) => void;
+  clearLoopRange: (nowMs: number) => void;
+  restoreLoopRange: (nowMs: number) => void;
+  discardLoopRestore: () => void;
+  setLoopRangeEnabled: (enabled: boolean) => void;
+  toggleLoopRangeEnabled: () => void;
+  resetLoopForNewAudio: () => void;
   setSelectedRowIndex: (index: number | null) => void;
   setSelectedMarker: (marker: SelectedMarker | null) => void;
   setShowGridLines: (show: boolean) => void;
@@ -90,7 +118,6 @@ interface StudioStore {
   setShowExportModal: (show: boolean) => void;
   setShowImportModal: (show: boolean) => void;
   toggleRepeat: () => void;
-  toggleLoopMarker: () => void;
   setMagneticSnapping: (enabled: boolean) => void;
   setShowAnnotations: (show: boolean) => void;
   updateMarkerAnnotation: (layerId: LayerId, timestamp: number, text: string) => void;
@@ -148,7 +175,7 @@ const getLayersForDisplay = (allLayersData: Layer[], stemCount: 2 | 4 | 6): Laye
   return allLayersData.filter(layer => visibleIds.includes(layer.id));
 };
 
-export const useStudioStore = create<StudioStore>((set, get) => ({
+export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   isPlaying: false,
   currentTime: 0,
   ghostPlayheadTime: null,
@@ -173,6 +200,10 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   followPlayhead: true,
   loopStartMs: null,
   loopEndMs: null,
+  isLoopRangeEnabled: false,
+  loopRestoreSnapshot: null,
+  pendingLoopRangeEnabled: false,
+  loadedProjectSource: null,
   selectedRowIndex: null,
   selectedMarker: null,
   showGridLines: true,
@@ -182,7 +213,6 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   showImportModal: false,
   lastRemovedMarker: null,
   isRepeatActive: false,
-  isLoopMarkerActive: false,
   magneticSnapping: true,
   showAnnotations: true,
   isTextInputFocused: false,
@@ -209,15 +239,67 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   }),
   setPixelsPerSecond: (pps) => set({ pixelsPerSecond: pps }),
   setSongDuration: (duration) => set((state) => {
-    if (state.songLoaded) {
+    const roundedDuration = Number.isFinite(duration) && duration > 0
+      ? Math.floor(duration + 0.5)
+      : duration;
+    if (Object.is(roundedDuration, state.songDuration)) return {};
+
+    const previousDurationIsValid = Number.isFinite(state.songDuration) && state.songDuration > 0;
+    const durationIsValid = Number.isFinite(roundedDuration) && roundedDuration > 0;
+    const baseUpdate = durationIsValid && state.songLoaded
+      ? {
+          songDuration: roundedDuration,
+          viewportStartTime: 0,
+          viewportDuration: roundedDuration,
+          pixelsPerSecond: 800 / (roundedDuration / 1000),
+        }
+      : { songDuration: roundedDuration };
+
+    if (!durationIsValid) {
       return {
-        songDuration: duration,
-        viewportStartTime: 0,
-        viewportDuration: duration,
-        pixelsPerSecond: 800 / (duration / 1000) // Fit entire song in 800px
+        ...baseUpdate,
+        isLoopRangeEnabled: false,
+        pendingLoopRangeEnabled: previousDurationIsValid
+          ? state.isLoopRangeEnabled
+          : state.pendingLoopRangeEnabled,
       };
     }
-    return { songDuration: duration };
+
+    if (state.loopStartMs === null || state.loopEndMs === null) {
+      return {
+        ...baseUpdate,
+        isLoopRangeEnabled: false,
+        pendingLoopRangeEnabled: false,
+      };
+    }
+
+    const previousRange = { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs };
+    const reclamped = reclampLoopRangeToDuration(previousRange, roundedDuration);
+    if (!isValidLoopRange(reclamped, roundedDuration)) {
+      console.warn('Clearing loop range after duration change', {
+        loopStartMs: state.loopStartMs,
+        loopEndMs: state.loopEndMs,
+        songDuration: roundedDuration,
+      });
+      return {
+        ...baseUpdate,
+        loopStartMs: null,
+        loopEndMs: null,
+        isLoopRangeEnabled: false,
+        pendingLoopRangeEnabled: false,
+      };
+    }
+
+    const restoredEnabled = previousDurationIsValid
+      ? state.isLoopRangeEnabled
+      : state.pendingLoopRangeEnabled;
+    return {
+      ...baseUpdate,
+      loopStartMs: reclamped.loopStartMs,
+      loopEndMs: reclamped.loopEndMs,
+      isLoopRangeEnabled: restoredEnabled,
+      pendingLoopRangeEnabled: false,
+    };
   }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
@@ -226,7 +308,154 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setCountSize: (size) => set({ countSize: size }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
-  setLoopRange: (startMs, endMs) => set({ loopStartMs: startMs, loopEndMs: endMs }),
+  setLoopRange: (startMs, endMs) => {
+    const state = get();
+    if (startMs === null && endMs === null) {
+      set({
+        loopStartMs: null,
+        loopEndMs: null,
+        isLoopRangeEnabled: false,
+        pendingLoopRangeEnabled: false,
+      });
+      return true;
+    }
+    if (typeof startMs !== 'number' || typeof endMs !== 'number'
+      || !Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      console.warn('Rejected non-finite loop range', { startMs, endMs });
+      return false;
+    }
+
+    const normalized = normalizeLoopRange(startMs, endMs, state.songDuration);
+    const durationIsValid = Number.isFinite(state.songDuration) && state.songDuration > 0;
+    const acceptable = durationIsValid
+      ? isValidLoopRange(normalized, state.songDuration)
+      : normalized.loopStartMs !== null && normalized.loopEndMs !== null;
+    if (!acceptable) {
+      console.warn('Rejected invalid loop range', { startMs, endMs, songDuration: state.songDuration });
+      return false;
+    }
+
+    const hadValidRange = isValidLoopRange(
+      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
+      state.songDuration,
+    );
+    set({
+      loopStartMs: normalized.loopStartMs,
+      loopEndMs: normalized.loopEndMs,
+      isLoopRangeEnabled: hadValidRange ? state.isLoopRangeEnabled : false,
+      pendingLoopRangeEnabled: false,
+      loopRestoreSnapshot: null,
+    });
+    return true;
+  },
+  setLoopStartAtPlayhead: (playheadMs) => {
+    const state = get();
+    if (!Number.isFinite(playheadMs) || !Number.isFinite(state.songDuration) || state.songDuration <= 0) {
+      console.warn('Rejected loop start at playhead', { playheadMs, songDuration: state.songDuration });
+      return;
+    }
+    const startMs = Math.max(0, Math.min(Math.round(playheadMs), state.songDuration));
+    const currentRange = { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs };
+    const endMs = isValidLoopRange(currentRange, state.songDuration)
+      && (state.loopEndMs as number) - startMs >= MIN_LOOP_DURATION_MS
+      ? state.loopEndMs as number
+      : Math.min(state.songDuration, startMs + MIN_LOOP_DURATION_MS);
+    if (!isValidLoopRange({ loopStartMs: startMs, loopEndMs: endMs }, state.songDuration)) {
+      console.warn('Rejected loop start at playhead', { startMs, endMs });
+      return;
+    }
+    get().setLoopRange(startMs, endMs);
+  },
+  setLoopEndAtPlayhead: (playheadMs) => {
+    const state = get();
+    if (!Number.isFinite(playheadMs) || !Number.isFinite(state.songDuration) || state.songDuration <= 0) {
+      console.warn('Rejected loop end at playhead', { playheadMs, songDuration: state.songDuration });
+      return;
+    }
+    const endMs = Math.max(0, Math.min(Math.round(playheadMs), state.songDuration));
+    const currentRange = { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs };
+    const startMs = isValidLoopRange(currentRange, state.songDuration)
+      && endMs - (state.loopStartMs as number) >= MIN_LOOP_DURATION_MS
+      ? state.loopStartMs as number
+      : Math.max(0, endMs - MIN_LOOP_DURATION_MS);
+    if (!isValidLoopRange({ loopStartMs: startMs, loopEndMs: endMs }, state.songDuration)) {
+      console.warn('Rejected loop end at playhead', { startMs, endMs });
+      return;
+    }
+    get().setLoopRange(startMs, endMs);
+  },
+  nudgeLoopBound: (bound, steps) => {
+    const state = get();
+    const range = { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs };
+    if (!Number.isFinite(steps) || !isValidLoopRange(range, state.songDuration)) return;
+    const currentBound = bound === 'start' ? state.loopStartMs as number : state.loopEndMs as number;
+    const resized = resizeLoopBound(
+      range,
+      bound,
+      currentBound + Math.round(steps) * beatStepMs(state.bpm),
+      state.songDuration,
+    );
+    get().setLoopRange(resized.loopStartMs, resized.loopEndMs);
+  },
+  clearLoopRange: (nowMs) => set((state) => {
+    const range = { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs };
+    if (!Number.isFinite(nowMs) || !isValidLoopRange(range, state.songDuration)) return {};
+    return {
+      loopRestoreSnapshot: {
+        loopStartMs: state.loopStartMs,
+        loopEndMs: state.loopEndMs,
+        isLoopRangeEnabled: state.isLoopRangeEnabled,
+        expiresAtMs: nowMs + RESTORE_WINDOW_MS,
+      },
+      loopStartMs: null,
+      loopEndMs: null,
+      isLoopRangeEnabled: false,
+      pendingLoopRangeEnabled: false,
+    };
+  }),
+  restoreLoopRange: (nowMs) => {
+    const state = get();
+    const snapshot = state.loopRestoreSnapshot;
+    if (!snapshot || !Number.isFinite(nowMs) || nowMs >= snapshot.expiresAtMs) {
+      if (snapshot) set({ loopRestoreSnapshot: null });
+      return;
+    }
+    const normalized = normalizeLoopRange(snapshot.loopStartMs, snapshot.loopEndMs, state.songDuration);
+    if (!isValidLoopRange(normalized, state.songDuration)) {
+      set({ loopRestoreSnapshot: null });
+      return;
+    }
+    set({
+      loopStartMs: normalized.loopStartMs,
+      loopEndMs: normalized.loopEndMs,
+      isLoopRangeEnabled: snapshot.isLoopRangeEnabled,
+      pendingLoopRangeEnabled: false,
+      loopRestoreSnapshot: null,
+    });
+  },
+  discardLoopRestore: () => set({ loopRestoreSnapshot: null }),
+  setLoopRangeEnabled: (enabled) => set((state) => {
+    const valid = state.songLoaded && isValidLoopRange(
+      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
+      state.songDuration,
+    );
+    return { isLoopRangeEnabled: enabled && valid };
+  }),
+  toggleLoopRangeEnabled: () => set((state) => {
+    const valid = state.songLoaded && isValidLoopRange(
+      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
+      state.songDuration,
+    );
+    return { isLoopRangeEnabled: valid ? !state.isLoopRangeEnabled : false };
+  }),
+  resetLoopForNewAudio: () => set({
+    loopStartMs: null,
+    loopEndMs: null,
+    isLoopRangeEnabled: false,
+    pendingLoopRangeEnabled: false,
+    loopRestoreSnapshot: null,
+    loadedProjectSource: null,
+  }),
   setSelectedRowIndex: (index) => set({ selectedRowIndex: index }),
   setSelectedMarker: (marker) => set({ selectedMarker: marker }),
   setShowGridLines: (show) => set({ showGridLines: show }),
@@ -235,7 +464,6 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   setShowExportModal: (show) => set({ showExportModal: show }),
   setShowImportModal: (show) => set({ showImportModal: show }),
   toggleRepeat: () => set((state) => ({ isRepeatActive: !state.isRepeatActive })),
-  toggleLoopMarker: () => set((state) => ({ isLoopMarkerActive: !state.isLoopMarkerActive })),
   setMagneticSnapping: (enabled) => set({ magneticSnapping: enabled }),
   setShowAnnotations: (show) => set({ showAnnotations: show }),
   setTextInputFocused: (focused) => set({ isTextInputFocused: focused }),
@@ -461,8 +689,17 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   }),
   saveProject: async (name: string, audioUri: string, audioFilename: string) => {
     const state = get();
+    const compatibilitySource = state.loadedProjectSource
+      && compareProjectVersion(state.loadedProjectSource.version, PROJECT_VERSION) > 0
+      ? state.loadedProjectSource
+      : null;
+    const validLoopRange = isValidLoopRange(
+      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
+      state.songDuration,
+    );
     const project: BeatNoteProject = {
-      version: '1.0.0',
+      ...(compatibilitySource ?? {}),
+      version: compatibilitySource?.version ?? PROJECT_VERSION,
       metadata: {
         name,
         bpm: state.bpm,
@@ -484,6 +721,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         isVisible: layer.isVisible,
       })),
       settings: {
+        ...(compatibilitySource?.settings ?? {}),
         viewMode: state.viewMode,
         showGridLines: state.showGridLines,
         layerSpecificNavigation: state.layerSpecificNavigation,
@@ -491,12 +729,29 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         countSize: state.countSize,
         rowDensity: state.rowDensity,
         followPlayhead: state.followPlayhead,
+        loopRange: validLoopRange
+          ? { startMs: state.loopStartMs as number, endMs: state.loopEndMs as number }
+          : null,
+        loopEnabled: validLoopRange ? state.isLoopRangeEnabled : false,
       },
     };
-    return await ProjectManager.saveProject(project);
+    const filename = await ProjectManager.saveProject(project);
+    set({ loadedProjectSource: project });
+    return filename;
   },
   loadProject: async (filename: string) => {
     const project = await ProjectManager.loadProject(filename);
+    const loadedDuration = Number.isFinite(project.metadata.duration) && project.metadata.duration > 0
+      ? Math.floor(project.metadata.duration + 0.5)
+      : project.metadata.duration;
+    const persistedRange = project.settings.loopRange ?? null;
+    const hasPersistedRange = persistedRange !== null;
+    const loadedRange = hasPersistedRange
+      ? { loopStartMs: persistedRange.startMs, loopEndMs: persistedRange.endMs }
+      : { loopStartMs: null, loopEndMs: null };
+    const durationIsValid = Number.isFinite(loadedDuration) && loadedDuration > 0;
+    const loopIsValid = durationIsValid && isValidLoopRange(loadedRange, loadedDuration);
+    const requestedEnabled = project.settings.loopEnabled === true;
     const updatedAllLayers = allLayers.map(layer => {
       const projectLayer = project.layers.find(pl => pl.id === layer.id);
       return projectLayer ? {
@@ -512,7 +767,7 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       layers: getLayersForDisplay(updatedAllLayers, project.metadata.stemCount),
       stemCount: project.metadata.stemCount,
       bpm: project.metadata.bpm,
-      songDuration: project.metadata.duration,
+      songDuration: loadedDuration,
       viewMode: project.settings.viewMode,
       primaryView: project.settings.primaryView ?? 'wrapped',
       countSize: project.settings.countSize ?? 8,
@@ -524,6 +779,12 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       currentTime: 0,
       selectedRowIndex: null,
       selectedMarker: null,
+      loopStartMs: loadedRange.loopStartMs,
+      loopEndMs: loadedRange.loopEndMs,
+      isLoopRangeEnabled: loopIsValid && requestedEnabled,
+      pendingLoopRangeEnabled: !durationIsValid && hasPersistedRange && requestedEnabled,
+      loopRestoreSnapshot: null,
+      loadedProjectSource: project,
     });
     return { audioUri: project.audio.uri, audioFilename: project.audio.filename };
   },
@@ -548,4 +809,6 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
     });
   },
-}));
+});
+
+export const useStudioStore = create<StudioStore>(studioStoreCreator);

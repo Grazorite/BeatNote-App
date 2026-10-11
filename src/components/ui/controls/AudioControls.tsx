@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { Play, Pause, SkipBack, SkipForward, Repeat2 } from 'lucide-react-native';
+import { Play, Pause, SkipBack, SkipForward, Repeat2, Brackets } from 'lucide-react-native';
 import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
+import { isValidLoopRange } from '../../../utils/loopRange';
 
 interface AudioControlsProps {
   onTogglePlayback: () => void;
@@ -19,10 +20,13 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   isMobile = false,
   compact = false,
 }) => {
-  const { isPlaying, songLoaded, currentTime, songDuration, isRepeatActive, toggleRepeat } = useStudioStore();
+  const { isPlaying, songLoaded, currentTime, songDuration, isRepeatActive, toggleRepeat, loopStartMs, loopEndMs, isLoopRangeEnabled, toggleLoopRangeEnabled } = useStudioStore();
 
   const canSkipBack = songLoaded && currentTime > 0;
   const canSkipForward = songLoaded && currentTime < songDuration;
+  const canToggleLoop = songLoaded && isValidLoopRange({ loopStartMs, loopEndMs }, songDuration);
+  const currentSeconds = Math.floor(Math.max(0, currentTime) / 1000);
+  const currentLabel = `Current: ${Math.floor(currentSeconds / 60)}:${String(currentSeconds % 60).padStart(2, '0')}`;
 
   const getPlayPauseButtonStyle = (enabled: boolean) => [
     styles.button,
@@ -46,7 +50,8 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   ];
 
   return (
-    <View style={[styles.container, isMobile && styles.containerMobile]}>
+    <View style={styles.wrapper}>
+      <View style={[styles.container, isMobile && styles.containerMobile]}>
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipBack)}
         onPress={canSkipBack && songLoaded ? onSkipBack : undefined}
@@ -92,12 +97,36 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         style={getRepeatButtonStyle(songLoaded, isRepeatActive)}
         onPress={songLoaded ? toggleRepeat : undefined}
         disabled={!songLoaded}
+        testID="repeat-toggle"
+        accessibilityRole="button"
+        accessibilityLabel="Repeat song"
+        accessibilityState={{ checked: isRepeatActive, disabled: !songLoaded }}
+        aria-pressed={isRepeatActive}
+        aria-disabled={!songLoaded}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
       >
         <Repeat2 size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
+      <TouchableOpacity
+        style={getRepeatButtonStyle(canToggleLoop, isLoopRangeEnabled)}
+        onPress={canToggleLoop ? toggleLoopRangeEnabled : undefined}
+        disabled={!canToggleLoop}
+        testID="loop-region-toggle"
+        accessibilityRole="button"
+        accessibilityLabel="Loop selected range"
+        accessibilityState={{ checked: isLoopRangeEnabled, disabled: !canToggleLoop }}
+        aria-pressed={isLoopRangeEnabled}
+        aria-disabled={!canToggleLoop}
+        activeOpacity={1}
+        delayPressIn={0}
+        delayPressOut={0}
+      >
+        <Brackets size={compact ? 20 : isMobile ? 24 : 32} color={canToggleLoop ? "#ffffff" : "#666666"} />
+      </TouchableOpacity>
+      </View>
+      {songLoaded && <Text testID="playback-current-time" style={styles.currentTime}>{currentLabel}</Text>}
     </View>
   );
 };

@@ -1,6 +1,7 @@
 import type { RowDensity } from '../utils/rowLayout';
 
 export interface BeatNoteProject {
+  [key: string]: unknown;
   version: string;
   metadata: {
     name: string;
@@ -23,6 +24,7 @@ export interface BeatNoteProject {
     isVisible: boolean;
   }[];
   settings: {
+    [key: string]: unknown;
     viewMode: 'unified' | 'multitrack';
     showGridLines: boolean;
     layerSpecificNavigation: boolean;
@@ -30,6 +32,8 @@ export interface BeatNoteProject {
     countSize?: 4 | 6 | 8;
     rowDensity?: RowDensity;
     followPlayhead?: boolean;
+    loopRange?: { startMs: number; endMs: number } | null;
+    loopEnabled?: boolean;
   };
 }
 

@@ -1,10 +1,94 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BeatNoteProject, ProjectListItem } from '../types/project';
+import {
+  isValidLoopRange,
+  normalizeLoopRange,
+  reclampLoopRangeToDuration,
+} from './loopRange';
 
 const PROJECTS_KEY = 'beatnote_projects';
-const PROJECT_VERSION = '1.0.0';
+export const PROJECT_VERSION = '1.1.0';
 
-const withWrappedViewDefaults = (project: BeatNoteProject): BeatNoteProject => ({
+/** Compare major.minor.patch project versions by numeric component. */
+export function compareProjectVersion(a: string, b: string): -1 | 0 | 1 {
+  const parse = (version: string): [number, number, number] => {
+    const components = version.split('.').slice(0, 3).map(component => Number.parseInt(component, 10));
+    return [components[0] || 0, components[1] || 0, components[2] || 0];
+  };
+  const left = parse(a);
+  const right = parse(b);
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] < right[index]) return -1;
+    if (left[index] > right[index]) return 1;
+  }
+  return 0;
+}
+
+const warnInvalidLoopRange = (range: unknown, songDuration: number): void => {
+  console.warn('Ignoring invalid persisted loop range', { range, songDuration });
+};
+
+const normalizePersistedLoop = (project: BeatNoteProject): BeatNoteProject => {
+  const rawRange = project.settings.loopRange;
+  if (compareProjectVersion(project.version, PROJECT_VERSION) < 0
+    || rawRange === undefined
+    || rawRange === null) {
+    return {
+      ...project,
+      settings: { ...project.settings, loopRange: null, loopEnabled: false },
+    };
+  }
+
+  if (typeof rawRange !== 'object'
+    || typeof rawRange.startMs !== 'number'
+    || typeof rawRange.endMs !== 'number'
+    || !Number.isFinite(rawRange.startMs)
+    || !Number.isFinite(rawRange.endMs)
+    || rawRange.startMs >= rawRange.endMs) {
+    warnInvalidLoopRange(rawRange, project.metadata.duration);
+    return {
+      ...project,
+      settings: { ...project.settings, loopRange: null, loopEnabled: false },
+    };
+  }
+
+  const duration = project.metadata.duration;
+  const durationIsValid = Number.isFinite(duration) && duration > 0;
+  const normalizedDuration = durationIsValid ? Math.floor(duration + 0.5) : 0;
+  const normalized = durationIsValid
+    ? reclampLoopRangeToDuration(
+        { loopStartMs: rawRange.startMs, loopEndMs: rawRange.endMs },
+        normalizedDuration,
+      )
+    : normalizeLoopRange(rawRange.startMs, rawRange.endMs, 0);
+  const accepted = durationIsValid
+    ? rawRange.startMs < normalizedDuration && isValidLoopRange(normalized, normalizedDuration)
+    : normalized.loopStartMs !== null && normalized.loopEndMs !== null;
+
+  if (!accepted) {
+    warnInvalidLoopRange(rawRange, duration);
+    return {
+      ...project,
+      settings: { ...project.settings, loopRange: null, loopEnabled: false },
+    };
+  }
+
+  return {
+    ...project,
+    settings: {
+      ...project.settings,
+      loopRange: {
+        startMs: normalized.loopStartMs as number,
+        endMs: normalized.loopEndMs as number,
+      },
+      loopEnabled: typeof project.settings.loopEnabled === 'boolean'
+        ? project.settings.loopEnabled
+        : false,
+    },
+  };
+};
+
+const withProjectDefaults = (project: BeatNoteProject): BeatNoteProject => normalizePersistedLoop({
   ...project,
   settings: {
     ...project.settings,
@@ -42,7 +126,9 @@ export class ProjectManager {
       
       const projectCopy = {
         ...project,
-        version: PROJECT_VERSION,
+        version: compareProjectVersion(project.version, PROJECT_VERSION) > 0
+          ? project.version
+          : PROJECT_VERSION,
         metadata: {
           ...project.metadata,
           modifiedAt: new Date().toISOString(),
@@ -72,7 +158,7 @@ export class ProjectManager {
         throw new Error('Invalid project file format');
       }
       
-      return withWrappedViewDefaults(project);
+      return withProjectDefaults(project);
     } catch (error) {
       console.error(`Failed to load project ${filename}:`, error);
       throw new Error('Failed to load project');

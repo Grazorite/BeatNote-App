@@ -6,4 +6,4 @@ export { default as MarkerOptionsToggle } from './MarkerOptionsToggle';
 export { default as MarkerButton } from './MarkerButton';
 export { default as SidebarToggle } from './SidebarToggle';
 export { default as StemSelector } from './StemSelector';
-export { default as TimelineScrollbar } from './TimelineScrollbar';
+export { default as LoopRangeOverview } from './LoopRangeOverview';

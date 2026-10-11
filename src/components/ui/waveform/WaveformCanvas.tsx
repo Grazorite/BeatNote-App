@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Platform, View, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-import Svg, { Line, Circle, Polygon, Path } from 'react-native-svg';
+import Svg, { Line, Circle, Polygon, Path, Rect } from 'react-native-svg';
 import { Layer, useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData, generateWaveformPath } from '../../../hooks/useWaveformData';
 import { useZoomGesture } from '../../../hooks/useZoomGesture';
@@ -12,6 +12,7 @@ import RhythmicGrid from './RhythmicGrid';
 import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
 import { colors } from '../../../styles/common';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
+import { isValidLoopRange } from '../../../utils/loopRange';
 
 interface WaveformCanvasProps {
   audioUri?: string;
@@ -58,6 +59,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const ghostPlayheadTime = useStudioStore(state => state.ghostPlayheadTime);
   const songDuration = useStudioStore(state => state.songDuration);
   const songLoaded = useStudioStore(state => state.songLoaded);
+  const loopStartMs = useStudioStore(state => state.loopStartMs);
+  const loopEndMs = useStudioStore(state => state.loopEndMs);
   const isPlaying = useStudioStore(state => state.isPlaying);
   const showGridLines = useStudioStore(state => state.showGridLines);
   const bpm = useStudioStore(state => state.bpm);
@@ -315,6 +318,16 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     ghostPlayheadTime >= viewportStartTime && 
     ghostPlayheadTime <= viewportStartTime + viewportDuration &&
     Math.abs(ghostPlayheadTime - currentTime) > 100; // Only show if different from current playhead
+  const validLoopRange = isValidLoopRange({ loopStartMs, loopEndMs }, songDuration);
+  const loopIntersectionStart = validLoopRange
+    ? Math.max(loopStartMs as number, viewportStartTime)
+    : 0;
+  const loopIntersectionEnd = validLoopRange
+    ? Math.min(loopEndMs as number, viewportStartTime + viewportDuration)
+    : 0;
+  const showLoopIntersection = loopIntersectionEnd > loopIntersectionStart;
+  const loopIntersectionX = ((loopIntersectionStart - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
+  const loopIntersectionWidth = ((loopIntersectionEnd - loopIntersectionStart) / viewportDuration) * VIEWPORT_WIDTH;
 
   if (!songLoaded || !audioUri) {
     return (
@@ -401,6 +414,20 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         {/* Visual overlay for markers and playhead */}
         <View style={[styles.overlayContainer, styles.overlayZIndex, { width: VIEWPORT_WIDTH, height: WAVEFORM_HEIGHT }]} pointerEvents="none">
           <Svg width={VIEWPORT_WIDTH} height={WAVEFORM_HEIGHT} style={styles.overlay}>
+            {showLoopIntersection && (
+              <Rect
+                x={loopIntersectionX}
+                y={0}
+                width={loopIntersectionWidth}
+                height={WAVEFORM_HEIGHT}
+                fill={colors.loopEnabled}
+                opacity={0.16}
+                stroke={colors.loopHandle}
+                strokeWidth={1}
+                pointerEvents="none"
+                testID="waveform-detail-loop"
+              />
+            )}
             {renderGridLines()}
             {layers.map(layer => renderLayerMarkers(layer))}
             

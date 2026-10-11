@@ -32,6 +32,8 @@ interface WrappedRowProps {
   peaks?: number[];
   totalDuration: number;
   loopSegment?: RowLoopSegment;
+  outsideLoopSegments?: RowLoopSegment[];
+  isLoopRangeEnabled: boolean;
   onSeek: (positionMs: number) => void;
   onScrubStart: () => void;
   onScrubEnd: () => void;
@@ -106,6 +108,8 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   peaks,
   totalDuration,
   loopSegment,
+  outsideLoopSegments = [],
+  isLoopRangeEnabled,
   onSeek,
   onScrubStart,
   onScrubEnd,
@@ -123,6 +127,9 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const markerLaneHeight = Math.min(MARKER_LANE_HEIGHT, waveformHeight * MARKER_LANE_HEIGHT_RATIO);
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
+  const outsideLoopRects = outsideLoopSegments
+    .map(segment => loopGeometry(row, rowPixelWidth, segment))
+    .filter((geometry): geometry is LoopGeometry => geometry !== null);
   const rowDuration = Math.max(0, row.endMs - row.startMs);
   const playbackPosition = Math.round(row.startMs + rowDuration * safeProgress);
   const playbackValueText = `Playback at ${formatAccessibleTime(playbackPosition)}`;
@@ -246,7 +253,11 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               width={loopRect.width}
               height={waveformHeight}
               fill={colors.accent}
-              opacity={0.15}
+              opacity={isLoopRangeEnabled ? 0.15 : 0.08}
+              stroke={isLoopRangeEnabled ? colors.loopEnabled : colors.loopDisabled}
+              strokeDasharray={isLoopRangeEnabled ? undefined : "4 3"}
+              strokeWidth={1}
+              pointerEvents="none"
               testID={`wrapped-row-loop-${row.index}`}
             />
           )}
@@ -377,6 +388,20 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               </G>
             );
           })}
+
+          {outsideLoopRects.map((geometry, segmentIndex) => (
+            <Rect
+              key={`outside-${segmentIndex}`}
+              x={geometry.x}
+              y={0}
+              width={geometry.width}
+              height={waveformHeight}
+              fill={isLoopRangeEnabled ? colors.background : colors.loopDisabled}
+              opacity={isLoopRangeEnabled ? 0.58 : 0.34}
+              pointerEvents="none"
+              testID={`wrapped-row-loop-outside-${row.index}-${segmentIndex}`}
+            />
+          ))}
 
           {isActiveRow && (
             <Line

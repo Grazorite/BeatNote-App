@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useStudioStore } from './useStudioStore';
+import { isValidLoopRange } from '../utils/loopRange';
 
 interface KeyboardShortcutsProps {
   onTogglePlayback: () => void;
@@ -24,7 +25,13 @@ export const useKeyboardShortcuts = ({
     zoomTimeline,
     skipPlayhead,
     toggleRepeat,
-    toggleLoopMarker,
+    toggleLoopRangeEnabled,
+    songLoaded,
+    loopStartMs,
+    loopEndMs,
+    songDuration,
+    setLoopStartAtPlayhead,
+    setLoopEndAtPlayhead,
     isTextInputFocused
   } = useStudioStore();
 
@@ -123,11 +130,27 @@ export const useKeyboardShortcuts = ({
         return;
       }
       
-      // L = Toggle Loop Marker
-      if (key === 'l' || key === 'L' || code === 'KeyL') {
+      // L = Toggle selected loop range
+      if ((key === 'l' || key === 'L' || code === 'KeyL') && !metaKey && !ctrlKey && !shiftKey) {
         event.preventDefault();
-        if (hasSound) {
-          toggleLoopMarker();
+        if (hasSound && songLoaded && isValidLoopRange({ loopStartMs, loopEndMs }, songDuration)) {
+          toggleLoopRangeEnabled();
+        }
+        return;
+      }
+
+      if (key === '[' && !metaKey && !ctrlKey && !shiftKey) {
+        event.preventDefault();
+        if (hasSound && songLoaded) {
+          setLoopStartAtPlayhead(useStudioStore.getState().currentTime);
+        }
+        return;
+      }
+
+      if (key === ']' && !metaKey && !ctrlKey && !shiftKey) {
+        event.preventDefault();
+        if (hasSound && songLoaded) {
+          setLoopEndAtPlayhead(useStudioStore.getState().currentTime);
         }
         return;
       }
@@ -142,5 +165,5 @@ export const useKeyboardShortcuts = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopMarker, isTextInputFocused]);
+  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopRangeEnabled, songLoaded, loopStartMs, loopEndMs, songDuration, setLoopStartAtPlayhead, setLoopEndAtPlayhead, isTextInputFocused]);
 };

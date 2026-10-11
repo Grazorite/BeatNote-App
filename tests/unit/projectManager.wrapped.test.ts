@@ -49,9 +49,9 @@ describe('wrapped-view project persistence', () => {
       countSize: 6,
       rowDensity: { mode: 'duration', rowDurationMs: 12000 },
       followPlayhead: false,
+      loopRange: { startMs: 3000, endMs: 9000 },
+      loopEnabled: false,
     });
-    expect(stored.settings).not.toHaveProperty('loopStartMs');
-    expect(stored.settings).not.toHaveProperty('loopEndMs');
     expect(stored.settings).not.toHaveProperty('selectedRowIndex');
     expect(stored.settings).not.toHaveProperty('manualScrollSuspended');
     expect(stored).not.toHaveProperty('rows');
@@ -67,6 +67,9 @@ describe('wrapped-view project persistence', () => {
       countSize: 6,
       rowDensity: { mode: 'duration', rowDurationMs: 12000 },
       followPlayhead: false,
+      loopStartMs: 3000,
+      loopEndMs: 9000,
+      isLoopRangeEnabled: false,
     });
   });
 
@@ -79,6 +82,8 @@ describe('wrapped-view project persistence', () => {
       countSize: 8,
       rowDensity: { mode: 'phrase' },
       followPlayhead: true,
+      loopRange: null,
+      loopEnabled: false,
     });
 
     useStudioStore.setState({
@@ -94,6 +99,9 @@ describe('wrapped-view project persistence', () => {
       countSize: 8,
       rowDensity: { mode: 'phrase' },
       followPlayhead: true,
+      loopStartMs: null,
+      loopEndMs: null,
+      isLoopRangeEnabled: false,
     });
   });
 });

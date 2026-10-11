@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useWrappedRows } from '../../../hooks/useWrappedRows';
+import { useViewportFollow } from '../../../hooks/useViewportFollow';
 import { waveformWorkspaceStyles as styles } from '../../../styles/components/waveform/waveformWorkspace';
 import WaveformDetailPanel from './WaveformDetailPanel';
 import WrappedWaveform from './WrappedWaveform';
@@ -26,6 +27,7 @@ const WaveformWorkspace: React.FC<WaveformWorkspaceProps> = ({
   isMobile,
   isLandscape,
 }) => {
+  useViewportFollow();
   const primaryView = useStudioStore(state => state.primaryView);
   const selectedRowIndex = useStudioStore(state => state.selectedRowIndex);
   const setPrimaryView = useStudioStore(state => state.setPrimaryView);
