@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-10
+**Last updated:** 2026-10-12
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -51,10 +51,10 @@ potentially adding a hybrid path later.
 | Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
-| Choreography features implemented | 0 of 6 (all in steering, none in code) |
-| Unit tests | 70 passing (8 suites; fitted full-song row coverage added) |
-| iOS UI tests | 14 cases; latest aggregate 12/14, with all corrected/changed cases passing focused reruns |
-| E2E spec files | 5 (Playwright, 68 passing) |
+| Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
+| Unit tests | 120 passing (11 suites) |
+| iOS UI tests | 15/15 passing on iPhone 17 Pro Max / iOS 26.2 simulator |
+| E2E spec files | 5 (Playwright, 69 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -66,8 +66,10 @@ potentially adding a hybrid path later.
    responsive detail mode, orientation reflow, and landscape geometry. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-2. Close the remaining unit-test coverage gap the testing strategy requires (utils + real store actions).
-3. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+2. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
+   VoiceOver adjustment, contrast, and audible boundary quality.
+3. Close the remaining unit-test coverage gap, then advance 8-count/rehearsal features and
+   provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -84,11 +86,10 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Add unit tests for `magneticSnapping`, `exportEngine`, `importEngine`, `projectManager` (testing strategy requires; none exist)
+- [ ] Add remaining unit tests for `magneticSnapping`, `exportEngine`, `importEngine`, and broader `projectManager` scenarios
 - [ ] Add unit tests for real store actions — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, navigate, `setStemCount`, viewport constraints
 - [ ] Implement 8-count / phrase grid mode — `countSize` state, phrase snapping, transport count display
 - [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
-- [ ] Implement section looping for rehearsal and physical-device acceptance coverage
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add `Count (phrase:beat)` column to CSV export using `countSize`
@@ -99,6 +100,7 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
+- [ ] Complete loop-range overview physical-device acceptance — Phases 1–12 and the full automated gate are verified (120 unit, 69 E2E, 15/15 iOS); physical performance, VoiceOver, contrast, and audible-boundary checks remain
 
 ### ⏸ Deferred — V2/V3
 
@@ -193,6 +195,106 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-12 — Complete loop-range overview automated implementation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `251b60f`
+**Kanban moved:** Loop-range overview → In Progress (automated implementation complete; physical-device gate remains)
+
+**Changed:**
+
+- Implemented the single loop-range model end to end: validated range math and store actions,
+  project-schema 1.1.0 migration/persistence, armed playback wrapping, keyboard commands, and
+  retirement of the marker-segment loop.
+- Replaced `TimelineScrollbar` with the compact full-song range editor, including native/web
+  create/move/resize gestures, clear/restore, transport enablement, wrapped-row/detail projection,
+  viewport following, and accessible adjustable handle semantics.
+- Added unit/property, Playwright, and XCTest coverage for range behavior, persistence, interaction
+  isolation, layout, playback wrap, and native save/relaunch/restore. Fixed overlay pointer capture,
+  native accessibility-tree visibility, aggregate state timing, and simulator orientation issues
+  encountered during verification.
+- DSH-Qwen session `session-5f492eba-8623-4c8f-a399-e8b8706bf74f` reviewed the Phase 12 XCTest
+  changes. Accepted its transport-tolerance and async-test concerns where supported by the result
+  bundles; retained direct ownership of gesture/audio assertions and the physical VoiceOver gate.
+
+**Key Artifacts** (from `git status` / `git diff --name-only`):
+`.kiro/specs/loop-range-overview/`, `src/utils/loopRange.ts`, `src/hooks/useStudioStore.ts`,
+`src/hooks/useAudioPlayer.ts`, `src/hooks/useLoopRangeGesture.ts`, `src/hooks/useViewportFollow.ts`,
+`src/components/ui/controls/`, `src/components/ui/waveform/`, `src/types/project.ts`,
+`src/utils/projectManager.ts`, `tests/unit/`, `tests/ui-components.spec.ts`,
+`tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 120 passed across 11 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 69 passed.
+- Focused native overview, loop-wrap/transport, and save/relaunch/restore cases passed; elevated full
+  aggregate → 15/15 passed on iPhone 17 Pro Max / iOS 26.2. Inspected result bundle
+  `ios/build/BeatNoteUITests-1791739669368.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone acceptance remains required before the feature is Done: sustained drag/playback
+  performance, actual VoiceOver increment/decrement announcements, rendered contrast, and audible
+  loop-boundary quality. XCTest verifies the adjustable semantics but cannot reliably invoke React
+  Native custom accessibility actions.
+- Implementation, specification, and tests are committed in `251b60f`; this handover/archive update
+  is recorded separately.
+
+**Next agent should:**
+
+- Run simulator-first exploratory acceptance, then task 25.2 from
+  `.kiro/specs/loop-range-overview/tasks.md` on a physical iPhone; if it passes, mark the feature Done.
+
+### 2026-10-10 — Specify loop-range overview (planning only)
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** Loop-range overview → To Do (new planned feature; spec authored)
+
+**Changed:**
+
+- Authored a Requirements-First feature spec under `.kiro/specs/loop-range-overview/`
+  (`requirements.md`, `design.md`, `tasks.md`) to repurpose `TimelineScrollbar` into a compact
+  full-song loop-range editor: draggable start/end handles, range move, clear/restore, a transport
+  loop toggle, range projection onto wrapped rows, and range-aware playback with an armed-wrap rule.
+- Documented a one-loop-model consolidation: reuse the existing session-only `loopStartMs`/
+  `loopEndMs` with validating setters plus a new `isLoopRangeEnabled`, retire the marker-segment
+  loop (`isLoopMarkerActive`/`toggleLoopMarker`, its `MarkerButton` button, rebind `L`), and keep
+  whole-song repeat with defined precedence. Persistence bumps the project schema to 1.1.0.
+- Added the planned-feature card to the Kanban To Do column and rotated the oldest handover entry
+  (2026-10-09 wrapped accessibility semantics) verbatim into the archive to keep five live entries.
+- No application code changed; this is a specification/planning artifact only.
+
+**Key Artifacts** (from `git status`): `.kiro/specs/loop-range-overview/requirements.md`,
+`.kiro/specs/loop-range-overview/design.md`, `.kiro/specs/loop-range-overview/tasks.md`,
+`.kiro/specs/loop-range-overview/.config.kiro`, `AGENTS.md`,
+`docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `validate_spec_format` → 0 issues for `requirements.md` and `tasks.md`.
+- `design.md` is markdown-lint clean (`mdlint.py` → 0 findings). `validate_spec_format` reports 4
+  residual `design/missing-property-validates` warnings on 4 of 10 correctness properties; every
+  property has an accurate `**Validates: Requirements ...**` line in the project's canonical form,
+  and the warnings persisted across six formatting variants (same form the shipped
+  wrapped-waveform-canvas spec uses), so they are treated as a validator-detection quirk, not a
+  content gap.
+- Spec grounded in the real code (store loop fields, `TimelineScrollbar`, `useAudioPlayer` poll,
+  `loopSegmentsForRows`, `projectManager`, gesture config), read before writing.
+
+**Not verified / known gaps:**
+
+- No build/test/lint of application code was run — nothing was implemented. tsc/Jest/Playwright/
+  XCTest are task checkpoints, not yet executed.
+- Unresolved product decisions D-1..D-9 remain (min loop length, whether `loopEnabled` persists,
+  replacing the retired marker loop, tap-to-seek, clear/restore affordance, desktop viewport strip,
+  jump-when-started-after-end, restore-window length/focus, newer-version writability).
+- The 4 design-validator warnings above were not cleared.
+
+**Next agent should:**
+
+- Begin Phase 1 of `.kiro/specs/loop-range-overview/tasks.md` (pure `src/utils/loopRange.ts` +
+  `compareProjectVersion` with unit/property tests), keeping gesture and audio-boundary work direct.
 
 ### 2026-10-10 — Restrict marker creation to controls
 
@@ -315,90 +417,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run the physical-device acceptance checklist, then address the utility/store unit-test backlog.
-
-### 2026-10-09 — Complete wrapped waveform acceptance
-
-**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `4f54e80`
-**Kanban moved:** Wrapped-canvas Phases 14-15 → Done
-
-**Changed:**
-
-- Extended native acceptance to verify horizontal row seeking without vertical page movement,
-  follow-playhead continuity through background and foreground, portrait detail replacement,
-  landscape row reflow, marker preservation, and non-overlapping docked detail geometry.
-- Corrected follow-toggle XCTest assertions to use the native switch value introduced by Phase 12
-  accessibility semantics, then isolated each case with app termination and a controlled Files-picker
-  retry to remove order-dependent system-modal leakage.
-- Verified the prior iPhone 17 Pro failure was device-specific orientation-lock state. A fresh iPhone
-  17 Pro Max simulator rotated correctly and passed the full portrait and landscape suite.
-- Removed the unused `SimpleWaveform` renderer and its barrel export after repository search and
-  DSH-Qwen session `session-12ef6a00-97a4-4668-961f-17ef01f37dc0` independently confirmed zero live
-  consumers. Phase 12 review session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` also completed
-  with a pass and only non-blocking polish observations.
-
-**Key Artifacts** (from implementation commit `4f54e80`):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`,
-`src/components/ui/waveform/SimpleWaveform.tsx` (removed), `tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed.
-- Focused wrapped-row seek, follow/background, and landscape reflow/detail XTests each passed.
-- Elevated full `IOS_SIMULATOR_ID=8716E9DD-B2FC-4614-8691-DC517F86B82E npm run test:ios:ui`
-  → 14/14 passed on iPhone 17 Pro Max / iOS 26.2; result bundle
-  `ios/build/BeatNoteUITests-1791516777967.xcresult` was inspected for the aggregate result.
-
-**Not verified / known gaps:**
-
-- Physical-device audio interruption, VoiceOver, safe-area/orientation, and external share-destination
-  acceptance remain outstanding. The original iPhone 17 Pro simulator may still retain its local
-  orientation-lock state; the app configuration itself supports all orientations.
-
-**Next agent should:**
-
-- Run the physical-device acceptance checklist, then address the top unit-test coverage backlog item.
-
-### 2026-10-09 — Complete wrapped accessibility semantics
-
-**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `659617d`
-**Kanban moved:** Wrapped-canvas Phase 12 accessibility → Done; Phase 14 iOS acceptance remains In Progress
-
-**Changed:**
-
-- Added adjustable row semantics with index, time range, phrase, and active playback value. Native
-  values use `accessibilityValue`; explicit ARIA aliases cover the current React Native Web mapping.
-- Added layer-aware marker labels with timestamp and annotated state, plus a descriptive follow
-  toggle label. Existing gutter, density, detail, and stable identifier contracts remain intact.
-- Separated the row accessibility surface from visual descendants so iOS VoiceOver can navigate the
-  row and each accessible SVG marker independently instead of grouping markers beneath the row.
-- Added focused web and iOS assertions for roles, labels, values, stable IDs, keyboard activation,
-  marker visibility, and the unannotated-to-annotated label transition.
-- DSH-Qwen session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` received a bounded read-only
-  review. It remained running without final findings at handover; Codex retained implementation and
-  verification ownership.
-
-**Key Artifacts** (from implementation commit `659617d`):
-`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/WrappedRow.tsx`,
-`src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`,
-`tests/ios/BeatNoteUITests.swift`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed,
-  including the new focused assistive-technology flow.
-- Focused `IOS_TEST_ONLY='testWrappedRowSeekMarkerAndDragGestures()' npm run test:ios:ui` → 1 passed
-  on iPhone 17 Pro / iOS 26.2; result bundle
-  `ios/build/BeatNoteUITests-1791507156618.xcresult` reports one executed, passing test.
-
-**Not verified / known gaps:**
-
-- The complete iOS suite and native landscape cases were not rerun because the existing simulator
-  scene-rotation lock remains unresolved; physical-device VoiceOver acceptance is also outstanding.
-- DSH-Qwen's read-only review had not completed at handover and supplied no accepted code changes.
-
-**Next agent should:**
-
-- Implement Phase 14 iOS acceptance coverage and resolve the simulator scene-rotation lock before
-  the full suite, then finish Phase 15 cleanup and final regression.

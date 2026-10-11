@@ -97,6 +97,93 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-09 — Complete wrapped waveform acceptance
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `4f54e80`
+**Kanban moved:** Wrapped-canvas Phases 14-15 → Done
+
+**Changed:**
+
+- Extended native acceptance to verify horizontal row seeking without vertical page movement,
+  follow-playhead continuity through background and foreground, portrait detail replacement,
+  landscape row reflow, marker preservation, and non-overlapping docked detail geometry.
+- Corrected follow-toggle XCTest assertions to use the native switch value introduced by Phase 12
+  accessibility semantics, then isolated each case with app termination and a controlled Files-picker
+  retry to remove order-dependent system-modal leakage.
+- Verified the prior iPhone 17 Pro failure was device-specific orientation-lock state. A fresh iPhone
+  17 Pro Max simulator rotated correctly and passed the full portrait and landscape suite.
+- Removed the unused `SimpleWaveform` renderer and its barrel export after repository search and
+  DSH-Qwen session `session-12ef6a00-97a4-4668-961f-17ef01f37dc0` independently confirmed zero live
+  consumers. Phase 12 review session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` also completed
+  with a pass and only non-blocking polish observations.
+
+**Key Artifacts** (from implementation commit `4f54e80`):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/index.ts`,
+`src/components/ui/waveform/SimpleWaveform.tsx` (removed), `tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed.
+- Focused wrapped-row seek, follow/background, and landscape reflow/detail XTests each passed.
+- Elevated full `IOS_SIMULATOR_ID=8716E9DD-B2FC-4614-8691-DC517F86B82E npm run test:ios:ui`
+  → 14/14 passed on iPhone 17 Pro Max / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791516777967.xcresult` was inspected for the aggregate result.
+
+**Not verified / known gaps:**
+
+- Physical-device audio interruption, VoiceOver, safe-area/orientation, and external share-destination
+  acceptance remain outstanding. The original iPhone 17 Pro simulator may still retain its local
+  orientation-lock state; the app configuration itself supports all orientations.
+
+**Next agent should:**
+
+- Run the physical-device acceptance checklist, then address the top unit-test coverage backlog item.
+
+### 2026-10-09 — Complete wrapped accessibility semantics
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `659617d`
+**Kanban moved:** Wrapped-canvas Phase 12 accessibility → Done; Phase 14 iOS acceptance remains In Progress
+
+**Changed:**
+
+- Added adjustable row semantics with index, time range, phrase, and active playback value. Native
+  values use `accessibilityValue`; explicit ARIA aliases cover the current React Native Web mapping.
+- Added layer-aware marker labels with timestamp and annotated state, plus a descriptive follow
+  toggle label. Existing gutter, density, detail, and stable identifier contracts remain intact.
+- Separated the row accessibility surface from visual descendants so iOS VoiceOver can navigate the
+  row and each accessible SVG marker independently instead of grouping markers beneath the row.
+- Added focused web and iOS assertions for roles, labels, values, stable IDs, keyboard activation,
+  marker visibility, and the unannotated-to-annotated label transition.
+- DSH-Qwen session `session-6616ede1-4a1d-46cc-b8db-6b3989db4b33` received a bounded read-only
+  review. It remained running without final findings at handover; Codex retained implementation and
+  verification ownership.
+
+**Key Artifacts** (from implementation commit `659617d`):
+`.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `tests/waveform-features.spec.ts`,
+`tests/ios/BeatNoteUITests.swift`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 67 passed,
+  including the new focused assistive-technology flow.
+- Focused `IOS_TEST_ONLY='testWrappedRowSeekMarkerAndDragGestures()' npm run test:ios:ui` → 1 passed
+  on iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1791507156618.xcresult` reports one executed, passing test.
+
+**Not verified / known gaps:**
+
+- The complete iOS suite and native landscape cases were not rerun because the existing simulator
+  scene-rotation lock remains unresolved; physical-device VoiceOver acceptance is also outstanding.
+- DSH-Qwen's read-only review had not completed at handover and supplied no accepted code changes.
+
+**Next agent should:**
+
+- Implement Phase 14 iOS acceptance coverage and resolve the simulator scene-rotation lock before
+  the full suite, then finish Phase 15 cleanup and final regression.
+
 ### 2026-10-06 — Complete responsive waveform reflow
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `c05b9ff`
