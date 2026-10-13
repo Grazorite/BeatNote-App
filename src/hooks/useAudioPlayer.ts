@@ -3,7 +3,7 @@ import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { useStudioStore } from './useStudioStore';
-import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap } from '../utils/loopRange';
+import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
 
 interface ErrorState {
   visible: boolean;
@@ -250,10 +250,14 @@ export const useCustomAudioPlayer = () => {
         const currentTimeMs = player.currentTime * 1000; // Convert to milliseconds
         const {
           isLoopRangeEnabled,
+          isLoopMarkerActive,
           loopStartMs,
           loopEndMs,
           songDuration,
           isRepeatActive,
+          layerSpecificNavigation,
+          activeLayerId,
+          allLayersData,
         } = useStudioStore.getState();
 
         if (loopDecisionSuspendedRef.current || loopSeekInFlightRef.current) {
@@ -263,25 +267,34 @@ export const useCustomAudioPlayer = () => {
         }
 
         const previousSampleMs = previousSampleRef.current ?? currentTimeMs;
-        const loopRangeKey = `${loopStartMs}:${loopEndMs}`;
+        const markerTimes = layerSpecificNavigation
+          ? allLayersData.find(layer => layer.id === activeLayerId)?.markers ?? []
+          : allLayersData.flatMap(layer => layer.markers);
+        const markerRange = isLoopMarkerActive
+          ? markerLoopRangeAtTime(markerTimes, previousSampleMs, songDuration)
+          : { loopStartMs: null, loopEndMs: null };
+        const effectiveLoopStartMs = isLoopRangeEnabled ? loopStartMs : markerRange.loopStartMs;
+        const effectiveLoopEndMs = isLoopRangeEnabled ? loopEndMs : markerRange.loopEndMs;
+        const loopIsEnabled = isLoopRangeEnabled || isLoopMarkerActive;
+        const loopRangeKey = `${isLoopRangeEnabled ? 'range' : 'marker'}:${effectiveLoopStartMs}:${effectiveLoopEndMs}`;
         if (failedLoopRangeKeyRef.current !== null && failedLoopRangeKeyRef.current !== loopRangeKey) {
           failedLoopRangeKeyRef.current = null;
         }
         if (failedLoopRangeKeyRef.current === loopRangeKey
-          && (!isLoopRangeEnabled
-            || loopStartMs === null
-            || loopEndMs === null
-            || currentTimeMs < loopStartMs
-            || currentTimeMs < loopEndMs - LOOP_BOUNDARY_TOLERANCE_MS)) {
+          && (!loopIsEnabled
+            || effectiveLoopStartMs === null
+            || effectiveLoopEndMs === null
+            || currentTimeMs < effectiveLoopStartMs
+            || currentTimeMs < effectiveLoopEndMs - LOOP_BOUNDARY_TOLERANCE_MS)) {
           failedLoopRangeKeyRef.current = null;
         }
         const decision = failedLoopRangeKeyRef.current === loopRangeKey
           ? { kind: 'noWrap' as const }
           : decideLoopWrap({
-              isEnabled: isLoopRangeEnabled,
+              isEnabled: loopIsEnabled,
               isPlaying,
-              loopStartMs,
-              loopEndMs,
+              loopStartMs: effectiveLoopStartMs,
+              loopEndMs: effectiveLoopEndMs,
               previousSampleMs,
               currentSampleMs: currentTimeMs,
               toleranceMs: LOOP_BOUNDARY_TOLERANCE_MS,
@@ -297,7 +310,7 @@ export const useCustomAudioPlayer = () => {
               failedLoopRangeKeyRef.current = null;
             })
             .catch((seekError: unknown) => {
-              console.error('Loop range seek failed', {
+              console.error('Bounded loop seek failed', {
                 error: seekError,
                 targetMs: decision.targetMs,
               });

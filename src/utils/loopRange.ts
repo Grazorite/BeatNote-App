@@ -44,6 +44,40 @@ const hasOrderedBounds = (range: LoopRange): range is { loopStartMs: number; loo
     && loopEndMs - loopStartMs >= MIN_LOOP_DURATION_MS;
 };
 
+const hasPlayableBounds = (range: LoopRange): range is { loopStartMs: number; loopEndMs: number } =>
+  range.loopStartMs !== null
+  && range.loopEndMs !== null
+  && Number.isFinite(range.loopStartMs)
+  && Number.isFinite(range.loopEndMs)
+  && range.loopStartMs >= 0
+  && range.loopStartMs < range.loopEndMs;
+
+/** Resolve the marker-bounded segment containing a playback sample. */
+export function markerLoopRangeAtTime(
+  markers: number[],
+  sampleMs: number,
+  songDuration: number,
+): LoopRange {
+  if (!Number.isFinite(sampleMs) || !Number.isFinite(songDuration) || songDuration <= 0) {
+    return NULL_RANGE;
+  }
+  const duration = Math.round(songDuration);
+  const boundaries = Array.from(new Set([
+    0,
+    ...markers
+      .filter(marker => Number.isFinite(marker) && marker > 0 && marker < duration)
+      .map(Math.round),
+    duration,
+  ])).sort((a, b) => a - b);
+  const clampedSample = Math.max(0, Math.min(sampleMs, duration));
+  const endIndex = boundaries.findIndex(boundary => boundary > clampedSample);
+  const resolvedEndIndex = endIndex === -1 ? boundaries.length - 1 : endIndex;
+  return {
+    loopStartMs: boundaries[Math.max(0, resolvedEndIndex - 1)],
+    loopEndMs: boundaries[resolvedEndIndex],
+  };
+}
+
 /** Return true when a range satisfies every persisted loop-range invariant. */
 export function isValidLoopRange(range: LoopRange, songDuration: number): boolean {
   return Number.isFinite(songDuration)
@@ -256,7 +290,7 @@ export function decideLoopWrap(input: LoopWrapInput): LoopWrapDecision {
   if (
     !isEnabled
     || !isPlaying
-    || !hasOrderedBounds(range)
+    || !hasPlayableBounds(range)
     || !Number.isFinite(previousSampleMs)
     || !Number.isFinite(currentSampleMs)
     || !Number.isFinite(toleranceMs)

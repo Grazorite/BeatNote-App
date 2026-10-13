@@ -61,11 +61,12 @@ export const mainContentStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  mobileMarkerStatus: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    lineHeight: 14,
-    textAlign: 'center',
+  assistiveStatus: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0.01,
+    overflow: 'hidden',
   },
   container: {
     alignItems: 'center',

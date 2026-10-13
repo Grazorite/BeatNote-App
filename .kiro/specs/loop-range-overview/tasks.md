@@ -230,7 +230,7 @@ documented defaults and must be revisited if a default changes:
   - Run `npx tsc --noEmit` and `npx jest --testPathPatterns=unit`.
   - Ensure all tests pass, ask the user if questions arise.
 
-### Phase 5 — Retire the marker-segment loop
+### Phase 5 — Retire the marker-segment loop (historical; superseded by Phase 14)
 
 - [x] 9. Remove the marker-segment loop end to end
   - [x] 9.1 Remove `isLoopMarkerActive` / `toggleLoopMarker` from the store (DSH-Qwen)
@@ -489,6 +489,18 @@ documented defaults and must be revisited if a default changes:
       value announcements, contrast of the rendered token pairs in every state, and audibility of
       the loop boundary during rehearsal. This gate is required before the feature is called done.
     - _Requirements: 17.4, 17.5_
+
+### Phase 14 — Simulator-review refinements
+
+- [x] 26. Restore marker looping and simplify loop chrome (direct + DSH-Qwen review)
+  - [x] 26.1 Restore the accessible marker-loop control and session state; make marker and range
+    loop modes mutually exclusive and resolve marker boundaries from the previous playback sample.
+  - [x] 26.2 Hide the visible grand-total and current-time captions while retaining non-layout test
+    probes, replace clear/restore text with trash/undo icons, and use a teal complementary palette
+    for the range.
+  - [x] 26.3 Add unit and browser coverage for marker segment resolution and bounded-loop mutual
+    exclusion; update the iOS control inventory for five marker controls.
+  - _Requirements: 9.5, 15.1–15.7, 17.5_
 
 ## Notes
 

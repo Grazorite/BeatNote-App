@@ -68,6 +68,7 @@ export interface StudioStore {
   loopStartMs: number | null;
   loopEndMs: number | null;
   isLoopRangeEnabled: boolean;
+  isLoopMarkerActive: boolean;
   loopRestoreSnapshot: LoopRestoreSnapshot | null;
   pendingLoopRangeEnabled: boolean;
   loadedProjectSource: BeatNoteProject | null;
@@ -109,6 +110,7 @@ export interface StudioStore {
   discardLoopRestore: () => void;
   setLoopRangeEnabled: (enabled: boolean) => void;
   toggleLoopRangeEnabled: () => void;
+  toggleLoopMarker: () => void;
   resetLoopForNewAudio: () => void;
   setSelectedRowIndex: (index: number | null) => void;
   setSelectedMarker: (marker: SelectedMarker | null) => void;
@@ -201,6 +203,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   loopStartMs: null,
   loopEndMs: null,
   isLoopRangeEnabled: false,
+  isLoopMarkerActive: false,
   loopRestoreSnapshot: null,
   pendingLoopRangeEnabled: false,
   loadedProjectSource: null,
@@ -298,6 +301,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       loopStartMs: reclamped.loopStartMs,
       loopEndMs: reclamped.loopEndMs,
       isLoopRangeEnabled: restoredEnabled,
+      isLoopMarkerActive: restoredEnabled ? false : state.isLoopMarkerActive,
       pendingLoopRangeEnabled: false,
     };
   }),
@@ -429,6 +433,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       loopStartMs: normalized.loopStartMs,
       loopEndMs: normalized.loopEndMs,
       isLoopRangeEnabled: snapshot.isLoopRangeEnabled,
+      isLoopMarkerActive: snapshot.isLoopRangeEnabled ? false : state.isLoopMarkerActive,
       pendingLoopRangeEnabled: false,
       loopRestoreSnapshot: null,
     });
@@ -439,19 +444,36 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
       state.songDuration,
     );
-    return { isLoopRangeEnabled: enabled && valid };
+    const nextEnabled = enabled && valid;
+    return {
+      isLoopRangeEnabled: nextEnabled,
+      isLoopMarkerActive: nextEnabled ? false : state.isLoopMarkerActive,
+    };
   }),
   toggleLoopRangeEnabled: () => set((state) => {
     const valid = state.songLoaded && isValidLoopRange(
       { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
       state.songDuration,
     );
-    return { isLoopRangeEnabled: valid ? !state.isLoopRangeEnabled : false };
+    const nextEnabled = valid ? !state.isLoopRangeEnabled : false;
+    return {
+      isLoopRangeEnabled: nextEnabled,
+      isLoopMarkerActive: nextEnabled ? false : state.isLoopMarkerActive,
+    };
+  }),
+  toggleLoopMarker: () => set((state) => {
+    if (!state.songLoaded) return { isLoopMarkerActive: false };
+    const nextEnabled = !state.isLoopMarkerActive;
+    return {
+      isLoopMarkerActive: nextEnabled,
+      isLoopRangeEnabled: nextEnabled ? false : state.isLoopRangeEnabled,
+    };
   }),
   resetLoopForNewAudio: () => set({
     loopStartMs: null,
     loopEndMs: null,
     isLoopRangeEnabled: false,
+    isLoopMarkerActive: false,
     pendingLoopRangeEnabled: false,
     loopRestoreSnapshot: null,
     loadedProjectSource: null,
@@ -663,7 +685,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
         pixelsPerSecond: 800 / (state.songDuration / 1000) // Fit entire song in 800px
       };
     }
-    return { songLoaded: loaded, selectedMarker: null };
+    return { songLoaded: loaded, selectedMarker: null, isLoopMarkerActive: false };
   }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
   toggleLayerVisibility: (layerId) => set((state) => {
@@ -782,6 +804,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       loopStartMs: loadedRange.loopStartMs,
       loopEndMs: loadedRange.loopEndMs,
       isLoopRangeEnabled: loopIsValid && requestedEnabled,
+      isLoopMarkerActive: false,
       pendingLoopRangeEnabled: !durationIsValid && hasPersistedRange && requestedEnabled,
       loopRestoreSnapshot: null,
       loadedProjectSource: project,

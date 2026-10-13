@@ -26,6 +26,7 @@ export const useKeyboardShortcuts = ({
     skipPlayhead,
     toggleRepeat,
     toggleLoopRangeEnabled,
+    toggleLoopMarker,
     songLoaded,
     loopStartMs,
     loopEndMs,
@@ -139,6 +140,15 @@ export const useKeyboardShortcuts = ({
         return;
       }
 
+      // Shift+L = Toggle marker-bounded loop
+      if ((key === 'l' || key === 'L' || code === 'KeyL') && shiftKey && !metaKey && !ctrlKey) {
+        event.preventDefault();
+        if (hasSound && songLoaded) {
+          toggleLoopMarker();
+        }
+        return;
+      }
+
       if (key === '[' && !metaKey && !ctrlKey && !shiftKey) {
         event.preventDefault();
         if (hasSound && songLoaded) {
@@ -165,5 +175,5 @@ export const useKeyboardShortcuts = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopRangeEnabled, songLoaded, loopStartMs, loopEndMs, songDuration, setLoopStartAtPlayhead, setLoopEndAtPlayhead, isTextInputFocused]);
+  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopRangeEnabled, toggleLoopMarker, songLoaded, loopStartMs, loopEndMs, songDuration, setLoopStartAtPlayhead, setLoopEndAtPlayhead, isTextInputFocused]);
 };

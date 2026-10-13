@@ -55,6 +55,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
             <Shortcut keys="M" description="Add marker at current position" />
             <Shortcut keys="R" description="Toggle repeat mode" />
             <Shortcut keys="L" description="Toggle loop range" />
+            <Shortcut keys="Shift + L" description="Toggle loop between markers" />
             <Shortcut keys="[ / ]" description="Set loop start / end at playhead" />
           </ShortcutGroup>
 

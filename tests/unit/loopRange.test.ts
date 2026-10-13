@@ -9,6 +9,7 @@ import {
   formatLoopTime,
   isValidLoopRange,
   loopSummaryLabel,
+  markerLoopRangeAtTime,
   moveLoopRange,
   msToOverviewX,
   normalizeLoopRange,
@@ -22,6 +23,15 @@ import {
 import { compareProjectVersion } from '../../src/utils/projectManager';
 
 describe('loop range examples', () => {
+  it('resolves marker-loop segments from song edges and sorted unique markers', () => {
+    const markers = [6000, 2000, 6000, Number.NaN, -1, 12000];
+    expect(markerLoopRangeAtTime(markers, 0, 10000)).toEqual({ loopStartMs: 0, loopEndMs: 2000 });
+    expect(markerLoopRangeAtTime(markers, 2000, 10000)).toEqual({ loopStartMs: 2000, loopEndMs: 6000 });
+    expect(markerLoopRangeAtTime(markers, 9999, 10000)).toEqual({ loopStartMs: 6000, loopEndMs: 10000 });
+    expect(markerLoopRangeAtTime(markers, 10000, 10000)).toEqual({ loopStartMs: 6000, loopEndMs: 10000 });
+    expect(markerLoopRangeAtTime(markers, 0, 0)).toEqual({ loopStartMs: null, loopEndMs: null });
+  });
+
   it('normalizes ordering, rounding, bounds, and invalid inputs', () => {
     expect(normalizeLoopRange(4000.4, 1000.5, 5000)).toEqual({ loopStartMs: 1001, loopEndMs: 4000 });
     expect(normalizeLoopRange(-200, 800, 5000)).toEqual({ loopStartMs: 0, loopEndMs: 800 });

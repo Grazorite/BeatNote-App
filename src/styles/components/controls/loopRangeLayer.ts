@@ -10,11 +10,11 @@ export const loopRangeLayerStyles = StyleSheet.create({
     borderWidth: 1,
   },
   fillEnabled: {
-    backgroundColor: 'rgba(255, 102, 0, 0.24)',
+    backgroundColor: 'rgba(0, 212, 199, 0.24)',
     borderColor: colors.loopEnabled,
   },
   fillDisabled: {
-    backgroundColor: 'rgba(138, 90, 59, 0.18)',
+    backgroundColor: 'rgba(71, 122, 118, 0.18)',
     borderColor: colors.loopDisabled,
     borderStyle: 'dashed',
   },

@@ -31,6 +31,12 @@ export const markerButtonStyles = StyleSheet.create({
   markerButtonSecondary: {
     backgroundColor: '#ff6600', // Original orange for secondary buttons
   },
+  markerButtonActive: {
+    backgroundColor: '#ff6600',
+  },
+  markerButtonInactive: {
+    backgroundColor: '#666666',
+  },
   markerButtonText: {
     color: colors.text,
     fontSize: 18,

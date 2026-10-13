@@ -45,9 +45,10 @@ export const audioControlsStyles = StyleSheet.create({
     backgroundColor: '#666666', // Gray when inactive
   },
   currentTime: {
-    color: '#999999',
-    fontSize: 10,
-    lineHeight: 12,
-    marginTop: 2,
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0.01,
+    overflow: 'hidden',
   },
 });

@@ -130,10 +130,15 @@ test.describe('UI Components & Layout', () => {
 
     await page.keyboard.press('l');
     await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'false');
+
+    await page.keyboard.press('Shift+l');
+    await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'false');
 
     await page.getByTestId('loop-overview-clear').click();
     await expect(page.getByTestId('loop-overview-range')).toHaveCount(0);
-    await expect(page.getByTestId('loop-overview-clear')).toHaveText('Restore');
+    await expect(page.getByTestId('loop-overview-clear')).toHaveAttribute('aria-label', 'Restore');
     await expect(page.getByTestId('loop-overview-clear')).toBeFocused();
     await page.getByTestId('loop-overview-clear').click();
     await expect(page.getByTestId('loop-overview-range')).toBeVisible();

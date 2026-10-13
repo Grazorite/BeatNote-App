@@ -197,8 +197,8 @@ final class BeatNoteUITests: XCTestCase {
     for control in transport.dropFirst() {
       XCTAssertEqual(control.frame.midY, rowMidY, accuracy: 4, "All five transport buttons should remain on one row.")
     }
-    for markerControl in ["remove-last-marker", "navigate-left-marker", "add-marker", "navigate-right-marker"] {
-      XCTAssertTrue(element(markerControl).exists, "Marker row should retain its four non-loop controls.")
+    for markerControl in ["remove-last-marker", "navigate-left-marker", "add-marker", "navigate-right-marker", "loop-marker-toggle"] {
+      XCTAssertTrue(element(markerControl).exists, "Marker row should retain all five controls.")
     }
 
     let overview = element("loop-overview")

@@ -7,9 +7,8 @@ export const loopClearControlStyles = StyleSheet.create({
     position: 'absolute',
     right: 3,
     top: 4,
-    minWidth: 44,
+    width: 30,
     height: 28,
-    paddingHorizontal: 6,
     borderRadius: 5,
     backgroundColor: colors.surface,
     borderColor: colors.loopEnabled,
@@ -17,10 +16,5 @@ export const loopClearControlStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
-  },
-  text: {
-    color: colors.text,
-    fontSize: 10,
-    fontWeight: '600',
   },
 });

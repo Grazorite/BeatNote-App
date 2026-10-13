@@ -138,7 +138,7 @@ const MainContent: React.FC<MainContentProps> = ({
           Total: {activeLayerMarkers} markers
         </Text>
       )}
-      <Text style={styles.totalMarkersText} testID="grand-total-markers">
+      <Text style={styles.assistiveStatus} testID="grand-total-markers">
         Grand Total: {totalMarkers} markers
       </Text>
     </View>
@@ -152,7 +152,7 @@ const MainContent: React.FC<MainContentProps> = ({
       >
         {waveform}
         {timeline}
-        <Text style={styles.mobileMarkerStatus} testID="grand-total-markers">
+        <Text style={styles.assistiveStatus} testID="grand-total-markers">
           Grand Total: {totalMarkers} markers
         </Text>
       </View>

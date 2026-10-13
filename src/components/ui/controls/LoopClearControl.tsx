@@ -1,5 +1,6 @@
 import React, { forwardRef, useEffect } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
+import { RotateCcw, Trash2 } from 'lucide-react-native';
 
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { loopClearControlStyles as styles } from '../../../styles/components/controls/loopClearControl';
@@ -55,7 +56,9 @@ const LoopClearControl = forwardRef<React.ElementRef<typeof Pressable>, LoopClea
       }}
       style={styles.button}
     >
-      <Text style={styles.text}>{label}</Text>
+      {restoring
+        ? <RotateCcw size={15} color="#ffffff" />
+        : <Trash2 size={15} color="#ffffff" />}
     </Pressable>
   );
 });

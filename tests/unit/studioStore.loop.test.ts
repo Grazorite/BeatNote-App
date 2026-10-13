@@ -180,8 +180,33 @@ describe('loop-range store actions', () => {
       loopStartMs: null,
       loopEndMs: null,
       isLoopRangeEnabled: false,
+      isLoopMarkerActive: false,
       loopRestoreSnapshot: null,
     });
+  });
+
+  it('keeps marker and range loop modes mutually exclusive', () => {
+    const store = createStore();
+    store.getState().setSongLoaded(true);
+    store.getState().setLoopRange(1000, 3000);
+    store.getState().toggleLoopMarker();
+    expect(store.getState()).toMatchObject({ isLoopMarkerActive: true, isLoopRangeEnabled: false });
+    store.getState().toggleLoopRangeEnabled();
+    expect(store.getState()).toMatchObject({ isLoopMarkerActive: false, isLoopRangeEnabled: true });
+    store.getState().toggleLoopMarker();
+    expect(store.getState()).toMatchObject({ isLoopMarkerActive: true, isLoopRangeEnabled: false });
+  });
+
+  it('keeps mutual exclusion when a pending range is restored after duration measurement', () => {
+    const store = createStore();
+    store.getState().setSongLoaded(true);
+    store.getState().setLoopRange(1000, 3000);
+    store.getState().setLoopRangeEnabled(true);
+    store.getState().setSongDuration(0);
+    store.getState().toggleLoopMarker();
+    expect(store.getState().isLoopMarkerActive).toBe(true);
+    store.getState().setSongDuration(10000);
+    expect(store.getState()).toMatchObject({ isLoopMarkerActive: false, isLoopRangeEnabled: true });
   });
 });
 

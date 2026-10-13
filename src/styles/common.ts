@@ -10,9 +10,9 @@ export const colors = {
   accent: '#ff6600',
   success: '#00ff00',
   loopTrack: '#222222',
-  loopEnabled: '#ff6600',
-  loopDisabled: '#8a5a3b',
-  loopHandle: '#ffffff',
+  loopEnabled: '#00d4c7',
+  loopDisabled: '#477a76',
+  loopHandle: '#e8fffd',
   loopOutside: '#000000',
   loopPlayhead: '#ff8c00',
   

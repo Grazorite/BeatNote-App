@@ -8,12 +8,13 @@ never a scrollbar or a seeking surface. Wrapped rows remain the primary seeking 
 Overview owns loop-range manipulation, and marker creation stays exclusive to the bottom marker
 controls.
 
-The feature also consolidates BeatNote's three loop behaviours into one loop model:
+The feature keeps three distinct loop behaviours with explicit, predictable precedence:
 
 - The existing session-only `loopStartMs` / `loopEndMs` store fields become the single Loop Range,
   set only through validating setters, and a single `isLoopRangeEnabled` flag is added.
-- The marker-segment loop (`isLoopMarkerActive` / `toggleLoopMarker`, its unlabelled button in
-  `MarkerButton.tsx`, and keyboard `L`) is retired. Keyboard `L` is rebound to toggle the Loop Range.
+- The session-only marker-segment loop (`isLoopMarkerActive` / `toggleLoopMarker`) remains available
+  from the bottom marker controls. It and the Loop Range are mutually exclusive; enabling either
+  disables the other. Keyboard `L` toggles the Loop Range and `Shift+L` toggles marker looping.
 - Whole-song repeat (`isRepeatActive` / `toggleRepeat`) is kept with defined precedence: the Loop
   Range wins while enabled and the playhead is inside it; repeat applies only at song end.
 
@@ -70,8 +71,8 @@ requirements:
 - **Start_Handle** / **End_Handle**: Draggable Loop_Overview controls with testIDs
   `loop-overview-handle-start` and `loop-overview-handle-end`.
 - **Range_Body**: The highlighted region between the handles, testID `loop-overview-range`.
-- **Clear_Control**: The Loop_Overview control with testID `loop-overview-clear`, which shows
-  "Restore" during the Restore_Window.
+- **Clear_Control**: The icon-only Loop_Overview control with testID `loop-overview-clear`, using a
+  trash icon for clear and an undo icon with accessibility label "Restore" during Restore_Window.
 - **Restore_Window**: The 5000ms period after a clear during which a single-level undo is available.
 - **Project_Manager**: `src/utils/projectManager.ts`, which serialises and loads `BeatNoteProject`.
 - **Range_Gesture**: Any Loop_Overview pointer, touch, or mouse gesture (create, move, resize).
@@ -147,11 +148,9 @@ can set up a practice section without losing waveform space on my phone.
    `loop-overview-range` SHALL be present whenever the Loop_Range is a Valid_Loop_Range.
    `loop-overview-clear` SHALL be present whenever the Loop_Range is a Valid_Loop_Range or the
    Restore_Window is active.
-6. WHILE a song is loaded, THE application SHALL render exactly one element with testID
-   `playback-current-time`, located in the Transport_Row or as a caption inside the Loop_Overview.
-   This element SHALL remain rendered when `showTimeline` is false, SHALL show text in the format
-   "Current: m:ss" (minutes unpadded and unbounded, seconds zero-padded to two digits, derived from
-   `floor(currentTime / 1000)`), and SHALL reflect `currentTime` within 1000ms during playback.
+6. WHILE a song is loaded, THE application SHALL render no visible current-time caption. It MAY
+   retain one non-layout test probe with testID `playback-current-time`; when retained, its text
+   SHALL use "Current: m:ss" and reflect `currentTime` within 1000ms during playback.
 7. THE application SHALL render no element with testID `timeline-gesture-area`, and THE Playwright
    suites (`tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`) and the XCTest suite
    (`tests/ios/BeatNoteUITests.swift`) SHALL contain no reference to `timeline-gesture-area` and
@@ -486,8 +485,7 @@ off without opening menus.
 5. WHEN keyboard `L` or `l` is pressed without Ctrl, Cmd, Alt, or Meta modifiers while no text input
    is focused, a song is loaded, and a Valid_Loop_Range exists, THE Studio_Store SHALL invert
    isLoopRangeEnabled; IF any of those conditions is not met, THEN THE application SHALL leave
-   isLoopRangeEnabled unchanged, and in no case SHALL `L` change the retired marker-segment loop
-   state.
+   isLoopRangeEnabled unchanged. When it becomes enabled it SHALL disable marker-segment looping.
 6. WHILE the viewport is a phone with a width of 320px or 375px, THE Transport_Row SHALL render
    skip-back, play-pause, skip-forward, repeat, and the Loop_Toggle in that order on one row with no
    wrapping, no horizontal overflow, and no overlapping hit areas, each with an effective touch
@@ -717,40 +715,28 @@ project returns me to the section I was rehearsing.
     and SHALL apply criteria 14.4 and 14.5 to the persisted range when songDuration first becomes a
     finite positive value.
 
-### Requirement 15: Retire the marker-segment loop
+### Requirement 15: Preserve marker-segment looping alongside range looping
 
-**User Story:** As a dancer, I want one obvious way to loop, so that I am not confused by competing
-loop buttons.
+**User Story:** As a dancer, I want quick marker-bounded looping as well as a precise custom range,
+so that I can use the fastest loop tool for the rehearsal task.
 
 #### Acceptance Criteria
 
-1. THE Studio_Store SHALL remove the `isLoopMarkerActive` state field and the `toggleLoopMarker`
-   action from its state interface, initial state, and action implementations. Every consumer,
-   including `useAudioPlayer`, `useKeyboardShortcuts`, `MarkerButton`, and the unit tests, SHALL
-   stop reading or calling them, and the `npx tsc --noEmit` build gate SHALL pass.
-2. THE `MarkerButton` component SHALL remove the marker-loop button and its `LoopMarkerIcon` usage.
-   It SHALL keep the add-marker, navigate-left, navigate-right, and remove-last-marker controls with
-   their existing testIDs (including `navigate-right-marker`), enabled/disabled rules, and press
-   behaviour unchanged.
-3. THE Playback_Engine SHALL remove the marker-segment loop branch from its poll and SHALL drop
-   `isLoopMarkerActive` from the poll effect's dependency list. Then, WHILE isLoopRangeEnabled is
-   false and isRepeatActive is false, playback that crosses any marker timestamp SHALL continue
-   without seeking, and playback that reaches song end SHALL pause.
-4. THE `HelpScreen` SHALL list `L` as "Toggle loop range" and `[` / `]` as "Set loop start / end at
-   playhead". It SHALL contain no entry that describes looping between markers.
-5. THE Studio_Store SHALL keep `isRepeatActive` and `toggleRepeat`, and their behaviour SHALL follow
-   the precedence in criteria 10.2, 10.7, and 10.8.
-6. THE Studio_Store and ProjectManager SHALL treat the marker-segment loop as session-only state
-   that was never persisted, require no migration step for it, and load existing saved projects
-   without any error or warning about the marker-loop state.
-7. WHEN a case-sensitive search of the tracked `src/` and `tests/` sources runs for
-   `isLoopMarkerActive`, `toggleLoopMarker`, and `LoopMarkerIcon`, THE search SHALL return zero
-   matches. Matches in specs and archived docs are excluded.
-8. WHILE a song is loaded in the portrait phone layout at a 375×667 viewport and on the iPhone
-   simulator used by the native suite, THE bottom marker control row SHALL show the add-marker,
-   navigate-left, navigate-right, and remove-last-marker controls fully within the viewport, without
-   horizontal overflow or page/action-row scrolling, and each remaining control SHALL keep a touch
-   target at least as large as before the removal.
+1. THE Studio_Store SHALL expose session-only `isLoopMarkerActive` and `toggleLoopMarker` state.
+2. THE `MarkerButton` component SHALL show an accessible `LoopMarkerIcon` button with testID
+   `loop-marker-toggle` after the four marker-editing/navigation controls.
+3. WHEN marker looping is enabled, THE Playback_Engine SHALL loop the segment containing the prior
+   playback sample, using 0 and songDuration as implicit outer boundaries and the selected layer's
+   markers when layer-specific navigation is enabled.
+4. WHEN the Loop Range is enabled, THE Studio_Store SHALL disable marker looping; WHEN marker
+   looping is enabled, it SHALL disable the Loop Range. Whole-song repeat remains independent and
+   applies only when neither bounded loop wraps first.
+5. THE `HelpScreen` SHALL list `L` as "Toggle loop range", `Shift+L` as "Toggle loop between
+   markers", and `[` / `]` as "Set loop start / end at playhead".
+6. THE marker-segment loop SHALL remain session-only and SHALL not be persisted or migrated.
+7. WHILE a song is loaded in the portrait phone layout at a 375×667 viewport and on the iPhone
+   simulator, THE bottom marker row SHALL show all five controls without horizontal overflow or
+   page/action-row scrolling, with each control retaining at least a 44×44px target.
 
 ### Requirement 16: Responsive layout and input modes
 
@@ -761,7 +747,7 @@ so that loop editing works the same everywhere.
 
 1. WHILE the viewport width is below 768px and the device is in portrait, THE Loop_Overview SHALL
    render directly below the Wrapped_Canvas (or the Detail_View when it replaces the
-   Wrapped_Canvas), above the marker status text, inside the fixed workspace and the safe-area
+   Wrapped_Canvas), above the control dock, inside the fixed workspace and the safe-area
    insets, with a width equal to the canvas width within ±1px.
 2. WHILE the viewport width is below 768px and the device is in landscape, THE Loop_Overview SHALL
    render directly below the Wrapped_Canvas inside the canvas column and the safe-area insets, with

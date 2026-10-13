@@ -24,7 +24,7 @@ The behaviour below was read directly from source and constrains the design.
 | Range → rows projection | `src/utils/timelineMapping.ts` (`loopSegmentsForRows`) and `src/components/ui/waveform/WrappedRow.tsx` (`loopGeometry`, `wrapped-row-loop-{index}` at 0.15 opacity) | Half-open row ownership already enforced by `timestampToRow`. |
 | Playback polling | `src/hooks/useAudioPlayer.ts` | Polls every `PLAYBACK_UPDATE_INTERVAL_MS = 50` with `END_OF_TRACK_TOLERANCE_MS = 100`; marker-loop branch then end-of-track repeat/pause. Effect deps include `isLoopMarkerActive`, `allLayersData`. |
 | Transport row | `src/components/ui/controls/AudioControls.tsx` | skip-back, play-pause, skip-forward, repeat (`Repeat2`). No loop toggle, no testIDs on repeat. |
-| Marker-segment loop | `MarkerButton.tsx` (`LoopMarkerIcon`, unlabelled button), `useStudioStore` (`isLoopMarkerActive`/`toggleLoopMarker`), `useKeyboardShortcuts` (`L`), `useAudioPlayer` poll | To be retired (R15). |
+| Marker-segment loop | `MarkerButton.tsx` (`LoopMarkerIcon`), `useStudioStore` (`isLoopMarkerActive`/`toggleLoopMarker`), `useKeyboardShortcuts` (`Shift+L`), `useAudioPlayer` poll | Preserved as a session-only mode mutually exclusive with the Loop Range (R15). |
 | Keyboard | `src/hooks/useKeyboardShortcuts.ts` | `L` → `toggleLoopMarker`; no `[`/`]` bindings; arrows drive timeline scroll/zoom. |
 | Persistence | `src/utils/projectManager.ts`, `src/types/project.ts` | `PROJECT_VERSION = '1.0.0'`; `withWrappedViewDefaults` fills optional settings; no loop fields. `projectManager.wrapped.test.ts` asserts loop fields are absent. |
 | Duration | `useStudioStore.setSongDuration`, `useAudioPlayer` effect | `setSongDuration` reshapes viewport but does not round or reclamp loop; player sets duration from `player.duration * 1000` (fractional). |
@@ -45,9 +45,9 @@ engine. All colours come from `src/styles/common.ts`; timestamps stay integer mi
 ### Chosen model
 
 Reuse the existing `loopStartMs`/`loopEndMs` fields, route **every** write through validating setters,
-add a single `isLoopRangeEnabled` flag, and add an in-memory restore snapshot. Retire the
-marker-segment loop (`isLoopMarkerActive`/`toggleLoopMarker`). Keep whole-song repeat with the
-precedence in R10.2/10.7/10.8.
+add an `isLoopRangeEnabled` flag, and add an in-memory restore snapshot. Preserve the session-only
+marker-segment loop, with mutual exclusion between the two bounded loop modes. Keep whole-song
+repeat with the precedence in R10.2/10.7/10.8.
 
 ### Alternatives compared
 
@@ -55,7 +55,7 @@ precedence in R10.2/10.7/10.8.
 |--------|-------|---------|
 | **A. Reuse `loopStartMs`/`loopEndMs` + validating setters + `isLoopRangeEnabled` + snapshot** (chosen) | Minimal field churn; `loopSegmentsForRows`, `WrappedRow` loop accent, and both wrapped unit tests keep working unchanged; validation centralised in setters | Lowest migration risk; honours ADR-001 and ADR-009; matches the invariants in requirements |
 | B. New object field `loopRange: { startMs, endMs } \| null` | One nullable object replaces the pair | Cleaner null-handling, but rewrites `loopSegmentsForRows` callers, `WrappedWaveform` selectors, and both existing tests; more churn for no behavioural gain. The requirements name `loopStartMs`/`loopEndMs` throughout, so A tracks them literally |
-| C. Keep the marker-segment loop alongside the range loop | Two loop concepts coexist | Rejected: R15 and the product goal (one obvious way to loop) require retiring it; two loops reintroduce the confusion the feature removes |
+| **C. Keep the marker-segment loop alongside the range loop** (2026-10-13 amendment) | Two loop concepts coexist, but enabling one disables the other | Chosen after simulator review because marker-bounded rehearsal remains valuable; mutual exclusion removes playback ambiguity |
 
 ### Field-by-field migration table
 
@@ -66,16 +66,15 @@ precedence in R10.2/10.7/10.8.
 | `setLoopRange(startMs, endMs)` | **changed** | Becomes validating; returns `boolean` (committed or not); rounds, orders, clamps, enforces `MIN_LOOP_DURATION_MS`; rejects non-finite with one `console.warn` (R13.6) |
 | `isLoopRangeEnabled: boolean` | **added** | INV-3: true only while range is Valid |
 | restore snapshot (`loopRestoreSnapshot`) | **added** | In-memory `{ loopStartMs, loopEndMs, isLoopRangeEnabled, expiresAtMs } \| null`; not persisted (R8.10) |
-| `isLoopMarkerActive: boolean` | **removed** | R15.1; removed from state, initial state, every consumer |
-| `toggleLoopMarker()` | **removed** | R15.1 |
-| `LoopMarkerIcon` usage in `MarkerButton.tsx` | **removed** | R15.2 |
-| marker-loop branch in `useAudioPlayer` poll + its deps | **removed** | R15.3 |
-| keyboard `L` → `toggleLoopMarker` | **changed** | Rebound to `toggleLoopRangeEnabled` (R9.5, R15.4) |
+| `isLoopMarkerActive: boolean` | **kept** | Session-only; mutually exclusive with `isLoopRangeEnabled` (R15) |
+| `toggleLoopMarker()` | **kept** | Enabling it disables the Loop Range |
+| `LoopMarkerIcon` usage in `MarkerButton.tsx` | **kept** | Accessible fifth marker-row control |
+| marker-loop branch in `useAudioPlayer` poll | **kept/refined** | Resolves the segment from the previous playback sample to avoid skipping a crossed boundary |
+| keyboard `L` / `Shift+L` | **changed** | `L` toggles Loop Range; `Shift+L` toggles marker loop |
 | `isRepeatActive` / `toggleRepeat` | **kept** | Precedence per R10.2/10.7/10.8 |
 
-A case-sensitive search of tracked `src/` and `tests/` for `isLoopMarkerActive`, `toggleLoopMarker`,
-and `LoopMarkerIcon` must return zero matches after the work (R15.7); specs and archived docs are
-excluded.
+The two bounded modes are deliberately represented by distinct state and controls; store tests must
+prove their mutual exclusion.
 
 ## Architecture
 
@@ -131,8 +130,9 @@ graph TD
   (≤ 0.5× inside opacity, R3.2), the disabled treatment (R3.3), the 2px-minimum body (R3.7), and
   `loop-overview-handle-start` / `loop-overview-handle-end` centred on the bounds (R3.5, R7.1). Exposes
   the `enabled`/`disabled` test-readable state indicator (R3.6).
-- **`LoopClearControl`**: `loop-overview-clear` with a ≥ 44×44 hit area; shows "Clear loop" with a
-  Valid range and "Restore" during the Restore_Window (R8.1, R8.4). Owns the 5000ms expiry timer that
+- **`LoopClearControl`**: icon-only `loop-overview-clear` with a ≥ 44×44 effective hit area;
+  shows trash for clear and undo for restore while preserving descriptive accessibility labels
+  (R8.1, R8.4). Owns the 5000ms expiry timer that
   it cancels on unmount or snapshot discard (R8.6).
 - **`useLoopRangeGesture.ts`** (one-job hook): the single Pan gesture; classifies mode at
   `onBegin`, commits live during the drag through the store setters, handles cancel/orientation
@@ -467,8 +467,8 @@ viewportDuration]`; empty intersection → no highlight. This may ship after R4.
 
 ## Playback loop algorithm
 
-The marker-segment branch is removed from the `useAudioPlayer` poll and `isLoopMarkerActive` is
-dropped from its dependency list (R15.3). The poll reads loop state at poll time via
+The marker-segment branch and range branch share the same armed-boundary decision. The poll reads
+loop state at poll time via
 `useStudioStore.getState()` so changing the range or flag mid-playback does not restart the interval
 (R10.6); the effect's dependency list is reduced to `[player, isPlaying]` plus the existing
 `setCurrentTime`/`setIsPlaying` identities. A `previousSampleRef` (a `useRef`) tracks the previous
@@ -618,7 +618,7 @@ updated to drop `toggleLoopMarker`/`isLoopMarkerActive` references (R15.1).
 ### Layout per breakpoint
 
 The Loop_Overview is rendered where `TimelineScrollbar` was in `MainContent.tsx` — directly below the
-Wrapped_Canvas (or the Detail_View when it replaces the canvas) and above the marker status text.
+Wrapped_Canvas (or the Detail_View when it replaces the canvas) and above the control dock.
 
 - **Phone portrait (< 768px):** inside the fixed workspace and safe-area insets, width = canvas
   width ±1px (R16.1). Total height 36px (band 32-40px, R1.2).
@@ -636,16 +636,14 @@ loop values and the flag unchanged (R16.5).
 
 ```text
 +-------------------------------------------------+  <- loop-overview root (36px)
-| 24px: track strip (waveform/timing bar + range  |
+| 36px: track strip (waveform/timing bar + range  |
 |       + handles + playhead + markers)            |
-| 12px: caption row: "Current: m:ss"               |  <- hosts playback-current-time
 +-------------------------------------------------+
 ```
 
-Handle hit areas extend ±4px beyond the 24px strip (within the 36px box plus `hitSlop`) to reach the
-44px native target (R7.2). `playback-current-time` is rendered exactly once while a song is loaded —
-in this caption or in the Transport_Row — remains rendered when `showTimeline` is false, shows
-`"Current: m:ss"` from `floor(currentTime/1000)`, and reflects `currentTime` within 1000ms (R1.6).
+Handle hit areas extend beyond the strip via `hitSlop` to reach the 44px native target (R7.2).
+`playback-current-time` remains only as a 1×1 non-layout automation probe while a song is loaded;
+no current-time caption is visible (R1.6).
 
 ### Transport_Row fit at 320/375px
 
@@ -653,8 +651,8 @@ Five controls — skip-back, play-pause, skip-forward, repeat, Loop_Toggle — o
 overflow, no overlapping hit areas, each ≥ 44×44 effective (R9.6). The compact button is 44×44
 (`audioControls.ts` `buttonCompact`); five buttons at 44px + the 6px mobile gap sum to ~250px, inside
 the 320px content width after padding, so no shrink is needed. Each button keeps a 44×44 touch target
-via `hitSlop` where the visual box is smaller. The bottom marker row (add, nav-left, nav-right,
-remove-last) keeps its four controls and testIDs with the loop button removed from it (R15.2, R15.8).
+via `hitSlop` where the visual box is smaller. The bottom marker row keeps add, nav-left, nav-right,
+remove-last, and marker-loop controls with stable testIDs and 44×44 targets (R15).
 
 ### Icon and cursors
 
@@ -696,19 +694,21 @@ set together wherever RN Web does not derive the web attribute automatically.
 | Key | Action | Guard |
 |-----|--------|-------|
 | `L`/`l` | toggle `isLoopRangeEnabled` | no modifiers, song loaded, Valid range, no text focus (R9.5) |
+| `Shift+L` | toggle `isLoopMarkerActive` | song loaded, no text focus (R15.5) |
 | `[` | Set loop start at playhead | no text focus, song loaded (R5.11) |
 | `]` | Set loop end at playhead | no text focus, song loaded (R5.11) |
 
 `useKeyboardShortcuts.ts` currently binds Space, M, Ctrl/Cmd+Z, Ctrl+Shift+Z, arrows, R, L, T. `[`
 and `]` are **not** currently bound (confirmed by reading the hook), so adding them introduces no
-conflict. `L` is rebound from `toggleLoopMarker` to `toggleLoopRangeEnabled`.
+conflict. `L` toggles the custom range; `Shift+L` retains marker-loop access.
 
 ### Contrast pairs (R17.5, manual)
 
 All of Start_Handle, End_Handle, Range_Body edges, Clear_Control, and Loop_Toggle use tokens from
 `src/styles/common.ts` and must measure ≥ 3:1 for non-text graphics and ≥ 4.5:1 for text, in every
-state (enabled, disabled, focused). Candidate pairs to measure: handle/body stroke `colors.accent`
-(`#ff6600`) on `colors.surface` (`#111111`); disabled treatment via reduced opacity or
+state (enabled, disabled, focused). Candidate pairs to measure: handle/body stroke
+`colors.loopEnabled` (`#00d4c7`) on `colors.surface` (`#111111`); disabled treatment via
+`colors.loopDisabled` (`#477a76`) or
 `colors.textSecondary` (`#999999`); focus ring `colors.text` (`#ffffff`). Verified by manual
 measurement, not automated tests.
 
@@ -893,7 +893,7 @@ the range null or invalid, the flag is false.
 | **Keep a desktop-only scrollbar** | Replace on phone, keep `TimelineScrollbar` on desktop | R1.1 requires replacement on all platforms; maintaining both doubles gesture/seek surfaces and the viewport-follow coupling the feature is removing |
 | **Tap-to-seek on the overview** | Let a tap seek like the old scrollbar | Rejected by R5.7/D-4: the overview is explicitly not a seeking surface; seeking stays on wrapped rows |
 | **Inline handles on the wrapped rows** | Drag loop edges directly on the row waveform | Conflicts with row seek/scrub gestures (R12.10/12.11) and has no full-song context; the overview isolates loop editing from seeking |
-| **Marker-segment loop retained** | Keep looping between markers alongside the range | R15 retires it for a single obvious loop; two loops reintroduce confusion |
+| **Marker-segment loop retained without exclusivity** | Allow both bounded loop flags simultaneously | Rejected: mutual exclusion gives deterministic playback and visibly communicates the active mode |
 
 **Chosen:** a dedicated full-song Loop_Overview with a single Pan gesture, display-only markers, and
 all loop math in pure utils. Tradeoff: ~24px of vertical space on phone and a new component to
