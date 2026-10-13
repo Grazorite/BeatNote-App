@@ -1268,3 +1268,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Run physical-device acceptance, then address the top utility/store unit-test coverage item.
+### 2026-10-10 — Restrict marker creation to controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
+**Kanban moved:** Button-only marker creation → Done
+
+**Changed:**
+
+- Removed marker creation from wrapped-row taps. Blank waveform taps now seek, gutter taps open
+  precision detail, and existing marker taps continue to select and seek.
+- Kept marker creation exclusively on the bottom add-marker control and documented that interaction
+  as a durable V1 product rule.
+- Updated browser and native acceptance to assert that gutter, waveform, marker, and drag gestures
+  never increase the marker count while the add-marker button does.
+
+**Key Artifacts** (from `git diff --name-only`):
+`.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `tests/ios/BeatNoteUITests.swift`,
+`tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 70 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed.
+- Focused portrait fixed-workspace, wrapped-row gesture, and landscape reflow XTests each passed on
+  iPhone 17 Pro / iOS 26.2; all three result bundles were inspected.
+
+**Not verified / known gaps:**
+
+- The full 14-case iOS aggregate was not rerun; focused native coverage exercises every changed
+  marker-creation path. Physical-device acceptance remains outstanding.
+
+**Next agent should:**
+
+- Run physical-device acceptance, then address the top utility/store unit-test coverage item.

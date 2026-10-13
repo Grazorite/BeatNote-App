@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { isValidLoopRange } from '../utils/loopRange';
 
@@ -27,14 +28,24 @@ export const useKeyboardShortcuts = ({
     toggleRepeat,
     toggleLoopRangeEnabled,
     toggleLoopMarker,
-    songLoaded,
-    loopStartMs,
-    loopEndMs,
-    songDuration,
     setLoopStartAtPlayhead,
     setLoopEndAtPlayhead,
     isTextInputFocused
-  } = useStudioStore();
+  } = useStudioStore(useShallow(state => ({
+    removeLastMarker: state.removeLastMarker,
+    redoLastMarker: state.redoLastMarker,
+    navigateToLeftMarker: state.navigateToLeftMarker,
+    navigateToRightMarker: state.navigateToRightMarker,
+    scrollTimeline: state.scrollTimeline,
+    zoomTimeline: state.zoomTimeline,
+    skipPlayhead: state.skipPlayhead,
+    toggleRepeat: state.toggleRepeat,
+    toggleLoopRangeEnabled: state.toggleLoopRangeEnabled,
+    toggleLoopMarker: state.toggleLoopMarker,
+    setLoopStartAtPlayhead: state.setLoopStartAtPlayhead,
+    setLoopEndAtPlayhead: state.setLoopEndAtPlayhead,
+    isTextInputFocused: state.isTextInputFocused,
+  })));
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -134,7 +145,8 @@ export const useKeyboardShortcuts = ({
       // L = Toggle selected loop range
       if ((key === 'l' || key === 'L' || code === 'KeyL') && !metaKey && !ctrlKey && !shiftKey) {
         event.preventDefault();
-        if (hasSound && songLoaded && isValidLoopRange({ loopStartMs, loopEndMs }, songDuration)) {
+        const state = useStudioStore.getState();
+        if (hasSound && state.songLoaded && isValidLoopRange(state, state.songDuration)) {
           toggleLoopRangeEnabled();
         }
         return;
@@ -143,7 +155,7 @@ export const useKeyboardShortcuts = ({
       // Shift+L = Toggle marker-bounded loop
       if ((key === 'l' || key === 'L' || code === 'KeyL') && shiftKey && !metaKey && !ctrlKey) {
         event.preventDefault();
-        if (hasSound && songLoaded) {
+        if (hasSound && useStudioStore.getState().songLoaded) {
           toggleLoopMarker();
         }
         return;
@@ -151,7 +163,7 @@ export const useKeyboardShortcuts = ({
 
       if (key === '[' && !metaKey && !ctrlKey && !shiftKey) {
         event.preventDefault();
-        if (hasSound && songLoaded) {
+        if (hasSound && useStudioStore.getState().songLoaded) {
           setLoopStartAtPlayhead(useStudioStore.getState().currentTime);
         }
         return;
@@ -159,7 +171,7 @@ export const useKeyboardShortcuts = ({
 
       if (key === ']' && !metaKey && !ctrlKey && !shiftKey) {
         event.preventDefault();
-        if (hasSound && songLoaded) {
+        if (hasSound && useStudioStore.getState().songLoaded) {
           setLoopEndAtPlayhead(useStudioStore.getState().currentTime);
         }
         return;
@@ -175,5 +187,5 @@ export const useKeyboardShortcuts = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopRangeEnabled, toggleLoopMarker, songLoaded, loopStartMs, loopEndMs, songDuration, setLoopStartAtPlayhead, setLoopEndAtPlayhead, isTextInputFocused]);
+  }, [onTogglePlayback, onAddMarker, onFocusTextInput, hasSound, removeLastMarker, redoLastMarker, navigateToLeftMarker, navigateToRightMarker, scrollTimeline, zoomTimeline, skipPlayhead, toggleRepeat, toggleLoopRangeEnabled, toggleLoopMarker, setLoopStartAtPlayhead, setLoopEndAtPlayhead, isTextInputFocused]);
 };

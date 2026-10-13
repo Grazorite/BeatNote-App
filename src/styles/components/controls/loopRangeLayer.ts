@@ -14,7 +14,7 @@ export const loopRangeLayerStyles = StyleSheet.create({
     borderColor: colors.loopEnabled,
   },
   fillDisabled: {
-    backgroundColor: 'rgba(71, 122, 118, 0.18)',
+    backgroundColor: 'rgba(71, 122, 118, 0.08)',
     borderColor: colors.loopDisabled,
     borderStyle: 'dashed',
   },
@@ -44,5 +44,9 @@ export const loopRangeLayerStyles = StyleSheet.create({
     backgroundColor: colors.loopHandle,
     borderColor: colors.loopEnabled,
     borderWidth: 1,
+  },
+  handleVisualDisabled: {
+    backgroundColor: colors.loopDisabled,
+    borderColor: colors.loopDisabled,
   },
 });

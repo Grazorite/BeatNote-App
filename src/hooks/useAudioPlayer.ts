@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
 
@@ -33,7 +34,29 @@ export const useCustomAudioPlayer = () => {
   const loopSeekInFlightRef = useRef(false);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
   const player = useAudioPlayer(audioSource);
-  const { isPlaying, layers, activeLayerId, setIsPlaying, addMarker, removeMarker, setSongLoaded, setSongDuration, setCurrentTime, resetLoopForNewAudio } = useStudioStore();
+  const {
+    isPlaying,
+    layers,
+    activeLayerId,
+    setIsPlaying,
+    addMarker,
+    removeMarker,
+    setSongLoaded,
+    setSongDuration,
+    setCurrentTime,
+    resetLoopForNewAudio,
+  } = useStudioStore(useShallow(state => ({
+    isPlaying: state.isPlaying,
+    layers: state.layers,
+    activeLayerId: state.activeLayerId,
+    setIsPlaying: state.setIsPlaying,
+    addMarker: state.addMarker,
+    removeMarker: state.removeMarker,
+    setSongLoaded: state.setSongLoaded,
+    setSongDuration: state.setSongDuration,
+    setCurrentTime: state.setCurrentTime,
+    resetLoopForNewAudio: state.resetLoopForNewAudio,
+  })));
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });

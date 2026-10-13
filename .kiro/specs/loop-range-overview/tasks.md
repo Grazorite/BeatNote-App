@@ -514,6 +514,21 @@ documented defaults and must be revisited if a default changes:
     loaded simulator layout and drag response.
   - _Requirements: 8.11, 17.4, 19.3–19.4_
 
+### Phase 16 — Edge geometry and drag-performance refinement
+
+- [x] 28. Correct inactive presentation, edge geometry, and remaining drag jank (direct)
+  - [x] 28.1 Keep the visible handle grip centred on the true loop bound even when its larger native
+    touch target is clamped inside the track, and keep the overview playhead fully visible at both
+    song edges.
+  - [x] 28.2 Make a disabled saved range read as inactive: retain the dashed range projection but
+    remove canvas outside-range de-emphasis and broad disabled fill.
+  - [x] 28.3 Stabilise wrapped-row marker and loop props, memoise rows by rendered geometry, and
+    narrow mounted studio/store subscriptions so a range drag repaints only consumers whose visible
+    state changes.
+  - [x] 28.4 Add browser regression coverage, run the automated gate, and inspect the loaded
+    simulator layout and drag response.
+  - _Requirements: 2.3, 3.3, 3.5, 4.7, 8.11, 11.2, 17.4, 19.3–19.4_
+
 ## Notes
 
 - Tasks marked with `*` are optional test sub-tasks and can be skipped for a faster MVP; core

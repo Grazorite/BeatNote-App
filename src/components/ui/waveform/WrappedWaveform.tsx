@@ -119,7 +119,9 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   }, [loopEndMs, loopStartMs, rows, songDuration]);
   const outsideLoopSegmentsByRow = useMemo(() => {
     const range = { loopStartMs, loopEndMs };
-    if (!isValidLoopRange(range, songDuration)) return new Map<number, RowLoopSegment[]>();
+    if (!isLoopRangeEnabled || !isValidLoopRange(range, songDuration)) {
+      return new Map<number, RowLoopSegment[]>();
+    }
     return new Map(rows.map(row => [
       row.index,
       outsideLoopSegmentsForRow(row.startMs, row.endMs, range).map(segment => ({
@@ -127,9 +129,10 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         ...segment,
       })),
     ]));
-  }, [loopEndMs, loopStartMs, rows, songDuration]);
+  }, [isLoopRangeEnabled, loopEndMs, loopStartMs, rows, songDuration]);
 
-  const markersForRow = useCallback((row: WrappedRowModel): WrappedLayerMarkers[] => (
+  const markersByRow = useMemo(() => new Map(rows.map(row => [
+    row.index,
     layers
       .filter(layer => layer.isVisible)
       .map(layer => ({
@@ -143,8 +146,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
             annotation.text.trim().length > 0
             && Math.abs(annotation.timestamp - timestamp) < 100)),
       }))
-      .filter(layer => layer.timestamps.length > 0)
-  ), [layers, rows]);
+      .filter(layer => layer.timestamps.length > 0),
+  ] as const)), [layers, rows]);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -249,7 +252,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       isActiveRow={row.index === activeRowIndex}
       progress={clipRowProgress(row, currentTime)}
       activeLayerColor={activeLayerColor}
-      markersByLayer={markersForRow(row)}
+      markersByLayer={markersByRow.get(row.index) ?? []}
       peaks={realPeaks}
       totalDuration={peakDuration}
       loopSegment={loopSegmentsByRow.get(row.index)}

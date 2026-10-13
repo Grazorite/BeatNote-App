@@ -107,7 +107,7 @@ test.describe('UI Components & Layout', () => {
       expect(clearBox.x).toBeGreaterThanOrEqual(trackBox.x + trackBox.width);
     }
     await expect(page.getByTestId('loop-region-toggle')).toBeEnabled();
-    await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]')).toHaveCount(0);
     const startBeforeMove = await page.getByTestId('loop-overview-handle-start').boundingBox();
     const rangeBox = await page.getByTestId('loop-overview-range').boundingBox();
     expect(startBeforeMove).not.toBeNull();
@@ -139,10 +139,42 @@ test.describe('UI Components & Layout', () => {
     await page.keyboard.press('l');
     await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]').first()).toBeVisible();
 
     await page.keyboard.press('Shift+l');
     await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]')).toHaveCount(0);
+
+    await endHandle.focus();
+    await page.keyboard.press('End');
+    const endGripBox = await page.getByTestId('loop-overview-handle-visual-end').boundingBox();
+    const finalTrackBox = await page.getByTestId('loop-overview-track').boundingBox();
+    expect(endGripBox).not.toBeNull();
+    expect(finalTrackBox).not.toBeNull();
+    if (endGripBox && finalTrackBox) {
+      expect(Math.abs(endGripBox.x + endGripBox.width / 2 - (finalTrackBox.x + finalTrackBox.width)))
+        .toBeLessThanOrEqual(1);
+    }
+
+    await page.setViewportSize({ width: 375, height: 667 });
+    const mobileSidebarToggle = page.getByTestId('sidebar-toggle');
+    if (await mobileSidebarToggle.isVisible()) await mobileSidebarToggle.click();
+    const lastRow = page.locator('[data-testid^="wrapped-row-gesture-area-"]').last();
+    await expect(lastRow).toBeVisible();
+    const lastRowBox = await lastRow.boundingBox();
+    expect(lastRowBox).not.toBeNull();
+    if (lastRowBox) {
+      await lastRow.click({ position: { x: lastRowBox.width - 1, y: lastRowBox.height / 2 } });
+      await expect.poll(async () => {
+        const playheadBox = await page.getByTestId('loop-overview-playhead').boundingBox();
+        const liveTrackBox = await page.getByTestId('loop-overview-track').boundingBox();
+        if (!playheadBox || !liveTrackBox) return Number.POSITIVE_INFINITY;
+        return Math.abs(
+          playheadBox.x + playheadBox.width / 2 - (liveTrackBox.x + liveTrackBox.width - 1),
+        );
+      }).toBeLessThanOrEqual(1);
+    }
 
     await page.getByTestId('loop-overview-clear').click();
     await expect(page.getByTestId('loop-overview-range')).toHaveCount(0);

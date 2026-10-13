@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -16,7 +17,25 @@ export default function StudioScreen() {
   const isMobile = Platform.OS === 'web'
     ? width < 768
     : Math.min(width, height) < 768;
-  const { layers, activeLayerId, setActiveLayer, viewMode, layerSpecificNavigation, showHelpScreen, setShowHelpScreen } = useStudioStore();
+  const {
+    layers,
+    activeLayerId,
+    setActiveLayer,
+    viewMode,
+    layerSpecificNavigation,
+    showHelpScreen,
+    setShowHelpScreen,
+    isSidebarCollapsed,
+  } = useStudioStore(useShallow(state => ({
+    layers: state.layers,
+    activeLayerId: state.activeLayerId,
+    setActiveLayer: state.setActiveLayer,
+    viewMode: state.viewMode,
+    layerSpecificNavigation: state.layerSpecificNavigation,
+    showHelpScreen: state.showHelpScreen,
+    setShowHelpScreen: state.setShowHelpScreen,
+    isSidebarCollapsed: state.isSidebarCollapsed,
+  })));
   const { sound, loadSong, loadProjectAudio, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
   let focusTextInput = () => {};
@@ -36,10 +55,6 @@ export default function StudioScreen() {
   useEffect(() => {
     if (isMobile && activeLayerId !== 'vocals') setActiveLayer('vocals');
   }, [activeLayerId, isMobile, setActiveLayer]);
-
-  const { isSidebarCollapsed } = useStudioStore();
-
-
 
   return (
     <View style={styles.mainContainer}>

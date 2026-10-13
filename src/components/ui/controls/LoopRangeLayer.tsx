@@ -123,6 +123,8 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
 
   const renderHandle = (bound: 'start' | 'end', center: number, value: number) => {
     const label = `Loop ${bound} ${formatLoopTime(value)}`;
+    const touchLeft = handleLeft(center);
+    const visualOffsetX = center - (touchLeft + hitWidth / 2);
     return (
       <Pressable
         accessible
@@ -153,12 +155,19 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
         testID={`loop-overview-handle-${bound}`}
         style={[
           styles.handle,
-          { left: handleLeft(center), width: hitWidth },
+          { left: touchLeft, width: hitWidth },
           handleCursorStyle,
           focusedBound === bound && styles.handleFocused,
         ]}
       >
-        <View style={styles.handleVisual} />
+        <View
+          testID={`loop-overview-handle-visual-${bound}`}
+          style={[
+            styles.handleVisual,
+            !isEnabled && styles.handleVisualDisabled,
+            { transform: [{ translateX: visualOffsetX }] },
+          ]}
+        />
       </Pressable>
     );
   };

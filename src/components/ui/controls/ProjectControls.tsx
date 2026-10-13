@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
 import { Upload, Save, FolderOpen, Download, AudioLines, Menu } from 'lucide-react-native';
@@ -27,7 +28,13 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   onLoadProjectAudio,
   isMobile = false,
 }) => {
-  const { songLoaded, saveProject, loadProject, layers, toggleSidebar } = useStudioStore();
+  const { songLoaded, saveProject, loadProject, layers, toggleSidebar } = useStudioStore(useShallow(state => ({
+    songLoaded: state.songLoaded,
+    saveProject: state.saveProject,
+    loadProject: state.loadProject,
+    layers: state.layers,
+    toggleSidebar: state.toggleSidebar,
+  })));
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);

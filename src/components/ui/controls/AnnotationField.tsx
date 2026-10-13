@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { View, TextInput } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { LayerId, SelectedMarker, useStudioStore } from '../../../hooks/useStudioStore';
 
 interface AnnotationFieldProps {
@@ -22,7 +23,18 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
     updateMarkerAnnotation,
     setTextInputFocused,
     songLoaded
-  } = useStudioStore();
+  } = useStudioStore(useShallow(state => ({
+    currentTime: state.currentTime,
+    allLayersData: state.allLayersData,
+    showAnnotations: state.showAnnotations,
+    isPlaying: state.isPlaying,
+    isTextInputFocused: state.isTextInputFocused,
+    selectedMarker: state.selectedMarker,
+    setSelectedMarker: state.setSelectedMarker,
+    updateMarkerAnnotation: state.updateMarkerAnnotation,
+    setTextInputFocused: state.setTextInputFocused,
+    songLoaded: state.songLoaded,
+  })));
   
   const [annotation, setAnnotation] = useState('');
   const textInputRef = useRef<TextInput>(null);

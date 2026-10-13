@@ -190,8 +190,10 @@ overview, so that I can choose a loop that matches my annotated sections.
    SHALL draw a solid timing bar from x = 0 to x = full width and SHALL draw no waveform path,
    including no synthetic sine shape.
 3. WHILE a song is loaded and `songDuration` is finite and `> 0`, THE Loop_Overview SHALL draw
-   exactly one playhead at x = `clamp(currentTime, 0, songDuration) / songDuration × width`, and
-   SHALL reposition it within 100ms of each `currentTime` change, including during playback.
+   exactly one playhead at x = `clamp(currentTime, 0, songDuration) / songDuration × width`, with
+   the rendered 2px stroke centre clamped to `[1px, width − 1px]` so it remains fully visible at
+   both song edges, and SHALL reposition it within 100ms of each `currentTime` change, including
+   during playback.
 4. WHILE a song is loaded and `songDuration` is finite and `> 0`, THE Loop_Overview SHALL draw
    exactly one indicator per marker on every layer whose `isVisible` is true (including layers that
    are not the active layer and layers not selectable in the V1 phone editor), at x = `timestamp /
@@ -262,10 +264,10 @@ to the waveform I seek on.
    `songDuration` owned by the final row. Under that invariant, a loop bound equal to a row boundary
    belongs to the later row, and no zero-width loop segment is rendered on the earlier row (for
    example, `loopEndMs` equal to row N's `startMs` renders no segment on row N).
-3. WHILE a Valid_Loop_Range exists, THE Wrapped_Canvas SHALL render waveform and marker content
-   outside the range at a lower opacity than content inside it. This includes all content on rows
-   that do not intersect the range. Content inside the range SHALL render at the same opacity as it
-   does when no Loop_Range exists.
+3. WHILE a Valid_Loop_Range exists and Loop_Enabled_Flag is true, THE Wrapped_Canvas SHALL render
+   waveform and marker content outside the range at a lower opacity than content inside it. This
+   includes all content on rows that do not intersect the range. Content inside the range SHALL
+   render at the same opacity as it does when no Loop_Range exists.
 4. WHILE a Valid_Loop_Range exists and the Detail_View is active, THE Detail_View SHALL highlight
    the intersection of `[loopStartMs, loopEndMs]` with `[viewportStartTime, viewportStartTime +
    viewportDuration]`. If that intersection is empty, it SHALL show no loop highlight. (Refinement
@@ -278,8 +280,9 @@ to the waveform I seek on.
    `wrapped-row-loop-{index}` segment, no Detail_View loop highlight, and no outside-range
    de-emphasis.
 7. WHILE a Valid_Loop_Range exists and Loop_Enabled_Flag is false, THE Wrapped_Canvas SHALL keep
-   rendering the loop segments and the outside-range de-emphasis from criteria 4.1 and 4.3. The
-   segments SHALL use a disabled treatment that looks different from the enabled state.
+   rendering the loop segments from criterion 4.1 with an outline-only disabled treatment that
+   looks different from the enabled state, and SHALL render no outside-range de-emphasis. This
+   distinguishes a saved inactive selection from the region that will actively repeat.
 8. WHEN Loop_Range changes because of a create, move, resize, clear, restore, duration re-clamp, or
    project load, THE Wrapped_Canvas SHALL show the new segments on all mounted rows by the next
    rendered frame. No segment from the previous range SHALL remain.
@@ -580,7 +583,8 @@ that I can switch back to looping later.
    and SHALL advance currentTime past loopEndMs without pausing.
 2. WHILE isLoopRangeEnabled is false and a Valid_Loop_Range exists, THE Loop_Overview SHALL continue
    to display the Range_Body with the disabled treatment defined in criterion 3.3, and THE
-   Wrapped_Canvas SHALL continue to draw the range segments defined in criterion 4.1.
+   Wrapped_Canvas SHALL continue to draw the outline-only range segments defined in criterion 4.7
+   without outside-range de-emphasis.
 3. WHILE isLoopRangeEnabled is false, THE Studio_Store SHALL keep loopStartMs and loopEndMs
    unchanged across playback, pause, seek, and song-end handling, so that setting isLoopRangeEnabled
    to true restores looping on the same Loop_Range with no re-selection.

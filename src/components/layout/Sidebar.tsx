@@ -16,7 +16,7 @@ import HelpButton from '../ui/controls/HelpButton';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 
 const Sidebar: React.FC = () => {
-  const { isSidebarCollapsed } = useStudioStore();
+  const isSidebarCollapsed = useStudioStore(state => state.isSidebarCollapsed);
   const insets = useSafeAreaInsets();
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
   

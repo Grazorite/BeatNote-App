@@ -252,10 +252,10 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               y={0}
               width={loopRect.width}
               height={waveformHeight}
-              fill={colors.accent}
-              opacity={isLoopRangeEnabled ? 0.15 : 0.08}
+              fill={isLoopRangeEnabled ? colors.accent : 'transparent'}
+              opacity={isLoopRangeEnabled ? 0.15 : 0.85}
               stroke={isLoopRangeEnabled ? colors.loopEnabled : colors.loopDisabled}
-              strokeDasharray={isLoopRangeEnabled ? undefined : "4 3"}
+              strokeDasharray={isLoopRangeEnabled ? undefined : '4 3'}
               strokeWidth={1}
               pointerEvents="none"
               testID={`wrapped-row-loop-${row.index}`}
@@ -389,15 +389,15 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             );
           })}
 
-          {outsideLoopRects.map((geometry, segmentIndex) => (
+          {isLoopRangeEnabled && outsideLoopRects.map((geometry, segmentIndex) => (
             <Rect
               key={`outside-${segmentIndex}`}
               x={geometry.x}
               y={0}
               width={geometry.width}
               height={waveformHeight}
-              fill={isLoopRangeEnabled ? colors.background : colors.loopDisabled}
-              opacity={isLoopRangeEnabled ? 0.58 : 0.34}
+              fill={colors.background}
+              opacity={0.58}
               pointerEvents="none"
               testID={`wrapped-row-loop-outside-${row.index}-${segmentIndex}`}
             />
@@ -421,4 +421,40 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   );
 };
 
-export default React.memo(WrappedRow);
+const sameLoopSegment = (a: RowLoopSegment | undefined, b: RowLoopSegment | undefined): boolean => (
+  a === b || Boolean(
+    a && b
+    && a.rowIndex === b.rowIndex
+    && a.fromMs === b.fromMs
+    && a.toMs === b.toMs
+  )
+);
+
+const sameLoopSegments = (a: RowLoopSegment[] | undefined, b: RowLoopSegment[] | undefined): boolean => {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((segment, index) => sameLoopSegment(segment, b[index]));
+};
+
+const areWrappedRowPropsEqual = (previous: WrappedRowProps, next: WrappedRowProps): boolean => (
+  previous.row === next.row
+  && previous.rowPixelWidth === next.rowPixelWidth
+  && previous.rowHeight === next.rowHeight
+  && previous.gutterWidth === next.gutterWidth
+  && previous.isActiveRow === next.isActiveRow
+  && previous.progress === next.progress
+  && previous.activeLayerColor === next.activeLayerColor
+  && previous.markersByLayer === next.markersByLayer
+  && previous.peaks === next.peaks
+  && previous.totalDuration === next.totalDuration
+  && sameLoopSegment(previous.loopSegment, next.loopSegment)
+  && sameLoopSegments(previous.outsideLoopSegments, next.outsideLoopSegments)
+  && previous.isLoopRangeEnabled === next.isLoopRangeEnabled
+  && previous.onSeek === next.onSeek
+  && previous.onScrubStart === next.onScrubStart
+  && previous.onScrubEnd === next.onScrubEnd
+  && previous.onSelectMarker === next.onSelectMarker
+  && previous.onSelectForDetail === next.onSelectForDetail
+);
+
+export default React.memo(WrappedRow, areWrappedRowPropsEqual);

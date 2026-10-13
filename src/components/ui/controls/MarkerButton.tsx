@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { LoopMarkerIcon, MarkerIcon, MarkerAddIcon, MarkerRemoveIcon, MarkerLeftIcon, MarkerRightIcon, MarkerRemoveLastIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { markerButtonStyles as styles } from '../../../styles/components/controls/markerButton';
@@ -12,7 +13,35 @@ interface MarkerButtonProps {
 }
 
 const MarkerButton: React.FC<MarkerButtonProps> = ({ onTap, onSeek, isMobile = false, compact = false }) => {
-  const { songLoaded, currentTime, layers, activeLayerId, navigateToLeftMarker, navigateToRightMarker, removeLastMarker, allLayersData, ghostPlayheadTime, songDuration, layerSpecificNavigation, isLoopMarkerActive, toggleLoopMarker } = useStudioStore();
+  const {
+    songLoaded,
+    currentTime,
+    layers,
+    activeLayerId,
+    navigateToLeftMarker,
+    navigateToRightMarker,
+    removeLastMarker,
+    allLayersData,
+    ghostPlayheadTime,
+    songDuration,
+    layerSpecificNavigation,
+    isLoopMarkerActive,
+    toggleLoopMarker,
+  } = useStudioStore(useShallow(state => ({
+    songLoaded: state.songLoaded,
+    currentTime: state.currentTime,
+    layers: state.layers,
+    activeLayerId: state.activeLayerId,
+    navigateToLeftMarker: state.navigateToLeftMarker,
+    navigateToRightMarker: state.navigateToRightMarker,
+    removeLastMarker: state.removeLastMarker,
+    allLayersData: state.allLayersData,
+    ghostPlayheadTime: state.ghostPlayheadTime,
+    songDuration: state.songDuration,
+    layerSpecificNavigation: state.layerSpecificNavigation,
+    isLoopMarkerActive: state.isLoopMarkerActive,
+    toggleLoopMarker: state.toggleLoopMarker,
+  })));
   
   // Check if there's an existing marker near current time
   const activeLayer = layers.find(layer => layer.id === activeLayerId);

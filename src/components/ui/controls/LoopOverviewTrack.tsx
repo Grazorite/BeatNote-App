@@ -21,6 +21,9 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const layers = useStudioStore(state => state.allLayersData);
   const { waveformData } = useWaveformData(audioUri);
   const drawable = songLoaded && Number.isFinite(songDuration) && songDuration > 0 && width > 0;
+  const playheadX = width > 2
+    ? Math.max(1, Math.min(width - 1, msToOverviewX(currentTime, songDuration, width)))
+    : width / 2;
   const waveformPath = useMemo(() => {
     if (!drawable || waveformData?.source !== 'decoded' || waveformData.peaks.length === 0) return '';
     return generateWaveformPath(
@@ -58,12 +61,13 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
           : [])}
         {drawable && (
           <Line
-            x1={msToOverviewX(currentTime, songDuration, width)}
-            x2={msToOverviewX(currentTime, songDuration, width)}
+            x1={playheadX}
+            x2={playheadX}
             y1={1}
             y2={33}
             stroke={colors.loopPlayhead}
             strokeWidth={2}
+            testID="loop-overview-playhead"
           />
         )}
       </Svg>

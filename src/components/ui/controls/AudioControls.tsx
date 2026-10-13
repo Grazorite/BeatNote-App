@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { Play, Pause, SkipBack, SkipForward, Repeat2, Brackets } from 'lucide-react-native';
 import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
@@ -20,11 +21,29 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   isMobile = false,
   compact = false,
 }) => {
-  const { isPlaying, songLoaded, currentTime, songDuration, isRepeatActive, toggleRepeat, loopStartMs, loopEndMs, isLoopRangeEnabled, toggleLoopRangeEnabled } = useStudioStore();
+  const {
+    isPlaying,
+    songLoaded,
+    currentTime,
+    songDuration,
+    isRepeatActive,
+    toggleRepeat,
+    isLoopRangeEnabled,
+    toggleLoopRangeEnabled,
+  } = useStudioStore(useShallow(state => ({
+    isPlaying: state.isPlaying,
+    songLoaded: state.songLoaded,
+    currentTime: state.currentTime,
+    songDuration: state.songDuration,
+    isRepeatActive: state.isRepeatActive,
+    toggleRepeat: state.toggleRepeat,
+    isLoopRangeEnabled: state.isLoopRangeEnabled,
+    toggleLoopRangeEnabled: state.toggleLoopRangeEnabled,
+  })));
+  const canToggleLoop = useStudioStore(state => state.songLoaded && isValidLoopRange(state, state.songDuration));
 
   const canSkipBack = songLoaded && currentTime > 0;
   const canSkipForward = songLoaded && currentTime < songDuration;
-  const canToggleLoop = songLoaded && isValidLoopRange({ loopStartMs, loopEndMs }, songDuration);
   const currentSeconds = Math.floor(Math.max(0, currentTime) / 1000);
   const currentLabel = `Current: ${Math.floor(currentSeconds / 60)}:${String(currentSeconds % 60).padStart(2, '0')}`;
 
