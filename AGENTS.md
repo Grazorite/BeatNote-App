@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-12
+**Last updated:** 2026-10-13
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -52,7 +52,7 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and tests preserved |
 | Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
-| Unit tests | 123 passing (11 suites) |
+| Unit tests | 124 passing (11 suites) |
 | iOS UI tests | 15/15 passing on iPhone 17 Pro Max / iOS 26.2 simulator |
 | E2E spec files | 5 (Playwright, 69 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
@@ -100,7 +100,7 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
-- [ ] Complete loop-range overview physical-device acceptance — Phases 1–12 and the full automated gate are verified (120 unit, 69 E2E, 15/15 iOS); physical performance, VoiceOver, contrast, and audible-boundary checks remain
+- [ ] Complete loop-range overview physical-device acceptance — Phases 1–15 and the full automated gate are verified (124 unit, 69 E2E, 15/15 iOS); physical performance, VoiceOver, contrast, and audible-boundary checks remain
 
 ### ⏸ Deferred — V2/V3
 
@@ -112,6 +112,8 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Smooth loop-range dragging and separate the clear/restore action from full-song content
+      <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `src/components/ui/controls/LoopClearControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/controls/LoopRangeLayer.tsx`, `src/components/ui/controls/LoopRangeOverview.tsx`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/`, `tests/ui-components.spec.ts`, `tests/unit/studioStore.loop.test.ts`, `tests/waveform-features.spec.ts`</sub>
 - [x] Refine loop controls after simulator review — restore mutually exclusive marker/range loops,
       simplify status chrome, use icon-only clear/restore, and apply a complementary teal range palette
       <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `src/components/icons/LoopMarkerIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useKeyboardShortcuts.ts`, `src/hooks/useStudioStore.ts`, `src/styles/`, `src/utils/loopRange.ts`, `tests/unit/`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
@@ -198,6 +200,43 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-13 — Smooth and separate the loop overview controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `9ff4bab`
+**Kanban moved:** Loop-range drag jank and overview overlap → Done
+
+**Changed:**
+
+- Removed per-frame native accessibility announcements from pointer drags and retained targeted,
+  once-per-action handle announcements for keyboard and adjustable accessibility changes. Memoized
+  the static overview track and made the store skip identical settled range writes.
+- Measured gesture/full-song geometry from a dedicated track region and placed the icon-only
+  clear/restore control in a fixed sibling slot. Its 44-point effective target no longer covers the
+  playhead, marker indicators, range body, or handles.
+- Updated the requirements, design, task checklist, unit test, and browser acceptance coverage for
+  the action-slot geometry and gesture hot-path behavior.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 124 passed across
+  11 suites; `git diff --check` → clean.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 69 passed,
+  including a non-overlap assertion between the track and clear/restore control.
+- Focused native loop-drag XCTest passed, then the full aggregate passed 15/15 on iPhone 17 Pro /
+  iOS 26.2; result bundles `BeatNoteUITests-1791886084082.xcresult` and
+  `BeatNoteUITests-1791886222558.xcresult` were inspected.
+
+**Not verified / known gaps:**
+
+- Subjective drag smoothness still needs the user's simulator retest and the required physical-
+  iPhone ~60fps gate. Physical VoiceOver announcements, rendered contrast, and audible loop-boundary
+  quality also remain outside simulator automation.
+
+**Next agent should:**
+
+- Have the user retest range creation/move/resize in Device Hub, then complete task 25.2 on a
+  physical iPhone before marking the loop-range feature fully Done.
 
 ### 2026-10-13 — Refine loop controls after simulator review
 
@@ -370,47 +409,6 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - The full 14-case iOS aggregate was not rerun; focused native coverage exercises every changed
   marker-creation path. Physical-device acceptance remains outstanding.
-
-**Next agent should:**
-
-- Run physical-device acceptance, then address the top utility/store unit-test coverage item.
-### 2026-10-09 — Fit full songs into the fixed phone canvas
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
-**Kanban moved:** Timestamp-only compact phone gutters → Done
-
-**Changed:**
-
-- Replaced the mobile wrapped-waveform `ScrollView` with a fixed canvas that renders every row at
-  once. Row count follows available screen height, while timestamps partition the complete song.
-- Reduced gutters to timestamp-only, vertically centered labels and made the compact marker lane
-  proportional to row height so lower-row taps seek instead of accidentally adding markers.
-- Kept desktop virtualization, density presets, and follow-playhead scrolling unchanged; documented
-  the fixed full-song phone canvas as a durable product rule.
-
-**Key Artifacts** (from `git diff --name-only`):
-`.kiro/steering/project-overview.md`, `src/components/ui/waveform/RowGutter.tsx`,
-`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
-`src/hooks/useWrappedRows.ts`, `src/styles/components/waveform/rowGutter.ts`,
-`src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`,
-`src/utils/rowLayout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`,
-`tests/unit/rowLayout.test.ts`, `tests/waveform-features.spec.ts`.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 70 passed across 8 suites.
-- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed,
-  including fixed-canvas overflow, full-duration coverage, and compact gesture behavior.
-- Native portrait fixed-canvas, compact row seek/marker gestures, landscape reflow/detail docking,
-  and background playback continuity each passed focused on iPhone 17 Pro / iOS 26.2.
-- Latest full native aggregate ran 14 cases: 12 passed; its two duration-expectation failures were
-  corrected and both then passed focused (`BeatNoteUITests-1791535636043.xcresult` and
-  `BeatNoteUITests-1791535683002.xcresult`).
-
-**Not verified / known gaps:**
-
-- A final all-14 aggregate was not rerun after the assertion-only fixture-duration correction.
-- Physical-device safe-area, VoiceOver, interruption, and external share-destination checks remain.
 
 **Next agent should:**
 

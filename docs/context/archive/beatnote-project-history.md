@@ -1226,3 +1226,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Run the physical-device acceptance checklist, then address the utility/store unit-test backlog.
+
+### 2026-10-09 — Fit full songs into the fixed phone canvas
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
+**Kanban moved:** Timestamp-only compact phone gutters → Done
+
+**Changed:**
+
+- Replaced the mobile wrapped-waveform `ScrollView` with a fixed canvas that renders every row at
+  once. Row count follows available screen height, while timestamps partition the complete song.
+- Reduced gutters to timestamp-only, vertically centered labels and made the compact marker lane
+  proportional to row height so lower-row taps seek instead of accidentally adding markers.
+- Kept desktop virtualization, density presets, and follow-playhead scrolling unchanged; documented
+  the fixed full-song phone canvas as a durable product rule.
+
+**Key Artifacts** (from `git diff --name-only`):
+`.kiro/steering/project-overview.md`, `src/components/ui/waveform/RowGutter.tsx`,
+`src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`,
+`src/hooks/useWrappedRows.ts`, `src/styles/components/waveform/rowGutter.ts`,
+`src/styles/components/waveform/wrappedRow.ts`, `src/styles/components/waveform/wrappedWaveform.ts`,
+`src/utils/rowLayout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`,
+`tests/unit/rowLayout.test.ts`, `tests/waveform-features.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 70 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed,
+  including fixed-canvas overflow, full-duration coverage, and compact gesture behavior.
+- Native portrait fixed-canvas, compact row seek/marker gestures, landscape reflow/detail docking,
+  and background playback continuity each passed focused on iPhone 17 Pro / iOS 26.2.
+- Latest full native aggregate ran 14 cases: 12 passed; its two duration-expectation failures were
+  corrected and both then passed focused (`BeatNoteUITests-1791535636043.xcresult` and
+  `BeatNoteUITests-1791535683002.xcresult`).
+
+**Not verified / known gaps:**
+
+- A final all-14 aggregate was not rerun after the assertion-only fixture-duration correction.
+- Physical-device safe-area, VoiceOver, interruption, and external share-destination checks remain.
+
+**Next agent should:**
+
+- Run physical-device acceptance, then address the top utility/store unit-test coverage item.
