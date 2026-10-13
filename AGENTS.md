@@ -201,6 +201,48 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-14 — Remove remaining loop-range drag jank and edge clipping
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `260585e`
+**Kanban moved:** Loop-range overview refinement → Done; physical-device acceptance remains In Progress
+
+**Changed:**
+
+- Kept the visible overview grips centred on their exact bounds while preserving 44pt native touch
+  targets, and inset the 2px overview playhead so it remains visible at both song edges.
+- Changed disabled saved ranges to muted dashed outlines without broad wrapped-canvas fill or
+  outside-range dimming, while retaining the stronger teal treatment when range looping is active.
+- Stabilised per-row marker/loop props, memoised rows by rendered geometry, and narrowed mounted
+  store subscriptions so handle motion no longer repaints unrelated waveform rows, the studio root,
+  audio hook, shortcut hook, transport, marker controls, annotation field, or project controls.
+- Extended browser coverage for inactive projection, exact end-grip placement, and end-of-song
+  playhead visibility; updated the requirements and Phase 16 checklist to match the refined UX.
+
+**Key Artifacts** (from `git diff-tree --name-only -r 260585e`):
+`.kiro/specs/loop-range-overview/`, `src/components/ui/controls/LoopOverviewTrack.tsx`,
+`src/components/ui/controls/LoopRangeLayer.tsx`, `src/components/ui/waveform/WrappedRow.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`,
+`src/hooks/useAudioPlayer.ts`, `src/hooks/useKeyboardShortcuts.ts`, `tests/ui-components.spec.ts`.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 124 passed across 11 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 69 passed.
+- Focused native loop-overview test passed on iPhone 17 Pro / iOS 26.2; inspected result bundle
+  `ios/build/BeatNoteUITests-1791934841660.xcresult` (1 passed, 0 failed).
+- Device Hub was running and BeatNote launched directly after the simulator test.
+
+**Not verified / known gaps:**
+
+- The full 15-case native aggregate was not rerun; the changed gesture/render path passed focused.
+- Physical-iPhone drag performance, VoiceOver actions/announcements, rendered contrast, and audible
+  loop-boundary quality remain the final loop-range acceptance gate.
+
+**Next agent should:**
+
+- Have the user recheck disabled/enabled dragging and both song edges in the simulator, then run the
+  physical-device checklist in task 25.2 if the simulator refinement is accepted.
+
 ### 2026-10-13 — Smooth and separate the loop overview controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `9ff4bab`
