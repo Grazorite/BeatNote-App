@@ -1181,3 +1181,48 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Pick up the In Progress item: write `stemCache` property tests (spec task 2.1), then implement the
   native module TS interface (spec task 3).
+
+### 2026-10-09 — Fix the phone workspace to one screen
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `8b51e7d`
+**Kanban moved:** Fixed single-layer phone workspace → Done
+
+**Changed:**
+
+- Replaced portrait's page and action-row scrollers with a fixed safe-area workspace. The wrapped
+  waveform is now the only vertically scrollable surface, while the overview, transport, marker
+  controls, and annotation field remain simultaneously reachable.
+- Converted phone project actions to a compact fixed icon row, reduced waveform rows and controls,
+  and hid phone-only layer, density, and follow chrome without removing desktop controls.
+- Pinned phone editing to the canonical `vocals` lane while retaining all six stable layer IDs in
+  persisted projects for compatibility, desktop use, and future V2 expansion.
+- Updated the durable V1 product scope and replaced superseded native scroll/density assertions with
+  fixed-layout, single-layer, gesture, follow-playhead, and reachability acceptance.
+
+**Key Artifacts** (from implementation commit `8b51e7d`):
+`.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`,
+`src/components/layout/MainContent.tsx`, `src/components/ui/controls/ProjectControls.tsx`,
+`src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`,
+`src/styles/layout/mainContent.ts`, `tests/ios/BeatNoteUITests.swift`,
+`tests/quality-assurance.spec.ts`, `tests/ui-components.spec.ts`.
+
+**Verified:**
+
+- Device Hub visual inspection on iPhone 17 Pro Max / iOS 26.2 → six waveform rows, overview, both
+  control rows, annotation field, and all project actions fit in portrait without page scrolling.
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 68 passed across 8 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 68 passed,
+  including a loaded-track 375×667 viewport geometry check with no page/action-row overflow.
+- Elevated full `IOS_SIMULATOR_ID=8716E9DD-B2FC-4614-8691-DC517F86B82E npm run test:ios:ui`
+  → 14/14 passed; result bundle `ios/build/BeatNoteUITests-1791532193804.xcresult` was inspected.
+  The final focused single-layer case also passed in `BeatNoteUITests-1791532576347.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device audio interruptions, VoiceOver, safe-area/orientation behavior, and completion of
+  an external share remain outstanding. Additional stored lanes are preserved but intentionally not
+  selectable in the V1 phone editor.
+
+**Next agent should:**
+
+- Run the physical-device acceptance checklist, then address the utility/store unit-test backlog.
