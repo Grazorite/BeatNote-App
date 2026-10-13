@@ -34,7 +34,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   }, [drawable, songDuration, waveformData?.duration, waveformData?.peaks, waveformData?.source, width]);
 
   return (
-    <View style={styles.track} pointerEvents="none">
+    <View testID="loop-overview-track" style={styles.track} pointerEvents="none">
       <Svg width={Math.max(0, width)} height={34}>
         <Rect x={0} y={0} width={Math.max(0, width)} height={34} fill={colors.loopTrack} />
         {waveformPath ? (
@@ -71,4 +71,4 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   );
 };
 
-export default LoopOverviewTrack;
+export default React.memo(LoopOverviewTrack);

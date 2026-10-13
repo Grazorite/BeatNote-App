@@ -6,9 +6,22 @@ export const loopRangeOverviewStyles = StyleSheet.create({
     height: 36,
     position: 'relative',
     overflow: 'visible',
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  trackRegion: {
+    flex: 1,
+    minWidth: 0,
+    position: 'relative',
   },
   gestureSurface: {
     ...StyleSheet.absoluteFillObject,
+  },
+  actionSlot: {
+    width: 42,
+    marginLeft: 4,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   accessibleSummary: {
     position: 'absolute',

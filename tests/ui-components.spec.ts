@@ -65,7 +65,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByText('Show Loop Overview', { exact: true })).toBeVisible();
     const currentTime = page.getByTestId('playback-current-time');
     const beforeTap = await currentTime.textContent();
-    const box = await overview.boundingBox();
+    const trackRegion = page.getByTestId('loop-overview-track-region');
+    const box = await trackRegion.boundingBox();
     expect(box).not.toBeNull();
     if (!box) return;
 
@@ -98,6 +99,13 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByRole('button', { name: 'Set loop start at playhead' })).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Set loop end at playhead' })).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Clear loop', exact: true })).toHaveCount(1);
+    const trackBox = await page.getByTestId('loop-overview-track').boundingBox();
+    const clearBox = await page.getByTestId('loop-overview-clear').boundingBox();
+    expect(trackBox).not.toBeNull();
+    expect(clearBox).not.toBeNull();
+    if (trackBox && clearBox) {
+      expect(clearBox.x).toBeGreaterThanOrEqual(trackBox.x + trackBox.width);
+    }
     await expect(page.getByTestId('loop-region-toggle')).toBeEnabled();
     await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]').first()).toBeVisible();
     const startBeforeMove = await page.getByTestId('loop-overview-handle-start').boundingBox();

@@ -117,10 +117,11 @@ graph TD
 ### Component responsibilities
 
 - **`LoopRangeOverview.tsx`** (replaces `TimelineScrollbar`): root `loop-overview` element,
-  measures width via `onLayout`, owns the single Pan gesture through `useLoopRangeGesture`, and
-  composes the three children. Target ≤ 150 lines; drawing math is delegated to `loopRange` utils and
-  the children. Renders only when `showTimeline` is true (R1.8); keeps loop state untouched while
-  hidden (R1.10).
+  measures the editable track region via `onLayout`, owns the single Pan gesture through
+  `useLoopRangeGesture`, and composes the three children. The Clear_Control occupies a fixed sibling
+  action slot, so neither its visual bounds nor its 44×44 hit area overlays full-song content. Target
+  ≤ 150 lines; drawing math is delegated to `loopRange` utils and the children. Renders only when
+  `showTimeline` is true (R1.8); keeps loop state untouched while hidden (R1.10).
 - **`LoopOverviewTrack`**: draws the full-song background — a waveform path when
   `useWaveformData` source is `'decoded'` with ≥1 peak (R2.1), otherwise a solid timing bar and **no**
   synthetic sine (R2.2). Draws display-only marker indicators for every visible layer (R2.4, R2.5,
@@ -132,7 +133,7 @@ graph TD
   the `enabled`/`disabled` test-readable state indicator (R3.6).
 - **`LoopClearControl`**: icon-only `loop-overview-clear` with a ≥ 44×44 effective hit area;
   shows trash for clear and undo for restore while preserving descriptive accessibility labels
-  (R8.1, R8.4). Owns the 5000ms expiry timer that
+  (R8.1, R8.4), and remains in the reserved action slot beside the track (R8.11). Owns the 5000ms expiry timer that
   it cancels on unmount or snapshot discard (R8.6).
 - **`useLoopRangeGesture.ts`** (one-job hook): the single Pan gesture; classifies mode at
   `onBegin`, commits live during the drag through the store setters, handles cancel/orientation
@@ -406,6 +407,10 @@ stateDiagram-v2
   movement.
 - **Live commits with dedupe:** each `onUpdate` writes at most one validated range and skips the
   write when the result equals the current stored range (R12.9).
+- **Announcement isolation:** drag updates never call the native accessibility announcement bridge.
+  Explicit adjustable actions and keyboard changes announce the affected handle exactly once after
+  the synchronous store action, including clamped no-ops (R17.4), keeping drag rendering off that
+  extra bridge hot path.
 - **Provisional creation below MIN:** while a creation span < `MIN_LOOP_DURATION_MS`, the overview
   shows a provisional band but the store keeps the pre-gesture range (R5.4); it commits only once the
   span reaches MIN (R5.5), and a drop back below MIN after reaching it keeps the pre-gesture range.
@@ -635,10 +640,9 @@ loop values and the flag unchanged (R16.5).
 ### Height budget (36px phone)
 
 ```text
-+-------------------------------------------------+  <- loop-overview root (36px)
-| 36px: track strip (waveform/timing bar + range  |
-|       + handles + playhead + markers)            |
-+-------------------------------------------------+
++-----------------------------------------+------+  <- loop-overview root (36px)
+| track strip: waveform/range/playhead    | icon |  <- dedicated action slot
++-----------------------------------------+------+
 ```
 
 Handle hit areas extend beyond the strip via `hitSlop` to reach the 44px native target (R7.2).

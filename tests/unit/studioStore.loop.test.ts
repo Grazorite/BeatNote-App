@@ -35,6 +35,17 @@ describe('loop-range store actions', () => {
     expect(store.getState()).toMatchObject({ loopStartMs: null, loopEndMs: null, isLoopRangeEnabled: false });
   });
 
+  it('skips identical settled range writes on the gesture hot path', () => {
+    const store = createStore();
+    store.getState().setLoopRange(1000, 3000);
+    let updates = 0;
+    const unsubscribe = store.subscribe(() => { updates += 1; });
+
+    expect(store.getState().setLoopRange(1000, 3000)).toBe(true);
+    expect(updates).toBe(0);
+    unsubscribe();
+  });
+
   it('sets either bound at the playhead and preserves enablement when replacing a range', () => {
     const store = createStore();
     store.getState().setSongLoaded(true);

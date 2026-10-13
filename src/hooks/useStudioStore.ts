@@ -343,6 +343,12 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
       state.songDuration,
     );
+    if (state.loopStartMs === normalized.loopStartMs
+      && state.loopEndMs === normalized.loopEndMs
+      && state.pendingLoopRangeEnabled === false
+      && state.loopRestoreSnapshot === null) {
+      return true;
+    }
     set({
       loopStartMs: normalized.loopStartMs,
       loopEndMs: normalized.loopEndMs,

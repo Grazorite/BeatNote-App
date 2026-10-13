@@ -348,7 +348,7 @@ test.describe('Waveform Features', () => {
       await loadTestAudio(page, 'long-test-track.m4a');
 
       const overview = page.getByTestId('loop-overview');
-      const overviewBox = await overview.boundingBox();
+      const overviewBox = await page.getByTestId('loop-overview-track-region').boundingBox();
       expect(overviewBox).not.toBeNull();
       if (!overviewBox) return;
       await page.mouse.move(overviewBox.x + overviewBox.width * 0.01, overviewBox.y + overviewBox.height / 2);

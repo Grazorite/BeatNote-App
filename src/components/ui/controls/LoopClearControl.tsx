@@ -45,7 +45,7 @@ const LoopClearControl = forwardRef<React.ElementRef<typeof Pressable>, LoopClea
       testID="loop-overview-clear"
       accessibilityRole="button"
       accessibilityLabel={label}
-      hitSlop={8}
+      hitSlop={4}
       onPress={() => {
         if (restoring) {
           restoreLoopRange(Date.now());

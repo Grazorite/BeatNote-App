@@ -53,6 +53,9 @@ requirements:
 
 - **Loop_Overview**: The compact full-song component that replaces `TimelineScrollbar` on all
   platforms. Root testID `loop-overview`.
+- **Loop_Track**: The editable full-song strip inside Loop_Overview, excluding the reserved
+  Clear_Control action slot. `overviewWidth` means this strip's measured width; its left and right
+  edges map to 0ms and `songDuration`.
 - **Loop_Range**: The single pair `{ loopStartMs, loopEndMs }` of integer milliseconds held in the
   Studio_Store, or the absent state where both are `null`.
 - **Valid_Loop_Range**: A Loop_Range where both bounds are finite integers,
@@ -126,7 +129,7 @@ can set up a practice section without losing waveform space on my phone.
 
 1. THE Loop_Overview SHALL replace `TimelineScrollbar` on phone, tablet, and desktop web:
    `TimelineScrollbar` is rendered on no platform, the Loop_Overview occupies the screen position
-   `TimelineScrollbar` previously occupied, and the Loop_Overview's horizontal extent spans the full
+   `TimelineScrollbar` previously occupied, and the Loop_Track's horizontal extent spans the full
    song (left edge = 0ms, right edge = `songDuration`).
 2. WHILE the viewport is a phone (web window width < 768px, or native `min(width, height)` < 768pt),
    THE Loop_Overview SHALL render with a total height of 36px, measured as the bounding-box height
@@ -458,6 +461,9 @@ I never lose a carefully set section by mistake.
 10. THE Project_Manager SHALL exclude the restore snapshot from saved project files, so that a
     project saved during the Restore_Window writes `settings.loopRange` as `null` and
     `settings.loopEnabled` as `false`, and no snapshot survives an app relaunch.
+11. THE Loop_Overview SHALL reserve a dedicated action slot beside the Loop_Track for the
+    Clear_Control, and the Clear_Control's visual bounds and hit area SHALL NOT cover the waveform,
+    playhead, marker indicators, Range_Body, or handles in the Loop_Track.
 
 ### Requirement 9: Loop toggle in the transport row
 

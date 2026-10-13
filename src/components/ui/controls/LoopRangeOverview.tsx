@@ -1,25 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  findNodeHandle,
-  Platform,
-  Pressable,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { AccessibilityInfo, findNodeHandle, Platform, Pressable, View, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 
 import { useLoopRangeGesture } from '../../../hooks/useLoopRangeGesture';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { loopRangeOverviewStyles as styles } from '../../../styles/components/controls/loopRangeOverview';
-import { isValidLoopRange, loopSummaryLabel } from '../../../utils/loopRange';
+import { formatLoopTime, isValidLoopRange, loopSummaryLabel } from '../../../utils/loopRange';
 import LoopClearControl from './LoopClearControl';
 import LoopOverviewTrack from './LoopOverviewTrack';
 import LoopRangeLayer from './LoopRangeLayer';
 
-interface LoopRangeOverviewProps {
-  audioUri: string | null;
-}
+interface LoopRangeOverviewProps { audioUri: string | null }
 
 const webTouchStyle = { touchAction: 'none' } as ViewStyle;
 
@@ -28,7 +19,6 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
   const [width, setWidth] = useState(0);
   const summaryRef = useRef<View>(null);
   const clearRef = useRef<React.ElementRef<typeof Pressable>>(null);
-  const previousSummaryRef = useRef<string | null>(null);
   const showTimeline = useStudioStore(state => state.showTimeline);
   const loopStartMs = useStudioStore(state => state.loopStartMs);
   const loopEndMs = useStudioStore(state => state.loopEndMs);
@@ -58,12 +48,13 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
     if (handle != null) AccessibilityInfo.setAccessibilityFocus(handle);
   }, []);
 
-  useEffect(() => {
-    if (previousSummaryRef.current !== null && previousSummaryRef.current !== summary) {
-      AccessibilityInfo.announceForAccessibility(summary);
+  const announceBound = useCallback((bound: 'start' | 'end') => {
+    const store = useStudioStore.getState();
+    const value = bound === 'start' ? store.loopStartMs : store.loopEndMs;
+    if (value !== null) {
+      AccessibilityInfo.announceForAccessibility(`Loop ${bound} ${formatLoopTime(value)}`);
     }
-    previousSummaryRef.current = summary;
-  }, [summary]);
+  }, []);
 
   if (!showTimeline) return null;
   const displayedRange = provisionalRange ?? { loopStartMs, loopEndMs };
@@ -75,31 +66,41 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
       accessibilityHint="Set loop start at playhead, set loop end at playhead, or clear the selected loop"
       accessibilityActions={accessibilityActions}
       onAccessibilityAction={event => {
-        if (event.nativeEvent.actionName === 'setLoopStart') setLoopStartAtPlayhead(currentTime);
-        if (event.nativeEvent.actionName === 'setLoopEnd') setLoopEndAtPlayhead(currentTime);
+        if (event.nativeEvent.actionName === 'setLoopStart') {
+          setLoopStartAtPlayhead(currentTime);
+          announceBound('start');
+        }
+        if (event.nativeEvent.actionName === 'setLoopEnd') {
+          setLoopEndAtPlayhead(currentTime);
+          announceBound('end');
+        }
         if (event.nativeEvent.actionName === 'clearLoop' && validRange) clearLoopRange(Date.now());
       }}
       style={[styles.root, Platform.OS === 'web' && webTouchStyle]}
-      onLayout={event => setWidth(event.nativeEvent.layout.width)}
     >
-      <GestureDetector gesture={gesture}>
-        <View style={styles.gestureSurface}>
-          <LoopOverviewTrack audioUri={audioUri} width={width} />
-          <LoopRangeLayer
-            loopStartMs={displayedRange.loopStartMs}
-            loopEndMs={displayedRange.loopEndMs}
-            songDuration={songDuration}
-            width={width}
-            isEnabled={isLoopRangeEnabled}
-            provisional={provisionalRange !== null}
-          />
-        </View>
-      </GestureDetector>
+      <View
+        testID="loop-overview-track-region"
+        style={styles.trackRegion}
+        onLayout={event => setWidth(event.nativeEvent.layout.width)}
+      >
+        <GestureDetector gesture={gesture}>
+          <View style={styles.gestureSurface}>
+            <LoopOverviewTrack audioUri={audioUri} width={width} />
+            <LoopRangeLayer
+              loopStartMs={displayedRange.loopStartMs}
+              loopEndMs={displayedRange.loopEndMs}
+              songDuration={songDuration}
+              width={width}
+              isEnabled={isLoopRangeEnabled}
+              provisional={provisionalRange !== null}
+            />
+          </View>
+        </GestureDetector>
+      </View>
       <View
         ref={summaryRef}
         accessible
         accessibilityLabel={summary}
-        accessibilityLiveRegion="polite"
         tabIndex={-1}
         testID="loop-overview-summary"
         style={styles.accessibleSummary}
@@ -109,7 +110,10 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Set loop start at playhead"
-            onPress={() => setLoopStartAtPlayhead(currentTime)}
+            onPress={() => {
+              setLoopStartAtPlayhead(currentTime);
+              announceBound('start');
+            }}
             tabIndex={-1}
             testID="loop-overview-action-start"
             style={styles.accessibleAction}
@@ -117,18 +121,23 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Set loop end at playhead"
-            onPress={() => setLoopEndAtPlayhead(currentTime)}
+            onPress={() => {
+              setLoopEndAtPlayhead(currentTime);
+              announceBound('end');
+            }}
             tabIndex={-1}
             testID="loop-overview-action-end"
             style={styles.accessibleAction}
           />
         </>
       )}
-      <LoopClearControl
-        ref={clearRef}
-        onCleared={() => setTimeout(() => focusNode(clearRef.current), 0)}
-        onRestoreExpired={() => focusNode(summaryRef.current)}
-      />
+      <View style={styles.actionSlot}>
+        <LoopClearControl
+          ref={clearRef}
+          onCleared={() => setTimeout(() => focusNode(clearRef.current), 0)}
+          onRestoreExpired={() => focusNode(summaryRef.current)}
+        />
+      </View>
     </View>
   );
 };

@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+import {
+  AccessibilityInfo,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native';
 
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { loopRangeLayerStyles as styles } from '../../../styles/components/controls/loopRangeLayer';
@@ -64,6 +71,14 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
   const handleLeft = (center: number): number => Math.max(0, Math.min(center - hitWidth / 2, width - hitWidth));
   const valueText = isEnabled ? 'enabled' : 'disabled';
 
+  const announceBound = (bound: 'start' | 'end') => {
+    const store = useStudioStore.getState();
+    const value = bound === 'start' ? store.loopStartMs : store.loopEndMs;
+    if (value !== null) {
+      AccessibilityInfo.announceForAccessibility(`Loop ${bound} ${formatLoopTime(value)}`);
+    }
+  };
+
   if (provisional) {
     return (
       <View
@@ -81,6 +96,7 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
     } else {
       setLoopRange(start, edge === 'home' ? start + MIN_LOOP_DURATION_MS : songDuration);
     }
+    announceBound(bound);
   };
 
   const handleKeyDown = (bound: 'start' | 'end', event: WebKeyEvent): void => {
@@ -102,6 +118,7 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
     const pageDirection = key === 'PageDown' ? -1 : key === 'PageUp' ? 1 : direction;
     const multiplier = shifted || key.startsWith('Page') ? LARGE_STEP_MULTIPLIER : 1;
     nudgeLoopBound(bound, pageDirection * multiplier);
+    announceBound(bound);
   };
 
   const renderHandle = (bound: 'start' | 'end', center: number, value: number) => {
@@ -117,8 +134,14 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
           { name: 'decrement', label: `Decrease loop ${bound}` },
         ]}
         onAccessibilityAction={event => {
-          if (event.nativeEvent.actionName === 'increment') nudgeLoopBound(bound, 1);
-          if (event.nativeEvent.actionName === 'decrement') nudgeLoopBound(bound, -1);
+          if (event.nativeEvent.actionName === 'increment') {
+            nudgeLoopBound(bound, 1);
+            announceBound(bound);
+          }
+          if (event.nativeEvent.actionName === 'decrement') {
+            nudgeLoopBound(bound, -1);
+            announceBound(bound);
+          }
         }}
         aria-valuemin={0}
         aria-valuemax={songDuration}

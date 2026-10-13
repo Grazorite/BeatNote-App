@@ -502,6 +502,18 @@ documented defaults and must be revisited if a default changes:
     exclusion; update the iOS control inventory for five marker controls.
   - _Requirements: 9.5, 15.1–15.7, 17.5_
 
+### Phase 15 — Overview interaction polish
+
+- [x] 27. Remove drag-path jank and control overlap (direct)
+  - [x] 27.1 Stop per-frame accessibility announcements during pointer drags while retaining one
+    announcement for explicit adjustable/keyboard changes; memoize static track rendering and skip
+    identical store writes.
+  - [x] 27.2 Measure gesture geometry from a dedicated Loop_Track and reserve a sibling action slot
+    so clear/restore visuals and hit targets never cover playhead, markers, range, or handles.
+  - [x] 27.3 Add store and browser regression coverage, run the automated gate, and inspect the
+    loaded simulator layout and drag response.
+  - _Requirements: 8.11, 17.4, 19.3–19.4_
+
 ## Notes
 
 - Tasks marked with `*` are optional test sub-tasks and can be skipped for a faster MVP; core
