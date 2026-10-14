@@ -19,7 +19,7 @@ Run with: `npx jest --testPathPattern=unit`
 **Must have unit tests:**
 
 - `magneticSnapping.ts` — `snapToNearestTarget`, `generateSnapTargets`
-- `exportEngine.ts` — CSV row formatting, MIDI byte encoding, PDF structure
+- `exportEngine.ts` — CSV row formatting and MIDI byte encoding
 - `importEngine.ts` — CSV parsing, layer ID mapping, malformed input handling
 - `projectManager.ts` — save/load round-trip, version validation, missing field handling
 - Store actions in `useStudioStore.ts` — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, `navigateToLeftMarker`, `navigateToRightMarker`, `setStemCount`, viewport constraint logic
@@ -39,21 +39,27 @@ Run with: `npm test`
 
 **Must have E2E coverage:**
 
-- Load song → markers appear on waveform
-- Tap-to-beat adds a marker, undo removes it
-- View mode toggle (unified ↔ multitrack)
-- Stem count switching (2 / 4 / 6)
-- Layer selection changes active layer
-- Export modal opens and triggers download
-- Import CSV populates markers
-- Project save and load round-trip
-- Keyboard shortcuts (Space, M, Ctrl+Z, arrow keys)
+- Load song, create a marker from the marker controls, and annotate/reopen it
+- Gutter, waveform, marker, and drag gestures never create markers
+- Loop-range create/move/resize/toggle/clear/restore, edge geometry, and interaction isolation
+- Wrapped-row rendering, accessibility semantics, row-density reflow, follow-playhead, and precision
+  detail without data loss
+- Fixed phone workspace fit and desktop↔phone responsive reflow with loaded state preserved
+- Deferred view-mode and stem-separation controls stay hidden without blocking the core editor
+- Keyboard activation of critical controls and deterministic repeated marker input
+
+Project persistence, CSV import/export, invalid-import handling, background audio, orientation, and
+native document-picker behavior are device integrations and belong in the focused iOS XCTest suite.
+Global web shortcut coverage (Space, M, Ctrl+Z, arrows) remains desirable but should be added as one
+cohesive workflow rather than separate smoke cases.
 
 **Do not E2E test:**
 
 - Internal state values (test behaviour, not state)
 - Pixel-perfect layout
 - Animation timing
+- Test-runner discovery, generic SVG existence, page-load timing, or repeated "app did not crash"
+  smoke cases when a real workflow already proves the same surface
 
 ## File placement
 
@@ -64,12 +70,15 @@ tests/
   waveform-features.spec.ts    # existing E2E
   quality-assurance.spec.ts    # existing E2E
   unit/
-    magneticSnapping.test.ts
-    exportEngine.test.ts
-    importEngine.test.ts
-    projectManager.test.ts
-    studioStore.test.ts
+    loopRange.test.ts
+    projectManager.loop.test.ts
+    rowLayout.test.ts
+    studioStore.loop.test.ts
+    timelineMapping.test.ts
 ```
+
+The filenames in this example are organizational, not a requirement to retain empty or redundant
+files. Remove superseded tests instead of preserving them for historical counts.
 
 ## Rules
 

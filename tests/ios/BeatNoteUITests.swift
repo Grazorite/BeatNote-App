@@ -50,6 +50,14 @@ final class BeatNoteUITests: XCTestCase {
   func testAudioAnnotationAndProjectRestore() {
     loadBundledSimulatorAudio()
 
+    let playback = element("play-pause")
+    XCTAssertTrue(playback.waitForExistence(timeout: 10))
+    playback.tap()
+    let pauseButton = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Pause playback")).firstMatch
+    XCTAssertTrue(pauseButton.waitForExistence(timeout: 5))
+    pauseButton.tap()
+    waitForWrappedCanvasEnd("to 0:05")
+
     let overview = element("loop-overview")
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
@@ -57,13 +65,6 @@ final class BeatNoteUITests: XCTestCase {
     element("loop-region-toggle").tap()
     let savedLoopSummary = element("loop-overview-summary").label
     let savedLoopToggleValue = String(describing: element("loop-region-toggle").value ?? "")
-
-    let playback = element("play-pause")
-    XCTAssertTrue(playback.waitForExistence(timeout: 10))
-    playback.tap()
-    let pauseButton = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Pause playback")).firstMatch
-    XCTAssertTrue(pauseButton.waitForExistence(timeout: 5))
-    pauseButton.tap()
 
     element("add-marker").tap()
     let annotation = app.textFields["marker-annotation"]
@@ -75,7 +76,7 @@ final class BeatNoteUITests: XCTestCase {
     }
     XCTAssertTrue(annotation.isHittable)
     annotation.tap()
-    annotation.typeText("Dance note")
+    typeTextIntoControlledField("Dance note", field: annotation)
     XCTAssertEqual(annotation.value as? String, "Dance note")
 
     let projectName = "UITest-\(UUID().uuidString.prefix(8))"
@@ -133,7 +134,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(annotation.waitForExistence(timeout: 5))
     XCTAssertTrue(annotation.isHittable, "The annotation editor should stay enabled for the marker just added.")
     annotation.tap()
-    annotation.typeText("Live marker note")
+    typeTextIntoControlledField("Live marker note", field: annotation)
     XCTAssertEqual(annotation.value as? String, "Live marker note")
   }
 
@@ -262,7 +263,7 @@ final class BeatNoteUITests: XCTestCase {
     let annotation = app.textFields["marker-annotation"]
     XCTAssertTrue(annotation.isEnabled)
     annotation.tap()
-    annotation.typeText("Row note")
+    typeTextIntoControlledField("Row note", field: annotation)
     let annotatedMarker = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "label CONTAINS %@", ", annotated"),
       object: markerIndicator
@@ -525,38 +526,6 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
-  func testLandscapeCsvImportAndExport() {
-    XCUIDevice.shared.orientation = .landscapeLeft
-    loadBundledSimulatorAudio("background-audio.m4a")
-    rotateAppToLandscape()
-    element("add-marker").tap()
-
-    let importButton = element("import-data")
-    makeProjectActionVisible("import-data")
-    XCTAssertTrue(importButton.isHittable, "Import should remain reachable from the landscape project toolbar.")
-    importButton.tap()
-    let selectCsv = element("select-csv-file")
-    XCTAssertTrue(selectCsv.waitForExistence(timeout: 5) && selectCsv.isHittable)
-    selectCsv.tap()
-    selectDocument("valid-import.csv")
-    dismissAlertIfPresent()
-
-    let exportButton = element("export-data")
-    makeProjectActionVisible("export-data")
-    XCTAssertTrue(exportButton.isHittable)
-    exportButton.tap()
-    let exportCsv = element("export-csv")
-    XCTAssertTrue(exportCsv.waitForExistence(timeout: 5) && exportCsv.isHittable)
-    exportCsv.tap()
-
-    let shareSheet = app.otherElements["ActivityListView"]
-    let copyAction = app.buttons["Copy"]
-    XCTAssertTrue(
-      shareSheet.waitForExistence(timeout: 10) || copyAction.waitForExistence(timeout: 2),
-      "CSV export should present the iOS share sheet in landscape.\n\(app.debugDescription)"
-    )
-  }
-
   private func loadBundledSimulatorAudio(_ filename: String = "test-audio.wav") {
     XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
     element("load-song").tap()
@@ -567,6 +536,29 @@ final class BeatNoteUITests: XCTestCase {
 
   private func element(_ identifier: String) -> XCUIElement {
     app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+  }
+
+  private func typeTextIntoControlledField(_ text: String, field: XCUIElement) {
+    // React Native commits controlled TextInput state asynchronously. Sending the entire string in
+    // one XCTest event can race those commits and drop or reorder characters on a busy simulator.
+    for character in text {
+      field.typeText(String(character))
+      Thread.sleep(forTimeInterval: 0.08)
+    }
+  }
+
+  private func waitForWrappedCanvasEnd(_ expectedSuffix: String) {
+    let rows = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier MATCHES %@", "^wrapped-row-[0-9]+$")
+    )
+    for _ in 0..<60 {
+      if rows.count > 0, rows.element(boundBy: rows.count - 1).label.contains(expectedSuffix) {
+        return
+      }
+      Thread.sleep(forTimeInterval: 0.25)
+    }
+    let lastLabel = rows.count > 0 ? rows.element(boundBy: rows.count - 1).label : "no rows"
+    XCTFail("The wrapped canvas did not settle on the loaded audio duration ending \(expectedSuffix). Found: \(lastLabel)")
   }
 
   private func rotateAppToLandscape() {

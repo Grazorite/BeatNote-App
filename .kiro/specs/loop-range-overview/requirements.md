@@ -286,6 +286,9 @@ to the waveform I seek on.
 8. WHEN Loop_Range changes because of a create, move, resize, clear, restore, duration re-clamp, or
    project load, THE Wrapped_Canvas SHALL show the new segments on all mounted rows by the next
    rendered frame. No segment from the previous range SHALL remain.
+9. WHILE a Valid_Loop_Range exists and Loop_Enabled_Flag is true, THE Loop_Overview,
+   Wrapped_Canvas, and Detail_View SHALL use the shared `colors.loopEnabled` hue for the selected
+   region. Each surface MAY use a different opacity so waveform and marker content remain legible.
 
 ### Requirement 5: Creating a range
 

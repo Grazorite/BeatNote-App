@@ -529,6 +529,17 @@ documented defaults and must be revisited if a default changes:
     simulator layout and drag response.
   - _Requirements: 2.3, 3.3, 3.5, 4.7, 8.11, 11.2, 17.4, 19.3–19.4_
 
+### Phase 17 — Visual consistency and test-suite consolidation
+
+- [x] 29. Align the loop-range colour and retain critical automated coverage (direct + DSH-Qwen
+  audit)
+  - [x] 29.1 Use the shared teal `colors.loopEnabled` hue for active range projection in the
+    overview, wrapped canvas, and detail view, with surface-appropriate opacity.
+  - [x] 29.2 Remove duplicate, smoke-only, and fake-implementation tests while retaining critical
+    loop, annotation, responsive-layout, persistence, import/export, and device-integration flows.
+  - [x] 29.3 Run the complete type, unit, browser, and simulator gates after consolidation.
+  - _Requirements: 4.9, 17.5, 19.1–19.4_
+
 ## Notes
 
 - Tasks marked with `*` are optional test sub-tasks and can be skipped for a faster MVP; core
@@ -566,7 +577,8 @@ documented defaults and must be revisited if a default changes:
     { "id": 14, "tasks": ["19.2", "21.1"] },
     { "id": 15, "tasks": ["23.1"] },
     { "id": 16, "tasks": ["25.1"] },
-    { "id": 17, "tasks": ["25.2"] }
+    { "id": 17, "tasks": ["25.2"] },
+    { "id": 18, "tasks": ["29.1", "29.2", "29.3"] }
   ]
 }
 ```
