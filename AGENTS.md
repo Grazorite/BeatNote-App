@@ -50,11 +50,11 @@ potentially adding a hybrid path later.
 |--------|-------|
 | Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
 | Export formats implemented | 2 of 3 (CSV, MIDI; PDF planned) |
-| Stem separation | Deferred; types, store fields, cache, and tests preserved |
+| Stem separation | Deferred; types, store fields, cache, and cache tests preserved |
 | Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
-| Unit tests | 124 passing (11 suites) |
-| iOS UI tests | 15/15 passing on iPhone 17 Pro Max / iOS 26.2 simulator |
-| E2E spec files | 5 (Playwright, 69 passing) |
+| Unit tests | 102 passing (9 suites) |
+| iOS UI tests | 14/14 passing on iPhone 17 Pro / iOS 26.2 simulator |
+| E2E spec files | 4 (Playwright, 14 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -68,7 +68,7 @@ potentially adding a hybrid path later.
    app on this host.
 2. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-3. Close the remaining unit-test coverage gap, then advance 8-count/rehearsal features and
+3. Close the remaining production-unit coverage gap, then advance 8-count/rehearsal features and
    provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -100,7 +100,7 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
-- [ ] Complete loop-range overview physical-device acceptance — Phases 1–16 and the automated gate are verified (124 unit, 69 E2E, focused iOS loop case); physical performance, VoiceOver, contrast, and audible-boundary checks remain
+- [ ] Complete loop-range overview physical-device acceptance — Phases 1–17 and the automated gate are verified (102 unit, 14 E2E, 14/14 iOS); physical performance, VoiceOver, contrast, and audible-boundary checks remain
 
 ### ⏸ Deferred — V2/V3
 
@@ -112,6 +112,9 @@ potentially adding a hybrid path later.
 
 #### Test & build harness
 
+- [x] Align the active loop-range colour across overview/detail/wrapped canvases and rationalise the
+      automated suite around critical behavior coverage
+      <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `.kiro/steering/testing-strategy.md`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/core-functionality.spec.ts`, `tests/quality-assurance.spec.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`; removed `tests/test-discovery.spec.ts`, `tests/unit/rowDensityPresets.test.ts`, and `tests/unit/studioStore.test.ts`</sub>
 - [x] Smooth loop-range dragging and separate the clear/restore action from full-song content
       <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `src/components/ui/controls/LoopClearControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/controls/LoopRangeLayer.tsx`, `src/components/ui/controls/LoopRangeOverview.tsx`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/`, `tests/ui-components.spec.ts`, `tests/unit/studioStore.loop.test.ts`, `tests/waveform-features.spec.ts`</sub>
 - [x] Refine loop controls after simulator review — restore mutually exclusive marker/range loops,
@@ -200,6 +203,46 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-14 — Align loop visuals and consolidate critical tests
+
+**Agent:** orchestrator (Codex) + test-auditor + DSH-Qwen attempt · **Commit(s):** `96b6649`
+**Kanban moved:** Loop visual consistency and automated-suite rationalisation → Done
+
+**Changed:**
+
+- Changed active wrapped-row range projection from the orange accent to the shared teal
+  `colors.loopEnabled` hue used by the overview and detail view; documented the cross-surface
+  colour contract and completed Phase 17 of the loop-range spec.
+- Reduced the automated suite from 208 to 130 focused cases: Playwright 69→14, Jest 124→102, and
+  XCTest 15→14. Removed runner/smoke assertions, a fake reimplementation of the store, trivial
+  density mappings, and duplicated flows while retaining loop, annotation, responsive-layout,
+  persistence, import/export, background-audio, orientation, and gesture coverage.
+- Fixed two native timing defects exposed by the full aggregate: controlled React Native text entry
+  now uses paced XCTest input, and the save/restore scenario initializes the fixture's real audio
+  duration before creating a persisted range.
+- Updated the durable test strategy to prioritise behavior-rich workflows and production-facing
+  unit tests. A scoped DSH-Qwen audit was attempted but exhausted its response budget without a
+  recommendation; the direct and sub-agent audits supplied the retained coverage map.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; `npx jest --testPathPatterns=unit --runInBand` → 102 passed across 9 suites.
+- Elevated `PLAYWRIGHT_PORT=8082 EXPO_NO_TELEMETRY=1 npm test -- --reporter=dot` → 14 passed.
+- Elevated full `npm run test:ios:ui` → 14/14 passed on iPhone 17 Pro / iOS 26.2; inspected result
+  bundle `ios/build/BeatNoteUITests-1791938471156.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone sustained drag/playback performance, VoiceOver adjustment announcements,
+  rendered contrast, and audible loop-boundary quality remain the final loop-range acceptance gate.
+- Global web keyboard shortcuts remain a desirable single-workflow addition, and the production
+  utility/store unit-test backlog remains open; neither blocks the loop-range spec.
+
+**Next agent should:**
+
+- Run task 25.2 from `.kiro/specs/loop-range-overview/tasks.md` on a physical iPhone; if it passes,
+  move loop-range overview from In Progress to Done.
 
 ### 2026-10-14 — Remove remaining loop-range drag jank and edge clipping
 
@@ -370,53 +413,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Run simulator-first exploratory acceptance, then task 25.2 from
   `.kiro/specs/loop-range-overview/tasks.md` on a physical iPhone; if it passes, mark the feature Done.
-
-### 2026-10-10 — Specify loop-range overview (planning only)
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
-**Kanban moved:** Loop-range overview → To Do (new planned feature; spec authored)
-
-**Changed:**
-
-- Authored a Requirements-First feature spec under `.kiro/specs/loop-range-overview/`
-  (`requirements.md`, `design.md`, `tasks.md`) to repurpose `TimelineScrollbar` into a compact
-  full-song loop-range editor: draggable start/end handles, range move, clear/restore, a transport
-  loop toggle, range projection onto wrapped rows, and range-aware playback with an armed-wrap rule.
-- Documented a one-loop-model consolidation: reuse the existing session-only `loopStartMs`/
-  `loopEndMs` with validating setters plus a new `isLoopRangeEnabled`, retire the marker-segment
-  loop (`isLoopMarkerActive`/`toggleLoopMarker`, its `MarkerButton` button, rebind `L`), and keep
-  whole-song repeat with defined precedence. Persistence bumps the project schema to 1.1.0.
-- Added the planned-feature card to the Kanban To Do column and rotated the oldest handover entry
-  (2026-10-09 wrapped accessibility semantics) verbatim into the archive to keep five live entries.
-- No application code changed; this is a specification/planning artifact only.
-
-**Key Artifacts** (from `git status`): `.kiro/specs/loop-range-overview/requirements.md`,
-`.kiro/specs/loop-range-overview/design.md`, `.kiro/specs/loop-range-overview/tasks.md`,
-`.kiro/specs/loop-range-overview/.config.kiro`, `AGENTS.md`,
-`docs/context/archive/beatnote-project-history.md`.
-
-**Verified:**
-
-- `validate_spec_format` → 0 issues for `requirements.md` and `tasks.md`.
-- `design.md` is markdown-lint clean (`mdlint.py` → 0 findings). `validate_spec_format` reports 4
-  residual `design/missing-property-validates` warnings on 4 of 10 correctness properties; every
-  property has an accurate `**Validates: Requirements ...**` line in the project's canonical form,
-  and the warnings persisted across six formatting variants (same form the shipped
-  wrapped-waveform-canvas spec uses), so they are treated as a validator-detection quirk, not a
-  content gap.
-- Spec grounded in the real code (store loop fields, `TimelineScrollbar`, `useAudioPlayer` poll,
-  `loopSegmentsForRows`, `projectManager`, gesture config), read before writing.
-
-**Not verified / known gaps:**
-
-- No build/test/lint of application code was run — nothing was implemented. tsc/Jest/Playwright/
-  XCTest are task checkpoints, not yet executed.
-- Unresolved product decisions D-1..D-9 remain (min loop length, whether `loopEnabled` persists,
-  replacing the retired marker loop, tap-to-seek, clear/restore affordance, desktop viewport strip,
-  jump-when-started-after-end, restore-window length/focus, newer-version writability).
-- The 4 design-validator warnings above were not cleared.
-
-**Next agent should:**
-
-- Begin Phase 1 of `.kiro/specs/loop-range-overview/tasks.md` (pure `src/utils/loopRange.ts` +
-  `compareProjectVersion` with unit/property tests), keeping gesture and audio-boundary work direct.

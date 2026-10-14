@@ -1268,6 +1268,56 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Run physical-device acceptance, then address the top utility/store unit-test coverage item.
+
+### 2026-10-10 — Specify loop-range overview (planning only)
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** Loop-range overview → To Do (new planned feature; spec authored)
+
+**Changed:**
+
+- Authored a Requirements-First feature spec under `.kiro/specs/loop-range-overview/`
+  (`requirements.md`, `design.md`, `tasks.md`) to repurpose `TimelineScrollbar` into a compact
+  full-song loop-range editor: draggable start/end handles, range move, clear/restore, a transport
+  loop toggle, range projection onto wrapped rows, and range-aware playback with an armed-wrap rule.
+- Documented a one-loop-model consolidation: reuse the existing session-only `loopStartMs`/
+  `loopEndMs` with validating setters plus a new `isLoopRangeEnabled`, retire the marker-segment
+  loop (`isLoopMarkerActive`/`toggleLoopMarker`, its `MarkerButton` button, rebind `L`), and keep
+  whole-song repeat with defined precedence. Persistence bumps the project schema to 1.1.0.
+- Added the planned-feature card to the Kanban To Do column and rotated the oldest handover entry
+  (2026-10-09 wrapped accessibility semantics) verbatim into the archive to keep five live entries.
+- No application code changed; this is a specification/planning artifact only.
+
+**Key Artifacts** (from `git status`): `.kiro/specs/loop-range-overview/requirements.md`,
+`.kiro/specs/loop-range-overview/design.md`, `.kiro/specs/loop-range-overview/tasks.md`,
+`.kiro/specs/loop-range-overview/.config.kiro`, `AGENTS.md`,
+`docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- `validate_spec_format` → 0 issues for `requirements.md` and `tasks.md`.
+- `design.md` is markdown-lint clean (`mdlint.py` → 0 findings). `validate_spec_format` reports 4
+  residual `design/missing-property-validates` warnings on 4 of 10 correctness properties; every
+  property has an accurate `**Validates: Requirements ...**` line in the project's canonical form,
+  and the warnings persisted across six formatting variants (same form the shipped
+  wrapped-waveform-canvas spec uses), so they are treated as a validator-detection quirk, not a
+  content gap.
+- Spec grounded in the real code (store loop fields, `TimelineScrollbar`, `useAudioPlayer` poll,
+  `loopSegmentsForRows`, `projectManager`, gesture config), read before writing.
+
+**Not verified / known gaps:**
+
+- No build/test/lint of application code was run — nothing was implemented. tsc/Jest/Playwright/
+  XCTest are task checkpoints, not yet executed.
+- Unresolved product decisions D-1..D-9 remain (min loop length, whether `loopEnabled` persists,
+  replacing the retired marker loop, tap-to-seek, clear/restore affordance, desktop viewport strip,
+  jump-when-started-after-end, restore-window length/focus, newer-version writability).
+- The 4 design-validator warnings above were not cleared.
+
+**Next agent should:**
+
+- Begin Phase 1 of `.kiro/specs/loop-range-overview/tasks.md` (pure `src/utils/loopRange.ts` +
+  `compareProjectVersion` with unit/property tests), keeping gesture and audio-boundary work direct.
 ### 2026-10-10 — Restrict marker creation to controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
