@@ -9,8 +9,8 @@ interface IconProps {
 
 const MarkerLeftIcon: React.FC<IconProps> = ({ size = 20, color = '#ffffff' }) => (
   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-    <ArrowLeft size={size * 0.8} color={color} />
     <Bookmark size={size} color={color} />
+    <ArrowLeft size={size * 0.8} color={color} />
   </View>
 );
 

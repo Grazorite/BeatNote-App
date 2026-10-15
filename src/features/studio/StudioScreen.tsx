@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, useWindowDimensions, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../hooks/useStudioStore';
@@ -58,13 +58,15 @@ export default function StudioScreen() {
 
   return (
     <View style={styles.mainContainer}>
-      <View
+      <KeyboardAvoidingView
+        enabled={isMobile && Platform.OS !== 'web'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[
           styles.scrollView,
           {
             marginLeft: isMobile ? 0 : isSidebarCollapsed ? 60 : 280,
             paddingTop: (isMobile ? 0 : 20) + insets.top,
-            paddingBottom: (isMobile ? 0 : 50) + insets.bottom,
+            paddingBottom: isMobile ? 0 : 50 + insets.bottom,
             paddingLeft: isMobile ? insets.left : 0,
             paddingRight: isMobile ? insets.right : 0,
           },
@@ -88,8 +90,9 @@ export default function StudioScreen() {
         startWaveformScrub={startWaveformScrub}
         endWaveformScrub={endWaveformScrub}
         onFocusTextInput={(fn) => { focusTextInput = fn; }}
+        safeAreaBottom={insets.bottom}
         />
-      </View>
+      </KeyboardAvoidingView>
       <Sidebar />
       <HelpScreen 
         visible={showHelpScreen}

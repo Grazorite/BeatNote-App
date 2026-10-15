@@ -178,6 +178,7 @@ export class ProjectManager {
             modifiedAt: project.metadata.modifiedAt,
             duration: project.metadata.duration,
             stemCount: project.metadata.stemCount,
+            markerCount: project.layers.reduce((sum, layer) => sum + layer.markers.length, 0),
           });
         } catch (error) {
           console.warn(`Failed to process project ${filename}:`, error);

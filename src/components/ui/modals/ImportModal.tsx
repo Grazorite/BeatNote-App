@@ -4,11 +4,12 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import type { ImportResult } from '../../../utils/importTypes';
 
 interface ImportModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (result: ImportResult) => void;
 }
 
 const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }) => {
@@ -27,9 +28,9 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
         const csvContent = await FileSystem.readAsStringAsync(result.assets[0].uri, {
           encoding: FileSystem.EncodingType.UTF8,
         });
-        await importFromCSV(csvContent);
-        
-        onSuccess();
+        const importResult = await importFromCSV(csvContent);
+
+        onSuccess(importResult);
       }
     } catch (error) {
       console.error('Import error:', error);
@@ -52,11 +53,11 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>
-            Import Data
+            Import CSV
           </Text>
           
           <Text style={styles.subtitle}>
-            Select a CSV file to import markers and annotations
+            Choose a BeatNote CSV. Its markers and annotations will be added to this project.
           </Text>
           
           <TouchableOpacity
@@ -70,10 +71,10 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
             testID="select-csv-file"
           >
             <Text style={styles.buttonText}>
-              {isImporting ? 'Importing...' : 'Select CSV File'}
+              {isImporting ? 'Importing...' : 'Choose CSV'}
             </Text>
             <Text style={styles.buttonSubtext}>
-              Merge with existing markers
+              Importing the same file again may create duplicate markers
             </Text>
           </TouchableOpacity>
           

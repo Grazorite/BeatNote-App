@@ -9,6 +9,7 @@ const HelpButton: React.FC = () => {
 
   return (
     <TouchableOpacity
+      testID="settings-help"
       style={styles.button}
       onPress={() => setShowHelpScreen(true)}
     >

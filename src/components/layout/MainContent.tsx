@@ -1,12 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, useStudioStore } from '../../hooks/useStudioStore';
+import { useDockToast } from '../../hooks/useDockToast';
 import ProjectControls from '../ui/controls/ProjectControls';
 
 import LoopRangeOverview from '../ui/controls/LoopRangeOverview';
 import TapButton from '../ui/controls/MarkerButton';
 import AudioControls from '../ui/controls/AudioControls';
+import ControlDock from '../ui/controls/ControlDock';
+import DockToast from '../ui/controls/DockToast';
+import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
 import WaveformWorkspace from '../ui/waveform/WaveformWorkspace';
@@ -33,6 +37,7 @@ interface MainContentProps {
   startWaveformScrub: () => void;
   endWaveformScrub: () => void;
   onFocusTextInput: (fn: () => void) => void;
+  safeAreaBottom: number;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -53,10 +58,13 @@ const MainContent: React.FC<MainContentProps> = ({
   startWaveformScrub,
   endWaveformScrub,
   onFocusTextInput,
+  safeAreaBottom,
 }) => {
   const opacity = useSharedValue(1);
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const toast = useDockToast();
   
   // Pass focus function to parent
   useEffect(() => {
@@ -145,25 +153,58 @@ const MainContent: React.FC<MainContentProps> = ({
   );
 
   if (isMobile) {
+    const mobileTimeline = (
+      <View style={styles.mobileTimeline}>
+        <DockToast message={toast.message} />
+        <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
+      </View>
+    );
+    const mobileAnnotation = (
+      <View style={[styles.mobileAnnotation, isLandscapePhone && styles.landscapeAnnotation]}>
+        <GlassBackdrop
+          testID="annotation-glass"
+          gradientId={isLandscapePhone ? 'annotation-glass-landscape' : 'annotation-glass-portrait'}
+          radius={14}
+        />
+        <AnnotationField ref={annotationFieldRef} isMobile compact={isLandscapePhone} />
+      </View>
+    );
     const mobileCanvas = (
       <View
         style={[styles.mobileCanvas, isLandscapePhone && styles.landscapeCanvas]}
         testID="mobile-workspace-scroll"
       >
         {waveform}
-        {timeline}
+        {mobileTimeline}
+        {mobileAnnotation}
         <Text style={styles.assistiveStatus} testID="grand-total-markers">
           Grand Total: {totalMarkers} markers
         </Text>
       </View>
     );
     const controlDock = (
-      <View style={[styles.mobileControlDock, isLandscapePhone && styles.landscapeControlRail]} testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}>
-        <View style={styles.mobileTransportRow}>{audioControls}</View>
-        <View style={isLandscapePhone ? styles.landscapeMarkerActions : styles.mobileMarkerActions}>
-          {markerControls}
-        </View>
-        <AnnotationField ref={annotationFieldRef} isMobile />
+      <View
+        style={[
+          styles.mobileControlDock,
+          { paddingBottom: isLandscapePhone ? 0 : Math.max(safeAreaBottom, 34) },
+          isLandscapePhone && styles.landscapeControlRail,
+        ]}
+        testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}
+      >
+        <GlassBackdrop
+          testID="control-dock-glass"
+          gradientId={isLandscapePhone ? 'control-dock-glass-landscape' : 'control-dock-glass-portrait'}
+          radius={isLandscapePhone ? 0 : 14}
+        />
+        <ControlDock
+          isLandscape={isLandscapePhone}
+          onTogglePlayback={togglePlayback}
+          onSeek={seekToPosition}
+          onAddMarker={tapToBeat}
+          playbackSpeed={playbackSpeed}
+          onPlaybackSpeedChange={setPlaybackSpeed}
+          onToast={toast.show}
+        />
       </View>
     );
     return (

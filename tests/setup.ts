@@ -22,7 +22,7 @@ export async function loadTestAudio(page: Page, fixtureName: string = 'test-audi
   const fileInput = page.locator('input[type="file"]').last();
   await expect(fileInput).toBeAttached({ timeout: 5000 });
   await fileInput.setInputFiles(path.resolve(`tests/fixtures/${fixtureName}`));
-  await expect(page.getByTestId('load-song')).toContainText('Song Loaded', { timeout: 10000 });
+  await expect(page.getByTestId('load-song')).toContainText('Replace Audio', { timeout: 10000 });
 }
 
 // Re-export everything else

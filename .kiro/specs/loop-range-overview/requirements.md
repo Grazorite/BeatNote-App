@@ -149,8 +149,8 @@ can set up a practice section without losing waveform space on my phone.
    `loop-overview-clear` on at most one element. `loop-overview` SHALL be present whenever the
    Loop_Overview is visible. `loop-overview-handle-start`, `loop-overview-handle-end`, and
    `loop-overview-range` SHALL be present whenever the Loop_Range is a Valid_Loop_Range.
-   `loop-overview-clear` SHALL be present whenever the Loop_Range is a Valid_Loop_Range or the
-   Restore_Window is active.
+   `loop-overview-clear` SHALL be present whenever the Loop_Overview is visible; it SHALL be disabled
+   while neither a Valid_Loop_Range nor an active Restore_Window exists.
 6. WHILE a song is loaded, THE application SHALL render no visible current-time caption. It MAY
    retain one non-layout test probe with testID `playback-current-time`; when retained, its text
    SHALL use "Current: m:ss" and reflect `currentTime` within 1000ms during playback.
@@ -191,7 +191,7 @@ overview, so that I can choose a loop that matches my annotated sections.
    including no synthetic sine shape.
 3. WHILE a song is loaded and `songDuration` is finite and `> 0`, THE Loop_Overview SHALL draw
    exactly one playhead at x = `clamp(currentTime, 0, songDuration) / songDuration × width`, with
-   the rendered 2px stroke centre clamped to `[1px, width − 1px]` so it remains fully visible at
+   the rendered 2px stroke centre clamped to `[2px, width − 2px]` so it remains clearly visible inside
    both song edges, and SHALL reposition it within 100ms of each `currentTime` change, including
    during playback.
 4. WHILE a song is loaded and `songDuration` is finite and `> 0`, THE Loop_Overview SHALL draw
@@ -226,13 +226,13 @@ will repeat.
    songDuration × overviewWidth` and its right edge at `loopEndMs / songDuration × overviewWidth`,
    each within ±1px. It SHALL reposition to the new bounds in the first render after any Loop_Range
    change.
-2. WHILE a Valid_Loop_Range exists, THE Loop_Overview SHALL render waveform (or timing-bar) content
+2. WHILE a Valid_Loop_Range exists and Loop_Enabled_Flag is true, THE Loop_Overview SHALL render waveform (or timing-bar) content
    and marker indicators outside the Range_Body at an opacity no greater than 0.5 × the opacity of
    the same content inside the Range_Body. Inside content and the playhead SHALL stay undimmed, and
    no marker indicator SHALL be hidden.
 3. WHILE a Valid_Loop_Range exists and Loop_Enabled_Flag is false, THE Loop_Overview SHALL render
-   the Range_Body with non-zero opacity, keep both handles and the outside-range dimming from
-   criterion 3.2, and use a disabled treatment that differs from the enabled treatment in fill
+   the Range_Body with non-zero opacity, keep both handles, render no outside-range dimming, and use
+   a disabled treatment that differs from the enabled treatment in fill
    colour token, opacity, or stroke style. All colours SHALL come from the tokens in
    `src/styles/common.ts`.
 4. WHILE no Valid_Loop_Range exists, THE Loop_Overview SHALL render the full song with no dimming.
@@ -431,9 +431,9 @@ I never lose a carefully set section by mistake.
 
 #### Acceptance Criteria
 
-1. WHILE a Valid_Loop_Range exists or the Restore_Window is open, THE Loop_Overview SHALL show the
-   Clear_Control with a hit area of at least 44 × 44px, and SHALL hide the Clear_Control at all
-   other times.
+1. WHILE the Loop_Overview is visible, it SHALL show the Clear_Control with a hit area of at least
+   44 × 44px. WHILE neither a Valid_Loop_Range nor the Restore_Window exists, the Clear_Control SHALL
+   remain visible with a disabled treatment and SHALL not respond to activation.
 2. WHEN the Clear_Control or the "Clear loop" accessibility action is activated while a
    Valid_Loop_Range exists, THE Studio_Store SHALL set loopStartMs and loopEndMs to null and
    isLoopRangeEnabled to false in a single store write.
@@ -469,7 +469,8 @@ I never lose a carefully set section by mistake.
     `settings.loopEnabled` as `false`, and no snapshot survives an app relaunch.
 11. THE Loop_Overview SHALL reserve a dedicated action slot beside the Loop_Track for the
     Clear_Control, and the Clear_Control's visual bounds and hit area SHALL NOT cover the waveform,
-    playhead, marker indicators, Range_Body, or handles in the Loop_Track.
+    playhead, marker indicators, Range_Body, or handles in the Loop_Track. The visual action button
+    SHALL directly abut the Loop_Track without an empty spacer.
 
 ### Requirement 9: Loop toggle in the transport row
 

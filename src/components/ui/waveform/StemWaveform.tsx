@@ -7,6 +7,7 @@ import { useWaveformData, generateWaveformPath } from '../../../hooks/useWavefor
 import { useZoomGesture } from '../../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
+import { colors } from '../../../styles/common';
 
 interface StemWaveformProps {
   layers: Layer[];
@@ -30,6 +31,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   showPlayhead = true,
 }) => {
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const scrubStartedRef = useRef(false);
   
   useEffect(() => {
     const onChange = (result: any) => {
@@ -89,7 +91,8 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
     .runOnJS(true)
     .activeOffsetX([-6, 6])
     .failOffsetY([-12, 12])
-    .onBegin(() => {
+    .onStart(() => {
+      scrubStartedRef.current = true;
       if (isPlaying) {
         onScrubStart();
       }
@@ -110,7 +113,9 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       setCurrentTime(newCurrentTime);
       setGhostPlayheadTime(newCurrentTime);
     })
-    .onEnd(() => {
+    .onFinalize(() => {
+      if (!scrubStartedRef.current) return;
+      scrubStartedRef.current = false;
       onScrubEnd();
     });
   
@@ -157,8 +162,8 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             y1={0}
             x2={x}
             y2={120}
-            stroke={layer.color}
-            strokeWidth={3}
+            stroke={colors.marker}
+            strokeWidth={4}
             filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
             strokeOpacity={0.9}
           />

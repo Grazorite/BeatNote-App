@@ -174,8 +174,12 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <View style={[styles.outside, { left: 0, width: Math.max(0, startX) }]} />
-      <View style={[styles.outside, { left: endX, width: Math.max(0, width - endX) }]} />
+      {isEnabled && (
+        <>
+          <View testID="loop-overview-outside-start" style={[styles.outside, { left: 0, width: Math.max(0, startX) }]} />
+          <View testID="loop-overview-outside-end" style={[styles.outside, { left: endX, width: Math.max(0, width - endX) }]} />
+        </>
+      )}
       <View
         testID="loop-overview-range"
         accessibilityLabel={`Loop range ${valueText}`}

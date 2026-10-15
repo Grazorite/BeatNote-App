@@ -36,16 +36,16 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
           <ScrollView style={styles.scrollContainer}>
         <Section title="Getting Started">
           <Text style={styles.text}>
-            1. Load an audio file using "Load Song"
+            1. Choose an audio file from the top bar
           </Text>
           <Text style={styles.text}>
-            2. Choose an annotation layer from the horizontal selector
+            2. Play or scrub to a moment you want to mark
           </Text>
           <Text style={styles.text}>
-            3. Play or scrub to a moment you want to mark
+            3. Add a marker and type a movement cue or note
           </Text>
           <Text style={styles.text}>
-            4. Add a marker and type a movement cue or note
+            4. Save your work as a BeatNote project
           </Text>
         </Section>
 
@@ -77,37 +77,16 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
 
         <Section title="Export Options">
           <Text style={styles.text}>
-            • <Text style={styles.boldText}>MIDI Export:</Text> For Logic Pro, Ableton, Pro Tools
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>CSV Export:</Text> For Excel, Adobe Audition
+            • <Text style={styles.boldText}>CSV Export:</Text> timestamps, musical timing, and annotations
           </Text>
           <Text style={styles.text}>
             On iOS, choose a destination from the share sheet. Web exports download to your browser.
           </Text>
         </Section>
 
-        <Section title="Layer System">
+        <Section title="Annotation Lane">
           <Text style={styles.text}>
-            Layers organize markers and notes over the original song. They are not separated audio tracks.
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Vocals:</Text> Red full-height lines (y: 0-300)
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Drums:</Text> Cyan thick lines (y: 0-100, top section)
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Bass:</Text> Purple lines (y: 200-300, bottom section)
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Piano:</Text> Yellow circles (center, y: 150)
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Guitar:</Text> Light brown circles (y: 220, center-bottom)
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>Other:</Text> Pink circles (y: 30, top)
+            V1 uses one annotation lane for all markers and movement notes.
           </Text>
         </Section>
 
@@ -116,13 +95,13 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
             • Projects save all markers and settings
           </Text>
           <Text style={styles.text}>
-            • Audio files must be reloaded when opening projects
+            • Open, rename, or delete saved work from Projects
           </Text>
           <Text style={styles.text}>
             • Data persists between app sessions
           </Text>
           <Text style={styles.text}>
-            • Export data as MIDI or CSV files
+            • Export or import BeatNote CSV files
           </Text>
         </Section>
           </ScrollView>

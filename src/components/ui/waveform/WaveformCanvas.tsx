@@ -31,6 +31,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
 }) => {
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
   const [measuredWidth, setMeasuredWidth] = useState(0);
+  const scrubStartedRef = useRef(false);
   
   useEffect(() => {
     const onChange = (result: any) => {
@@ -144,8 +145,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     .runOnJS(true)
     .activeOffsetX([-6, 6])
     .failOffsetY([-12, 12])
-    .onBegin(() => {
+    .onStart(() => {
       if (!songLoaded) return;
+      scrubStartedRef.current = true;
       if (isPlaying) {
         onScrubStart(); // Pause during scrub
       }
@@ -166,8 +168,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       setCurrentTime(newCurrentTime);
       setGhostPlayheadTime(newCurrentTime);
     })
-    .onEnd(() => {
-      if (!songLoaded) return;
+    .onFinalize(() => {
+      if (!songLoaded || !scrubStartedRef.current) return;
+      scrubStartedRef.current = false;
       onScrubEnd(); // Resume playing from final position if was playing
     });
   
@@ -196,8 +199,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y1={0}
               x2={x}
               y2={WAVEFORM_HEIGHT}
-              stroke={layer.color}
-              strokeWidth={4}
+              stroke={colors.marker}
+              strokeWidth={5}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
@@ -210,8 +213,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y1={0}
               x2={x}
               y2={WAVEFORM_HEIGHT / 3}
-              stroke={layer.color}
-              strokeWidth={5}
+              stroke={colors.marker}
+              strokeWidth={6}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
@@ -224,8 +227,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               y1={(WAVEFORM_HEIGHT * 2) / 3}
               x2={x}
               y2={WAVEFORM_HEIGHT}
-              stroke={layer.color}
-              strokeWidth={4}
+              stroke={colors.marker}
+              strokeWidth={5}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 6px rgba(0,0,0,0.9))' : undefined}
               strokeOpacity={0.9}
             />
@@ -237,7 +240,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               cx={x}
               cy={WAVEFORM_HEIGHT / 2}
               r={8}
-              fill={layer.color}
+              fill={colors.marker}
               stroke="#000000"
               strokeWidth={2}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
@@ -251,7 +254,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               cx={x}
               cy={WAVEFORM_HEIGHT * 0.73}
               r={7}
-              fill={layer.color}
+              fill={colors.marker}
               stroke="#000000"
               strokeWidth={2}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}
@@ -265,7 +268,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               cx={x}
               cy={WAVEFORM_HEIGHT * 0.1}
               r={7}
-              fill={layer.color}
+              fill={colors.marker}
               stroke="#000000"
               strokeWidth={2}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' : undefined}

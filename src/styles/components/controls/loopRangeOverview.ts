@@ -18,9 +18,9 @@ export const loopRangeOverviewStyles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   actionSlot: {
-    width: 42,
-    marginLeft: 4,
-    alignItems: 'flex-end',
+    width: 40,
+    marginLeft: 0,
+    alignItems: 'flex-start',
     justifyContent: 'center',
   },
   accessibleSummary: {

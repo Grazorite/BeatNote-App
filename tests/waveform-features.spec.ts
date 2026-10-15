@@ -57,6 +57,7 @@ test.describe('Waveform Features', () => {
       await page.getByTestId('add-marker').click();
       const marker = page.locator('[data-testid^="wrapped-row-marker-vocals-"]');
       await expect(marker).toHaveAttribute('aria-label', /Vocals marker at 0:0[1-4], not annotated/);
+      await expect(marker).toHaveAttribute('stroke', '#c084fc');
 
       await page.getByTestId('marker-annotation').fill('Accessible note');
       await expect(marker).toHaveAttribute('aria-label', /Vocals marker at 0:0[1-4], annotated/);
@@ -221,7 +222,6 @@ test.describe('Waveform Features', () => {
     test('precision detail switches responsively without mutating studio data', async ({ page }) => {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/');
-      await page.getByTestId('sidebar-toggle').click();
       await loadTestAudio(page, 'long-test-track.m4a');
 
       const overview = page.getByTestId('loop-overview');

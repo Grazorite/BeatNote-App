@@ -5,13 +5,14 @@ import { LayerId, SelectedMarker, useStudioStore } from '../../../hooks/useStudi
 
 interface AnnotationFieldProps {
   isMobile?: boolean;
+  compact?: boolean;
 }
 
 export interface AnnotationFieldRef {
   focus: () => void;
 }
 
-const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ isMobile = false }, ref) => {
+const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ isMobile = false, compact = false }, ref) => {
   const { 
     currentTime, 
     allLayersData, 
@@ -115,30 +116,43 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
   if (!showAnnotations) return null;
   
   return (
-    <View style={{
-      flex: isMobile ? 0 : 1,
-      width: isMobile ? '100%' : undefined,
-      marginHorizontal: isMobile ? 0 : 16,
-      justifyContent: 'center',
-    }}>
+    <View
+      pointerEvents={songLoaded ? 'auto' : 'none'}
+      style={{
+        flex: isMobile ? (compact ? undefined : 0) : 1,
+        flexShrink: compact ? 0 : undefined,
+        height: compact ? 40 : isMobile ? 48 : undefined,
+        width: isMobile ? '100%' : undefined,
+        marginHorizontal: isMobile ? 0 : 16,
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 14,
+      }}
+    >
       <TextInput
         style={{
           width: isMobile ? '100%' : undefined,
-          backgroundColor: canEdit ? '#333333' : '#222222',
+          backgroundColor: isMobile
+            ? canEdit ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.14)'
+            : canEdit ? '#333333' : '#222222',
           color: canEdit ? '#ffffff' : '#666666',
           borderRadius: 12,
-          paddingHorizontal: 12,
+          paddingHorizontal: isMobile ? 16 : 12,
           paddingVertical: 0,
           fontSize: 14,
           borderWidth: 1,
-          borderColor: canEdit ? '#555555' : '#333333',
-          height: isMobile ? 48 : 80,
+          borderColor: isMobile
+            ? canEdit ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.08)'
+            : canEdit ? '#555555' : '#333333',
+          height: compact ? 40 : isMobile ? 48 : 80,
         }}
         value={annotation}
         onChangeText={handleAnnotationChange}
-        placeholder={!songLoaded ? "Please load a song first" : canEdit ? "Add annotation..." : "Add a marker to annotate"}
-        placeholderTextColor="#666666"
+        placeholder={!songLoaded ? undefined : canEdit ? "Add annotation..." : "Add a marker to annotate"}
+        placeholderTextColor={isMobile ? '#8c8c96' : '#666666'}
         editable={canEdit && songLoaded}
+        accessibilityState={{ disabled: !songLoaded || !canEdit }}
         multiline={false}
         maxLength={100}
         ref={textInputRef}

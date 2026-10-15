@@ -39,7 +39,7 @@ test.describe('Critical interaction resilience', () => {
     ]);
 
     await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
-    await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
+    await expect(page.getByTestId('load-song')).toContainText('Replace Audio');
   });
 
   test('preserves loaded state and editing through desktop-phone reflow', async ({ page }) => {
@@ -47,13 +47,11 @@ test.describe('Critical interaction resilience', () => {
     await loadTestAudio(page);
 
     await page.setViewportSize({ width: 375, height: 667 });
-    const sidebarToggle = page.getByTestId('sidebar-toggle');
-    if (await sidebarToggle.isVisible()) await sidebarToggle.click();
-    await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
+    await expect(page.getByTestId('load-song')).toContainText('Replace Audio');
     await page.getByTestId('add-marker').click();
 
     await page.setViewportSize({ width: 1280, height: 720 });
-    await expect(page.getByTestId('load-song')).toContainText('Song Loaded');
+    await expect(page.getByTestId('load-song')).toContainText('Replace Audio');
     await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
   });
 });

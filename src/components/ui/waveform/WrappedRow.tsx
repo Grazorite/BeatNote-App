@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
@@ -116,6 +116,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   onSelectMarker,
   onSelectForDetail,
 }) => {
+  const scrubStartedRef = useRef(false);
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
   const safeProgress = Math.max(0, Math.min(1, progress));
@@ -190,13 +191,18 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     .runOnJS(true)
     .activeOffsetX([-6, 6])
     .failOffsetY([-12, 12])
-    .onBegin(() => onScrubStart())
+    .onStart(() => {
+      scrubStartedRef.current = true;
+      onScrubStart();
+    })
     .onUpdate(event => {
       const targetTime = timeAtPosition(event.x);
       setCurrentTime(targetTime);
       setGhostPlayheadTime(targetTime);
     })
     .onFinalize(() => {
+      if (!scrubStartedRef.current) return;
+      scrubStartedRef.current = false;
       setGhostPlayheadTime(null);
       onScrubEnd();
     });
@@ -334,8 +340,8 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               y1={0}
               x2={markerX(row, timestamp, rowPixelWidth)}
               y2={waveformHeight}
-              stroke={layer.color}
-              strokeWidth={3}
+              stroke={colors.marker}
+              strokeWidth={4}
               opacity={0.9}
               testID={`wrapped-row-marker-${layer.layerId}-${timestamp}`}
             />

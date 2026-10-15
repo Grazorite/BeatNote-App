@@ -12,9 +12,9 @@ const MarkerRemoveLastIcon: React.FC<MarkerRemoveLastIconProps> = ({
   color = '#ffffff' 
 }) => {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, opacity: 0.6 }}>
-      <ArrowLeft size={size * 0.8} color={color} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
       <BookmarkX size={size} color={color} />
+      <ArrowLeft size={size * 0.8} color={color} />
     </View>
   );
 };

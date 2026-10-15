@@ -18,19 +18,23 @@ const ExportModal: React.FC<ExportModalProps> = ({
   const { allLayersData, bpm, songDuration } = useStudioStore();
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExport = async (format: 'midi' | 'csv') => {
+  const handleExport = async () => {
     setIsExporting(true);
     try {
-      const result = format === 'midi'
-        ? await ExportEngine.exportToMIDI({ format, layers: allLayersData, bpm, songDuration, projectName })
-        : await ExportEngine.exportToCSV({ format, layers: allLayersData, bpm, songDuration, projectName });
+      const result = await ExportEngine.exportToCSV({
+        format: 'csv',
+        layers: allLayersData,
+        bpm,
+        songDuration,
+        projectName,
+      });
 
       const title = 'Export Successful';
       const message = Platform.OS === 'ios'
         ? (result.shared
-          ? `${format.toUpperCase()} file "${result.filename}" was exported and opened in the share sheet.`
-          : `${format.toUpperCase()} file "${result.filename}" was saved locally at:\n${result.uri}`)
-        : `${format.toUpperCase()} file "${result.filename}" has been downloaded to your Downloads folder.`;
+          ? `CSV file "${result.filename}" was exported and opened in the share sheet.`
+          : `CSV file "${result.filename}" was saved locally at:\n${result.uri}`)
+        : `CSV file "${result.filename}" has been downloaded to your Downloads folder.`;
       
       Alert.alert(
         title,
@@ -61,30 +65,12 @@ const ExportModal: React.FC<ExportModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>
-            Export Data
+            Export CSV
           </Text>
           
           <Text style={styles.subtitle}>
-            {totalMarkers} markers from {visibleLayers.length} layers
+            {totalMarkers} marker{totalMarkers === 1 ? '' : 's'} ready to export
           </Text>
-          
-          <TouchableOpacity
-            style={[
-              styles.exportButton,
-              styles.midiButton,
-              isExporting && styles.disabledButton
-            ]}
-            onPress={() => handleExport('midi')}
-            disabled={isExporting}
-            testID="export-midi"
-          >
-            <Text style={styles.buttonText}>
-              Export as MIDI
-            </Text>
-            <Text style={styles.buttonSubtext}>
-              For Logic Pro, Ableton, Pro Tools
-            </Text>
-          </TouchableOpacity>
           
           <TouchableOpacity
             style={[
@@ -92,15 +78,15 @@ const ExportModal: React.FC<ExportModalProps> = ({
               styles.csvButton,
               isExporting && styles.disabledButton
             ]}
-            onPress={() => handleExport('csv')}
+            onPress={handleExport}
             disabled={isExporting}
             testID="export-csv"
           >
             <Text style={styles.buttonText}>
-              Export as CSV
+              Export CSV
             </Text>
             <Text style={styles.buttonSubtext}>
-              For Excel, Adobe Audition
+              Includes timestamps, musical timing, and annotations
             </Text>
           </TouchableOpacity>
           

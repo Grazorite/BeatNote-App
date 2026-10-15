@@ -290,10 +290,11 @@ documented defaults and must be revisited if a default changes:
       marker indicators for every visible layer, omitting out-of-range markers (R2.4, R2.5, R2.7);
       exactly one playhead (R2.3); memoise the waveform path on `(peaks, width, songDuration)` only
       (R19.3, R19.4).
-    - `LoopRangeLayer`: `loop-overview-range` body, outside-range dimming ≤ 0.5× inside opacity,
-      disabled treatment, 2px-minimum body, and centred `loop-overview-handle-start` /
+    - `LoopRangeLayer`: `loop-overview-range` body, enabled-only outside-range dimming ≤ 0.5× inside opacity,
+      undimmed disabled treatment, 2px-minimum body, and centred `loop-overview-handle-start` /
       `loop-overview-handle-end`; expose the `enabled`/`disabled` state indicator (R3.1–3.7).
-    - `LoopClearControl`: `loop-overview-clear` with a ≥ 44×44 hit area, "Clear loop" vs "Restore",
+    - `LoopClearControl`: always-present `loop-overview-clear` with a ≥ 44×44 hit area, disabled trash
+      without a range, and active "Clear loop" vs "Restore" states,
       owning the 5000ms expiry timer cancelled on unmount or snapshot discard (R8.1, R8.4, R8.6).
     - Add mirrored style files under `src/styles/components/controls/` using tokens from
       `src/styles/common.ts`. Keep rendering free of gesture logic for direct review.

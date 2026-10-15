@@ -268,8 +268,11 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
 
   if (!songLoaded || !audioUri || rows.length === 0) {
     return (
-      <View style={styles.placeholder} testID="waveform-container">
-        <Text style={styles.placeholderText}>Load a song to view the wrapped timeline</Text>
+      <View
+        style={[styles.placeholder, isMobile && styles.placeholderMobile]}
+        testID="waveform-container"
+      >
+        <Text style={styles.placeholderText}>Load a song</Text>
       </View>
     );
   }

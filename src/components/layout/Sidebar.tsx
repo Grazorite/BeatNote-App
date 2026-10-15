@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Dimensions, Platform } from 'react-native';
+import { View, ScrollView, Dimensions, Platform } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import StemSelector from '../ui/controls/StemSelector';
-import LayerControls from '../ui/controls/LayerControls';
 import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import BpmControl from '../ui/controls/BpmControl';
-import CanvasOptionsToggle from '../ui/controls/CanvasOptionsToggle';
-import MarkerOptionsToggle from '../ui/controls/MarkerOptionsToggle';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 
 import HelpButton from '../ui/controls/HelpButton';
@@ -76,12 +73,6 @@ const Sidebar: React.FC = () => {
           )}
           <View style={styles.sidebarSection}>
             <BpmControl />
-          </View>
-          <View style={styles.sidebarSection}>
-            <CanvasOptionsToggle />
-          </View>
-          <View style={styles.sidebarSection}>
-            <MarkerOptionsToggle />
           </View>
         </ScrollView>
       </Animated.View>

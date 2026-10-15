@@ -4,7 +4,7 @@ import { colors } from '../../common';
 
 export const loopClearControlStyles = StyleSheet.create({
   button: {
-    width: 36,
+    width: 40,
     height: 36,
     borderRadius: 5,
     backgroundColor: colors.surface,
@@ -12,5 +12,9 @@ export const loopClearControlStyles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  buttonDisabled: {
+    borderColor: colors.border,
+    opacity: 0.45,
   },
 });

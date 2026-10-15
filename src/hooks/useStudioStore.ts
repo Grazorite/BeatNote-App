@@ -2,8 +2,10 @@ import { create, type StateCreator } from 'zustand';
 import { ProjectManager, PROJECT_VERSION, compareProjectVersion } from '../utils/projectManager';
 import { BeatNoteProject } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
+import type { ImportResult } from '../utils/importTypes';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
 import type { RowDensity } from '../utils/rowLayout';
+import { canEnterRangeState, deriveInnerLoopState, type InnerLoopState } from '../utils/innerLoop';
 import {
   MIN_LOOP_DURATION_MS,
   RESTORE_WINDOW_MS,
@@ -111,6 +113,7 @@ export interface StudioStore {
   setLoopRangeEnabled: (enabled: boolean) => void;
   toggleLoopRangeEnabled: () => void;
   toggleLoopMarker: () => void;
+  cycleInnerLoop: () => InnerLoopState;
   resetLoopForNewAudio: () => void;
   setSelectedRowIndex: (index: number | null) => void;
   setSelectedMarker: (marker: SelectedMarker | null) => void;
@@ -137,7 +140,7 @@ export interface StudioStore {
   setSongLoaded: (loaded: boolean) => void;
   saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
   loadProject: (filename: string) => Promise<{ audioUri: string; audioFilename: string }>;
-  importFromCSV: (csvContent: string) => Promise<void>;
+  importFromCSV: (csvContent: string) => Promise<ImportResult>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
@@ -210,7 +213,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   selectedRowIndex: null,
   selectedMarker: null,
   showGridLines: true,
-  isSidebarCollapsed: false,
+  isSidebarCollapsed: true,
   showHelpScreen: false,
   showExportModal: false,
   showImportModal: false,
@@ -475,6 +478,35 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       isLoopRangeEnabled: nextEnabled ? false : state.isLoopRangeEnabled,
     };
   }),
+  cycleInnerLoop: () => {
+    const state = get();
+    const current = deriveInnerLoopState(state.isLoopMarkerActive, state.isLoopRangeEnabled);
+    if (!state.songLoaded) return current;
+
+    if (current === 'off') {
+      set({ isLoopMarkerActive: true, isLoopRangeEnabled: false });
+      return 'markers';
+    }
+    if (current === 'range') {
+      set({ isLoopMarkerActive: false, isLoopRangeEnabled: false });
+      return 'off';
+    }
+
+    const hasValidRange = isValidLoopRange(
+      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
+      state.songDuration,
+    );
+    if (!canEnterRangeState(state.songDuration, hasValidRange)) return current;
+    if (!hasValidRange && !get().setLoopRange(0, state.songDuration)) return current;
+    const next = get();
+    const rangeIsValid = isValidLoopRange(
+      { loopStartMs: next.loopStartMs, loopEndMs: next.loopEndMs },
+      next.songDuration,
+    );
+    if (!rangeIsValid) return current;
+    set({ isLoopMarkerActive: false, isLoopRangeEnabled: true });
+    return 'range';
+  },
   resetLoopForNewAudio: () => set({
     loopStartMs: null,
     loopEndMs: null,
@@ -579,17 +611,24 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     };
   }),
   removeMarker: (timestamp) => set((state) => {
-    const updatedAllLayers = state.allLayersData.map(layer => 
-      layer.id === state.activeLayerId
-        ? { ...layer, markers: layer.markers.filter(marker => Math.abs(marker - timestamp) > 100) }
-        : layer
-    );
+    const activeLayer = state.allLayersData.find(layer => layer.id === state.activeLayerId);
+    const nearestIndex = activeLayer?.markers.reduce((nearest, marker, index, markers) => {
+      if (Math.abs(marker - timestamp) > 100) return nearest;
+      if (nearest < 0 || Math.abs(marker - timestamp) < Math.abs(markers[nearest] - timestamp)) return index;
+      return nearest;
+    }, -1) ?? -1;
+    if (nearestIndex < 0) return {};
+    const removedTimestamp = activeLayer!.markers[nearestIndex];
+    const updatedAllLayers = state.allLayersData.map(layer => {
+      if (layer.id !== state.activeLayerId) return layer;
+      return { ...layer, markers: layer.markers.filter((_, index) => index !== nearestIndex) };
+    });
     return {
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
       selectedMarker: state.selectedMarker
         && state.selectedMarker.layerId === state.activeLayerId
-        && Math.abs(state.selectedMarker.timestamp - timestamp) <= 100
+        && state.selectedMarker.timestamp === removedTimestamp
         ? null
         : state.selectedMarker,
     };
@@ -618,11 +657,14 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       }
     }
     
-    const updatedAllLayers = state.allLayersData.map(layer => 
-      layer.id === layerIdToRemoveFrom
-        ? { ...layer, markers: layer.markers.filter(marker => marker !== markerToRemove) }
-        : layer
-    );
+    let removed = false;
+    const updatedAllLayers = state.allLayersData.map(layer => {
+      if (layer.id !== layerIdToRemoveFrom || removed) return layer;
+      const markerIndex = layer.markers.findIndex(marker => marker === markerToRemove);
+      if (markerIndex < 0) return layer;
+      removed = true;
+      return { ...layer, markers: layer.markers.filter((_, index) => index !== markerIndex) };
+    });
     
     return {
       allLayersData: updatedAllLayers,
@@ -837,6 +879,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
     });
+    return importData;
   },
 });
 

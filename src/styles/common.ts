@@ -8,6 +8,7 @@ export const colors = {
   text: '#ffffff',
   textSecondary: '#999999',
   accent: '#ff6600',
+  marker: '#c084fc',
   success: '#00ff00',
   loopTrack: '#222222',
   loopEnabled: '#00d4c7',

@@ -10,12 +10,15 @@ import LoopClearControl from './LoopClearControl';
 import LoopOverviewTrack from './LoopOverviewTrack';
 import LoopRangeLayer from './LoopRangeLayer';
 
-interface LoopRangeOverviewProps { audioUri: string | null }
+interface LoopRangeOverviewProps {
+  audioUri: string | null;
+  onToast?: (message: string) => void;
+}
 
 const webTouchStyle = { touchAction: 'none' } as ViewStyle;
 
 /** Compose the full-song loop editor without seeking or viewport side effects. */
-const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
+const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast }) => {
   const [width, setWidth] = useState(0);
   const summaryRef = useRef<View>(null);
   const clearRef = useRef<React.ElementRef<typeof Pressable>>(null);
@@ -56,7 +59,7 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
     }
   }, []);
 
-  if (!showTimeline) return null;
+  if (!showTimeline || !audioUri) return null;
   const displayedRange = provisionalRange ?? { loopStartMs, loopEndMs };
 
   return (
@@ -136,6 +139,7 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri }) => {
           ref={clearRef}
           onCleared={() => setTimeout(() => focusNode(clearRef.current), 0)}
           onRestoreExpired={() => focusNode(summaryRef.current)}
+          onToast={onToast}
         />
       </View>
     </View>

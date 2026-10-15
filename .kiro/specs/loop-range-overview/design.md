@@ -127,12 +127,13 @@ graph TD
   synthetic sine (R2.2). Draws display-only marker indicators for every visible layer (R2.4, R2.5,
   R2.7) and exactly one playhead (R2.3). Memoises the waveform path on `(peaks, width, songDuration)`
   only (R19.3) so 50ms `currentTime` updates move only the playhead (R19.4).
-- **`LoopRangeLayer`**: draws `loop-overview-range` (Range_Body), the outside-range dimming
-  (≤ 0.5× inside opacity, R3.2), the disabled treatment (R3.3), the 2px-minimum body (R3.7), and
+- **`LoopRangeLayer`**: draws `loop-overview-range` (Range_Body), the enabled-only outside-range
+  dimming (≤ 0.5× inside opacity, R3.2), the undimmed disabled treatment (R3.3), the 2px-minimum body (R3.7), and
   `loop-overview-handle-start` / `loop-overview-handle-end` centred on the bounds (R3.5, R7.1). Exposes
   the `enabled`/`disabled` test-readable state indicator (R3.6).
-- **`LoopClearControl`**: icon-only `loop-overview-clear` with a ≥ 44×44 effective hit area;
-  shows trash for clear and undo for restore while preserving descriptive accessibility labels
+- **`LoopClearControl`**: always-present icon-only `loop-overview-clear` with a ≥ 44×44 effective hit
+  area; shows a disabled trash before a range exists, active trash for clear, and undo for restore
+  while preserving descriptive accessibility labels
   (R8.1, R8.4), and remains in the reserved action slot beside the track (R8.11). Owns the 5000ms expiry timer that
   it cancels on unmount or snapshot discard (R8.6).
 - **`useLoopRangeGesture.ts`** (one-job hook): the single Pan gesture; classifies mode at
@@ -459,10 +460,11 @@ width = max(0, right - x)   // within ±1px of the spec formula (R4.1)
 
 On the fixed phone canvas every row is mounted, so segments appear on all rows; on the virtualized
 tablet/desktop list they appear on every mounted row, including rows mounted later by scrolling
-(R4.1, R4.8). Content inside the range renders at the no-loop opacity; content outside renders at a
-lower opacity, including on rows that do not intersect the range (R4.3). When `isLoopRangeEnabled` is
-false the segments and de-emphasis still render but use a disabled treatment distinct from enabled
-(R4.7, R11.2). With no Valid range, no segment, no de-emphasis, and no Detail_View highlight render
+(R4.1, R4.8). Content inside the range renders at the no-loop opacity; while `isLoopRangeEnabled` is
+true, content outside renders at a lower opacity, including on rows that do not intersect the range
+(R4.3). When `isLoopRangeEnabled` is false the segments still render with a disabled treatment
+distinct from enabled, but no outside-range de-emphasis renders (R4.7, R11.2). With no Valid range,
+no segment, no de-emphasis, and no Detail_View highlight render
 (R4.6). Marker x-positions, marker tap selection, and seek gestures are unchanged by the presence of a
 range (R4.5, INV-6).
 
@@ -646,6 +648,8 @@ loop values and the flag unchanged (R16.5).
 ```
 
 Handle hit areas extend beyond the strip via `hitSlop` to reach the 44px native target (R7.2).
+The 40px action slot directly abuts the track; its internal hit slop supplies the wider touch target
+without reintroducing a visible seam. The playhead centre stays two pixels inside either track edge.
 `playback-current-time` remains only as a 1×1 non-layout automation probe while a song is loaded;
 no current-time caption is visible (R1.6).
 

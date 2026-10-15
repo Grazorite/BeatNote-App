@@ -6,3 +6,4 @@ export { default as MarkerRightIcon } from './MarkerRightIcon';
 export { default as MarkerRemoveLastIcon } from './MarkerRemoveLastIcon';
 export { default as LoopMarkerIcon } from './LoopMarkerIcon';
 export { default as PlayheadShape } from './PlayheadShape';
+export { default as DoubleTriangleIcon } from './DoubleTriangleIcon';

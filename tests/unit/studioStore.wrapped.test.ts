@@ -11,8 +11,23 @@ describe('wrapped-view store state', () => {
     expect(state.countSize).toBe(8);
     expect(state.rowDensity).toEqual({ mode: 'phrase' });
     expect(state.followPlayhead).toBe(true);
+    expect(state.isSidebarCollapsed).toBe(true);
     expect([state.loopStartMs, state.loopEndMs, state.selectedRowIndex, state.selectedMarker])
       .toEqual([null, null, null, null]);
+  });
+
+  it('returns imported and skipped CSV row counts after merging data', async () => {
+    const result = await useStudioStore.getState().importFromCSV([
+      'Layer,Marker Time (ms),Annotation',
+      'Vocals,1000,Turn',
+      'Unknown,2000,Skip me',
+    ].join('\n'));
+
+    expect(result).toMatchObject({ importedMarkers: 1, skippedRows: 1 });
+    expect(useStudioStore.getState().allLayersData[0]).toMatchObject({
+      markers: [1000],
+      annotations: [{ timestamp: 1000, text: 'Turn' }],
+    });
   });
 
   it('updates each preference and the session-only loop and selection state', () => {

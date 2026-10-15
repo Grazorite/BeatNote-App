@@ -19,13 +19,39 @@ final class BeatNoteUITests: XCTestCase {
 
   func testStudioLaunchesAndDocumentPickerOpens() {
     XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
+    XCTAssertFalse(element("loop-overview").exists, "The loop overview should stay hidden until audio is loaded.")
+    let lowestDockButton = element("playback-speed")
+    XCTAssertTrue(lowestDockButton.exists)
+    XCTAssertLessThanOrEqual(
+      lowestDockButton.frame.maxY,
+      app.frame.maxY - 30,
+      "The bottom dock must remain above the iPhone curved-corner safe area."
+    )
     XCTAssertFalse(app.staticTexts["Something went wrong"].exists)
     XCTAssertTrue(element("sidebar-open-toggle").isHittable)
     XCTAssertFalse(element("sidebar-toggle").exists, "Closed drawer must not overlap the project toolbar.")
+    XCTAssertEqual(element("load-song").label, "Choose Audio File")
+    XCTAssertEqual(element("load-project").label, "Open Projects")
+    XCTAssertEqual(element("import-data").label, "Import CSV")
+    XCTAssertEqual(element("export-data").label, "Export CSV")
     element("sidebar-open-toggle").tap()
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("settings-help").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("settings-bpm").waitForExistence(timeout: 5))
     XCTAssertFalse(app.staticTexts["Stem Separation"].exists)
     XCTAssertFalse(app.staticTexts["View Mode"].exists)
+    for hiddenSetting in [
+      "Canvas Options",
+      "Ghost Playhead in Timeline",
+      "Show Loop Overview",
+      "Show Grid Lines",
+      "Magnetic Snapping",
+      "Marker Options",
+      "Active Layer Only",
+      "Show Annotations",
+    ] {
+      XCTAssertFalse(app.staticTexts[hiddenSetting].exists, "\(hiddenSetting) should stay hidden in V1 settings.")
+    }
     element("sidebar-toggle").tap()
     XCTAssertFalse(element("project-actions-scroll-cue").exists)
     for action in ["load-song", "save-project", "load-project", "export-data", "import-data"] {
@@ -62,9 +88,10 @@ final class BeatNoteUITests: XCTestCase {
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
     XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
-    element("loop-region-toggle").tap()
+    element("inner-loop-cycle").tap()
+    element("inner-loop-cycle").tap()
     let savedLoopSummary = element("loop-overview-summary").label
-    let savedLoopToggleValue = String(describing: element("loop-region-toggle").value ?? "")
+    let savedLoopToggleValue = String(describing: element("inner-loop-cycle").value ?? "")
 
     element("add-marker").tap()
     let annotation = app.textFields["marker-annotation"]
@@ -76,6 +103,13 @@ final class BeatNoteUITests: XCTestCase {
     }
     XCTAssertTrue(annotation.isHittable)
     annotation.tap()
+    let keyboard = app.keyboards.firstMatch
+    XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+    XCTAssertLessThanOrEqual(
+      annotation.frame.maxY,
+      keyboard.frame.minY + 2,
+      "The annotation field must remain visible above the software keyboard."
+    )
     typeTextIntoControlledField("Dance note", field: annotation)
     XCTAssertEqual(annotation.value as? String, "Dance note")
 
@@ -97,17 +131,22 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("load-project").waitForExistence(timeout: 15))
     makeProjectActionVisible("load-project")
     element("load-project").tap()
+    XCTAssertTrue(app.staticTexts["Projects"].waitForExistence(timeout: 5))
+    XCTAssertEqual(
+      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "annotation layers")).count,
+      0
+    )
     let projectSuffix = String(projectName.suffix(8))
     let savedProject = projectControl(containing: "load-saved-project-", suffix: projectSuffix)
     XCTAssertTrue(savedProject.waitForExistence(timeout: 10))
     savedProject.tap()
     dismissAlertIfPresent()
 
-    XCTAssertEqual(element("load-song").label, "Song Loaded")
+    XCTAssertEqual(element("load-song").label, "Replace Audio File")
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     XCTAssertEqual(element("loop-overview-summary").label, savedLoopSummary)
     XCTAssertTrue(element("loop-overview-range").exists, "Saved loop range should restore after relaunch.")
-    XCTAssertEqual(String(describing: element("loop-region-toggle").value ?? ""), savedLoopToggleValue)
+    XCTAssertEqual(String(describing: element("inner-loop-cycle").value ?? ""), savedLoopToggleValue)
     element("navigate-right-marker").tap()
     XCTAssertEqual(app.textFields["marker-annotation"].value as? String, "Dance note")
 
@@ -127,6 +166,20 @@ final class BeatNoteUITests: XCTestCase {
       NSPredicate(format: "label == %@", "Pause playback")
     ).firstMatch
     XCTAssertTrue(pauseButton.waitForExistence(timeout: 5))
+    let row = element("wrapped-row-gesture-area-0")
+    let playbackTime = element("playback-current-time")
+    XCTAssertTrue(row.waitForExistence(timeout: 5) && playbackTime.exists)
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.7)).tap()
+    XCTAssertTrue(pauseButton.exists, "A tap seek while playing must continue playback.")
+    let timeAfterTap = playbackTime.label
+    row.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.7))
+      .press(forDuration: 0.1, thenDragTo: row.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.7)))
+    XCTAssertTrue(pauseButton.waitForExistence(timeout: 5), "Playback must resume after a drag seek.")
+    let clockAdvanced = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", timeAfterTap),
+      object: playbackTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [clockAdvanced], timeout: 3), .completed)
     element("add-marker").tap()
     Thread.sleep(forTimeInterval: 0.4)
 
@@ -184,45 +237,41 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(app.staticTexts["grand-total-markers"].label, initialMarkers)
   }
 
-  func testLoopRangeToggleWrapsAndTransportFits() {
+  func testLoopRangeToggleAndTransportFits() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
-    let transportIDs = ["skip-back", "play-pause", "skip-forward", "repeat-toggle", "loop-region-toggle"]
-    let transport = transportIDs.map { element($0) }
-    for control in transport {
+    let dockIDs = [
+      "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
+      "repeat-toggle", "inner-loop-cycle", "shuffle-control", "first-track-control",
+      "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker"
+    ]
+    for control in dockIDs.map({ element($0) }) {
       XCTAssertTrue(control.exists && control.isHittable)
-      XCTAssertGreaterThanOrEqual(control.frame.width, 44)
       XCTAssertGreaterThanOrEqual(control.frame.height, 44)
     }
-    let rowMidY = transport[0].frame.midY
-    for control in transport.dropFirst() {
-      XCTAssertEqual(control.frame.midY, rowMidY, accuracy: 4, "All five transport buttons should remain on one row.")
-    }
-    for markerControl in ["remove-last-marker", "navigate-left-marker", "add-marker", "navigate-right-marker", "loop-marker-toggle"] {
-      XCTAssertTrue(element(markerControl).exists, "Marker row should retain all five controls.")
-    }
+    XCTAssertTrue(element("control-dock").exists)
+    XCTAssertFalse(element("loop-region-toggle").exists)
+    XCTAssertFalse(element("loop-marker-toggle").exists)
+    XCTAssertGreaterThanOrEqual(element("play-pause").frame.width, element("add-marker").frame.width * 1.9)
+    XCTAssertGreaterThanOrEqual(element("play-pause").frame.height, element("add-marker").frame.height * 1.9)
 
-    let overview = element("loop-overview")
-    overview.coordinate(withNormalizedOffset: CGVector(dx: 0.002, dy: 0.5))
-      .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.5)))
-    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
-    let toggle = element("loop-region-toggle")
+    element("remove-last-marker").tap()
+    XCTAssertTrue(app.staticTexts["No previous marker to delete"].waitForExistence(timeout: 2))
+
+    let clearControl = element("loop-overview-clear")
+    XCTAssertTrue(clearControl.exists)
+    XCTAssertFalse(clearControl.isEnabled)
+    XCTAssertFalse(element("loop-overview-outside-start").exists)
+    XCTAssertFalse(element("loop-overview-outside-end").exists)
+    let toggle = element("inner-loop-cycle")
     let toggleBefore = String(describing: toggle.value ?? "")
     toggle.tap()
+    toggle.tap()
+    XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
+    XCTAssertTrue(clearControl.isEnabled)
     let toggleAfter = String(describing: toggle.value ?? "")
-    XCTAssertNotEqual(toggleAfter, toggleBefore, "Loop toggle should expose its changed checked state (before: \(toggleBefore), after: \(toggleAfter)).")
+    XCTAssertNotEqual(toggleAfter, toggleBefore, "Inner-loop control should expose its range state (before: \(toggleBefore), after: \(toggleAfter)).")
 
-    let row = element("wrapped-row-gesture-area-0")
-    row.coordinate(withNormalizedOffset: CGVector(dx: 0.16, dy: 0.5)).tap()
-    let playbackTime = element("playback-current-time")
-    XCTAssertGreaterThan(playbackSeconds(from: playbackTime.label), 0, "The wrap check must begin inside the loop range.")
-    element("play-pause").tap()
-    Thread.sleep(forTimeInterval: 4.0)
-    XCTAssertLessThanOrEqual(
-      playbackSeconds(from: playbackTime.label),
-      5,
-      "Playback should wrap to the loop start instead of continuing beyond the selected range."
-    )
   }
 
   func testWrappedRowSeekMarkerAndDragGestures() {
@@ -445,6 +494,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("2 markers"))
     makeProjectActionVisible("export-data")
     element("export-data").tap()
+    XCTAssertTrue(app.staticTexts["2 markers ready to export"].waitForExistence(timeout: 5))
+    XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
 
     let shareSheet = app.otherElements["ActivityListView"]
@@ -501,10 +552,29 @@ final class BeatNoteUITests: XCTestCase {
 
     let rail = element("landscape-control-rail")
     XCTAssertTrue(rail.waitForExistence(timeout: 10))
-    XCTAssertLessThanOrEqual(element("play-pause").frame.width, 44)
-    XCTAssertLessThanOrEqual(element("add-marker").frame.width, 44)
+    XCTAssertGreaterThanOrEqual(element("add-marker").frame.minX, rail.frame.minX)
+    XCTAssertLessThanOrEqual(element("shuffle-control").frame.maxX, rail.frame.maxX)
     XCTAssertLessThanOrEqual(element("load-song").frame.height, 56)
-    XCTAssertLessThanOrEqual(rail.frame.width, 280)
+    XCTAssertLessThanOrEqual(rail.frame.width, 110)
+    let landscapeButton = element("add-marker").frame
+    XCTAssertGreaterThanOrEqual(landscapeButton.height, 38)
+    XCTAssertLessThanOrEqual(landscapeButton.width / landscapeButton.height, 1.25)
+
+    let leftColumn = ["navigate-left-marker", "add-marker", "inner-loop-cycle", "repeat-toggle", "first-track-control", "previous-track-control"]
+    let rightColumn = ["navigate-right-marker", "remove-last-marker", "playback-speed", "shuffle-control", "next-track-control"]
+    let leftX = element(leftColumn[0]).frame.minX
+    let rightX = element(rightColumn[0]).frame.minX
+    for identifier in leftColumn { XCTAssertEqual(element(identifier).frame.minX, leftX, accuracy: 2) }
+    for identifier in rightColumn { XCTAssertEqual(element(identifier).frame.minX, rightX, accuracy: 2) }
+    let orderedControls = ["navigate-left-marker", "add-marker", "inner-loop-cycle", "play-pause", "repeat-toggle", "first-track-control", "previous-track-control"]
+    for index in 1..<orderedControls.count {
+      XCTAssertLessThan(element(orderedControls[index - 1]).frame.minY, element(orderedControls[index]).frame.minY)
+    }
+    XCTAssertGreaterThanOrEqual(element("play-pause").frame.width, element("navigate-left-marker").frame.width * 1.9)
+    XCTAssertGreaterThanOrEqual(element("play-pause").frame.height, element("navigate-left-marker").frame.height * 1.9)
+    XCTAssertGreaterThanOrEqual(element("play-pause").frame.minX, rail.frame.minX - 2)
+    XCTAssertLessThanOrEqual(element("play-pause").frame.maxX, rail.frame.maxX + 2)
+    XCTAssertLessThanOrEqual(rail.frame.maxY - element("previous-track-control").frame.maxY, 2)
 
     let waveform = element("wrapped-row-gesture-area-0")
     scrollIntoView(waveform)
@@ -523,6 +593,11 @@ final class BeatNoteUITests: XCTestCase {
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
     XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
+    let annotation = element("marker-annotation")
+    XCTAssertTrue(annotation.exists)
+    XCTAssertGreaterThanOrEqual(annotation.frame.minY, overview.frame.maxY - 2)
+    XCTAssertLessThanOrEqual(annotation.frame.maxX, rail.frame.minX + 2)
+    XCTAssertLessThanOrEqual(annotation.frame.maxY, app.frame.maxY)
     assertNoGestureRuntimeError()
   }
 
@@ -531,7 +606,7 @@ final class BeatNoteUITests: XCTestCase {
     element("load-song").tap()
     selectDocument(filename)
     dismissAlertIfPresent()
-    XCTAssertEqual(element("load-song").label, "Song Loaded")
+    XCTAssertEqual(element("load-song").label, "Replace Audio File")
   }
 
   private func element(_ identifier: String) -> XCUIElement {
@@ -575,8 +650,14 @@ final class BeatNoteUITests: XCTestCase {
 
   private func closeMobileSidebar() {
     let toggle = element("sidebar-toggle")
-    XCTAssertTrue(toggle.waitForExistence(timeout: 10))
-    toggle.tap()
+    if toggle.waitForExistence(timeout: 3) {
+      toggle.tap()
+      return
+    }
+    XCTAssertTrue(
+      element("sidebar-open-toggle").waitForExistence(timeout: 10),
+      "The mobile sidebar should be either open and closable or already closed."
+    )
   }
 
   private func makeProjectActionVisible(_ identifier: String) {

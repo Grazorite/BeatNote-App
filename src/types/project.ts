@@ -43,4 +43,5 @@ export interface ProjectListItem {
   modifiedAt: string;
   duration: number;
   stemCount: 2 | 4 | 6;
+  markerCount: number;
 }

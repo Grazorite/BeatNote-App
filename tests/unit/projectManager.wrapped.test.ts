@@ -104,4 +104,19 @@ describe('wrapped-view project persistence', () => {
       isLoopRangeEnabled: false,
     });
   });
+
+  it('summarizes saved projects by marker count without exposing layer count', async () => {
+    const project: BeatNoteProject = {
+      ...legacyProject,
+      layers: [
+        { id: 'vocals', name: 'Vocals', color: '#fff', markers: [1000, 2000], annotations: [], isVisible: true },
+        { id: 'drums', name: 'Drums', color: '#fff', markers: [3000], annotations: [], isVisible: true },
+      ],
+    };
+    await ProjectManager.setStoredProjects({ 'summary.beatnote': project });
+
+    await expect(ProjectManager.listProjects()).resolves.toEqual([
+      expect.objectContaining({ filename: 'summary.beatnote', markerCount: 3 }),
+    ]);
+  });
 });

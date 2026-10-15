@@ -3,7 +3,8 @@ import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
-import { Upload, Save, FolderOpen, Download, AudioLines, Menu } from 'lucide-react-native';
+import { FileInput, FileMusic, FileOutput, LibraryBig, Save, Settings } from 'lucide-react-native';
+import type { ImportResult } from '../../../utils/importTypes';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
 import ExportModal from '../modals/ExportModal';
@@ -28,11 +29,11 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   onLoadProjectAudio,
   isMobile = false,
 }) => {
-  const { songLoaded, saveProject, loadProject, layers, toggleSidebar } = useStudioStore(useShallow(state => ({
+  const { songLoaded, saveProject, loadProject, allLayersData, toggleSidebar } = useStudioStore(useShallow(state => ({
     songLoaded: state.songLoaded,
     saveProject: state.saveProject,
     loadProject: state.loadProject,
-    layers: state.layers,
+    allLayersData: state.allLayersData,
     toggleSidebar: state.toggleSidebar,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
@@ -48,7 +49,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     try {
       await saveProject(projectName, audioUri, audioFilename);
       setShowSaveModal(false);
-      Alert.alert('Success', 'Project saved successfully!\nAccess it via "Load Project"');
+      Alert.alert('Project Saved', 'Your project is available in Projects.');
     } catch (error) {
       console.error('Save error:', error);
       Alert.alert('Error', 'Failed to save project');
@@ -59,16 +60,43 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     try {
       const audio = await loadProject(filename);
       onLoadProjectAudio(audio.audioUri, audio.audioFilename);
-      Alert.alert('Success', 'Project loaded successfully');
+      Alert.alert('Project Opened', 'Your saved project is ready.');
     } catch (error) {
       Alert.alert('Error', 'Failed to load project');
     }
   }, [loadProject, onLoadProjectAudio]);
 
-  const handleImportSuccess = useCallback(() => {
+  const handleImportSuccess = useCallback((result: ImportResult) => {
     setShowImportModal(false);
-    Alert.alert('Import Successful', 'CSV data has been imported and merged with existing markers.');
+    const imported = `${result.importedMarkers} marker${result.importedMarkers === 1 ? '' : 's'} imported.`;
+    const skipped = result.skippedRows > 0
+      ? ` ${result.skippedRows} row${result.skippedRows === 1 ? '' : 's'} skipped.`
+      : '';
+    Alert.alert('CSV Imported', `${imported}${skipped}`);
   }, []);
+
+  const visibleMarkerCount = allLayersData
+    .filter(layer => layer.isVisible)
+    .reduce((sum, layer) => sum + layer.markers.length, 0);
+  const hasExportableMarkers = songLoaded && visibleMarkerCount > 0;
+
+  const handleChooseAudio = useCallback(() => {
+    const hasAnnotations = allLayersData.some(layer =>
+      layer.markers.length > 0 || layer.annotations.length > 0,
+    );
+    if (!songLoaded || !hasAnnotations) {
+      onLoadSong();
+      return;
+    }
+    Alert.alert(
+      'Replace Audio?',
+      'Existing markers and annotations will stay at their current timestamps.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Choose Audio', onPress: onLoadSong },
+      ],
+    );
+  }, [allLayersData, onLoadSong, songLoaded]);
 
   const actions = (
     <>
@@ -79,17 +107,17 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           accessibilityLabel="Open settings sidebar"
           testID="sidebar-open-toggle"
         >
-          <Menu size={18} color="#ffffff" />
+          <Settings size={18} color="#ffffff" />
         </TouchableOpacity>
       )}
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
-        onPress={onLoadSong}
-        accessibilityLabel={songLoaded ? 'Song Loaded' : 'Load Song'}
+        onPress={handleChooseAudio}
+        accessibilityLabel={songLoaded ? 'Replace Audio File' : 'Choose Audio File'}
         testID="load-song"
       >
-        <AudioLines size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>{songLoaded ? 'Song Loaded' : 'Load Song'}</Text>
+        <FileMusic size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>{songLoaded ? 'Replace Audio' : 'Choose Audio'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -109,33 +137,33 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile]}
         onPress={() => setShowProjectManager(true)}
-        accessibilityLabel="Load Project"
+        accessibilityLabel="Open Projects"
         testID="load-project"
       >
-        <FolderOpen size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Load Project</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || layers.every(l => l.markers.length === 0)) && styles.buttonDisabled]}
-        onPress={songLoaded && layers.some(l => l.markers.length > 0) ? () => setShowExportModal(true) : undefined}
-        disabled={!songLoaded || layers.every(l => l.markers.length === 0)}
-        accessibilityLabel="Export Data"
-        testID="export-data"
-      >
-        <Download size={20} color={songLoaded && layers.some(l => l.markers.length > 0) ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export Data</Text>
+        <LibraryBig size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Projects</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
         onPress={songLoaded ? () => setShowImportModal(true) : undefined}
         disabled={!songLoaded}
-        accessibilityLabel="Import Data"
+        accessibilityLabel="Import CSV"
         testID="import-data"
       >
-        <Upload size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import Data</Text>
+        <FileInput size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import CSV</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, isMobile && styles.buttonMobile, !hasExportableMarkers && styles.buttonDisabled]}
+        onPress={hasExportableMarkers ? () => setShowExportModal(true) : undefined}
+        disabled={!hasExportableMarkers}
+        accessibilityLabel="Export CSV"
+        testID="export-data"
+      >
+        <FileOutput size={20} color={hasExportableMarkers ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export CSV</Text>
       </TouchableOpacity>
     </>
   );

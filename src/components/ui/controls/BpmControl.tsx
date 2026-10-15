@@ -11,8 +11,8 @@ const BpmControl: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>BPM</Text>
+    <View testID="settings-bpm" style={styles.container}>
+      <Text style={styles.label}>Project BPM</Text>
       <View style={styles.controls}>
         <TouchableOpacity style={styles.button} onPress={() => adjustBpm(-5)}>
           <Text style={styles.buttonText}>-5</Text>
@@ -28,6 +28,7 @@ const BpmControl: React.FC = () => {
           <Text style={styles.buttonText}>+5</Text>
         </TouchableOpacity>
       </View>
+      <Text style={styles.hint}>Used for musical timing and beat-sized loop adjustments</Text>
     </View>
   );
 };
@@ -70,6 +71,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     minWidth: 40,
     textAlign: 'center',
+  },
+  hint: {
+    color: '#999999',
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 6,
   },
 });
 

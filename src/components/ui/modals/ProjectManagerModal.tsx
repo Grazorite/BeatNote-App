@@ -119,7 +119,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             {item.name}
           </Text>
           <Text style={styles.projectInfo}>
-            {formatDuration(item.duration)} • {item.stemCount} annotation layers
+            {formatDuration(item.duration)} • {item.markerCount} marker{item.markerCount === 1 ? '' : 's'}
           </Text>
           <Text style={styles.projectDate}>
             Modified: {formatDate(item.modifiedAt)}
@@ -133,7 +133,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
               }}
               testID={`load-saved-project-${item.name}`}
             >
-              <Text style={styles.actionButtonText}>Load</Text>
+              <Text style={styles.actionButtonText}>Open</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.renameButton]}
@@ -162,7 +162,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            Project Manager
+            Projects
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -179,7 +179,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             </Text>
           ) : projects.length === 0 ? (
             <Text style={styles.emptyText}>
-              No saved projects found
+              No saved projects yet
             </Text>
           ) : (
             <FlatList

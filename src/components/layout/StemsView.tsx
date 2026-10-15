@@ -51,6 +51,7 @@ const StemsView: React.FC<StemsViewProps> = ({
   onScrubStart,
   onScrubEnd,
 }) => {
+  const scrubStartedRef = useRef(false);
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
   
   useEffect(() => {
@@ -123,8 +124,9 @@ const StemsView: React.FC<StemsViewProps> = ({
     .runOnJS(true)
     .activeOffsetX([-6, 6])
     .failOffsetY([-12, 12])
-    .onBegin(() => {
+    .onStart(() => {
       if (!audioUri) return;
+      scrubStartedRef.current = true;
       if (isPlaying) {
         onScrubStart();
       }
@@ -145,8 +147,9 @@ const StemsView: React.FC<StemsViewProps> = ({
       setCurrentTime(newCurrentTime);
       setGhostPlayheadTime(newCurrentTime);
     })
-    .onEnd(() => {
-      if (!audioUri) return;
+    .onFinalize(() => {
+      if (!audioUri || !scrubStartedRef.current) return;
+      scrubStartedRef.current = false;
       onScrubEnd();
     });
   

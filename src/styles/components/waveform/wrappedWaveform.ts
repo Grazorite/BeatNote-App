@@ -83,6 +83,11 @@ export const wrappedWaveformStyles = StyleSheet.create({
     borderRadius: dimensions.borderRadius,
     backgroundColor: colors.background,
   },
+  placeholderMobile: {
+    flex: 1,
+    minHeight: 0,
+    marginBottom: 0,
+  },
   placeholderText: {
     color: colors.textSecondary,
     fontSize: 14,
