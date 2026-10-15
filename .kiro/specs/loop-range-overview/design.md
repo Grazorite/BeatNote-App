@@ -490,8 +490,14 @@ Each poll, before any end-of-track repeat/pause logic:
    set `previousSampleRef.current = loopStartMs`, and **skip** end-of-track logic for this poll
    (R10.1, R10.2). The target is exactly `loopStartMs` regardless of overshoot, so iteration N seeks
    to the same target as iteration 1.
+   If the native player has already changed `playing` to false at the song boundary while its
+   reported time remains within the final 500ms, coerce that terminal sample to the range end before
+   applying the same armed decision. This handles iOS completion rounding without widening the
+   normal 30ms loop tolerance.
 4. On `noWrap`: run the existing end-of-track repeat/pause logic (R10.7, R10.8), then
-   `setCurrentTime(currentSampleMs)` and `previousSampleRef.current = currentSampleMs`.
+   `setCurrentTime(currentSampleMs)` and `previousSampleRef.current = currentSampleMs`. The sole
+   exception is an armed range ending at songDuration inside the broader 100ms end tolerance: defer
+   repeat/pause so the next sample or native completion state can take the range-wrap path.
 
 **Armed rule (ARMED-WRAP):** a wrap fires only when `loopStartMs <= previousSampleMs < loopEndMs`
 *and* `currentSampleMs >= loopEndMs - LOOP_BOUNDARY_TOLERANCE_MS`, for any overshoot past `loopEndMs`
@@ -650,6 +656,9 @@ loop values and the flag unchanged (R16.5).
 Handle hit areas extend beyond the strip via `hitSlop` to reach the 44px native target (R7.2).
 The 40px action slot directly abuts the track; its internal hit slop supplies the wider touch target
 without reintroducing a visible seam. The playhead centre stays two pixels inside either track edge.
+Endpoint handle hit targets remain clamped to the track, and their eight-pixel visual grips are
+inset just enough to remain fully visible. The Range_Body itself still reaches the exact 0%/100%
+track edge, preserving full-song proportional mapping.
 `playback-current-time` remains only as a 1×1 non-layout automation probe while a song is loaded;
 no current-time caption is visible (R1.6).
 

@@ -191,6 +191,17 @@ export function msToOverviewX(ms: number, songDuration: number, width: number): 
   return Math.max(0, Math.min(ms, songDuration)) / songDuration * width;
 }
 
+/** Keep the playhead visible at both song endpoints without changing track-scale mapping. */
+export function overviewPlayheadX(
+  currentTimeMs: number,
+  songDuration: number,
+  width: number,
+  inset = 2,
+): number {
+  if (!Number.isFinite(width) || width <= inset * 2) return Math.max(0, width) / 2;
+  return Math.max(inset, Math.min(width - inset, msToOverviewX(currentTimeMs, songDuration, width)));
+}
+
 /** Map an overview x-coordinate to a clamped integer song timestamp. */
 export function overviewXToMs(x: number, songDuration: number, width: number): number {
   if (![x, songDuration, width].every(Number.isFinite) || songDuration <= 0 || width <= 0) {

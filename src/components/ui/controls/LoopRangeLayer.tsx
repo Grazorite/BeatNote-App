@@ -68,6 +68,7 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
   const bodyWidth = Math.max(2, computedWidth);
   const bodyLeft = computedWidth < 2 ? Math.max(0, (startX + endX) / 2 - 1) : startX;
   const hitWidth = Platform.OS === 'web' ? 16 : 44;
+  const visualWidth = 8;
   const handleLeft = (center: number): number => Math.max(0, Math.min(center - hitWidth / 2, width - hitWidth));
   const valueText = isEnabled ? 'enabled' : 'disabled';
 
@@ -124,7 +125,10 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
   const renderHandle = (bound: 'start' | 'end', center: number, value: number) => {
     const label = `Loop ${bound} ${formatLoopTime(value)}`;
     const touchLeft = handleLeft(center);
-    const visualOffsetX = center - (touchLeft + hitWidth / 2);
+    // Keep the grip inside the song track at 0% and 100%. The range body still
+    // maps to the exact edge; only the draggable visual is inset.
+    const visualCenter = Math.max(visualWidth / 2, Math.min(center, width - visualWidth / 2));
+    const visualOffsetX = visualCenter - (touchLeft + hitWidth / 2);
     return (
       <Pressable
         accessible

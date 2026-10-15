@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Clean up the V1 settings drawer so it exposes only Help & Shortcuts and BPM while preserving
+      hidden state and project-schema fields for compatibility
+      <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/HelpButton.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
 - [x] Refine the playback/marker dock from simulator feedback: preserve playback across tap/drag
       seeking, add a dedicated landscape rail with a central 2×2 play control, distinguish playlist icons, place annotation below
       the overview in portrait and above the right rail in landscape, keep controls inside device
@@ -123,6 +127,59 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-15 — Complete landscape dock refinements
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Landscape dock refinement → Done; physical acceptance remains In Progress
+
+**Changed:**
+
+- Replaced the 264-point 4×4 landscape rail with an adaptive 104-point two-column rail: three paired
+  rows above a full-width/two-row play control and three paired rows below it. The grid expands to
+  use the available safe height and keeps ordinary controls near-square; portrait retains its 2×8 grid.
+- Kept the compact annotation field below the overview on the expanded audio-canvas side and kept the
+  rail within the existing left/right device safe-area padding.
+- Removed the landscape-only bottom safe-area inset so the control grid uses the rail's full height;
+  portrait retains its curved-corner bottom protection.
+- Gated overview-strip outside-range dimming on the active range-loop mode, so an inactive edited
+  selection leaves markers, waveform content, and the playhead at normal opacity.
+- Kept the overview clear/restore slot visibly occupied after audio loads by rendering a disabled
+  trash control until a valid range or restore snapshot makes it actionable.
+- Closed the visual seam between the overview track and its action slot, inset the end-of-song
+  overview playhead by two pixels to keep it visible, and added subtle shared glass gradients plus
+  roomier annotation text padding to the mobile lower controls.
+- Made remove-previous always pressable with explanatory no-target feedback; simplified repeat's
+  active treatment; aligned the tri-state loop icon cycle; and corrected marker-arrow ordering.
+- Added vivid-violet, heavier timeline marker strokes while retaining white marker-control glyphs,
+  and replaced previous/next track chevrons with mirrored hollow double-triangle SVG icons.
+- Updated the Kiro requirements, design, tasks, browser geometry assertions, and native geometry
+  assertions to match the accepted orientation-specific layout.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; unit gate → 116 passed across 11 suites.
+- Elevated full Playwright gate → 16/16 passed, including two-column geometry and the custom icon
+  structure at 740×390.
+- Focused iOS `testLandscapeGesturesAndCompactControls` → 1/1 passed, then the full aggregate passed
+  14/14 on iPhone 17 Pro / iOS 26.2; result bundles
+  `ios/build/BeatNoteUITests-1792014461042.xcresult` and
+  `ios/build/BeatNoteUITests-1792014665195.xcresult`.
+- The final adaptive rail passed the focused browser dock check and the native landscape check on
+  iPhone 17 Pro / iOS 26.2; result bundle
+  `ios/build/BeatNoteUITests-1792016980605.xcresult`, including the zero-bottom-inset assertion.
+- Inactive-versus-active overview dimming passed focused browser coverage and the native portrait
+  loop-control check; result bundle `ios/build/BeatNoteUITests-1792017546382.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone VoiceOver, touch comfort, software-keyboard behavior, and sustained playback/drag
+  performance remain the final acceptance gate.
+
+**Next agent should:**
+
+- Have the user visually confirm the loaded and unloaded landscape rail in the simulator,
+  then run the physical-device acceptance checklist.
 
 ### 2026-10-15 — Simplify V1 settings drawer
 

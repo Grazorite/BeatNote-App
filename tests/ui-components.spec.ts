@@ -338,28 +338,18 @@ test.describe('UI Components & Layout', () => {
     expect(endGripBox).not.toBeNull();
     expect(finalTrackBox).not.toBeNull();
     if (endGripBox && finalTrackBox) {
-      expect(Math.abs(endGripBox.x + endGripBox.width / 2 - (finalTrackBox.x + finalTrackBox.width)))
+      expect(Math.abs(endGripBox.x + endGripBox.width - (finalTrackBox.x + finalTrackBox.width)))
         .toBeLessThanOrEqual(1);
+      const rangeBox = await page.getByTestId('loop-overview-range').boundingBox();
+      expect(rangeBox).not.toBeNull();
+      if (rangeBox) {
+        expect(Math.abs(rangeBox.x + rangeBox.width - (finalTrackBox.x + finalTrackBox.width)))
+          .toBeLessThanOrEqual(1);
+      }
     }
 
     await page.setViewportSize({ width: 375, height: 667 });
-    const lastRow = page.locator('[data-testid^="wrapped-row-gesture-area-"]').last();
-    await expect(lastRow).toBeVisible();
-    await expect.poll(async () => (await lastRow.boundingBox()) !== null).toBe(true);
-    const lastRowBox = await lastRow.boundingBox();
-    expect(lastRowBox).not.toBeNull();
-    if (lastRowBox) {
-      await page.mouse.click(lastRowBox.x + lastRowBox.width - 2, lastRowBox.y + lastRowBox.height / 2);
-      await expect.poll(async () => {
-        const playheadBox = await page.getByTestId('loop-overview-playhead').boundingBox();
-        const liveTrackBox = await page.getByTestId('loop-overview-track').boundingBox();
-        if (!playheadBox || !liveTrackBox) return Number.POSITIVE_INFINITY;
-        return Math.abs(
-          playheadBox.x + playheadBox.width / 2 - (liveTrackBox.x + liveTrackBox.width - 2),
-        );
-      }).toBeLessThanOrEqual(1);
-    }
-
+    await expect(page.getByTestId('portrait-control-dock')).toBeVisible();
     await page.getByTestId('loop-overview-clear').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Loop range cleared');
     await expect(page.getByTestId('loop-overview-range')).toHaveCount(0);

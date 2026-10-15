@@ -13,6 +13,7 @@ import {
   moveLoopRange,
   msToOverviewX,
   normalizeLoopRange,
+  overviewPlayheadX,
   outsideLoopSegmentsForRow,
   overviewXToMs,
   reclampLoopRangeToDuration,
@@ -76,6 +77,12 @@ describe('loop range examples', () => {
     expect(overviewXToMs(100, 10000, 200)).toBe(5000);
     expect(msToOverviewX(1, 0, 100)).toBe(0);
     expect(overviewXToMs(1, 100, Number.NaN)).toBe(0);
+  });
+
+  it('keeps the overview playhead visible at both full-song endpoints', () => {
+    expect(overviewPlayheadX(0, 10000, 300)).toBe(2);
+    expect(overviewPlayheadX(10000, 10000, 300)).toBe(298);
+    expect(overviewPlayheadX(5000, 10000, 300)).toBe(150);
   });
 
   it('resolves overlapping handles by distance and activating direction', () => {

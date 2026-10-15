@@ -528,6 +528,9 @@ documented defaults and must be revisited if a default changes:
     state changes.
   - [x] 28.4 Add browser regression coverage, run the automated gate, and inspect the loaded
     simulator layout and drag response.
+  - [x] 28.5 Keep endpoint grips fully inside the track without shortening its full-song mapping,
+    and recover an armed song-end loop from the native iOS completion state. Cover both with browser
+    geometry and focused native playback checks.
   - _Requirements: 2.3, 3.3, 3.5, 4.7, 8.11, 11.2, 17.4, 19.3–19.4_
 
 ### Phase 17 — Visual consistency and test-suite consolidation

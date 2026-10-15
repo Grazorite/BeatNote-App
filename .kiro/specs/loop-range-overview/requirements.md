@@ -534,7 +534,10 @@ can rehearse a section repeatedly.
    skip end-of-track repeat and pause logic for any poll where the armed condition holds, including
    when the player reports that the track has finished. A range with `loopEndMs = songDuration`
    therefore wraps to loopStartMs and never pauses or applies whole-song repeat, even though
-   END_OF_TRACK_TOLERANCE_MS (100 ms) is larger than LOOP_BOUNDARY_TOLERANCE_MS (30 ms).
+   END_OF_TRACK_TOLERANCE_MS (100 ms) is larger than LOOP_BOUNDARY_TOLERANCE_MS (30 ms). IF the
+   native player reports playback completion while its final position is slightly short of
+   songDuration, THE Playback_Engine SHALL treat that terminal sample as loopEndMs for an armed
+   range whose loopEndMs equals songDuration.
 3. WHEN playback starts, or a seek lands, at a position before loopStartMs while looping is enabled,
    THE Playback_Engine SHALL record that position as the previous position sample, play normally
    without seeking until a sample falls inside `[loopStartMs, loopEndMs)`, and then wrap according

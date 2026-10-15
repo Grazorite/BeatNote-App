@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
+import { useAudioPlayer, useAudioPlayerStatus, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
@@ -34,6 +34,8 @@ export const useCustomAudioPlayer = () => {
   const loopSeekInFlightRef = useRef(false);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
   const player = useAudioPlayer(audioSource);
+  const playerStatus = useAudioPlayerStatus(player);
+  const playerStatusRef = useRef(playerStatus);
   const {
     isPlaying,
     layers,
@@ -65,6 +67,10 @@ export const useCustomAudioPlayer = () => {
   const hideError = useCallback(() => {
     setError(prev => prev.visible ? { visible: false, title: '', message: '' } : prev);
   }, []);
+
+  useEffect(() => {
+    playerStatusRef.current = playerStatus;
+  }, [playerStatus]);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -299,6 +305,18 @@ export const useCustomAudioPlayer = () => {
         const effectiveLoopStartMs = isLoopRangeEnabled ? loopStartMs : markerRange.loopStartMs;
         const effectiveLoopEndMs = isLoopRangeEnabled ? loopEndMs : markerRange.loopEndMs;
         const loopIsEnabled = isLoopRangeEnabled || isLoopMarkerActive;
+        const terminalLoopArmed = loopIsEnabled
+          && effectiveLoopStartMs !== null
+          && effectiveLoopEndMs !== null
+          && Math.abs(effectiveLoopEndMs - songDuration) <= END_OF_TRACK_TOLERANCE_MS
+          && previousSampleMs >= effectiveLoopStartMs
+          && previousSampleMs < effectiveLoopEndMs;
+        const nativeEndedInsideTerminalLoop = terminalLoopArmed
+          && (playerStatusRef.current.didJustFinish
+            || (currentTimeMs >= effectiveLoopEndMs - 500 && player.playing === false));
+        const loopDecisionSampleMs = nativeEndedInsideTerminalLoop
+          ? effectiveLoopEndMs
+          : currentTimeMs;
         const loopRangeKey = `${isLoopRangeEnabled ? 'range' : 'marker'}:${effectiveLoopStartMs}:${effectiveLoopEndMs}`;
         if (failedLoopRangeKeyRef.current !== null && failedLoopRangeKeyRef.current !== loopRangeKey) {
           failedLoopRangeKeyRef.current = null;
@@ -319,7 +337,7 @@ export const useCustomAudioPlayer = () => {
               loopStartMs: effectiveLoopStartMs,
               loopEndMs: effectiveLoopEndMs,
               previousSampleMs,
-              currentSampleMs: currentTimeMs,
+              currentSampleMs: loopDecisionSampleMs,
               toleranceMs: LOOP_BOUNDARY_TOLERANCE_MS,
             });
 
@@ -345,6 +363,15 @@ export const useCustomAudioPlayer = () => {
             .finally(() => {
               loopSeekInFlightRef.current = false;
             });
+          return;
+        }
+
+        // Do not let the broader end-of-track tolerance pause an armed range
+        // before the tighter loop boundary is sampled. If iOS completes first,
+        // the next poll is converted into the terminal wrap above.
+        if (terminalLoopArmed && currentTimeMs >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
+          previousSampleRef.current = currentTimeMs;
+          setCurrentTime(currentTimeMs);
           return;
         }
 

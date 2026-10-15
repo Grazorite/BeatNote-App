@@ -272,6 +272,22 @@ final class BeatNoteUITests: XCTestCase {
     let toggleAfter = String(describing: toggle.value ?? "")
     XCTAssertNotEqual(toggleAfter, toggleBefore, "Inner-loop control should expose its range state (before: \(toggleBefore), after: \(toggleAfter)).")
 
+    let rows = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "wrapped-row-gesture-area-")
+    )
+    XCTAssertGreaterThan(rows.count, 1)
+    let lastRow = rows.element(boundBy: rows.count - 1)
+    XCTAssertTrue(lastRow.exists && lastRow.isHittable)
+    lastRow.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
+    let playbackTime = element("playback-current-time")
+    XCTAssertGreaterThan(playbackSeconds(from: playbackTime.label), 0)
+    element("play-pause").tap()
+    Thread.sleep(forTimeInterval: 6.0)
+    XCTAssertLessThanOrEqual(
+      playbackSeconds(from: playbackTime.label),
+      5,
+      "A selected range ending at the song boundary must wrap instead of stopping."
+    )
   }
 
   func testWrappedRowSeekMarkerAndDragGestures() {

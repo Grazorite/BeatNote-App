@@ -6,7 +6,7 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath, useWaveformData } from '../../../hooks/useWaveformData';
 import { colors } from '../../../styles/common';
 import { loopOverviewTrackStyles as styles } from '../../../styles/components/controls/loopOverviewTrack';
-import { msToOverviewX } from '../../../utils/loopRange';
+import { msToOverviewX, overviewPlayheadX } from '../../../utils/loopRange';
 
 interface LoopOverviewTrackProps {
   audioUri: string | null;
@@ -21,9 +21,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const layers = useStudioStore(state => state.allLayersData);
   const { waveformData } = useWaveformData(audioUri);
   const drawable = songLoaded && Number.isFinite(songDuration) && songDuration > 0 && width > 0;
-  const playheadX = width > 2
-    ? Math.max(2, Math.min(width - 2, msToOverviewX(currentTime, songDuration, width)))
-    : width / 2;
+  const playheadX = overviewPlayheadX(currentTime, songDuration, width);
   const waveformPath = useMemo(() => {
     if (!drawable || waveformData?.source !== 'decoded' || waveformData.peaks.length === 0) return '';
     return generateWaveformPath(
