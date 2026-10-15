@@ -216,7 +216,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-15 — Polish overview and glass controls
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `ba06384`
 **Kanban moved:** Overview/action alignment and lower-control polish → Done
 
 **Changed:**
@@ -241,7 +241,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - The final glass intensity and spacing still need the user's simulator visual review.
 - Physical-device VoiceOver, touch comfort, software-keyboard behavior, and sustained drag/playback
   performance remain open.
-- The repository remains uncommitted with the previously documented dock, loop, and V1 cleanup.
+- The implementation, specs, tests, and accumulated V1 cleanup are committed in `ba06384`.
 
 **Next agent should:**
 
