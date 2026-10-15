@@ -216,7 +216,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-15 — Fix terminal loop and endpoint grip
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `cf652dc`
 **Kanban moved:** Terminal range loop and endpoint handle correction → Done
 
 **Changed:**
@@ -239,13 +239,13 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Physical-device audible boundary quality and VoiceOver remain pending.
-- The correction is not yet committed or pushed; earlier implementation commits `ba06384` and
-  `adb2f54` remain local because the remote destination still requires explicit ownership approval.
+- The correction is committed in `cf652dc`; it and earlier commits `ba06384` / `adb2f54` remain
+  local because the remote destination still requires explicit ownership approval.
 
 **Next agent should:**
 
-- Commit this regression fix, then push all local commits after the user explicitly confirms the
-  `Grazorite/BeatNote-App` GitHub destination.
+- Push the three local commits after the user explicitly confirms the `Grazorite/BeatNote-App`
+  GitHub destination, preserving the unrelated concurrent icon/control worktree edits.
 ### 2026-10-15 — Polish overview and glass controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `ba06384`
