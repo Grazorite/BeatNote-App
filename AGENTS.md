@@ -213,7 +213,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Extend timed annotation readability
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `e6bd48f`
 **Kanban moved:** Timed annotation dwell and successive replacement → Done
 
 **Changed:**
@@ -238,7 +238,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - The fade and live music timing have not yet been visually assessed on a physical iPhone.
-- The implementation and handover updates remain uncommitted.
+- The implementation, tests, specs, and archived handover rotation are included in `e6bd48f`.
 
 **Next agent should:**
 
