@@ -212,7 +212,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-17 — Replace Settings sliders with a gear
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `48b312b`
 **Kanban moved:** Settings gear icon → Done
 
 **Changed:**
@@ -229,7 +229,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Native simulator and physical-iPhone visual review were not rerun for this one-glyph change.
-- The change remains uncommitted; the working tree contains only this icon update and handover state.
+- The icon, archived handover rotation, and lifecycle state are included in `48b312b`.
 
 **Next agent should:**
 
