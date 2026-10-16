@@ -1,18 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Layer, useStudioStore } from '../../hooks/useStudioStore';
+import { Layer, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
+import { findMarkerNearTime, getMarkerAnnotation } from '../../utils/markerSelection';
 import ProjectControls from '../ui/controls/ProjectControls';
 
 import LoopRangeOverview from '../ui/controls/LoopRangeOverview';
 import TapButton from '../ui/controls/MarkerButton';
 import AudioControls from '../ui/controls/AudioControls';
 import ControlDock from '../ui/controls/ControlDock';
+import AnnotationCallout from '../ui/controls/AnnotationCallout';
 import DockToast from '../ui/controls/DockToast';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
+import AnnotationEditorModal from '../ui/modals/AnnotationEditorModal';
 import WaveformWorkspace from '../ui/waveform/WaveformWorkspace';
 
 import StemsView from './StemsView';
@@ -64,7 +67,29 @@ const MainContent: React.FC<MainContentProps> = ({
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const toast = useDockToast();
+  const currentTime = useStudioStore(state => state.currentTime);
+  const activeLayerId = useStudioStore(state => state.activeLayerId);
+  const allLayersData = useStudioStore(state => state.allLayersData);
+  const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
+  const updateMarkerAnnotation = useStudioStore(state => state.updateMarkerAnnotation);
+  const currentMarker = findMarkerNearTime(allLayersData, currentTime, activeLayerId);
+  const currentAnnotation = getMarkerAnnotation(allLayersData, currentMarker);
+  const editingAnnotation = getMarkerAnnotation(allLayersData, editingMarker);
+
+  const openAnnotationEditor = () => {
+    if (!currentMarker) return;
+    setSelectedMarker(currentMarker);
+    setEditingMarker(currentMarker);
+  };
+  const closeAnnotationEditor = () => setEditingMarker(null);
+  const saveAnnotation = (text: string) => {
+    if (!editingMarker) return;
+    updateMarkerAnnotation(editingMarker.layerId, editingMarker.timestamp, text);
+    setEditingMarker(null);
+    toast.show(text.trim() ? 'Annotation saved' : 'Annotation removed');
+  };
   
   // Pass focus function to parent
   useEffect(() => {
@@ -155,18 +180,11 @@ const MainContent: React.FC<MainContentProps> = ({
   if (isMobile) {
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
-        <DockToast message={toast.message} />
+        <DockToast message={toast.message} action={toast.action} />
+        {currentMarker && currentAnnotation.trim() && (
+          <AnnotationCallout text={currentAnnotation} onPress={openAnnotationEditor} />
+        )}
         <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
-      </View>
-    );
-    const mobileAnnotation = (
-      <View style={[styles.mobileAnnotation, isLandscapePhone && styles.landscapeAnnotation]}>
-        <GlassBackdrop
-          testID="annotation-glass"
-          gradientId={isLandscapePhone ? 'annotation-glass-landscape' : 'annotation-glass-portrait'}
-          radius={14}
-        />
-        <AnnotationField ref={annotationFieldRef} isMobile compact={isLandscapePhone} />
       </View>
     );
     const mobileCanvas = (
@@ -176,7 +194,6 @@ const MainContent: React.FC<MainContentProps> = ({
       >
         {waveform}
         {mobileTimeline}
-        {mobileAnnotation}
         <Text style={styles.assistiveStatus} testID="grand-total-markers">
           Grand Total: {totalMarkers} markers
         </Text>
@@ -203,6 +220,9 @@ const MainContent: React.FC<MainContentProps> = ({
           onAddMarker={tapToBeat}
           playbackSpeed={playbackSpeed}
           onPlaybackSpeedChange={setPlaybackSpeed}
+          canAnnotate={currentMarker !== null}
+          hasAnnotation={Boolean(currentAnnotation.trim())}
+          onAnnotate={openAnnotationEditor}
           onToast={toast.show}
         />
       </View>
@@ -215,6 +235,13 @@ const MainContent: React.FC<MainContentProps> = ({
         ) : (
           <>{mobileCanvas}{controlDock}</>
         )}
+        <AnnotationEditorModal
+          visible={editingMarker !== null}
+          marker={editingMarker}
+          initialText={editingAnnotation}
+          onCancel={closeAnnotationEditor}
+          onSave={saveAnnotation}
+        />
       </View>
     );
   }

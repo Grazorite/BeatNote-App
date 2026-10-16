@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import GlassBackdrop from '../controls/GlassBackdrop';
+import { colors } from '../../../styles/common';
 import { saveProjectModalStyles as styles } from '../../../styles/components/modals/saveProjectModal';
 
 interface SaveProjectModalProps {
@@ -36,6 +38,7 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+          <GlassBackdrop gradientId="save-project-modal-glass" radius={16} testID="save-project-modal-glass" />
           <Text style={styles.title}>
             Save Project
           </Text>
@@ -45,7 +48,7 @@ const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
             value={projectName}
             onChangeText={setProjectName}
             placeholder="Enter project name"
-            placeholderTextColor="#888888"
+            placeholderTextColor={colors.textSecondary}
             autoFocus
             testID="save-project-name"
           />

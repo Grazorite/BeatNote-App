@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { Play, Pause, SkipBack, SkipForward, Repeat2, Brackets } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
 import { isValidLoopRange } from '../../../utils/loopRange';
 
@@ -80,7 +80,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressOut={0}
         testID="skip-back"
       >
-        <SkipBack size={compact ? 20 : isMobile ? 24 : 32} color={canSkipBack ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name="previous" size={compact ? 20 : isMobile ? 24 : 32} color={canSkipBack ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -93,11 +93,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         testID="play-pause"
         accessibilityLabel={isPlaying ? 'Pause playback' : 'Play playback'}
       >
-        {isPlaying ? (
-          <Pause size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
-        ) : (
-          <Play size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
-        )}
+        <BeatNoteIcon name={isPlaying ? 'pause' : 'play'} size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -109,7 +105,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressOut={0}
         testID="skip-forward"
       >
-        <SkipForward size={compact ? 20 : isMobile ? 24 : 32} color={canSkipForward ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name="next" size={compact ? 20 : isMobile ? 24 : 32} color={canSkipForward ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -126,7 +122,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <Repeat2 size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name="repeat" size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       <TouchableOpacity
         style={getRepeatButtonStyle(canToggleLoop, isLoopRangeEnabled)}
@@ -142,7 +138,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressIn={0}
         delayPressOut={0}
       >
-        <Brackets size={compact ? 20 : isMobile ? 24 : 32} color={canToggleLoop ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name="range-loop" size={compact ? 20 : isMobile ? 24 : 32} color={canToggleLoop ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       </View>
       {songLoaded && <Text testID="playback-current-time" style={styles.currentTime}>{currentLabel}</Text>}

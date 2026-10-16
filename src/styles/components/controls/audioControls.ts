@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../common';
 
 export const audioControlsStyles = StyleSheet.create({
   wrapper: {
@@ -29,17 +30,17 @@ export const audioControlsStyles = StyleSheet.create({
     height: 44,
   },
   audioControlsEnabled: {
-    backgroundColor: '#ff8c00', // Prominent orange for main play/pause
+    backgroundColor: colors.controlActive,
   },
   skipButtonEnabled: {
-    backgroundColor: '#ff6600', // Original orange for skip buttons
+    backgroundColor: colors.controlActive,
   },
   buttonDisabled: {
     backgroundColor: '#444444',
     opacity: 0.5,
   },
   repeatButtonActive: {
-    backgroundColor: '#ff6600', // Normal orange when active
+    backgroundColor: colors.controlActive,
   },
   repeatButtonInactive: {
     backgroundColor: '#666666', // Gray when inactive

@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Layers, BarChart3, Layers2, Layers3, Grid2X2 } from 'lucide-react-native';
 import Animated, { 
   useAnimatedStyle, 
   withTiming,
   useSharedValue,
   useDerivedValue
 } from 'react-native-reanimated';
+import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
+import { colors } from '../../../styles/common';
 
 interface VerticalSegmentedControlProps {
   options: { label: string; description: string }[];
@@ -19,29 +20,29 @@ interface VerticalSegmentedControlProps {
 }
 
 const getViewModeIcon = (label: string, color: string) => {
-  const iconProps = { size: 18, color };
+  let name: BeatNoteIconName | null = null;
   switch (label.toLowerCase()) {
-    case 'unified': return <Layers {...iconProps} />;
-    case 'multitrack': return <BarChart3 {...iconProps} />;
-    default: return null;
+    case 'unified': name = 'unified'; break;
+    case 'multitrack': name = 'multitrack'; break;
   }
+  return name ? <BeatNoteIcon name={name} size={18} color={color} /> : null;
 };
 
 const getStemIcon = (label: string, color: string) => {
-  const iconProps = { size: 18, color };
+  let name: BeatNoteIconName | null = null;
   switch (label) {
-    case '2 Stems': return <Layers2 {...iconProps} />;
-    case '4 Stems': return <Grid2X2 {...iconProps} />;
-    case '6 Stems': return <Layers3 {...iconProps} />;
-    default: return null;
+    case '2 Stems': name = 'stems-2'; break;
+    case '4 Stems': name = 'stems-4'; break;
+    case '6 Stems': name = 'stems-6'; break;
   }
+  return name ? <BeatNoteIcon name={name} size={18} color={color} /> : null;
 };
 
 const VerticalSegmentedControl: React.FC<VerticalSegmentedControlProps> = ({
   options,
   selectedIndex,
   onSelectionChange,
-  activeColor = '#ff6600',
+  activeColor = colors.controlActive,
   backgroundColor = '#222222',
   showIcons = false,
   iconType = 'viewMode'

@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
-import { RotateCcw, Trash2 } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
@@ -66,8 +66,8 @@ const LoopClearControl = forwardRef<React.ElementRef<typeof Pressable>, LoopClea
       style={[styles.button, inactive && styles.buttonDisabled]}
     >
       {restoring
-        ? <RotateCcw size={15} color="#ffffff" />
-        : <Trash2 size={15} color={inactive ? colors.textSecondary : colors.text} />}
+        ? <BeatNoteIcon name="restore" size={15} />
+        : <BeatNoteIcon name="clear" size={15} color={inactive ? colors.textSecondary : colors.text} />}
     </Pressable>
   );
 });

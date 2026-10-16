@@ -26,13 +26,13 @@ export const markerButtonStyles = StyleSheet.create({
     height: 44,
   },
   markerButtonMain: {
-    backgroundColor: '#ff8c00', // Prominent orange for main marker button
+    backgroundColor: colors.controlActive,
   },
   markerButtonSecondary: {
-    backgroundColor: '#ff6600', // Original orange for secondary buttons
+    backgroundColor: colors.controlActive,
   },
   markerButtonActive: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.controlActive,
   },
   markerButtonInactive: {
     backgroundColor: '#666666',

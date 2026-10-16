@@ -18,7 +18,7 @@ export const gridLinesToggleStyles = StyleSheet.create({
     borderColor: colors.border,
   },
   toggleButtonActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.controlActive,
   },
   toggleButtonInactive: {
     backgroundColor: colors.surface,

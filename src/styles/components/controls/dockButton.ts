@@ -16,7 +16,7 @@ export const dockButtonStyles = StyleSheet.create({
     borderRadius: 7,
   },
   active: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.controlActive,
     borderColor: colors.text,
   },
   inactive: {

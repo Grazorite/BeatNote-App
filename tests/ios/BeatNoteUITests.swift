@@ -34,6 +34,14 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(element("load-project").label, "Open Projects")
     XCTAssertEqual(element("import-data").label, "Import CSV")
     XCTAssertEqual(element("export-data").label, "Export CSV")
+    for disabledControl in [
+      "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
+      "repeat-toggle", "inner-loop-cycle", "shuffle-control", "first-track-control",
+      "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker",
+      "annotation-control"
+    ] {
+      XCTAssertFalse(element(disabledControl).isEnabled, "\(disabledControl) should be disabled until a song is loaded.")
+    }
     element("sidebar-open-toggle").tap()
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-help").waitForExistence(timeout: 5))
@@ -94,7 +102,8 @@ final class BeatNoteUITests: XCTestCase {
     let savedLoopToggleValue = String(describing: element("inner-loop-cycle").value ?? "")
 
     element("add-marker").tap()
-    let annotation = app.textFields["marker-annotation"]
+    element("annotation-control").tap()
+    let annotation = element("annotation-editor-input")
     XCTAssertTrue(annotation.waitForExistence(timeout: 5))
     let workspaceScroll = app.scrollViews.firstMatch
     for _ in 0..<3 {
@@ -112,6 +121,7 @@ final class BeatNoteUITests: XCTestCase {
     )
     typeTextIntoControlledField("Dance note", field: annotation)
     XCTAssertEqual(annotation.value as? String, "Dance note")
+    element("save-annotation").tap()
 
     let projectName = "UITest-\(UUID().uuidString.prefix(8))"
     let saveButton = element("save-project")
@@ -148,7 +158,9 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("loop-overview-range").exists, "Saved loop range should restore after relaunch.")
     XCTAssertEqual(String(describing: element("inner-loop-cycle").value ?? ""), savedLoopToggleValue)
     element("navigate-right-marker").tap()
-    XCTAssertEqual(app.textFields["marker-annotation"].value as? String, "Dance note")
+    element("annotation-control").tap()
+    XCTAssertEqual(element("annotation-editor-input").value as? String, "Dance note")
+    app.buttons["Cancel"].firstMatch.tap()
 
     makeProjectActionVisible("load-project")
     element("load-project").tap()
@@ -180,13 +192,14 @@ final class BeatNoteUITests: XCTestCase {
       object: playbackTime
     )
     XCTAssertEqual(XCTWaiter.wait(for: [clockAdvanced], timeout: 3), .completed)
+    pauseButton.tap()
     element("add-marker").tap()
-    Thread.sleep(forTimeInterval: 0.4)
 
-    let annotation = app.textFields["marker-annotation"]
-    XCTAssertTrue(annotation.waitForExistence(timeout: 5))
-    XCTAssertTrue(annotation.isHittable, "The annotation editor should stay enabled for the marker just added.")
-    annotation.tap()
+    let annotationControl = element("annotation-control")
+    XCTAssertTrue(annotationControl.waitForExistence(timeout: 5))
+    XCTAssertTrue(annotationControl.isHittable, "The annotation editor should stay enabled for the marker just added.")
+    annotationControl.tap()
+    let annotation = element("annotation-editor-input")
     typeTextIntoControlledField("Live marker note", field: annotation)
     XCTAssertEqual(annotation.value as? String, "Live marker note")
   }
@@ -243,10 +256,11 @@ final class BeatNoteUITests: XCTestCase {
     let dockIDs = [
       "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
       "repeat-toggle", "inner-loop-cycle", "shuffle-control", "first-track-control",
-      "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker"
+      "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker",
+      "annotation-control"
     ]
     for control in dockIDs.map({ element($0) }) {
-      XCTAssertTrue(control.exists && control.isHittable)
+      XCTAssertTrue(control.exists)
       XCTAssertGreaterThanOrEqual(control.frame.height, 44)
     }
     XCTAssertTrue(element("control-dock").exists)
@@ -255,8 +269,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.width, element("add-marker").frame.width * 1.9)
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.height, element("add-marker").frame.height * 1.9)
 
-    element("remove-last-marker").tap()
-    XCTAssertTrue(app.staticTexts["No previous marker to delete"].waitForExistence(timeout: 2))
+    XCTAssertFalse(element("remove-last-marker").isEnabled)
+    XCTAssertFalse(element("annotation-control").isEnabled)
 
     let clearControl = element("loop-overview-clear")
     XCTAssertTrue(clearControl.exists)
@@ -325,10 +339,12 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(markerIndicator.waitForExistence(timeout: 5))
     XCTAssertTrue(markerIndicator.label.contains("Vocals marker"))
     XCTAssertTrue(markerIndicator.label.contains("not annotated"))
-    let annotation = app.textFields["marker-annotation"]
-    XCTAssertTrue(annotation.isEnabled)
-    annotation.tap()
+    let annotationControl = element("annotation-control")
+    XCTAssertTrue(annotationControl.isEnabled)
+    annotationControl.tap()
+    let annotation = element("annotation-editor-input")
     typeTextIntoControlledField("Row note", field: annotation)
+    element("save-annotation").tap()
     let annotatedMarker = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "label CONTAINS %@", ", annotated"),
       object: markerIndicator
@@ -371,7 +387,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThan(element("loop-overview").frame.width, app.frame.width * 0.8)
     XCTAssertTrue(element("play-pause").isHittable)
     XCTAssertTrue(element("add-marker").isHittable)
-    XCTAssertTrue(element("marker-annotation").exists)
+    XCTAssertTrue(element("annotation-control").exists)
+    XCTAssertFalse(element("marker-annotation").exists)
     assertStaticCanvasCoversSongEnd()
     XCTAssertFalse(app.staticTexts["Phrase 1"].exists)
     XCTAssertFalse(app.staticTexts["Count 1"].exists)
@@ -511,6 +528,7 @@ final class BeatNoteUITests: XCTestCase {
     makeProjectActionVisible("export-data")
     element("export-data").tap()
     XCTAssertTrue(app.staticTexts["2 markers ready to export"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Includes timestamps, BPM-derived bar:beat timing, and annotations"].exists)
     XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
 
@@ -577,7 +595,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertLessThanOrEqual(landscapeButton.width / landscapeButton.height, 1.25)
 
     let leftColumn = ["navigate-left-marker", "add-marker", "inner-loop-cycle", "repeat-toggle", "first-track-control", "previous-track-control"]
-    let rightColumn = ["navigate-right-marker", "remove-last-marker", "playback-speed", "shuffle-control", "next-track-control"]
+    let rightColumn = ["navigate-right-marker", "remove-last-marker", "annotation-control", "playback-speed", "shuffle-control", "next-track-control"]
     let leftX = element(leftColumn[0]).frame.minX
     let rightX = element(rightColumn[0]).frame.minX
     for identifier in leftColumn { XCTAssertEqual(element(identifier).frame.minX, leftX, accuracy: 2) }
@@ -609,11 +627,16 @@ final class BeatNoteUITests: XCTestCase {
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
     XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
-    let annotation = element("marker-annotation")
-    XCTAssertTrue(annotation.exists)
-    XCTAssertGreaterThanOrEqual(annotation.frame.minY, overview.frame.maxY - 2)
-    XCTAssertLessThanOrEqual(annotation.frame.maxX, rail.frame.minX + 2)
-    XCTAssertLessThanOrEqual(annotation.frame.maxY, app.frame.maxY)
+    XCTAssertFalse(element("marker-annotation").exists)
+    XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.55)
+    XCUIDevice.shared.orientation = .portrait
+    XCTAssertTrue(element("portrait-control-dock").waitForExistence(timeout: 10))
+    XCTAssertEqual(
+      element("control-dock-glass").frame.width,
+      element("portrait-control-dock").frame.width,
+      accuracy: 2,
+      "The dock glass should remeasure after returning to portrait."
+    )
     assertNoGestureRuntimeError()
   }
 

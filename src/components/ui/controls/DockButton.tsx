@@ -1,5 +1,12 @@
 import React, { ReactNode } from 'react';
-import { StyleProp, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  AccessibilityActionEvent,
+  AccessibilityActionInfo,
+  StyleProp,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { dockButtonStyles as styles } from '../../../styles/components/controls/dockButton';
 
 export type DockButtonState = 'active' | 'inactive' | 'unavailable' | 'reserved';
@@ -12,6 +19,9 @@ interface DockButtonProps {
   valueText?: string;
   hint?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
+  accessibilityActions?: AccessibilityActionInfo[];
+  onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
@@ -25,6 +35,9 @@ const DockButton: React.FC<DockButtonProps> = ({
   valueText,
   hint,
   onPress,
+  onLongPress,
+  accessibilityActions,
+  onAccessibilityAction,
   children,
   style,
   compact = false,
@@ -35,12 +48,16 @@ const DockButton: React.FC<DockButtonProps> = ({
       testID={testID}
       style={[styles.button, styles[state], compact && styles.compactButton, style]}
       onPress={unavailable ? undefined : onPress}
+      onLongPress={unavailable ? undefined : onLongPress}
+      delayLongPress={450}
       disabled={unavailable}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint ?? (state === 'reserved' ? 'Coming soon' : undefined)}
       accessibilityState={{ disabled: unavailable, checked }}
       accessibilityValue={valueText ? { text: valueText } : undefined}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       aria-valuetext={valueText}
       aria-disabled={unavailable}
       aria-pressed={checked}

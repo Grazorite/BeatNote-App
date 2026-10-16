@@ -1,9 +1,12 @@
 import { StyleSheet } from 'react-native';
+import { colors, dimensions } from '../../common';
 
 export const projectManagerModalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    position: 'relative',
+    backgroundColor: colors.background,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -11,21 +14,23 @@ export const projectManagerModalStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: colors.borderSubtle,
   },
   title: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
   },
   closeButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.surfaceGlass,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: dimensions.borderRadius,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   closeButtonText: {
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: '600',
   },
   content: {
@@ -33,33 +38,33 @@ export const projectManagerModalStyles = StyleSheet.create({
     padding: 16,
   },
   loadingText: {
-    color: '#888888',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   emptyText: {
-    color: '#888888',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   projectItem: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: colors.surfaceGlass,
     padding: 16,
     marginBottom: 8,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#444444',
+    borderColor: colors.borderSubtle,
   },
   projectName: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
   projectInfo: {
-    color: '#888888',
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
   projectDate: {
-    color: '#888888',
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -70,43 +75,47 @@ export const projectManagerModalStyles = StyleSheet.create({
   },
   actionButton: {
     padding: 8,
-    borderRadius: 4,
+    borderRadius: dimensions.borderRadius,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   loadButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.accent,
     flex: 1,
   },
   renameButton: {
-    backgroundColor: '#444444',
+    backgroundColor: colors.surfaceGlassStrong,
   },
   deleteButton: {
-    backgroundColor: '#ff4444',
+    backgroundColor: colors.iconDestructive,
   },
   actionButtonText: {
-    color: '#ffffff',
+    color: colors.text,
     textAlign: 'center',
   },
   editInput: {
-    backgroundColor: '#1a1a1a',
-    color: '#ffffff',
+    backgroundColor: colors.surfaceGlassStrong,
+    color: colors.text,
     padding: 8,
-    borderRadius: 4,
+    borderRadius: dimensions.borderRadius,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   editActions: {
     flexDirection: 'row',
     gap: 8,
   },
   saveButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.accent,
     padding: 8,
-    borderRadius: 4,
+    borderRadius: dimensions.borderRadius,
     flex: 1,
   },
   cancelButton: {
-    backgroundColor: '#444444',
+    backgroundColor: colors.surfaceGlassStrong,
     padding: 8,
-    borderRadius: 4,
+    borderRadius: dimensions.borderRadius,
     flex: 1,
   },
 });

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { formatSpeedLabel } from '../../../utils/innerLoop';
 import DockButton from './DockButton';
+import GlassBackdrop from './GlassBackdrop';
 import { playbackSpeedControlStyles as styles } from '../../../styles/components/controls/playbackSpeedControl';
+import { useStudioStore } from '../../../hooks/useStudioStore';
 
 interface PlaybackSpeedControlProps {
   value?: number;
@@ -19,6 +21,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   onToast,
   compact,
 }) => {
+  const songLoaded = useStudioStore(state => state.songLoaded);
   const [localValue, setLocalValue] = useState(1);
   const [open, setOpen] = useState(false);
   const value = controlledValue ?? localValue;
@@ -34,6 +37,12 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     <View style={styles.wrapper}>
       {open && (
         <View style={styles.chooser} testID="playback-speed-chooser">
+          <GlassBackdrop
+            gradientId="playback-speed-glass"
+            radius={12}
+            testID="playback-speed-glass"
+            variant="toast"
+          />
           {options.map(option => (
             <TouchableOpacity
               key={option}
@@ -51,7 +60,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         compact={compact}
         testID="playback-speed"
         label={`Playback speed ${formatSpeedLabel(value)}, coming soon`}
-        state="reserved"
+        state={songLoaded ? 'reserved' : 'unavailable'}
         onPress={() => setOpen(current => !current)}
       >
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.label}>{formatSpeedLabel(value)}</Text>

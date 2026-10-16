@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { View, TextInput } from 'react-native';
+import { Text, View, TextInput } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { LayerId, SelectedMarker, useStudioStore } from '../../../hooks/useStudioStore';
+import { colors } from '../../../styles/common';
+import GlassBackdrop from './GlassBackdrop';
 
 interface AnnotationFieldProps {
   isMobile?: boolean;
@@ -119,8 +121,8 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
     <View
       pointerEvents={songLoaded ? 'auto' : 'none'}
       style={{
-        flex: isMobile ? (compact ? undefined : 0) : 1,
-        flexShrink: compact ? 0 : undefined,
+        flex: isMobile ? undefined : 1,
+        flexShrink: isMobile ? 0 : undefined,
         height: compact ? 40 : isMobile ? 48 : undefined,
         width: isMobile ? '100%' : undefined,
         marginHorizontal: isMobile ? 0 : 16,
@@ -128,20 +130,31 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
         position: 'relative',
         overflow: 'hidden',
         borderRadius: 14,
+        borderWidth: isMobile ? 1 : 0,
+        borderColor: isMobile
+          ? canEdit ? colors.borderEmphasis : colors.borderSubtle
+          : 'transparent',
       }}
     >
+      {isMobile && (
+        <GlassBackdrop
+          testID="annotation-glass"
+          gradientId={compact ? 'annotation-glass-landscape' : 'annotation-glass-portrait'}
+          radius={14}
+        />
+      )}
       <TextInput
         style={{
           width: isMobile ? '100%' : undefined,
           backgroundColor: isMobile
-            ? canEdit ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.14)'
+            ? 'transparent'
             : canEdit ? '#333333' : '#222222',
-          color: canEdit ? '#ffffff' : '#666666',
+          color: annotation && !isTextInputFocused ? 'transparent' : canEdit ? colors.text : '#666666',
           borderRadius: 12,
           paddingHorizontal: isMobile ? 16 : 12,
           paddingVertical: 0,
           fontSize: 14,
-          borderWidth: 1,
+          borderWidth: isMobile ? 0 : 1,
           borderColor: isMobile
             ? canEdit ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.08)'
             : canEdit ? '#555555' : '#333333',
@@ -160,6 +173,26 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
         onBlur={() => setTextInputFocused(false)}
         testID="marker-annotation"
       />
+      {isMobile && annotation.length > 0 && !isTextInputFocused && (
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 16,
+            right: 16,
+            height: compact ? 40 : 48,
+            lineHeight: compact ? 40 : 48,
+            color: colors.text,
+            fontSize: 14,
+          }}
+          testID="marker-annotation-preview"
+        >
+          {annotation}
+        </Text>
+      )}
     </View>
   );
 });

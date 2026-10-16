@@ -1,21 +1,24 @@
 import { StyleSheet } from 'react-native';
+import { colors, dimensions } from '../../common';
 
 export const helpScreenStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modal: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
+    position: 'relative',
+    backgroundColor: 'transparent',
+    borderRadius: 16,
     maxWidth: 800,
     maxHeight: '90%',
     width: '90%',
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.borderSubtle,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -23,7 +26,7 @@ export const helpScreenStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: colors.borderSubtle,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -31,18 +34,20 @@ export const helpScreenStyles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 20,
     fontWeight: 'bold',
   },
   closeButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.surfaceGlass,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: dimensions.borderRadius,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   closeButtonText: {
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: '600',
   },
   scrollContainer: {
@@ -53,7 +58,7 @@ export const helpScreenStyles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#ff6600',
+    color: colors.accent,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
@@ -62,7 +67,7 @@ export const helpScreenStyles = StyleSheet.create({
     marginBottom: 16,
   },
   shortcutGroupTitle: {
-    color: '#cccccc',
+    color: colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
@@ -74,21 +79,23 @@ export const helpScreenStyles = StyleSheet.create({
     paddingVertical: 4,
   },
   shortcutKeys: {
-    color: '#ffffff',
-    backgroundColor: '#333333',
+    color: colors.text,
+    backgroundColor: colors.surfaceGlassStrong,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
     fontFamily: 'monospace',
     fontSize: 12,
   },
   shortcutDescription: {
-    color: '#ffffff',
+    color: colors.text,
     flex: 1,
     marginLeft: 12,
   },
   text: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,

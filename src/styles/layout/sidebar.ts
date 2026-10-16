@@ -3,7 +3,7 @@ import { colors, dimensions } from '../common';
 
 export const sidebarStyles = StyleSheet.create({
   sidebar: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     position: 'absolute',
     left: 0,
     top: 0,
@@ -16,9 +16,10 @@ export const sidebarStyles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
+    overflow: 'hidden',
   },
   sidebarMobile: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     position: 'absolute',
     left: 0,
     top: 0,
@@ -31,6 +32,7 @@ export const sidebarStyles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 20,
+    overflow: 'hidden',
   },
   contentContainer: {
     flex: 1,

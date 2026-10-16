@@ -113,6 +113,8 @@ requirements:
   `isLoopRangeEnabled`.
 - **Playback_Speed_Control**: The dock button that displays the current playback speed and opens a
   speed chooser. testID `playback-speed`.
+- **Annotation_Control**: The dock button that opens a draft-based annotation editor for the marker
+  within 100 milliseconds of the playhead. testID `annotation-control`.
 - **Shuffle_Control**: The reserved future shuffle placeholder. testID `shuffle-control`.
 - **First_Track_Control** / **Previous_Track_Control** / **Next_Track_Control**: The reserved future
   playlist placeholders. testIDs `first-track-control` / `previous-track-control` /
@@ -120,8 +122,6 @@ requirements:
 - **Reserved_Control**: Any of First_Track_Control, Previous_Track_Control, Next_Track_Control, or
   Shuffle_Control. A control that is visibly present, accessibly marked as in development, and
   pressable only to surface an in-development message.
-- **Empty_Cell**: The unused reserved layout position at column 8, row 2. It renders no interactive
-  control and preserves grid alignment. testID `dock-empty-cell`.
 - **Dock_Toast**: The single shared transient feedback element rendered above the Loop_Overview.
   testID `dock-toast`.
 - **Loop_Overview**: The existing full-song range editor component `LoopRangeOverview`
@@ -146,14 +146,11 @@ in one coherent grid, so that I can find every action in a single predictable la
    Previous_Track_Control, and Next_Track_Control at row 2 columns 1, 2, and 3 in that left-to-right
    order.
 4. WHEN the Control_Dock renders on a portrait phone layout, THE Control_Dock SHALL place
-   Playback_Speed_Control at row 2 column 6 and Remove_Previous_Marker_Control at row 2 column 7.
-5. WHEN the Control_Dock renders on a portrait phone layout, THE Control_Dock SHALL render the Empty_Cell at
-   row 2 column 8 occupying the identical cell width and height as any adjacent control cell, with no
-   touch handler, no accessible button role, and an accessibility state that exposes no activation
-   affordance.
-6. IN portrait, THE Control_Dock SHALL render row 1 columns 4 and 5 and row 2 columns 4 and 5 as the single 2×2
+   Annotation_Control, Playback_Speed_Control, and Remove_Previous_Marker_Control at row 2 columns
+   6, 7, and 8 in that left-to-right order.
+5. IN portrait, THE Control_Dock SHALL render row 1 columns 4 and 5 and row 2 columns 4 and 5 as the single 2×2
    Play_Pause_Control block that preserves the fixed 2×8 column alignment.
-7. WHILE a phone layout is active, THE Control_Dock SHALL render neither the former `AudioControls`
+6. WHILE a phone layout is active, THE Control_Dock SHALL render neither the former `AudioControls`
    row nor the former `MarkerButton` row, such that zero elements from either prior row are present in
    the rendered output.
 
@@ -249,11 +246,11 @@ without ambiguity.
    previous marker exists, THE
    Studio_Store SHALL remove exactly one marker — the one with the greatest timestamp among markers
    strictly less than `currentTime` within the active navigation scope — via `removeLastMarker`.
-2. THE Remove_Previous_Marker_Control SHALL remain enabled and visually available regardless of
-   whether a previous marker currently exists.
-3. IF no marker exists strictly before `currentTime` within the active navigation scope, THEN
-   activating Remove_Previous_Marker_Control SHALL leave `allLayersData`, `layers`, and
-   `lastRemovedMarker` unchanged and show "No previous marker to delete" in the Dock_Toast.
+2. THE Remove_Previous_Marker_Control SHALL be disabled when neither a previous marker nor a
+   restorable deletion exists; it SHALL remain available for long-press recovery while deletion
+   history exists.
+3. IF no marker exists strictly before `currentTime` within the active navigation scope, THEN a tap
+   on Remove_Previous_Marker_Control SHALL leave marker state unchanged.
 4. WHEN Remove_Previous_Marker_Control removes a marker, THE Studio_Store SHALL set `lastRemovedMarker`
    (enabling `redoLastMarker`) and clear `selectedMarker` only when it matched the removed marker, and
    THE Dock_Toast SHALL show a successful-removal message.
@@ -261,6 +258,11 @@ without ambiguity.
    markers from the active layer only and remove from that layer; otherwise it SHALL evaluate markers
    across all layers and remove from the layer that contains the removed marker, matching the existing
    navigation scope.
+6. WHEN one or more markers are deleted, THE Studio_Store SHALL retain a bounded deletion history
+   including each removed annotation, and an Undo toast action SHALL restore the latest deletion.
+7. WHEN the user long-presses Remove_Previous_Marker_Control, THE app SHALL offer restoration of the
+   latest deletion and deletion of all markers before the playhead; bulk deletion SHALL require a
+   destructive confirmation and SHALL itself be reversible.
 
 ### Requirement 6: Permanently visible marker navigation
 
@@ -539,7 +541,9 @@ without reading the whole screen.
    indicating that no change occurred and the reason, and SHALL NOT display a success message.
 10. IN both orientations, THE Dock_Toast SHALL anchor directly above the Loop_Overview on the canvas
     side, rendering as a non-layout overlay that causes zero change to the rendered position or size
-    of the waveform, overview, annotation field, or Control_Dock.
+    of the waveform, overview, annotation callout, or Control_Dock.
+11. WHEN a reversible deletion succeeds, THE Dock_Toast MAY remain visible for up to five seconds
+    and SHALL expose one labelled Undo action.
 
 ### Requirement 16: Responsive portrait and landscape layout
 
@@ -556,8 +560,9 @@ I never have to scroll sideways to reach a control.
 3. WHERE the layout is the landscape phone rail, THE Control_Dock SHALL render all controls inside the
    single container with `testID="landscape-control-rail"`.
 4. IN portrait, THE Control_Dock SHALL render exactly two rows of eight columns and a contiguous 2×2
-   Play_Pause_Control block; IN landscape, it SHALL render three two-column rows above a full-width
-   Play_Pause_Control that is two ordinary rows tall, followed by three two-column rows below it.
+   Play_Pause_Control block; IN landscape, it SHALL render Previous/Next, Add/Remove Previous, and
+   Inner Loop/Annotation as three two-column rows above a full-width Play_Pause_Control that is two
+   ordinary rows tall, followed by Repeat/Speed, First Track/Shuffle, and Previous Track/Next Track.
 5. WHILE the Control_Dock is displayed, THE Control_Dock SHALL constrain its own height so the waveform
    region retains at least its current phone rendered height, with no reduction to accommodate
    oversized controls.
@@ -608,21 +613,23 @@ consolidating the controls does not break how I work.
    the playhead or update the selection using the same mapping and threshold behaviour as before the
    consolidation, SHALL NOT create a marker, and SHALL continue playback from the new position when
    playback was active before the gesture.
-2. WHILE the Control_Dock is displayed, THE Control_Dock SHALL present the annotation field directly
-   below the Loop_Overview on the audio-canvas side in both orientations, preserving its input,
-   suggestion, save, and reopen behaviour and remaining above the keyboard and device safe areas.
+2. WHILE the Control_Dock is displayed, THE app SHALL omit the persistent compact annotation field.
+   Annotation_Control SHALL be enabled only while the playhead is within 100 milliseconds of a
+   marker and SHALL open a modal draft editor with explicit Save and Cancel actions.
 3. WHEN a user activates Add_Marker_Control, THE Control_Dock SHALL create or toggle a marker only
    through that control per Requirement 4, keeping marker mutation exclusive to the marker controls.
 4. IF a user taps or drags on the gutter or wrapped-waveform display, THEN THE Control_Dock SHALL NOT
    create a marker and SHALL leave the total marker count unchanged.
 5. WHILE audio is loaded, THE Control_Dock SHALL render the Loop_Overview strip (testID
-   `loop-overview`) above the portrait annotation field and dock, or at the bottom of the expanded
-   landscape audio canvas to the left of the control rail, visible and responsive to its create,
+   `loop-overview`) above the portrait dock, or at the bottom of the expanded landscape audio canvas
+   to the left of the control rail, visible and responsive to its create,
    move, resize, toggle, clear, and restore interactions.
 6. WHILE no audio is loaded, THE Control_Dock SHALL render neither the Loop_Overview strip nor its
    clear/restore action.
 7. ON an iPhone layout, THE bottom dock row SHALL remain above the device bottom safe area and curved
    corners without clipping any button.
+8. WHEN the current marker has an annotation, THE app SHALL render a centered, bounded two-line
+   callout above the Loop_Overview with tail truncation; activating it SHALL reopen the modal editor.
 
 ## Out of Scope
 
@@ -654,7 +661,7 @@ below so the rationale is preserved alongside the requirements that implement it
    consistent with the Reserved_Control accessible pattern. It is never silently inert.
 3. **Toast placement (Requirement 15).** In both orientations the Dock_Toast anchors directly above
    the Loop_Overview on the canvas side as a non-layout overlay that does not shift the waveform,
-   overview, annotation field, or dock.
+   overview, annotation callout, or dock.
 4. **Reserved_Control accessible pattern (Requirements 7 and 17).** Each Reserved_Control, and the
    pre-engine Playback_Speed_Control, is a pressable button (role button, not natively disabled) whose
    accessibility description and state announce "coming soon" (reserved / in development), distinct

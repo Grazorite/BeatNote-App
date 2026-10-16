@@ -5,6 +5,11 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Align startup settings, project/audio actions, and CSV import/export with the one-lane V1 UX:
+      start with settings closed, distinguish raw audio from saved Projects, expose CSV-only I/O,
+      report marker counts instead of hidden layers, and explain the remaining BPM behavior
+      <sub>**Key Artifacts:** `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ImportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `tests/ui-components.spec.ts`, `tests/unit/projectManager.wrapped.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
 - [x] Clean up the V1 settings drawer so it exposes only Help & Shortcuts and BPM while preserving
       hidden state and project-schema fields for compatibility
       <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/HelpButton.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
@@ -127,6 +132,47 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-15 — Align V1 startup and project data actions
+
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `uncommitted`
+**Kanban moved:** Align startup settings, project/audio actions, and CSV import/export → Done
+
+**Changed:**
+
+- Start phone sessions with the settings drawer closed and use a settings gear for reopening it.
+- Replaced the ambiguous song/folder pairing with a music-file action for choosing raw audio and a
+  library action labelled Projects for saved BeatNote projects; replacing audio now warns that
+  existing markers and annotations retain their timestamps.
+- Made V1 import/export explicitly CSV-only, removed the MIDI choice from the V1 export surface,
+  report marker counts rather than hidden layer counts, and surface imported/skipped-row totals.
+- Renamed BPM to Project BPM and documented its live uses in musical timing and beat-sized loop
+  adjustments; the fixed phone waveform layout remains independent of BPM.
+- Updated help copy, persistence summaries, web/unit coverage, and native workflows to match the
+  single annotation-lane V1 product surface while preserving multi-layer and MIDI internals.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean; unit gate → 118 passed across 11 suites.
+- Focused Playwright V1 startup/settings toolbar workflow → 1/1 passed.
+- Native CSV import/share and project save/restore workflows passed in the latest aggregate on
+  iPhone 17 Pro / iOS 26.2.
+- Focused native launch/settings/audio-picker workflow → 1/1 passed; result bundle
+  `ios/build/BeatNoteUITests-1792044180964.xcresult`.
+
+**Not verified / known gaps:**
+
+- The full Playwright aggregate is 15/16 because the concurrent dock workflow cannot find its new
+  `annotation-glass` assertion; the focused V1 workflow passes.
+- The full native aggregate is 8/14: six tests, including the launch workflow, were killed by the
+  simulator rather than reporting assertion failures; the focused V1 launch rerun passes.
+- The repository remains uncommitted with the previously documented dock/loop work and this V1
+  cleanup; no unrelated dirty changes were reverted.
+
+**Next agent should:**
+
+- Resolve the concurrent dock/glass test instability, rerun both full aggregates, then continue the
+  physical-device acceptance checklist.
 
 ### 2026-10-15 — Complete landscape dock refinements
 
@@ -1817,3 +1863,150 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - [x] Author the `playback-marker-control-dock` feature spec — requirements, design, and task plan for consolidating the two phone control rows into one two-row eight-column dock (dominant 2×2 play/pause, tri-state inner-loop control, independent repeat, whole-song range auto-init, reserved playlist/shuffle placeholders, playback-speed button contract, shared transient toast). Specification only; no production code or tests changed.
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/requirements.md`, `.kiro/specs/playback-marker-control-dock/design.md`, `.kiro/specs/playback-marker-control-dock/tasks.md`, `.kiro/specs/playback-marker-control-dock/.config.kiro`</sub>
+
+#### Archived Done item — unloaded waveform prompt
+
+- [x] Simplify the unloaded phone waveform prompt to “Load a song” and center it within the full
+      available timeline workspace
+      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-10-15 — Center the unloaded waveform prompt
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Center and simplify the unloaded wrapped-waveform empty state → Done
+
+**Changed:**
+
+- Shortened the empty-state message from “Load a song to view the wrapped timeline” to “Load a song”.
+- Made the phone placeholder flex into the available waveform workspace, removing the fixed-height
+  appearance and centering the message horizontally and vertically.
+- Added browser geometry coverage for exact centering within the unloaded waveform container.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean.
+- Focused Playwright V1 startup/settings workflow → 1/1 passed, including center-point geometry at
+  393×852.
+
+**Not verified / known gaps:**
+
+- Native simulator visual inspection was not rerun for this small flexbox/copy-only refinement.
+- The repository remains uncommitted with the previously documented dock/loop and V1 cleanup work;
+  no unrelated dirty changes were reverted.
+
+**Next agent should:**
+
+- Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
+  continue the physical-device acceptance checklist.
+
+#### Archived Done item — terminal loop-range playback and endpoint geometry
+
+- [x] Fix terminal loop-range playback and endpoint geometry: song-end ranges wrap after native
+      completion, endpoint grips remain fully visible, and the track retains exact full-song mapping
+      <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `src/hooks/useAudioPlayer.ts`, `src/components/ui/controls/LoopRangeLayer.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/utils/loopRange.ts`, `tests/ui-components.spec.ts`, `tests/unit/loopRange.test.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+### 2026-10-15 — Fix terminal loop and endpoint grip
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `cf652dc`
+**Kanban moved:** Terminal range loop and endpoint handle correction → Done
+
+**Changed:**
+
+- Kept the range body mapped to the exact 0%/100% track endpoints while insetting only the
+  eight-pixel endpoint grips, preventing the end grip from being covered by the adjacent action.
+- Added Expo Audio completion-state handling and deferred the broader end-of-track pause path for an
+  armed terminal range, so a range ending at songDuration wraps instead of stopping at 2:29.
+- Centralised endpoint-visible playhead projection in a tested utility and removed a timing-sensitive
+  browser gesture assertion while retaining direct geometry coverage.
+- Updated the loop-range requirements, design, and completed task record for the corrected contract.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 119/119 passed across 11 suites; full Playwright gate → 16/16 passed.
+- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2;
+  result bundle `ios/build/BeatNoteUITests-1792045957150.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device audible boundary quality and VoiceOver remain pending.
+- The correction is committed in `cf652dc`; it and earlier commits `ba06384` / `adb2f54` remain
+  local because the remote destination still requires explicit ownership approval.
+
+**Next agent should:**
+
+- Push the three local commits after the user explicitly confirms the `Grazorite/BeatNote-App`
+  GitHub destination, preserving the unrelated concurrent icon/control worktree edits.
+
+#### Archived Done item — overview and glass control polish
+
+- [x] Polish the loaded overview and mobile lower controls: remove the action-slot gap, retain the
+      end-of-song playhead, and add restrained glass gradients plus roomier annotation padding
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/styles/components/controls/loopRangeOverview.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+### 2026-10-15 — Polish overview and glass controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `ba06384`
+**Kanban moved:** Overview/action alignment and lower-control polish → Done
+
+**Changed:**
+
+- Removed spacing between the overview track and its fixed action slot while keeping the disabled
+  trash control visible before a range exists.
+- Inset the overview playhead by two pixels at both endpoints so it remains visible at song end.
+- Added restrained diagonal glass gradients behind the annotation and dock surfaces, increased
+  annotation horizontal padding, and preserved popup overflow above the dock.
+- Narrowed the native dock/range check to deterministic geometry and state assertions; loop-boundary
+  calculations remain covered by the dedicated unit/property suite.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Full Playwright gate → 16/16 passed.
+- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2;
+  result bundle `ios/build/BeatNoteUITests-1792045036902.xcresult`.
+
+**Not verified / known gaps:**
+
+- The final glass intensity and spacing still need the user's simulator visual review.
+- Physical-device VoiceOver, touch comfort, software-keyboard behavior, and sustained drag/playback
+  performance remain open.
+- The implementation, specs, tests, and accumulated V1 cleanup are committed in `ba06384`.
+
+**Next agent should:**
+
+- Relaunch the app for the user's simulator visual pass, then continue physical-device acceptance.
+#### Archived Done item — unloaded annotation spacing
+
+- [x] Add an 8-point gap above the phone dock and keep the annotation field blank and non-interactive
+      until audio is loaded
+      <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-10-15 — Refine the unloaded annotation field
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Add breathing room and silence the unloaded annotation field → Done
+
+**Changed:**
+
+- Added an 8-point portrait gap between the annotation field and the control dock; landscape retains
+  its compact zero-bottom-margin rail layout.
+- Removed the redundant unloaded annotation placeholder and blocked pointer interaction until a song
+  is loaded, while retaining the existing disabled input semantics.
+- Added browser coverage for the blank placeholder, non-editable state, and minimum dock spacing.
+
+**Verified:**
+
+- `npx tsc --noEmit` → clean.
+- Focused Playwright V1 startup/settings workflow → 1/1 passed at 393×852.
+
+**Not verified / known gaps:**
+
+- Native simulator visual inspection was not rerun for this small spacing and disabled-state change.
+- The repository remains uncommitted with the previously documented dock/loop and V1 cleanup work;
+  no unrelated dirty changes were reverted.
+
+**Next agent should:**
+
+- Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
+  continue the physical-device acceptance checklist.

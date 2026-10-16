@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, Alert, Platform } from 'react-nati
 import { ExportEngine } from '../../../utils/exportEngine';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
+import GlassBackdrop from '../controls/GlassBackdrop';
 
 interface ExportModalProps {
   visible: boolean;
@@ -64,6 +65,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+          <GlassBackdrop gradientId="export-modal-glass" radius={16} testID="export-modal-glass" />
           <Text style={styles.title}>
             Export CSV
           </Text>
@@ -86,7 +88,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               Export CSV
             </Text>
             <Text style={styles.buttonSubtext}>
-              Includes timestamps, musical timing, and annotations
+              Includes timestamps, BPM-derived bar:beat timing, and annotations
             </Text>
           </TouchableOpacity>
           

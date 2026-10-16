@@ -76,4 +76,45 @@ describe('dock marker removal actions', () => {
     expect(store.getState().allLayersData.find(layer => layer.id === 'vocals')?.markers).toEqual([1000, 3000]);
     expect(store.getState().lastRemovedMarker).toEqual({ layerId: 'vocals', timestamp: 1000 });
   });
+
+  it('restores a deleted marker together with its annotation', () => {
+    const store = freshStore();
+    store.setState(state => ({
+      currentTime: 2000,
+      layerSpecificNavigation: true,
+      activeLayerId: 'vocals',
+      allLayersData: state.allLayersData.map(layer => layer.id === 'vocals'
+        ? { ...layer, markers: [1000], annotations: [{ timestamp: 1000, text: 'Turn' }] }
+        : layer),
+    }));
+
+    store.getState().removeLastMarker();
+    expect(store.getState().allLayersData.find(layer => layer.id === 'vocals')).toMatchObject({
+      markers: [],
+      annotations: [],
+    });
+    store.getState().restoreLastMarkerDeletion();
+    expect(store.getState().allLayersData.find(layer => layer.id === 'vocals')).toMatchObject({
+      markers: [1000],
+      annotations: [{ timestamp: 1000, text: 'Turn' }],
+    });
+  });
+
+  it('deletes every marker before the playhead across layers and restores the batch', () => {
+    const store = freshStore();
+    store.setState(state => ({
+      allLayersData: state.allLayersData.map(layer => layer.id === 'vocals'
+        ? { ...layer, markers: [500, 1500, 2500], annotations: [{ timestamp: 500, text: 'Start' }] }
+        : layer.id === 'drums'
+          ? { ...layer, markers: [1000, 3000] }
+          : layer),
+    }));
+
+    expect(store.getState().deleteMarkersBefore(2000)).toBe(3);
+    expect(store.getState().allLayersData.find(layer => layer.id === 'vocals')?.markers).toEqual([2500]);
+    expect(store.getState().allLayersData.find(layer => layer.id === 'drums')?.markers).toEqual([3000]);
+    store.getState().restoreLastMarkerDeletion();
+    expect(store.getState().allLayersData.find(layer => layer.id === 'vocals')?.markers).toEqual([500, 1500, 2500]);
+    expect(store.getState().allLayersData.find(layer => layer.id === 'drums')?.markers).toEqual([1000, 3000]);
+  });
 });

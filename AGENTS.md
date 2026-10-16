@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-16
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
 (Playwright E2E)
@@ -52,9 +52,9 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV exposed in V1; MIDI retained for V2; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and cache tests preserved |
 | Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
-| Unit tests | 119 passing (11 suites) |
+| Unit tests | 126 passing (13 suites) |
 | iOS UI tests | Latest aggregate: 8/14 passed and 6 simulator tests were signal-killed; focused dock/range and V1 launch checks pass |
-| E2E spec files | 4 (Playwright, 16/16 passing) |
+| E2E spec files | 4 (Playwright, 17/17 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -81,7 +81,6 @@ potentially adding a hybrid path later.
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
 | `context-gatherer` (sub-agent) | Codebase investigation before edits | Dispatch before touching unfamiliar paths |
-| `DSH-Qwen Leonardo` (local design worker) | Bounded icon-system concept pass | Propose a modern, quirky custom icon language after the scoped icon audit |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -103,8 +102,6 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Modernise the complete button icon set and document reusable custom-icon design principles;
-      preserve existing semantics, accessibility labels, and control-state behavior
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -119,26 +116,27 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
-- [x] Fix terminal loop-range playback and endpoint geometry: song-end ranges wrap after native
-      completion, endpoint grips remain fully visible, and the track retains exact full-song mapping
-      <sub>**Key Artifacts:** `.kiro/specs/loop-range-overview/`, `src/hooks/useAudioPlayer.ts`, `src/components/ui/controls/LoopRangeLayer.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/utils/loopRange.ts`, `tests/ui-components.spec.ts`, `tests/unit/loopRange.test.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+- [x] Establish a typed colour-theme foundation with a registered immutable dark palette, semantic
+      contract, compatibility access, and explicit rules for adding palettes and runtime switching
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/styles/theme.ts`, `src/styles/common.ts`, `tests/unit/theme.test.ts`</sub>
 
-- [x] Polish the loaded overview and mobile lower controls: remove the action-slot gap, retain the
-      end-of-song playhead, and add restrained glass gradients plus roomier annotation padding
-      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/styles/components/controls/loopRangeOverview.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+- [x] Replace the compact mobile annotation field with marker-gated modal editing, a bounded
+      selected-marker callout, reversible marker deletion, the agreed portrait/landscape dock order,
+      safe-area project padding, and orientation-stable glass sizing
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/hooks/useDockToast.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/modals/annotationEditorModal.ts`, `src/utils/markerSelection.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/unit/markerSelection.test.ts`, `tests/unit/studioStore.innerLoop.test.ts`, `tests/waveform-features.spec.ts`</sub>
 
-- [x] Add an 8-point gap above the phone dock and keep the annotation field blank and non-interactive
-      until audio is loaded
-      <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+- [x] Unify portrait/landscape media glass and every custom menu, then correct annotation dots,
+      full-field glass, long-text overflow, and unloaded media-control states
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ErrorModal.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/styles/common.ts`, `src/styles/components/`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
-- [x] Simplify the unloaded phone waveform prompt to “Load a song” and center it within the full
-      available timeline workspace
-      <sub>**Key Artifacts:** `src/components/ui/waveform/WrappedWaveform.tsx`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/ui-components.spec.ts`</sub>
+- [x] Bring transient dock popups into the liquid-glass family, center wrapped-row gutter timestamps,
+      and describe the V1 CSV's BPM-derived timing precisely
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/design.md`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/controls/controlDock.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
-- [x] Align startup settings, project/audio actions, and CSV import/export with the one-lane V1 UX:
-      start with settings closed, distinguish raw audio from saved Projects, expose CSV-only I/O,
-      report marker counts instead of hidden layers, and explain the remaining BPM behavior
-      <sub>**Key Artifacts:** `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ImportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/projectManager.ts`, `tests/ui-components.spec.ts`, `tests/unit/projectManager.wrapped.test.ts`, `tests/unit/studioStore.wrapped.test.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+- [x] Modernise and refine every button icon with a shared custom BeatNote family, including the
+      single-note audio glyph, thin open repeat grammar, bounded-range cue, invariant marker sizing,
+      solid rounded transport, and subdued active/operation fills
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/`, `src/components/icons/`, `src/components/layout/StemsView.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/`, `src/components/ui/screens/HelpScreen.tsx`</sub>
 
 ---
 
@@ -214,167 +212,186 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-10-15 — Fix terminal loop and endpoint grip
+### 2026-10-16 — Establish the colour-theme foundation
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `cf652dc`
-**Kanban moved:** Terminal range loop and endpoint handle correction → Done
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Typed colour-theme foundation → Done
 
 **Changed:**
 
-- Kept the range body mapped to the exact 0%/100% track endpoints while insetting only the
-  eight-pixel endpoint grips, preventing the end grip from being covered by the adjacent action.
-- Added Expo Audio completion-state handling and deferred the broader end-of-track pause path for an
-  armed terminal range, so a range ending at songDuration wraps instead of stopping at 2:29.
-- Centralised endpoint-visible playhead projection in a tested utility and removed a timing-sensitive
-  browser gesture assertion while retaining direct geometry coverage.
-- Updated the loop-range requirements, design, and completed task record for the corrected contract.
+- Added a typed, immutable `ThemeColors` contract, the registered `darkTheme`, a default-theme name,
+  and a pure palette accessor so future palettes must provide every semantic role.
+- Kept the existing `colors` export as a compatibility alias to the registered dark palette, avoiding
+  visual or behavioural churn while current module-level `StyleSheet` definitions remain static.
+- Documented palette registration, semantic-token use, contrast/state requirements, and the boundary
+  between today’s static palette and future runtime switching.
+
+**Verified:**
+
+- `git diff --check` and `npx tsc --noEmit` → clean.
+- Unit gate → 126/126 passed across 13 suites, including the new registry/immutability tests.
+- Full Playwright gate on port 8082 → 17/17 passed with the refactor preserving current rendering.
+
+**Not verified / known gaps:**
+
+- Dark remains the only complete palette; no user-facing theme selector or runtime provider was added.
+- Existing colour literals outside the central palette remain migration debt and should move to
+  semantic tokens when those components are next changed.
+- The repository remains uncommitted with this work and the prior user-approved icon/glass changes.
+
+**Next agent should:**
+
+- Continue physical-device acceptance; add a second complete palette before introducing runtime
+  theme selection or theme-aware style factories.
+
+### 2026-10-16 — Replace compact annotations and harden marker deletion
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Marker-gated annotations, reversible deletion, and responsive dock refinement → Done
+
+**Changed:**
+
+- Replaced the compact phone annotation field with a dock action enabled only at a nearby marker,
+  a native-stable modal draft editor with explicit Save/Cancel, and a bounded two-line callout above
+  the overview. The callout uses a darker but still translucent liquid-glass surface.
+- Added bounded marker-deletion history that preserves annotations, an actionable Undo toast, and a
+  long-press menu for restoring the latest deletion or deleting all earlier markers with confirmation.
+- Applied the exact portrait/landscape button order, standardised marker glyph size, reclaimed the
+  removed landscape annotation-row height, added safe-area-aware Projects/Close padding, and made
+  glass backdrops remeasure after rotation.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and unit gate → clean; 123/123 tests passed across 12 suites.
+- Full Playwright gate → 17/17 passed, including annotation modal/callout, Undo, Projects padding,
+  exact dock order, and portrait-landscape-portrait glass geometry.
+- Focused native annotation test typed `Live marker note` character by character and passed; focused
+  native landscape/orientation workflow passed on iPhone 17 Pro / iOS 26.2.
+- Device Hub visual review confirmed the expanded unloaded landscape canvas, safe Projects/Close
+  insets, and a full-width portrait dock after returning from landscape.
+
+**Not verified / known gaps:**
+
+- Physical-device VoiceOver, touch comfort, and keyboard acceptance remain pending.
+- The repository remains uncommitted with this work and the prior user-approved icon/glass changes.
+
+**Next agent should:**
+
+- Continue the active physical-device acceptance checklist, especially VoiceOver actions and
+  long-press deletion comfort on hardware.
+
+### 2026-10-16 — Unify glass surfaces and annotation states
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Full-surface liquid-glass and annotation/unloaded-state cleanup → Done
+
+**Changed:**
+
+- Confirmed portrait and landscape media controls share `GlassBackdrop`, then extended the same
+  restrained material to Settings, Help, Projects, Save, Import, Export, and app error panels.
+- Replaced unrelated blue/green modal fills and harsh borders with shared glass, subtle highlights,
+  BeatNote orange primary actions, neutral glass actions, and semantic destructive actions.
+- Made annotated-marker indicators violet and borderless, moved annotation glass into the field's
+  exact bounds, and added tail truncation while idle with normal horizontal scrolling while editing.
+- Disabled every media/dock action until audio is loaded, including reserved track, shuffle, speed,
+  and previous-marker removal controls; essential Load Audio, Projects, and Settings remain usable.
 
 **Verified:**
 
 - `npx tsc --noEmit` and `git diff --check` → clean.
-- Unit gate → 119/119 passed across 11 suites; full Playwright gate → 16/16 passed.
-- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2;
-  result bundle `ios/build/BeatNoteUITests-1792045957150.xcresult`.
+- Unit gate → 119/119 passed across 11 suites; full Playwright gate → 17/17 passed.
+- Device Hub loaded the refreshed 1,325-module native bundle; portrait Settings and Projects glass
+  panels were visually inspected. Landscape dock use of the shared backdrop is code- and browser-verified.
 
 **Not verified / known gaps:**
 
-- Physical-device audible boundary quality and VoiceOver remain pending.
-- The correction is committed in `cf652dc`; it and earlier commits `ba06384` / `adb2f54` remain
-  local because the remote destination still requires explicit ownership approval.
+- The new native iOS assertions were not run through Xcode; physical-device VoiceOver, keyboard,
+  and touch-comfort acceptance remain pending.
+- The repository remains uncommitted with the user's concurrent icon work and prior polish changes.
 
 **Next agent should:**
 
-- Push the three local commits after the user explicitly confirms the `Grazorite/BeatNote-App`
-  GitHub destination, preserving the unrelated concurrent icon/control worktree edits.
-### 2026-10-15 — Polish overview and glass controls
+- Run focused native launch/annotation/orientation tests, then continue physical-device acceptance.
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `ba06384`
-**Kanban moved:** Overview/action alignment and lower-control polish → Done
-
-**Changed:**
-
-- Removed spacing between the overview track and its fixed action slot while keeping the disabled
-  trash control visible before a range exists.
-- Inset the overview playhead by two pixels at both endpoints so it remains visible at song end.
-- Added restrained diagonal glass gradients behind the annotation and dock surfaces, increased
-  annotation horizontal padding, and preserved popup overflow above the dock.
-- Narrowed the native dock/range check to deterministic geometry and state assertions; loop-boundary
-  calculations remain covered by the dedicated unit/property suite.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean.
-- Full Playwright gate → 16/16 passed.
-- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2;
-  result bundle `ios/build/BeatNoteUITests-1792045036902.xcresult`.
-
-**Not verified / known gaps:**
-
-- The final glass intensity and spacing still need the user's simulator visual review.
-- Physical-device VoiceOver, touch comfort, software-keyboard behavior, and sustained drag/playback
-  performance remain open.
-- The implementation, specs, tests, and accumulated V1 cleanup are committed in `ba06384`.
-
-**Next agent should:**
-
-- Relaunch the app for the user's simulator visual pass, then continue physical-device acceptance.
-
-### 2026-10-15 — Refine the unloaded annotation field
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Add breathing room and silence the unloaded annotation field → Done
-
-**Changed:**
-
-- Added an 8-point portrait gap between the annotation field and the control dock; landscape retains
-  its compact zero-bottom-margin rail layout.
-- Removed the redundant unloaded annotation placeholder and blocked pointer interaction until a song
-  is loaded, while retaining the existing disabled input semantics.
-- Added browser coverage for the blank placeholder, non-editable state, and minimum dock spacing.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean.
-- Focused Playwright V1 startup/settings workflow → 1/1 passed at 393×852.
-
-**Not verified / known gaps:**
-
-- Native simulator visual inspection was not rerun for this small spacing and disabled-state change.
-- The repository remains uncommitted with the previously documented dock/loop and V1 cleanup work;
-  no unrelated dirty changes were reverted.
-
-**Next agent should:**
-
-- Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
-  continue the physical-device acceptance checklist.
-
-### 2026-10-15 — Center the unloaded waveform prompt
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Center and simplify the unloaded wrapped-waveform empty state → Done
-
-**Changed:**
-
-- Shortened the empty-state message from “Load a song to view the wrapped timeline” to “Load a song”.
-- Made the phone placeholder flex into the available waveform workspace, removing the fixed-height
-  appearance and centering the message horizontally and vertically.
-- Added browser geometry coverage for exact centering within the unloaded waveform container.
-
-**Verified:**
-
-- `npx tsc --noEmit` → clean.
-- Focused Playwright V1 startup/settings workflow → 1/1 passed, including center-point geometry at
-  393×852.
-
-**Not verified / known gaps:**
-
-- Native simulator visual inspection was not rerun for this small flexbox/copy-only refinement.
-- The repository remains uncommitted with the previously documented dock/loop and V1 cleanup work;
-  no unrelated dirty changes were reverted.
-
-**Next agent should:**
-
-- Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
-  continue the physical-device acceptance checklist.
-
-### 2026-10-15 — Align V1 startup and project data actions
+### 2026-10-16 — Refine glass popups, gutters, and CSV wording
 
 **Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `uncommitted`
-**Kanban moved:** Align startup settings, project/audio actions, and CSV import/export → Done
+**Kanban moved:** Liquid-glass popups, centered gutters, and precise V1 CSV contents → Done
 
 **Changed:**
 
-- Start phone sessions with the settings drawer closed and use a settings gear for reopening it.
-- Replaced the ambiguous song/folder pairing with a music-file action for choosing raw audio and a
-  library action labelled Projects for saved BeatNote projects; replacing audio now warns that
-  existing markers and annotations retain their timestamps.
-- Made V1 import/export explicitly CSV-only, removed the MIDI choice from the V1 export surface,
-  report marker counts rather than hidden layer counts, and surface imported/skipped-row totals.
-- Renamed BPM to Project BPM and documented its live uses in musical timing and beat-sized loop
-  adjustments; the fixed phone waveform layout remains independent of BPM.
-- Updated help copy, persistence summaries, web/unit coverage, and native workflows to match the
-  single annotation-lane V1 product surface while preserving multi-layer and MIDI internals.
+- Reused `GlassBackdrop` for the dock toast and playback-speed chooser, adding a lighter translucent
+  toast variant with 12-point corners and a subtle 10%-white highlight instead of the saturated teal
+  toast outline.
+- Centered every wrapped-row timestamp horizontally and vertically within its full-height gutter box.
+- Replaced the vague CSV claim with the exact current behavior: timestamps, BPM-derived 4-beat
+  `bar:beat` timing, and annotations; Help and Export now use matching wording.
+- Documented the liquid-glass popup rule in durable styling guidance and the dock design.
 
 **Verified:**
 
-- `npx tsc --noEmit` → clean; unit gate → 118 passed across 11 suites.
-- Focused Playwright V1 startup/settings toolbar workflow → 1/1 passed.
-- Native CSV import/share and project save/restore workflows passed in the latest aggregate on
-  iPhone 17 Pro / iOS 26.2.
-- Focused native launch/settings/audio-picker workflow → 1/1 passed; result bundle
-  `ios/build/BeatNoteUITests-1792044180964.xcresult`.
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 119/119 passed across 11 suites.
+- Focused phone dock/workspace Playwright workflows → 2/2 passed; full Playwright gate → 17/17 passed.
 
 **Not verified / known gaps:**
 
-- The full Playwright aggregate is 15/16 because the concurrent dock workflow cannot find its new
-  `annotation-glass` assertion; the focused V1 workflow passes.
-- The full native aggregate is 8/14: six tests, including the launch workflow, were killed by the
-  simulator rather than reporting assertion failures; the focused V1 launch rerun passes.
-- The repository remains uncommitted with the previously documented dock/loop work and this V1
-  cleanup; no unrelated dirty changes were reverted.
+- Native simulator visual inspection was not rerun; native CSV copy coverage was updated for the next
+  aggregate.
+- Routine native success alerts and system pickers/share sheets retain platform styling; this change
+  targets the custom transient dock popup family.
+- The repository remains uncommitted with the user's concurrent icon-proportion work and this polish;
+  no unrelated dirty changes were reverted.
 
 **Next agent should:**
 
-- Resolve the concurrent dock/glass test instability, rerun both full aggregates, then continue the
-  physical-device acceptance checklist.
+- Run the native visual/VoiceOver acceptance pass, then continue the active full-surface glass work.
+
+### 2026-10-15 — Create and refine the BeatNote icon family
+
+**Agent:** orchestrator (Codex) + context-gatherer + DSH-Qwen Leonardo concept pass · **Commit(s):** `uncommitted`
+**Kanban moved:** Modernise and simplify every button icon; define custom-icon principles → Done
+
+**Changed:**
+
+- Added a central 24×24 `BeatNoteIcon` SVG family spanning project/data actions, transport,
+  choreography markers, loop utilities, disclosure/view controls, and annotation-layer instruments,
+  then simplified the first concept pass to iOS-inspired monoline geometry and stronger negative space.
+- Refined the set from the user's visual references: reduced audio loading to one music note, restored
+  a familiar save-file silhouette, enlarged CSV direction arrows, rounded and filled transport
+  geometry, and unified every marker action around one single-border shield silhouette.
+- Made add/remove marker operations subdued green/red without cramped `+`/`−` cues, made
+  remove-previous a red shield with its left arrow on the right, preserved one full-size shield in
+  every navigation composite, and placed marker or `•—•` bounded-range cues inside the thin open
+  repeat chassis.
+- Added a muted control-state orange distinct from the brighter timeline/brand accent and applied it
+  consistently to filled active buttons and selected segmented controls.
+- Replaced every current button's direct Lucide use while retaining numeric BPM/speed controls as
+  text, existing button chrome, test IDs, accessible names/states, and control behavior.
+- Codified the rounded 1.75-point outline, one-silhouette/one-modifier limit, optical balance,
+  small-size legibility, and accessibility requirements in durable steering; primary transport
+  glyphs use simple solid geometry while detailed decorative motifs are explicitly avoided.
+- Updated the playback-dock design/task record to make the shared custom family the ongoing source
+  for dock glyphs. DSH task `session-cb84715b-2187-4e71-9b6b-83ec0b16139b` supplied the bounded
+  first-pass concepts; Codex retained the clearer bookmark language for marker navigation.
+
+**Verified:**
+
+- `git diff --check`, `npx tsc --noEmit`, and the unit gate → clean; 119/119 tests passed across 11 suites.
+- Elevated full Playwright gate on port 8082 → 17/17 passed.
+- Desktop browser visual inspection of unloaded and fixture-loaded states → the toolbar and dock
+  render the single note, open repeat chassis, solid rounded transport, invariant marker shields,
+  subdued state colours, and the compact bounded-range cue at actual control size.
+- Browser assertions confirm add-marker transitions green add → red remove → green add while the
+  existing repeat/inner-loop behavior and accessible state checks remain intact.
+
+**Not verified / known gaps:**
+
+- Native simulator and physical-iPhone visual/VoiceOver review were not rerun for the icon-only change.
+- The icon work remains uncommitted; three earlier local commits remain unpushed pending explicit
+  confirmation of the GitHub destination documented in the preceding handover.
+
+**Next agent should:**
+
+- Continue physical-device visual/VoiceOver acceptance for the completed icon family.
 

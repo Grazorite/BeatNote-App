@@ -1,32 +1,37 @@
 import { StyleSheet } from 'react-native';
+import { colors, dimensions } from '../../common';
 
 export const saveProjectModalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   container: {
-    backgroundColor: '#333333',
-    borderRadius: 12,
+    position: 'relative',
+    backgroundColor: 'transparent',
+    borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    overflow: 'hidden',
   },
   title: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
   },
   textInput: {
-    backgroundColor: '#222222',
-    color: '#ffffff',
+    backgroundColor: colors.surfaceGlassStrong,
+    color: colors.text,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadius,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
     marginBottom: 20,
     fontSize: 16,
   },
@@ -36,20 +41,23 @@ export const saveProjectModalStyles = StyleSheet.create({
   },
   button: {
     padding: 12,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadius,
     flex: 1,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   cancelButton: {
-    backgroundColor: '#666666',
+    backgroundColor: colors.surfaceGlass,
   },
   saveButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.accent,
+    borderColor: colors.borderEmphasis,
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.text,
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',

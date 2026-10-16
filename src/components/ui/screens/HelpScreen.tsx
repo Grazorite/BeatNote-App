@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
-import { HelpCircle } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
+import GlassBackdrop from '../controls/GlassBackdrop';
+import { colors } from '../../../styles/common';
 
 interface HelpScreenProps {
   visible: boolean;
@@ -18,9 +20,10 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
+      <GlassBackdrop gradientId="help-modal-glass" radius={16} testID="help-modal-glass" />
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <HelpCircle size={24} color="#ff6600" />
+          <BeatNoteIcon name="help" size={24} color={colors.accent} />
           <Text style={styles.title}>
             BeatNote Help
           </Text>
@@ -77,7 +80,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose }) => {
 
         <Section title="Export Options">
           <Text style={styles.text}>
-            • <Text style={styles.boldText}>CSV Export:</Text> timestamps, musical timing, and annotations
+            • <Text style={styles.boldText}>CSV Export:</Text> timestamps, BPM-derived bar:beat timing, and annotations
           </Text>
           <Text style={styles.text}>
             On iOS, choose a destination from the share sheet. Web exports download to your browser.

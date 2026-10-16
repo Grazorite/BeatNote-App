@@ -1,66 +1,73 @@
 import { StyleSheet } from 'react-native';
+import { colors, dimensions } from '../../common';
 
 export const exportModalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   container: {
-    backgroundColor: '#333333',
-    borderRadius: 12,
+    position: 'relative',
+    backgroundColor: 'transparent',
+    borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    overflow: 'hidden',
   },
   title: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
   },
   subtitle: {
-    color: '#cccccc',
+    color: colors.textSecondary,
     fontSize: 14,
     marginBottom: 20,
     textAlign: 'center',
   },
   exportButton: {
     padding: 16,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadius,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   midiButton: {
-    backgroundColor: '#ff6600',
+    backgroundColor: colors.accent,
   },
   csvButton: {
-    backgroundColor: '#0066cc',
+    backgroundColor: colors.accent,
   },
   importButton: {
-    backgroundColor: '#009944',
+    backgroundColor: colors.accent,
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.text,
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
   },
   buttonSubtext: {
-    color: '#cccccc',
+    color: colors.textSecondary,
     textAlign: 'center',
     fontSize: 12,
     marginTop: 4,
   },
   cancelButton: {
-    backgroundColor: '#666666',
+    backgroundColor: colors.surfaceGlass,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadius,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
 });

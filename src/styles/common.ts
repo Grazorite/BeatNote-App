@@ -1,35 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { darkTheme } from './theme';
 
-// Common colors
-export const colors = {
-  background: '#000000',
-  surface: '#111111',
-  border: '#333333',
-  text: '#ffffff',
-  textSecondary: '#999999',
-  accent: '#ff6600',
-  marker: '#c084fc',
-  success: '#00ff00',
-  loopTrack: '#222222',
-  loopEnabled: '#00d4c7',
-  loopDisabled: '#477a76',
-  loopHandle: '#e8fffd',
-  loopOutside: '#000000',
-  loopPlayhead: '#ff8c00',
-  
-  // Layer colors
-  vocals: '#ff6666',
-  drums: '#00ccff',
-  bass: '#bb66ff',
-  piano: '#ffcc00',
-  other: '#ff69b4',
-  
-  // Grid colors
-  gridMajor: '#ffffff',
-  gridMiddle: '#cccccc',
-  gridMinor: '#666666',
-  gridBackground: '#1a1a1a',
-};
+export {
+  DEFAULT_THEME_NAME,
+  darkTheme,
+  getThemeColors,
+  themes,
+} from './theme';
+export type { ThemeColors, ThemeName, ThemeScheme } from './theme';
+
+/** Current static palette. Runtime switching will replace this compatibility
+ * export after styles have been converted to theme-aware factories. */
+export const colors = darkTheme;
 
 // Responsive breakpoints
 export const breakpoints = {

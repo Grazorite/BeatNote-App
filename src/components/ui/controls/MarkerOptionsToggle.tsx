@@ -4,7 +4,7 @@ import Animated from 'react-native-reanimated';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useAnimatedCollapse } from '../../../hooks/useAnimatedCollapse';
 import ModernToggle from '../common/ModernToggle';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { markerOptionsToggleStyles as styles } from '../../../styles/components/controls/markerOptionsToggle';
 
 const MarkerOptionsToggle: React.FC = () => {
@@ -22,9 +22,9 @@ const MarkerOptionsToggle: React.FC = () => {
           Marker Options
         </Text>
         {isExpanded ? (
-          <ChevronUp size={20} color="#ffffff" />
+          <BeatNoteIcon name="chevron-up" size={20} />
         ) : (
-          <ChevronDown size={20} color="#ffffff" />
+          <BeatNoteIcon name="chevron-down" size={20} />
         )}
       </TouchableOpacity>
       {isExpanded && (

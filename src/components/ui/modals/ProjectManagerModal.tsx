@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, FlatList, TextInput, Alert, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProjectManager } from '../../../utils/projectManager';
 import { ProjectListItem } from '../../../types/project';
 import { projectManagerModalStyles as styles } from '../../../styles/components/modals/projectManagerModal';
+import GlassBackdrop from '../controls/GlassBackdrop';
+import { colors } from '../../../styles/common';
 
 interface ProjectManagerModalProps {
   visible: boolean;
@@ -15,6 +18,9 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   onClose,
   onLoadProject,
 }) => {
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingProject, setEditingProject] = useState<string | null>(null);
@@ -93,7 +99,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             value={newName}
             onChangeText={setNewName}
             placeholder="Project name"
-            placeholderTextColor="#888888"
+            placeholderTextColor={colors.textSecondary}
           />
           <View style={styles.editActions}>
             <TouchableOpacity
@@ -160,7 +166,14 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
+        <GlassBackdrop gradientId="projects-modal-glass" radius={0} testID="projects-modal-glass" />
+        <View style={[
+          styles.header,
+          isLandscape && {
+            paddingLeft: Math.max(20, insets.left + 12),
+            paddingRight: Math.max(20, insets.right + 12),
+          },
+        ]}>
           <Text style={styles.title}>
             Projects
           </Text>
@@ -172,7 +185,13 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <View style={[
+          styles.content,
+          isLandscape && {
+            paddingLeft: Math.max(20, insets.left + 12),
+            paddingRight: Math.max(20, insets.right + 12),
+          },
+        ]}>
           {loading ? (
             <Text style={styles.loadingText}>
               Loading projects...

@@ -1,3 +1,5 @@
+export { default as BeatNoteIcon } from './BeatNoteIcon';
+export type { BeatNoteIconName } from './BeatNoteIcon';
 export { default as MarkerIcon } from './MarkerIcon';
 export { default as MarkerAddIcon } from './MarkerAddIcon';
 export { default as MarkerRemoveIcon } from './MarkerRemoveIcon';

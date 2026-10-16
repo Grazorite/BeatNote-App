@@ -11,6 +11,7 @@ import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featur
 
 import HelpButton from '../ui/controls/HelpButton';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
+import GlassBackdrop from '../ui/controls/GlassBackdrop';
 
 const Sidebar: React.FC = () => {
   const isSidebarCollapsed = useStudioStore(state => state.isSidebarCollapsed);
@@ -54,6 +55,11 @@ const Sidebar: React.FC = () => {
         animatedStyle,
       ]}
     >
+      <GlassBackdrop
+        gradientId={isMobile ? 'settings-glass-mobile' : 'settings-glass-desktop'}
+        radius={isMobile ? 0 : 20}
+        testID="settings-glass"
+      />
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         <ScrollView 

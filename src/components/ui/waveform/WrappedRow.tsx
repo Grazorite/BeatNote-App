@@ -356,9 +356,9 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                   cx={cluster.x}
                   cy={ANNOTATION_INDICATOR_Y}
                   r={6}
-                  fill={first.color}
-                  stroke={colors.background}
-                  strokeWidth={2}
+                  fill={colors.marker}
+                  stroke="none"
+                  strokeWidth={0}
                   testID={`wrapped-row-annotation-${first.layerId}-${first.timestamp}`}
                 />
               );
@@ -377,7 +377,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                   height={ANNOTATION_BADGE_HEIGHT}
                   rx={ANNOTATION_BADGE_HEIGHT / 2}
                   fill={colors.surface}
-                  stroke={first.color}
+                  stroke={colors.marker}
                   strokeWidth={2}
                   testID={`wrapped-row-annotation-cluster-${row.index}-${clusterIndex}`}
                 />

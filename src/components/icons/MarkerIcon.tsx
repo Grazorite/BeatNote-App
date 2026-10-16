@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bookmark } from 'lucide-react-native';
+import BeatNoteIcon from './BeatNoteIcon';
 
 interface IconProps {
   size?: number;
@@ -7,7 +7,7 @@ interface IconProps {
 }
 
 const MarkerIcon: React.FC<IconProps> = ({ size = 20, color = '#ffffff' }) => (
-  <Bookmark size={size} color={color} />
+  <BeatNoteIcon name="marker" size={size} color={color} />
 );
 
 export default MarkerIcon;

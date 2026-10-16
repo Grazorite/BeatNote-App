@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   useDerivedValue
 } from 'react-native-reanimated';
+import { colors } from '../../../styles/common';
 
 interface SegmentedControlProps {
   options: string[];
@@ -22,7 +23,7 @@ const AnimatedSegmentedControl: React.FC<SegmentedControlProps> = ({
   selectedIndex,
   onSelectionChange,
   style,
-  activeColor = '#ff6600',
+  activeColor = colors.controlActive,
   inactiveColor = 'transparent',
   backgroundColor = '#222222'
 }) => {

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Brackets } from 'lucide-react-native';
 import { useShallow } from 'zustand/react/shallow';
-import { LoopMarkerIcon } from '../../icons';
+import { BeatNoteIcon, LoopMarkerIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
 import { deriveInnerLoopState } from '../../../utils/innerLoop';
@@ -44,7 +43,7 @@ const InnerLoopControl: React.FC<InnerLoopControlProps> = ({ onToast, compact })
   };
 
   const icon = current === 'range'
-    ? <Brackets testID="loop-range-icon" size={22} color={colors.text} />
+    ? <BeatNoteIcon testID="loop-range-icon" name="range-loop" size={22} color={colors.text} />
     : <LoopMarkerIcon
         testID="inner-loop-marker-icon"
         size={20}

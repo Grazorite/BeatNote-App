@@ -23,17 +23,19 @@ test.describe('UI Components & Layout', () => {
       expect(Math.abs(containerCenterX - messageCenterX)).toBeLessThan(2);
       expect(Math.abs(containerCenterY - messageCenterY)).toBeLessThan(2);
     }
-    const unloadedAnnotation = page.getByTestId('marker-annotation');
-    await expect(unloadedAnnotation).not.toBeEditable();
-    expect(await unloadedAnnotation.getAttribute('placeholder')).toBeNull();
-    const annotationBox = await unloadedAnnotation.boundingBox();
-    const dockBox = await page.getByTestId('portrait-control-dock').boundingBox();
-    expect(annotationBox).not.toBeNull();
-    expect(dockBox).not.toBeNull();
-    if (annotationBox && dockBox) {
-      expect(dockBox.y - (annotationBox.y + annotationBox.height)).toBeGreaterThanOrEqual(8);
+    await expect(page.getByTestId('marker-annotation')).toHaveCount(0);
+    for (const id of [
+      'navigate-left-marker', 'add-marker', 'navigate-right-marker', 'play-pause',
+      'repeat-toggle', 'inner-loop-cycle', 'shuffle-control', 'first-track-control',
+      'previous-track-control', 'next-track-control', 'playback-speed', 'remove-last-marker',
+      'annotation-control',
+    ]) {
+      await expect(page.getByTestId(id)).toBeDisabled();
     }
+    await expect(page.getByTestId('remove-last-marker').locator('svg path').first())
+      .toHaveAttribute('fill', '#999999');
     await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
     await expect(page.getByTestId('settings-bpm')).toBeVisible();
     await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
@@ -60,14 +62,14 @@ test.describe('UI Components & Layout', () => {
 
     await expect(page.getByTestId('control-dock')).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
-    await expect(page.getByTestId('annotation-glass')).toBeVisible();
+    await expect(page.getByTestId('marker-annotation')).toHaveCount(0);
     await expect(page.getByTestId('loop-region-toggle')).toHaveCount(0);
     await expect(page.getByTestId('loop-marker-toggle')).toHaveCount(0);
     for (const id of [
       'navigate-left-marker', 'add-marker', 'navigate-right-marker', 'play-pause',
       'repeat-toggle', 'inner-loop-cycle', 'shuffle-control', 'first-track-control',
       'previous-track-control', 'next-track-control', 'playback-speed',
-      'remove-last-marker', 'dock-empty-cell',
+      'remove-last-marker', 'annotation-control',
     ]) {
       await expect(page.getByTestId(id)).toBeVisible();
     }
@@ -89,6 +91,8 @@ test.describe('UI Components & Layout', () => {
     await expect(innerLoop).toHaveAttribute('aria-valuetext', 'markers');
     await expect(page.getByTestId('inner-loop-marker-icon')).toBeVisible();
     await expect(page.getByTestId('dock-toast')).toHaveText('Loop between markers');
+    await expect(page.getByTestId('dock-toast-glass')).toBeVisible();
+    await expect(page.getByTestId('dock-toast-glass').locator('rect').nth(1)).toHaveAttribute('stroke-opacity', '0.1');
     await innerLoop.click();
     await expect(innerLoop).toHaveAttribute('aria-valuetext', 'range');
     await expect(page.getByTestId('loop-range-icon').first()).toBeVisible();
@@ -99,19 +103,37 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('shuffle-control').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Shuffle is in development');
-    await page.getByTestId('remove-last-marker').click();
-    await expect(page.getByTestId('dock-toast')).toHaveText('No previous marker to delete');
+    await expect(page.getByTestId('remove-last-marker')).toBeDisabled();
+    await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#3a8f5b');
     await page.getByTestId('add-marker').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Marker added');
+    await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#b54a45');
     await page.getByTestId('add-marker').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Marker removed');
+    await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#3a8f5b');
     await page.getByTestId('repeat-toggle').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Repeat track on');
     await expect(page.getByTestId('repeat-track-icon').first()).toHaveAttribute('fill', 'none');
     await page.getByTestId('playback-speed').click();
+    await expect(page.getByTestId('playback-speed-glass')).toBeVisible();
     await page.getByRole('button', { name: 'Select 0.75× playback speed' }).click();
     await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
     await expect(page.getByTestId('dock-toast')).toHaveText('0.75× selected; playback speed is coming soon');
+
+    const portraitOrder = await page.evaluate(() => {
+      const x = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().x ?? 0;
+      return [x('annotation-control'), x('playback-speed'), x('remove-last-marker')];
+    });
+    expect(portraitOrder[0]).toBeLessThan(portraitOrder[1]);
+    expect(portraitOrder[1]).toBeLessThan(portraitOrder[2]);
+
+    await page.getByTestId('add-marker').click();
+    await page.getByTestId('navigate-right-marker').click();
+    await page.getByTestId('remove-last-marker').click();
+    await expect(page.getByTestId('dock-toast')).toContainText('Previous marker deleted');
+    await expect(page.getByTestId('dock-toast-action')).toHaveText('Undo');
+    await page.getByTestId('dock-toast-action').click();
+    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
     const toastBox = await page.getByTestId('dock-toast').boundingBox();
     const overviewBox = await page.getByTestId('loop-overview').boundingBox();
@@ -121,6 +143,7 @@ test.describe('UI Components & Layout', () => {
 
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
+    await expect(page.getByTestId('control-dock-glass')).toBeVisible();
     await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
     await expect(page.getByTestId('repeat-toggle')).toHaveAttribute('aria-pressed', 'true');
     const landscape = await page.evaluate(() => {
@@ -134,22 +157,24 @@ test.describe('UI Components & Layout', () => {
       const nextTrack = box('next-track-control');
       const repeat = box('repeat-toggle');
       const innerLoop = box('inner-loop-cycle');
+      const annotation = box('annotation-control');
       const speed = box('playback-speed');
       const shuffle = box('shuffle-control');
       const play = box('play-pause');
       const overview = box('loop-overview');
-      const annotation = box('marker-annotation');
       const rail = box('landscape-control-rail');
+      const glass = box('control-dock-glass');
       return {
         leftColumn: [previousMarker?.x, addMarker?.x, innerLoop?.x, repeat?.x, firstTrack?.x, previousTrack?.x],
-        rightColumn: [nextMarker?.x, removePrevious?.x, speed?.x, shuffle?.x, nextTrack?.x],
+        rightColumn: [nextMarker?.x, removePrevious?.x, annotation?.x, speed?.x, shuffle?.x, nextTrack?.x],
         rows: [previousMarker?.y ?? 0, addMarker?.y ?? 0, innerLoop?.y ?? 0, play?.y ?? 0, repeat?.y ?? 0, firstTrack?.y ?? 0, previousTrack?.y ?? 0],
         ordinary: previousMarker ? { width: previousMarker.width, height: previousMarker.height } : null,
         play: play ? { left: play.left, right: play.right, width: play.width, height: play.height } : null,
         overview: overview ? { right: overview.right, bottom: overview.bottom } : null,
-        annotation: annotation ? { y: annotation.y, bottom: annotation.bottom, left: annotation.left, right: annotation.right } : null,
+        annotation: annotation ? { y: annotation.y, left: annotation.left, right: annotation.right } : null,
         lastControlBottom: previousTrack?.bottom,
         rail: rail ? { top: rail.top, bottom: rail.bottom, left: rail.left, right: rail.right, width: rail.width } : null,
+        glass: glass ? { width: glass.width, height: glass.height } : null,
       };
     });
     expect(new Set(landscape.leftColumn).size).toBe(1);
@@ -166,8 +191,14 @@ test.describe('UI Components & Layout', () => {
     expect((landscape.ordinary?.width ?? 0) / (landscape.ordinary?.height ?? 1)).toBeLessThanOrEqual(1.2);
     expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeLessThanOrEqual(2);
     expect(landscape.overview?.right).toBeLessThanOrEqual((landscape.rail?.left ?? 0) + 1);
-    expect(landscape.annotation?.right).toBeLessThanOrEqual((landscape.rail?.left ?? 0) + 1);
-    expect(landscape.annotation?.y).toBeGreaterThanOrEqual((landscape.overview?.bottom ?? 0) - 2);
+    expect(landscape.annotation?.left).toBeGreaterThanOrEqual((landscape.rail?.left ?? 0) - 1);
+    expect(Math.abs((landscape.glass?.width ?? 0) - (landscape.rail?.width ?? 0))).toBeLessThanOrEqual(1);
+
+    await page.setViewportSize({ width: 393, height: 852 });
+    await expect(page.getByTestId('portrait-control-dock')).toBeVisible();
+    const portraitGlass = await page.getByTestId('control-dock-glass').boundingBox();
+    const portraitDock = await page.getByTestId('portrait-control-dock').boundingBox();
+    expect(portraitGlass?.width).toBeCloseTo(portraitDock?.width ?? 0, 0);
 
     await expect(page.getByTestId('previous-track-icon').locator('path')).toHaveCount(2);
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
@@ -192,7 +223,7 @@ test.describe('UI Components & Layout', () => {
       'loop-overview',
       'play-pause',
       'add-marker',
-      'marker-annotation',
+      'annotation-control',
     ]) {
       await expect(page.getByTestId(testId)).toBeVisible();
     }
@@ -202,6 +233,7 @@ test.describe('UI Components & Layout', () => {
       const waveform = document.querySelector('[data-testid="wrapped-waveform"]');
       const row = document.querySelector('[data-testid="wrapped-row-0"]');
       const gutter = document.querySelector('[data-testid="wrapped-row-gutter-0"]');
+      const gutterText = gutter?.querySelector('*');
       return {
         pageFits: document.documentElement.scrollHeight <= window.innerHeight + 1,
         actionsFit: !!actions && actions.scrollWidth <= actions.clientWidth + 1,
@@ -210,7 +242,9 @@ test.describe('UI Components & Layout', () => {
         rowHeight: row?.getBoundingClientRect().height ?? 0,
         gutterWidth: gutter?.getBoundingClientRect().width ?? 0,
         gutterHeight: gutter?.getBoundingClientRect().height ?? 0,
+        gutterAlign: gutter ? window.getComputedStyle(gutter).alignItems : '',
         gutterJustify: gutter ? window.getComputedStyle(gutter).justifyContent : '',
+        gutterTextAlign: gutterText ? window.getComputedStyle(gutterText).textAlign : '',
       };
     });
     expect(geometry.pageFits).toBe(true);
@@ -220,10 +254,63 @@ test.describe('UI Components & Layout', () => {
     expect(geometry.rowHeight).toBeLessThanOrEqual(56);
     expect(geometry.gutterWidth).toBeLessThanOrEqual(52);
     expect(geometry.gutterHeight).toBe(geometry.rowHeight);
+    expect(geometry.gutterAlign).toBe('center');
     expect(geometry.gutterJustify).toBe('center');
+    expect(geometry.gutterTextAlign).toBe('center');
 
     await page.getByTestId('add-marker').click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
+    await expect(page.getByTestId('annotation-control')).toBeEnabled();
+    await page.getByTestId('annotation-control').click();
+    await expect(page.getByTestId('annotation-editor-glass')).toBeVisible();
+    await page.getByTestId('annotation-editor-input').fill('Very long annotation text that should remain readable without covering the timeline');
+    await page.getByTestId('save-annotation').click();
+    await expect(page.getByTestId('annotation-editor')).toHaveCount(0);
+    const annotationPreview = page.getByTestId('annotation-callout');
+    await expect(annotationPreview).toBeVisible();
+    const calloutBox = await annotationPreview.boundingBox();
+    const overviewWidth = (await page.getByTestId('loop-overview').boundingBox())?.width ?? 0;
+    expect(calloutBox?.width ?? Infinity).toBeLessThanOrEqual(Math.min(280, overviewWidth * 0.63));
+    const annotatedDot = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]').first();
+    await expect(annotatedDot).toHaveAttribute('fill', '#c084fc');
+    await expect(annotatedDot).toHaveAttribute('stroke', 'none');
+    await page.getByTestId('export-data').click();
+    await expect(page.getByTestId('export-modal-glass')).toBeVisible();
+    await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true })).toBeVisible();
+    await page.getByText('Cancel', { exact: true }).click();
+  });
+
+  test('custom menus and submenus share the liquid-glass surface', async ({ page }) => {
+    await page.setViewportSize({ width: 740, height: 390 });
+    await page.goto('/');
+
+    await page.getByTestId('load-project').click();
+    await expect(page.getByTestId('projects-modal-glass')).toBeVisible();
+    const projectHeader = await page.evaluate(() => {
+      const title = Array.from(document.querySelectorAll('*')).find(node => node.textContent === 'Projects')?.getBoundingClientRect();
+      const close = Array.from(document.querySelectorAll('*')).find(node => node.textContent === 'Close')?.getBoundingClientRect();
+      return { titleLeft: title?.left ?? 0, closeRight: close?.right ?? 0 };
+    });
+    expect(projectHeader.titleLeft).toBeGreaterThanOrEqual(20);
+    expect(740 - projectHeader.closeRight).toBeGreaterThanOrEqual(20);
+    await page.getByText('Close', { exact: true }).click();
+
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('settings-glass')).toBeVisible();
+    await page.getByTestId('settings-help').click();
+    await expect(page.getByTestId('help-modal-glass')).toBeVisible();
+    await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('sidebar-toggle').click();
+
+    await loadTestAudio(page, 'long-test-track.m4a');
+    await page.getByTestId('save-project').click();
+    await expect(page.getByTestId('save-project-modal-glass')).toBeVisible();
+    await page.getByText('Cancel', { exact: true }).click();
+
+    await page.getByTestId('import-data').click();
+    await expect(page.getByTestId('import-modal-glass')).toBeVisible();
+    await page.getByText('Cancel', { exact: true }).last().click();
   });
 
   test('loop overview creates, toggles, clears, restores, and never seeks on tap', async ({ page }) => {

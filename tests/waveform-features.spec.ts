@@ -240,8 +240,10 @@ test.describe('Waveform Features', () => {
       if (!firstRowBox) return;
       await firstRow.click({ position: { x: firstRowBox.width * 0.25, y: 12 } });
       await page.getByTestId('add-marker').click();
-      const annotationField = page.getByTestId('marker-annotation');
-      await annotationField.fill('Survives resize');
+      await page.getByTestId('annotation-control').click();
+      await page.getByTestId('annotation-editor-input').fill('Survives resize');
+      await page.getByTestId('save-annotation').click();
+      await expect(page.getByTestId('annotation-callout')).toContainText('Survives resize');
 
       const initialTime = await page.getByTestId('playback-current-time').textContent();
       const initialMarkers = await page.getByTestId('grand-total-markers').textContent();
@@ -292,6 +294,7 @@ test.describe('Waveform Features', () => {
       await page.getByTestId('waveform-detail-close').click();
       await resizedIndicator.scrollIntoViewIfNeeded();
       await resizedIndicator.click();
+      const annotationField = page.getByTestId('marker-annotation');
       await expect(annotationField).toHaveValue('Survives resize');
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
     });

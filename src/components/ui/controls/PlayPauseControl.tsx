@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Pause, Play } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
 import { playPauseControlStyles as styles } from '../../../styles/components/controls/playPauseControl';
@@ -27,7 +27,7 @@ const PlayPauseControl: React.FC<PlayPauseControlProps> = ({ onTogglePlayback, c
       aria-disabled={!songLoaded}
       activeOpacity={0.82}
     >
-      {isPlaying ? <Pause size={compact ? 24 : 40} color={iconColor} /> : <Play size={compact ? 24 : 40} color={iconColor} />}
+      <BeatNoteIcon name={isPlaying ? 'pause' : 'play'} size={compact ? 24 : 40} color={iconColor} />
     </TouchableOpacity>
   );
 };

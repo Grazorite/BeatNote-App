@@ -1,6 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { ArrowLeft, Bookmark } from 'lucide-react-native';
+import BeatNoteIcon from './BeatNoteIcon';
 
 interface IconProps {
   size?: number;
@@ -8,10 +7,7 @@ interface IconProps {
 }
 
 const MarkerLeftIcon: React.FC<IconProps> = ({ size = 20, color = '#ffffff' }) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-    <Bookmark size={size} color={color} />
-    <ArrowLeft size={size * 0.8} color={color} />
-  </View>
+  <BeatNoteIcon name="marker-previous" size={size} color={color} />
 );
 
 export default MarkerLeftIcon;

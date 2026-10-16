@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Layers, BarChart3 } from 'lucide-react-native';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import VerticalSegmentedControl from '../ui/common/VerticalSegmentedControl';
 

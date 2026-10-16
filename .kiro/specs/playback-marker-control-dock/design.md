@@ -77,7 +77,7 @@ graph TD
     SH[DockButton shuffle-control]
     PS[PlaybackSpeedControl playback-speed]
     RP[DockButton remove-last-marker]
-    EC[EmptyCell dock-empty-cell]
+    AN[AnnotationDockButton annotation-control]
   end
 
   CD --> DT
@@ -89,7 +89,7 @@ graph TD
   CD --> SH
   CD --> PS
   CD --> RP
-  CD --> EC
+  CD --> AN
 
   CD -. useDockToast .-> TH[useDockToast.ts local toast state]
   CD -->|narrow selectors / actions| STORE[(useStudioStore)]
@@ -333,11 +333,12 @@ control therefore subscribes only to the fields it needs, matching the narrow
 | `PlayPauseControl` | `isPlaying`, `songLoaded` |
 | Prev/Next marker | `songLoaded`, `currentTime`, `allLayersData`, `ghostPlayheadTime`, `songDuration`, `layerSpecificNavigation`, `activeLayerId` (same inputs `MarkerButton` reads today) |
 | Add marker | `songLoaded`, `activeLayerId`, `layers`, `currentTime` (for the nearby/visible gating) |
-| Remove previous | `songLoaded`, `currentTime`, `allLayersData`, `activeLayerId`, `layerSpecificNavigation` |
+| Remove previous | `songLoaded`, `currentTime`, `allLayersData`, `activeLayerId`, `layerSpecificNavigation`, `markerDeletionHistory` |
+| Annotation | `currentTime`, `activeLayerId`, `allLayersData` |
 | `Repeat_Control` | `isRepeatActive`, `songLoaded` |
 | `InnerLoopControl` | `isLoopMarkerActive`, `isLoopRangeEnabled`, `songLoaded`, `songDuration`, `loopStartMs`, `loopEndMs` |
 | `PlaybackSpeedControl` | none (local state only) |
-| Reserved controls / empty cell | none |
+| Reserved controls | `songLoaded` |
 
 No dock control subscribes to waveform-row inputs (`viewportStartTime`, row data, peaks), so toggling
 any control does not re-render the waveform. The `ControlDock` container itself holds no store
@@ -440,22 +441,21 @@ on both rows.
  r1   | prev    | add     | next    |           | repeat  | inner   | shuffle |
       | marker  | marker  | marker  |           | toggle  | loop    | control |
       +---------+---------+---------|  play /   +---------+---------+---------+
- r2   | first   | prev    | next    |  pause    | speed   | remove  | (empty) |
-      | track   | track   | track   |  (2x2)    | 1x      | prev mk | cell    |
+ r2   | first   | prev    | next    |  pause    | annotate| speed   | remove  |
+      | track   | track   | track   |  (2x2)    | marker  | 1x      | prev mk |
       +---------+---------+---------+-----------+---------+---------+---------+
 ```
 
 - Row 1: `navigate-left-marker`, `add-marker`, `navigate-right-marker` (c1–c3); `play-pause` (c4–c5);
   `repeat-toggle`, `inner-loop-cycle`, `shuffle-control` (c6–c8).
 - Row 2: `first-track-control`, `previous-track-control`, `next-track-control` (c1–c3); `play-pause`
-  continues (c4–c5); `playback-speed`, `remove-last-marker`, `dock-empty-cell` (c6–c8).
-- `dock-empty-cell` occupies the identical cell width and height as any adjacent control, with no
-  touch handler, no button role, and no activation affordance (R1.5).
+  continues (c4–c5); `annotation-control`, `playback-speed`, `remove-last-marker` (c6–c8).
 
 ### Landscape rail
 
 The landscape rail uses a purpose-built two-column arrangement instead of compressing the portrait
-grid. It is 104 points wide; the annotation stays below the overview on the audio-canvas side. Three
+grid. It is 104 points wide; removing the persistent annotation row leaves that height to the audio
+canvas. Three
 compact rows sit above a full-width play/pause block whose height equals two ordinary rows, followed
 by three compact rows. The grid distributes the available safe height across eight row units, keeping
 ordinary controls near-square and using hit slop for a 44-point effective target (R16.3–R16.5, R17.5).
@@ -465,7 +465,7 @@ ordinary controls near-square and using hit slop for a 44-point effective target
   +----------+----------+
   | prev mk  | next mk  |
   | add mk   | rm prev  |
-  | inner    | empty    |
+  | inner    | annotate |
   +----------+----------+
   |      play/pause     |
   |        (2×2)        |
@@ -490,6 +490,11 @@ overlay. It is absolutely positioned (anchored above the overview) so appearing 
 causes zero change to the rendered position or size of the waveform and the dock (R15.5), and the
 `LoopRangeOverview` handles and the waveform interaction region stay fully hittable beneath it
 (R15.6).
+
+The toast uses the shared restrained liquid-glass backdrop at a lighter opacity than the persistent
+dock: a translucent dark diagonal gradient, 12-point corners, and a fine 10%-white highlight stroke.
+It has no saturated teal outline, so feedback remains visually consistent without overpowering the
+waveform below it.
 
 - Appears within 100 ms of a triggering action (R15.1).
 - Stays visible ~1.5 s (±200 ms) then hides (R15.2).
@@ -556,7 +561,8 @@ and the hidden `playback-current-time` probe (R17.7).
 ### Net-new testIDs
 
 `control-dock`, `inner-loop-cycle`, `playback-speed`, `shuffle-control`, `first-track-control`,
-`previous-track-control`, `next-track-control`, `dock-empty-cell`, `dock-toast`.
+`previous-track-control`, `next-track-control`, `annotation-control`, `annotation-editor`,
+`annotation-callout`, `dock-toast`, `dock-toast-action`.
 
 ### Collapsed testIDs — flagged for the tasks phase
 
@@ -590,10 +596,19 @@ keyboard-reachable and operable; toggles set `aria-pressed`, unavailable control
 
 ## Icon strategy
 
-Icons come from `lucide-react-native` or custom SVG components in `src/components/icons`. Previous
-and next track use mirrored double hollow triangles with rounded joins so they remain distinct from
-the first-track control. Each control's four states differ by a non-colour cue (R3.6), and the
-tri-state loop uses a distinct glyph per state (R8.4).
+Icons come from the shared custom `BeatNoteIcon` family in `src/components/icons`. Its 24×24,
+1.75-point rounded grammar follows iOS system-icon principles: one optically balanced silhouette,
+generous negative space, and no decorative detail. Transport uses simple rounded geometry,
+choreography actions reuse one single-border shield marker, and previous/next track use mirrored double
+triangles so they remain distinct from first track. Each control's four states differ by a
+non-colour cue (R3.6), and the tri-state loop uses a distinct glyph per state (R8.4).
+
+Marker controls share a solid single-border shield silhouette at one invariant optical size.
+Add/remove use subdued green/red fills without cramped interior marks, navigation uses the white shield in a
+wider composite view box, and remove-previous uses the red shield. Repeat and both inner-loop states
+share the same thin rounded two-arrow chassis with an open centre; the loop mode is shown by placing
+either a smaller shield or a `•—•` bounded-segment cue inside that chassis. Filled active control
+backgrounds use the muted control-state orange rather than the brighter timeline accent.
 
 Marker-control glyphs remain white. Timeline marker lines use the dedicated vivid-violet
 `colors.marker` token (`#c084fc`) with a heavier stroke, separating marker positions from orange
@@ -601,33 +616,34 @@ playback/playhead state and teal loop-range state without changing annotation-la
 
 | Control | Icon | Non-colour state cue |
 |---------|------|----------------------|
-| Play/pause | `Play` / `Pause` | glyph swaps between play and pause |
+| Play/pause | `BeatNoteIcon` `play` / `pause` | glyph swaps between play and pause |
 | Previous marker | `MarkerLeftIcon` (existing custom) | enabled = solid, disabled = outline + dimmed |
 | Add marker | `MarkerAddIcon` / `MarkerRemoveIcon` (existing custom) | glyph swaps on nearby-marker, disabled = neutral `MarkerIcon` |
 | Remove previous marker | `MarkerRemoveLastIcon` (existing custom) | always full-emphasis; delete marker precedes left arrow |
 | Next marker | `MarkerRightIcon` (existing custom) | enabled = solid, disabled = outline + dimmed |
-| Repeat | `Repeat2` outline | orange button background + checked state when active; glyph never fills |
-| Inner loop | `off`/`markers` = `LoopMarkerIcon`, `range` = `Brackets` | off is outlined, markers is orange-filled, range changes glyph |
-| Shuffle | `Shuffle` | reserved badge (corner dot) |
-| First track | `SkipBack` with a leading-bar variant or `ChevronFirst` | reserved badge |
-| Previous track | custom rounded hollow double triangles, left-facing | reserved badge |
-| Next track | custom rounded hollow double triangles, right-facing | reserved badge |
+| Repeat | `BeatNoteIcon` `repeat` outline | orange button background + checked state when active; glyph never fills |
+| Inner loop | `off`/`markers` = `LoopMarkerIcon`, `range` = `BeatNoteIcon` `range-loop` | off is outlined, markers is orange-filled, range changes glyph |
+| Shuffle | `BeatNoteIcon` `shuffle` | reserved badge (corner dot) |
+| First track | `BeatNoteIcon` `first` | reserved badge |
+| Previous track | `BeatNoteIcon` `previous`, rounded hollow double triangles | reserved badge |
+| Next track | `BeatNoteIcon` `next`, rounded hollow double triangles | reserved badge |
 | Playback speed | text `1×` (no icon) | the text itself is the content (R3.2 exception) |
 
 The tri-state treatments combine outline/fill state and glyph changes so the cycle remains legible
 without relying only on hue.
 
-The mobile annotation field and control dock share a restrained dark diagonal glass gradient with a
-fine translucent highlight stroke. The annotation input keeps at least 16 points of horizontal text
-inset; the treatment remains dark enough to preserve white-icon contrast and does not add layout
-height or intercept gestures.
+The control dock, bounded annotation callout, and modal annotation editor share a restrained dark
+diagonal glass gradient with a fine translucent highlight stroke. The editor uses an explicit draft
+and Save/Cancel actions; the callout is centered above the overview, capped at two lines and 280
+points, and tail-truncates without covering the waveform gutter.
 
 ## Error Handling
 
 | Condition | Requirement | Handling |
 |-----------|-------------|----------|
 | Add/remove marker while `!songLoaded` or layer hidden | R4.2, R4.3 | Control disabled; no store mutation |
-| Remove previous with nothing before `currentTime` | R5.3 | Keep control pressable; leave state unchanged and toast "No previous marker to delete" |
+| Remove previous with nothing before `currentTime` and no history | R5.3 | Disable the control; leave state unchanged |
+| Accidental marker deletion | R5.6–R5.7 | Preserve marker + annotation in bounded history; offer toast Undo and long-press restore/bulk-delete actions |
 | Cycle into `range` with `songDuration` 0/unknown or `< MIN_LOOP_DURATION_MS` | R11.7, R11.8 | Do not call `setLoopRange`; stay out of `range`; toast "No range available" |
 | `setLoopRange(0, songDuration)` fails validation | R11.2 | Leave bounds unchanged; do not enter `range`; toast "No range available" |
 | Reserved control pressed | R7.3 | No playback/navigation/ordering change; fire the in-development toast only |
@@ -661,7 +677,7 @@ Do not unit-test component rendering, animation values, or style objects (per th
 
 Cohesive phone-viewport workflows, not render smoke tests:
 
-- Dock geometry: the 2×8 grid renders with the 2×2 play/pause block and the empty cell at r2c8; no
+- Dock geometry: the 2×8 grid renders with the 2×2 play/pause block and annotation at r2c6; no
   `AudioControls`/`MarkerButton` row elements are present on phone.
 - Inner-loop cycle: three taps return to the starting state; the toast message matches each
   transition; the `LoopRangeOverview` shows a whole-song range after auto-init.
@@ -670,8 +686,8 @@ Cohesive phone-viewport workflows, not render smoke tests:
 - Toast: appears above the overview without shifting the waveform, auto-dismisses, and a second trigger
   replaces + restarts; `aria-live` announces once.
 - Responsive reflow: portrait renders the two-row eight-column grid and landscape renders three
-  paired rows, a full-width 2×2 play block, then three paired rows; annotation remains below the
-  overview on the canvas side and state is preserved across orientation changes.
+  paired rows (including inner-loop/annotation), a full-width 2×2 play block, then three paired rows;
+  the reclaimed canvas height and all state are preserved across orientation changes.
 - Marker add/remove toggle and navigation follow the playhead with `onSeek`; gutter/waveform taps
   still never create a marker (R18.1, R18.4).
 

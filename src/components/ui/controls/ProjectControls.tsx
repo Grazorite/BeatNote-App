@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
-import { FileInput, FileMusic, FileOutput, LibraryBig, Save, Settings } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import type { ImportResult } from '../../../utils/importTypes';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import SaveProjectModal from '../modals/SaveProjectModal';
@@ -107,7 +107,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           accessibilityLabel="Open settings sidebar"
           testID="sidebar-open-toggle"
         >
-          <Settings size={18} color="#ffffff" />
+          <BeatNoteIcon name="settings" size={18} />
         </TouchableOpacity>
       )}
       <TouchableOpacity
@@ -116,7 +116,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         accessibilityLabel={songLoaded ? 'Replace Audio File' : 'Choose Audio File'}
         testID="load-song"
       >
-        <FileMusic size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="audio-file" size={20} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>{songLoaded ? 'Replace Audio' : 'Choose Audio'}</Text>
       </TouchableOpacity>
 
@@ -130,7 +130,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         accessibilityLabel="Save Project"
         testID="save-project"
       >
-        <Save size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="save" size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Save Project</Text>
       </TouchableOpacity>
 
@@ -140,7 +140,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         accessibilityLabel="Open Projects"
         testID="load-project"
       >
-        <LibraryBig size={20} color="#ffffff" style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="projects" size={20} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Projects</Text>
       </TouchableOpacity>
 
@@ -151,7 +151,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         accessibilityLabel="Import CSV"
         testID="import-data"
       >
-        <FileInput size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="import" size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import CSV</Text>
       </TouchableOpacity>
 
@@ -162,7 +162,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         accessibilityLabel="Export CSV"
         testID="export-data"
       >
-        <FileOutput size={20} color={hasExportableMarkers ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="export" size={20} color={hasExportableMarkers ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export CSV</Text>
       </TouchableOpacity>
     </>

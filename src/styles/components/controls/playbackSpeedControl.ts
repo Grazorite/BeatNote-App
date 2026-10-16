@@ -19,10 +19,9 @@ export const playbackSpeedControlStyles = StyleSheet.create({
     minWidth: 76,
     padding: 4,
     gap: 2,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     zIndex: 20,
   },
   option: {
@@ -32,7 +31,7 @@ export const playbackSpeedControlStyles = StyleSheet.create({
     borderRadius: 6,
   },
   optionSelected: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.controlActive,
   },
   optionText: {
     color: colors.text,

@@ -39,21 +39,6 @@ export const mainContentStyles = StyleSheet.create({
     position: 'relative',
     overflow: 'visible',
   },
-  mobileAnnotation: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 14,
-    width: '100%',
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  landscapeAnnotation: {
-    marginTop: 8,
-    marginBottom: 0,
-    height: 40,
-    minHeight: 40,
-    flexShrink: 0,
-  },
   mobileControlDock: {
     position: 'relative',
     zIndex: 2,

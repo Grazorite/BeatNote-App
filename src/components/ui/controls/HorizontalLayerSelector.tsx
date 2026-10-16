@@ -3,23 +3,23 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { useLayerSelectorAnimation } from '../../../hooks/useLayerSelectorAnimation';
-import { Mic, Music, Piano, Guitar, Drum, Radio } from 'lucide-react-native';
+import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
 import { horizontalLayerSelectorStyles as styles } from '../../../styles/components/controls/horizontalLayerSelector';
 
 const HorizontalLayerSelector: React.FC = () => {
   const { layers, activeLayerId, setActiveLayer, toggleLayerVisibility, stemCount } = useStudioStore();
 
   const getLayerIcon = (layerId: LayerId, color: string) => {
-    const iconProps = { size: 24, color };
+    let name: BeatNoteIconName | null = null;
     switch (layerId) {
-      case 'vocals': return <Mic {...iconProps} />;
-      case 'drums': return <Drum {...iconProps} />;
-      case 'bass': return <Radio {...iconProps} />;
-      case 'piano': return <Piano {...iconProps} />;
-      case 'guitar': return <Guitar {...iconProps} />;
-      case 'other': return <Music {...iconProps} />;
-      default: return null;
+      case 'vocals': name = 'vocals'; break;
+      case 'drums': name = 'drums'; break;
+      case 'bass': name = 'bass'; break;
+      case 'piano': name = 'piano'; break;
+      case 'guitar': name = 'guitar'; break;
+      case 'other': name = 'other'; break;
     }
+    return name ? <BeatNoteIcon name={name} size={24} color={color} /> : null;
   };
 
   const LayerButton: React.FC<{ layer: typeof layers[0] }> = ({ layer }) => {

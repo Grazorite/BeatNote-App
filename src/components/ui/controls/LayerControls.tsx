@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
-import { Mic, Drum, Radio, Piano, Guitar, Music } from 'lucide-react-native';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
+import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
 import { layerControlsStyles as styles } from '../../../styles/components/controls/layerControls';
 
 const LayerControls: React.FC = () => {
@@ -13,16 +13,16 @@ const LayerControls: React.FC = () => {
   };
 
   const getLayerIcon = (layerId: LayerId, color: string) => {
-    const iconProps = { size: 18, color };
+    let name: BeatNoteIconName | null = null;
     switch (layerId) {
-      case 'vocals': return <Mic {...iconProps} />;
-      case 'drums': return <Drum {...iconProps} />;
-      case 'bass': return <Radio {...iconProps} />;
-      case 'piano': return <Piano {...iconProps} />;
-      case 'guitar': return <Guitar {...iconProps} />;
-      case 'other': return <Music {...iconProps} />;
-      default: return null;
+      case 'vocals': name = 'vocals'; break;
+      case 'drums': name = 'drums'; break;
+      case 'bass': name = 'bass'; break;
+      case 'piano': name = 'piano'; break;
+      case 'guitar': name = 'guitar'; break;
+      case 'other': name = 'other'; break;
     }
+    return name ? <BeatNoteIcon name={name} size={18} color={color} /> : null;
   };
 
   return (

@@ -1,8 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
+import { BeatNoteIcon } from '../../icons';
 
 const SidebarToggle: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useStudioStore();
@@ -18,12 +18,7 @@ const SidebarToggle: React.FC = () => {
       )}
       <TouchableOpacity style={styles.toggle} onPress={toggleSidebar} testID="sidebar-toggle">
         <Animated.View style={animatedStyle}>
-          <Svg width={16} height={16} viewBox="0 0 24 24">
-            <Path
-              d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-              fill="#ffffff"
-            />
-          </Svg>
+          <BeatNoteIcon name="chevron-left" size={16} />
         </Animated.View>
       </TouchableOpacity>
     </View>

@@ -10,7 +10,7 @@ export const playPauseControlStyles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.text,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.controlActive,
   },
   compactButton: {
     borderRadius: 7,

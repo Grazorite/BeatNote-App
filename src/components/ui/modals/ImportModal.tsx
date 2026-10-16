@@ -5,6 +5,7 @@ import { exportModalStyles as styles } from '../../../styles/components/modals/e
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { ImportResult } from '../../../utils/importTypes';
+import GlassBackdrop from '../controls/GlassBackdrop';
 
 interface ImportModalProps {
   visible: boolean;
@@ -52,6 +53,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+          <GlassBackdrop gradientId="import-modal-glass" radius={16} testID="import-modal-glass" />
           <Text style={styles.title}>
             Import CSV
           </Text>

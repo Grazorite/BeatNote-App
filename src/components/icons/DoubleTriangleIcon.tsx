@@ -26,7 +26,7 @@ const DoubleTriangleIcon: React.FC<DoubleTriangleIconProps> = ({
           d={path}
           fill="none"
           stroke={color}
-          strokeWidth={1.8}
+          strokeWidth={1.75}
           strokeLinecap="round"
           strokeLinejoin="round"
         />

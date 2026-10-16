@@ -44,6 +44,16 @@ export interface LoopRestoreSnapshot {
   expiresAtMs: number;
 }
 
+export interface DeletedMarker {
+  layerId: LayerId;
+  timestamp: number;
+  annotation: string | null;
+}
+
+export interface MarkerDeletionBatch {
+  markers: DeletedMarker[];
+}
+
 export interface StudioStore {
   isPlaying: boolean;
   currentTime: number;
@@ -82,6 +92,7 @@ export interface StudioStore {
   showExportModal: boolean;
   showImportModal: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
+  markerDeletionHistory: MarkerDeletionBatch[];
   isRepeatActive: boolean;
   magneticSnapping: boolean;
   showAnnotations: boolean;
@@ -133,6 +144,8 @@ export interface StudioStore {
   removeMarker: (timestamp: number) => void;
   removeLastMarker: () => void;
   redoLastMarker: () => void;
+  restoreLastMarkerDeletion: () => void;
+  deleteMarkersBefore: (timestamp: number) => number;
   clearAllMarkers: () => void;
   scrollTimeline: (direction: 'left' | 'right') => void;
   zoomTimeline: (direction: 'in' | 'out') => void;
@@ -180,6 +193,32 @@ const getLayersForDisplay = (allLayersData: Layer[], stemCount: 2 | 4 | 6): Laye
   return allLayersData.filter(layer => visibleIds.includes(layer.id));
 };
 
+const MARKER_HISTORY_LIMIT = 20;
+
+const appendMarkerDeletion = (
+  history: MarkerDeletionBatch[],
+  markers: DeletedMarker[],
+): MarkerDeletionBatch[] => [...history, { markers }].slice(-MARKER_HISTORY_LIMIT);
+
+const restoreDeletedMarkers = (layers: Layer[], batch: MarkerDeletionBatch): Layer[] => layers.map(layer => {
+  const deletedForLayer = batch.markers.filter(marker => marker.layerId === layer.id);
+  if (deletedForLayer.length === 0) return layer;
+  const markers = [...layer.markers];
+  const annotations = [...layer.annotations];
+  deletedForLayer.forEach(marker => {
+    markers.push(marker.timestamp);
+    if (marker.annotation !== null) {
+      const annotationIndex = annotations.findIndex(item => Math.abs(item.timestamp - marker.timestamp) < 100);
+      const restoredAnnotation = { timestamp: marker.timestamp, text: marker.annotation };
+      if (annotationIndex >= 0) annotations[annotationIndex] = restoredAnnotation;
+      else annotations.push(restoredAnnotation);
+    }
+  });
+  markers.sort((left, right) => left - right);
+  annotations.sort((left, right) => left.timestamp - right.timestamp);
+  return { ...layer, markers, annotations };
+});
+
 export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   isPlaying: false,
   currentTime: 0,
@@ -218,6 +257,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   showExportModal: false,
   showImportModal: false,
   lastRemovedMarker: null,
+  markerDeletionHistory: [],
   isRepeatActive: false,
   magneticSnapping: true,
   showAnnotations: true,
@@ -619,13 +659,23 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     }, -1) ?? -1;
     if (nearestIndex < 0) return {};
     const removedTimestamp = activeLayer!.markers[nearestIndex];
+    const removedAnnotation = activeLayer!.annotations.find(annotation =>
+      Math.abs(annotation.timestamp - removedTimestamp) < 100
+    )?.text ?? null;
     const updatedAllLayers = state.allLayersData.map(layer => {
       if (layer.id !== state.activeLayerId) return layer;
-      return { ...layer, markers: layer.markers.filter((_, index) => index !== nearestIndex) };
+      return {
+        ...layer,
+        markers: layer.markers.filter((_, index) => index !== nearestIndex),
+        annotations: layer.annotations.filter(annotation => Math.abs(annotation.timestamp - removedTimestamp) >= 100),
+      };
     });
+    const deletedMarker = { layerId: state.activeLayerId, timestamp: removedTimestamp, annotation: removedAnnotation };
     return {
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      lastRemovedMarker: { layerId: state.activeLayerId, timestamp: removedTimestamp },
+      markerDeletionHistory: appendMarkerDeletion(state.markerDeletionHistory, [deletedMarker]),
       selectedMarker: state.selectedMarker
         && state.selectedMarker.layerId === state.activeLayerId
         && state.selectedMarker.timestamp === removedTimestamp
@@ -658,18 +708,31 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     }
     
     let removed = false;
+    const sourceLayer = state.allLayersData.find(layer => layer.id === layerIdToRemoveFrom);
+    const removedAnnotation = sourceLayer?.annotations.find(annotation =>
+      Math.abs(annotation.timestamp - markerToRemove) < 100
+    )?.text ?? null;
     const updatedAllLayers = state.allLayersData.map(layer => {
       if (layer.id !== layerIdToRemoveFrom || removed) return layer;
       const markerIndex = layer.markers.findIndex(marker => marker === markerToRemove);
       if (markerIndex < 0) return layer;
       removed = true;
-      return { ...layer, markers: layer.markers.filter((_, index) => index !== markerIndex) };
+      return {
+        ...layer,
+        markers: layer.markers.filter((_, index) => index !== markerIndex),
+        annotations: layer.annotations.filter(annotation => Math.abs(annotation.timestamp - markerToRemove) >= 100),
+      };
     });
     
     return {
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
       lastRemovedMarker: { layerId: layerIdToRemoveFrom, timestamp: markerToRemove },
+      markerDeletionHistory: appendMarkerDeletion(state.markerDeletionHistory, [{
+        layerId: layerIdToRemoveFrom,
+        timestamp: markerToRemove,
+        annotation: removedAnnotation,
+      }]),
       selectedMarker: state.selectedMarker
         && state.selectedMarker.layerId === layerIdToRemoveFrom
         && state.selectedMarker.timestamp === markerToRemove
@@ -678,21 +741,57 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     };
   }),
   redoLastMarker: () => set((state) => {
-    if (!state.lastRemovedMarker) return {};
-    
-    const { layerId, timestamp } = state.lastRemovedMarker;
-    const updatedAllLayers = state.allLayersData.map(layer => 
-      layer.id === layerId
-        ? { ...layer, markers: [...layer.markers, timestamp] }
-        : layer
-    );
-    
+    const batch = state.markerDeletionHistory[state.markerDeletionHistory.length - 1];
+    if (!batch) return {};
+    const updatedAllLayers = restoreDeletedMarkers(state.allLayersData, batch);
     return {
       allLayersData: updatedAllLayers,
       layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
-      lastRemovedMarker: null
+      lastRemovedMarker: null,
+      markerDeletionHistory: state.markerDeletionHistory.slice(0, -1),
     };
   }),
+  restoreLastMarkerDeletion: () => set((state) => {
+    const batch = state.markerDeletionHistory[state.markerDeletionHistory.length - 1];
+    if (!batch) return {};
+    const updatedAllLayers = restoreDeletedMarkers(state.allLayersData, batch);
+    return {
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      lastRemovedMarker: null,
+      markerDeletionHistory: state.markerDeletionHistory.slice(0, -1),
+      selectedMarker: batch.markers.length === 1
+        ? { layerId: batch.markers[0].layerId, timestamp: batch.markers[0].timestamp }
+        : state.selectedMarker,
+    };
+  }),
+  deleteMarkersBefore: (timestamp) => {
+    const state = get();
+    if (!Number.isFinite(timestamp)) return 0;
+    const deletedMarkers = state.allLayersData.flatMap(layer => layer.markers
+      .filter(marker => marker < timestamp)
+      .map(marker => ({
+        layerId: layer.id,
+        timestamp: marker,
+        annotation: layer.annotations.find(annotation => Math.abs(annotation.timestamp - marker) < 100)?.text ?? null,
+      })));
+    if (deletedMarkers.length === 0) return 0;
+    const updatedAllLayers = state.allLayersData.map(layer => ({
+      ...layer,
+      markers: layer.markers.filter(marker => marker >= timestamp),
+      annotations: layer.annotations.filter(annotation => annotation.timestamp >= timestamp),
+    }));
+    set({
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      markerDeletionHistory: appendMarkerDeletion(state.markerDeletionHistory, deletedMarkers),
+      lastRemovedMarker: null,
+      selectedMarker: state.selectedMarker && state.selectedMarker.timestamp < timestamp
+        ? null
+        : state.selectedMarker,
+    });
+    return deletedMarkers.length;
+  },
   scrollTimeline: (direction) => set((state) => {
     const scrollAmount = state.viewportDuration * 0.1; // 10% of viewport
     const newStartTime = direction === 'left' 
@@ -721,6 +820,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       allLayersData: clearedAllLayers,
       layers: getLayersForDisplay(clearedAllLayers, state.stemCount),
       lastRemovedMarker: null,
+      markerDeletionHistory: [],
       selectedMarker: null,
     };
   }),
@@ -733,7 +833,13 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
         pixelsPerSecond: 800 / (state.songDuration / 1000) // Fit entire song in 800px
       };
     }
-    return { songLoaded: loaded, selectedMarker: null, isLoopMarkerActive: false };
+    return {
+      songLoaded: loaded,
+      selectedMarker: null,
+      isLoopMarkerActive: false,
+      markerDeletionHistory: loaded ? state.markerDeletionHistory : [],
+      lastRemovedMarker: loaded ? state.lastRemovedMarker : null,
+    };
   }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
   toggleLayerVisibility: (layerId) => set((state) => {

@@ -2,8 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Platform, View, Text, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line, Polygon } from 'react-native-svg';
-import { Mic, Drum, Radio, Piano, Guitar, Music } from 'lucide-react-native';
 import { Layer, useStudioStore, LayerId } from '../../hooks/useStudioStore';
+import { BeatNoteIcon, BeatNoteIconName } from '../icons';
 import StemWaveform from '../ui/waveform/StemWaveform';
 import RhythmicGrid from '../ui/waveform/RhythmicGrid';
 import LoadingSpinner from '../ui/common/LoadingSpinner';
@@ -23,16 +23,16 @@ interface StemsViewProps {
 }
 
 const getStemIcon = (stemId: LayerId, color: string) => {
-  const iconProps = { size: 20, color };
+  let name: BeatNoteIconName | null = null;
   switch (stemId) {
-    case 'vocals': return <Mic {...iconProps} />;
-    case 'drums': return <Drum {...iconProps} />;
-    case 'bass': return <Radio {...iconProps} />;
-    case 'piano': return <Piano {...iconProps} />;
-    case 'guitar': return <Guitar {...iconProps} />;
-    case 'other': return <Music {...iconProps} />;
-    default: return null;
+    case 'vocals': name = 'vocals'; break;
+    case 'drums': name = 'drums'; break;
+    case 'bass': name = 'bass'; break;
+    case 'piano': name = 'piano'; break;
+    case 'guitar': name = 'guitar'; break;
+    case 'other': name = 'other'; break;
   }
+  return name ? <BeatNoteIcon name={name} size={20} color={color} /> : null;
 };
 
 const STEM_CONFIGS = [

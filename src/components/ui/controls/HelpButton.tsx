@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import { HelpCircle } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { helpButtonStyles as styles } from '../../../styles/components/controls/helpButton';
 
@@ -14,7 +14,7 @@ const HelpButton: React.FC = () => {
       onPress={() => setShowHelpScreen(true)}
     >
       <View style={styles.buttonContent}>
-        <HelpCircle size={16} color="#ffffff" />
+        <BeatNoteIcon name="help" size={16} />
         <Text style={styles.buttonText}>
           Help & Shortcuts
         </Text>

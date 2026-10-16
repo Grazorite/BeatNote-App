@@ -1,6 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Bookmark, Repeat2 } from 'lucide-react-native';
+import BeatNoteIcon from './BeatNoteIcon';
 
 interface LoopMarkerIconProps {
   size?: number;
@@ -10,10 +9,7 @@ interface LoopMarkerIconProps {
 
 /** Marker-bounded loop: a bookmark paired with a repeat glyph. */
 const LoopMarkerIcon: React.FC<LoopMarkerIconProps> = ({ size = 24, color = '#ffffff', testID }) => (
-  <View testID={testID} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-    <Bookmark size={size} color={color} />
-    <Repeat2 size={size * 0.8} color={color} />
-  </View>
+  <BeatNoteIcon testID={testID} name="marker-loop" size={size} color={color} />
 );
 
 export default LoopMarkerIcon;

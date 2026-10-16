@@ -1,5 +1,5 @@
 import React from 'react';
-import { Repeat2 } from 'lucide-react-native';
+import { BeatNoteIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
 import DockButton from './DockButton';
@@ -25,7 +25,7 @@ const RepeatControl: React.FC<RepeatControlProps> = ({ onToast, compact }) => {
         onToast(active ? 'Repeat track off' : 'Repeat track on');
       }}
     >
-      <Repeat2 testID="repeat-track-icon" size={22} color={loaded ? colors.text : colors.textSecondary} />
+      <BeatNoteIcon testID="repeat-track-icon" name="repeat" size={22} color={loaded ? colors.text : colors.textSecondary} />
     </DockButton>
   );
 };

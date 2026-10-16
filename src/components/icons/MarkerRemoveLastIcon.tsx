@@ -1,6 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { BookmarkX, ArrowLeft } from 'lucide-react-native';
+import BeatNoteIcon from './BeatNoteIcon';
 
 interface MarkerRemoveLastIconProps {
   size?: number;
@@ -11,12 +10,7 @@ const MarkerRemoveLastIcon: React.FC<MarkerRemoveLastIconProps> = ({
   size = 20, 
   color = '#ffffff' 
 }) => {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-      <BookmarkX size={size} color={color} />
-      <ArrowLeft size={size * 0.8} color={color} />
-    </View>
-  );
+  return <BeatNoteIcon name="marker-remove-previous" size={size} color={color} />;
 };
 
 export default MarkerRemoveLastIcon;

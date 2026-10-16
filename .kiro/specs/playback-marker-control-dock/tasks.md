@@ -114,8 +114,8 @@ The implementation follows the product decisions resolved in the requirements an
       the design, owning the square icon-button look, a ≥ 44×44 touch target via `hitSlop`, and the
       four-state styling where each state carries a distinct non-colour cue in addition to colour
       (R3.1, R3.6, R3.7).
-    - Render icons only from `lucide-react-native` or the existing `src/components/icons`, and use
-      only colour tokens from `src/styles/common.ts` (R3.5).
+    - Render icons from the shared custom family in `src/components/icons`, and use only colour
+      tokens from `src/styles/common.ts` (R3.5).
     - Add the mirrored style file `src/styles/components/controls/dockButton.ts`.
     - Files: `src/components/ui/controls/DockButton.tsx`,
       `src/styles/components/controls/dockButton.ts`.
@@ -547,6 +547,20 @@ The implementation follows the product decisions resolved in the requirements an
     - Files: `.kiro/steering/testing-strategy.md` (only if a rule changed).
     - _Requirements: 8.8_
 
+### Phase 16 — Marker-gated annotation and deletion safety refinement
+
+- [x] 29. Replace the compact phone annotation field and harden marker deletion
+  - [x] 29.1 Put Annotation, Speed, and Remove Previous in portrait row 2 columns 6–8 and put
+    Inner Loop/Annotation in landscape row 3.
+  - [x] 29.2 Enable Annotation only at a marker, edit through an explicit modal draft, and show a
+    centered two-line callout above the overview.
+  - [x] 29.3 Preserve deleted markers and annotations in bounded history, expose toast Undo, and
+    provide long-press restore/bulk-delete actions with destructive confirmation.
+  - [x] 29.4 Remeasure glass backdrops after orientation changes, reclaim the removed landscape
+    annotation-row height, and apply safe-area-aware Projects header/content padding.
+  - [x] 29.5 Verify TypeScript, 123 unit tests, 17 Playwright workflows, and focused native
+    multi-character annotation and landscape/orientation workflows.
+
 ## Notes
 
 - Tasks marked with `*` are optional test sub-tasks and can be skipped for a faster MVP; core
@@ -558,10 +572,11 @@ The implementation follows the product decisions resolved in the requirements an
   implemented. The dock only changes which store fields the UI sets.
 - The dock is phone-only; the desktop branch of `MainContent.tsx` keeps `AudioControls` +
   `MarkerButton` unchanged.
-- Post-acceptance refinements keep annotation below the overview on the canvas side in both
-  orientations, put controls at safe-area-aware edges, anchor all toasts above the overview, use a
-  dedicated landscape rail with a central full-width 2×2 play block, and preserve active playback
-  across tap/drag seeking.
+- Post-acceptance refinements replace the compact phone annotation field with a marker-gated dock
+  action, modal draft editor, and bounded callout above the overview; add reversible deletion and
+  long-press bulk actions; put controls at safe-area-aware edges; anchor all toasts above the
+  overview; use a dedicated landscape rail with a central full-width 2×2 play block; and preserve
+  active playback across tap/drag seeking.
 - The overview and clear/restore action remain unmounted until audio is loaded, and iOS uses a
   34-point minimum bottom safe-area floor to keep the lowest dock row clear of curved corners.
 - Task shapes follow the resolved product decisions for the speed set, pre-engine behaviour,
