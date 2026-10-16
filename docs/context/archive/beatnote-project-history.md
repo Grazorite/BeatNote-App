@@ -2104,3 +2104,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
   continue the physical-device acceptance checklist.
+#### Archived Done item — full-surface liquid glass and annotation states
+
+- [x] Unify portrait/landscape media glass and every custom menu, then correct annotation dots,
+      full-field glass, long-text overflow, and unloaded media-control states
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ErrorModal.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/styles/common.ts`, `src/styles/components/`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+### 2026-10-16 — Unify glass surfaces and annotation states
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
+**Kanban moved:** Full-surface liquid-glass and annotation/unloaded-state cleanup → Done
+
+**Changed:**
+
+- Confirmed portrait and landscape media controls share `GlassBackdrop`, then extended the same
+  restrained material to Settings, Help, Projects, Save, Import, Export, and app error panels.
+- Replaced unrelated blue/green modal fills and harsh borders with shared glass, subtle highlights,
+  BeatNote orange primary actions, neutral glass actions, and semantic destructive actions.
+- Made annotated-marker indicators violet and borderless, moved annotation glass into the field's
+  exact bounds, and added tail truncation while idle with normal horizontal scrolling while editing.
+- Disabled every media/dock action until audio is loaded, including reserved track, shuffle, speed,
+  and previous-marker removal controls; essential Load Audio, Projects, and Settings remain usable.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 119/119 passed across 11 suites; full Playwright gate → 17/17 passed.
+- Device Hub loaded the refreshed 1,325-module native bundle; portrait Settings and Projects glass
+  panels were visually inspected. Landscape dock use of the shared backdrop is code- and browser-verified.
+
+**Not verified / known gaps:**
+
+- The new native iOS assertions were not run through Xcode; physical-device VoiceOver, keyboard,
+  and touch-comfort acceptance remain pending.
+- The user's concurrent icon work and prior polish changes are included in `d533a72`.
+
+**Next agent should:**
+
+- Run focused native launch/annotation/orientation tests, then continue physical-device acceptance.

@@ -113,6 +113,9 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Replace the Settings sliders glyph with a simple rounded gear in the shared icon family
+      <sub>**Key Artifacts:** `src/components/icons/BeatNoteIcon.tsx`</sub>
+
 - [x] Replace mobile Settings and Help with safe full-screen pages, make Help swap in immediately
       without stacking a modal, place Settings at the trailing toolbar edge, use iPhone-style
       right-edge push transitions over the live app without a white host flash, keep Settings Close
@@ -132,10 +135,6 @@ potentially adding a hybrid path later.
       selected-marker callout, reversible marker deletion, the agreed portrait/landscape dock order,
       safe-area project padding, and orientation-stable glass sizing
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/hooks/useDockToast.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/modals/annotationEditorModal.ts`, `src/utils/markerSelection.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/unit/markerSelection.test.ts`, `tests/unit/studioStore.innerLoop.test.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Unify portrait/landscape media glass and every custom menu, then correct annotation dots,
-      full-field glass, long-text overflow, and unloaded media-control states
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ErrorModal.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/styles/common.ts`, `src/styles/components/`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -210,6 +209,32 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-17 — Replace Settings sliders with a gear
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Settings gear icon → Done
+
+**Changed:**
+
+- Replaced the shared Settings sliders glyph with a conventional eight-tooth gear and centre hub,
+  retaining BeatNote's 24×24 geometry, 1.75-point rounded stroke, button sizing, and accessibility.
+
+**Verified:**
+
+- `git diff --check` and `npx tsc --noEmit` → clean.
+- Full retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+- Browser visual review at 393×852 → the gear is clear and balanced in the trailing phone toolbar slot.
+
+**Not verified / known gaps:**
+
+- Native simulator and physical-iPhone visual review were not rerun for this one-glyph change.
+- The change remains uncommitted; the working tree contains only this icon update and handover state.
+
+**Next agent should:**
+
+- Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
+  share-sheet readability on real hardware.
 
 ### 2026-10-16 — Finish V1 settings and critical-test cleanup
 
@@ -365,37 +390,4 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue the active physical-device acceptance checklist, especially VoiceOver actions and
   long-press deletion comfort on hardware.
-
-### 2026-10-16 — Unify glass surfaces and annotation states
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
-**Kanban moved:** Full-surface liquid-glass and annotation/unloaded-state cleanup → Done
-
-**Changed:**
-
-- Confirmed portrait and landscape media controls share `GlassBackdrop`, then extended the same
-  restrained material to Settings, Help, Projects, Save, Import, Export, and app error panels.
-- Replaced unrelated blue/green modal fills and harsh borders with shared glass, subtle highlights,
-  BeatNote orange primary actions, neutral glass actions, and semantic destructive actions.
-- Made annotated-marker indicators violet and borderless, moved annotation glass into the field's
-  exact bounds, and added tail truncation while idle with normal horizontal scrolling while editing.
-- Disabled every media/dock action until audio is loaded, including reserved track, shuffle, speed,
-  and previous-marker removal controls; essential Load Audio, Projects, and Settings remain usable.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean.
-- Unit gate → 119/119 passed across 11 suites; full Playwright gate → 17/17 passed.
-- Device Hub loaded the refreshed 1,325-module native bundle; portrait Settings and Projects glass
-  panels were visually inspected. Landscape dock use of the shared backdrop is code- and browser-verified.
-
-**Not verified / known gaps:**
-
-- The new native iOS assertions were not run through Xcode; physical-device VoiceOver, keyboard,
-  and touch-comfort acceptance remain pending.
-- The user's concurrent icon work and prior polish changes are included in `d533a72`.
-
-**Next agent should:**
-
-- Run focused native launch/annotation/orientation tests, then continue physical-device acceptance.
 

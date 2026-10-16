@@ -55,7 +55,7 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <><Path d="M4 4h7l4 4v12H4Z M11 4v4h4" {...common} /><Path d={arrow} {...common} /></>;
       }
       case 'settings':
-        return <><Path d="M4 7h16M4 17h16" {...common} /><Path d="M9 4v6M15 14v6" {...common} /></>;
+        return <><Path d="m9.7 4.1.7-2.1h3.2l.7 2.1 1.7.7 2-1L20.2 6l-1 2 .7 1.7 2.1.7v3.2l-2.1.7-.7 1.7 1 2-2.2 2.2-2-1-1.7.7-.7 2.1h-3.2l-.7-2.1-1.7-.7-2 1L3.8 18l1-2-.7-1.7-2.1-.7v-3.2l2.1-.7L4.8 8l-1-2L6 3.8l2 1Z" {...common} /><Circle cx="12" cy="12" r="3" {...common} /></>;
       case 'help':
         return <><Circle cx="12" cy="12" r="8.5" {...common} /><Path d="M9.8 9.5a2.4 2.4 0 1 1 3.5 2.2c-.8.5-1.3 1-1.3 2M12 17h.01" {...common} /></>;
       case 'play':
