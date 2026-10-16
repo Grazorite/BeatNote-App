@@ -214,7 +214,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Establish the colour-theme foundation
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
 **Kanban moved:** Typed colour-theme foundation → Done
 
 **Changed:**
@@ -237,7 +237,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Dark remains the only complete palette; no user-facing theme selector or runtime provider was added.
 - Existing colour literals outside the central palette remain migration debt and should move to
   semantic tokens when those components are next changed.
-- The repository remains uncommitted with this work and the prior user-approved icon/glass changes.
+- This work and the prior user-approved icon/glass changes are included in `d533a72`.
 
 **Next agent should:**
 
@@ -246,7 +246,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Replace compact annotations and harden marker deletion
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
 **Kanban moved:** Marker-gated annotations, reversible deletion, and responsive dock refinement → Done
 
 **Changed:**
@@ -273,7 +273,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Physical-device VoiceOver, touch comfort, and keyboard acceptance remain pending.
-- The repository remains uncommitted with this work and the prior user-approved icon/glass changes.
+- This work and the prior user-approved icon/glass changes are included in `d533a72`.
 
 **Next agent should:**
 
@@ -282,7 +282,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Unify glass surfaces and annotation states
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
 **Kanban moved:** Full-surface liquid-glass and annotation/unloaded-state cleanup → Done
 
 **Changed:**
@@ -307,7 +307,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - The new native iOS assertions were not run through Xcode; physical-device VoiceOver, keyboard,
   and touch-comfort acceptance remain pending.
-- The repository remains uncommitted with the user's concurrent icon work and prior polish changes.
+- The user's concurrent icon work and prior polish changes are included in `d533a72`.
 
 **Next agent should:**
 
@@ -315,7 +315,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Refine glass popups, gutters, and CSV wording
 
-**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `d533a72`
 **Kanban moved:** Liquid-glass popups, centered gutters, and precise V1 CSV contents → Done
 
 **Changed:**
@@ -340,8 +340,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   aggregate.
 - Routine native success alerts and system pickers/share sheets retain platform styling; this change
   targets the custom transient dock popup family.
-- The repository remains uncommitted with the user's concurrent icon-proportion work and this polish;
-  no unrelated dirty changes were reverted.
+- The user's concurrent icon-proportion work and this polish are included in `d533a72`; no unrelated
+  dirty changes were reverted.
 
 **Next agent should:**
 
@@ -349,7 +349,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-15 — Create and refine the BeatNote icon family
 
-**Agent:** orchestrator (Codex) + context-gatherer + DSH-Qwen Leonardo concept pass · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) + context-gatherer + DSH-Qwen Leonardo concept pass · **Commit(s):** `d533a72`
 **Kanban moved:** Modernise and simplify every button icon; define custom-icon principles → Done
 
 **Changed:**
@@ -388,8 +388,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Native simulator and physical-iPhone visual/VoiceOver review were not rerun for the icon-only change.
-- The icon work remains uncommitted; three earlier local commits remain unpushed pending explicit
-  confirmation of the GitHub destination documented in the preceding handover.
+- The icon work and the three earlier local commits are included in the push containing `d533a72`.
 
 **Next agent should:**
 
