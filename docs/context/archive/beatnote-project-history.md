@@ -1899,6 +1899,46 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
   continue the physical-device acceptance checklist.
 
+### 2026-10-16 — Refine glass popups, gutters, and CSV wording
+
+#### Archived Done item — glass popups, gutters, and CSV wording
+
+- [x] Bring transient dock popups into the liquid-glass family, center wrapped-row gutter timestamps,
+      and describe the V1 CSV's BPM-derived timing precisely
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/design.md`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/controls/controlDock.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `d533a72`
+**Kanban moved:** Liquid-glass popups, centered gutters, and precise V1 CSV contents → Done
+
+**Changed:**
+
+- Reused `GlassBackdrop` for the dock toast and playback-speed chooser, adding a lighter translucent
+  toast variant with 12-point corners and a subtle 10%-white highlight instead of the saturated teal
+  toast outline.
+- Centered every wrapped-row timestamp horizontally and vertically within its full-height gutter box.
+- Replaced the vague CSV claim with the exact current behavior: timestamps, BPM-derived 4-beat
+  `bar:beat` timing, and annotations; Help and Export now use matching wording.
+- Documented the liquid-glass popup rule in durable styling guidance and the dock design.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 119/119 passed across 11 suites.
+- Focused phone dock/workspace Playwright workflows → 2/2 passed; full Playwright gate → 17/17 passed.
+
+**Not verified / known gaps:**
+
+- Native simulator visual inspection was not rerun; native CSV copy coverage was updated for the next
+  aggregate.
+- Routine native success alerts and system pickers/share sheets retain platform styling; this change
+  targets the custom transient dock popup family.
+- The user's concurrent icon-proportion work and this polish are included in `d533a72`; no unrelated
+  dirty changes were reverted.
+
+**Next agent should:**
+
+- Run the native visual/VoiceOver acceptance pass, then continue the active full-surface glass work.
+
 #### Archived Done item — terminal loop-range playback and endpoint geometry
 
 - [x] Fix terminal loop-range playback and endpoint geometry: song-end ranges wrap after native

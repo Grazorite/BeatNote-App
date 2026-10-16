@@ -62,6 +62,14 @@ export const exportModalStyles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
+  primaryButtonText: {
+    color: colors.onAccent,
+    fontWeight: '700',
+  },
+  primaryButtonSubtext: {
+    color: colors.onAccent,
+    fontWeight: '600',
+  },
   cancelButton: {
     backgroundColor: colors.surfaceGlass,
     padding: 12,

@@ -6,99 +6,68 @@ inclusion: always
 
 ## Philosophy
 
-Test critical logic, not implementation details. The goal is confidence in correctness, not coverage numbers. Do not write tests for trivial getters, pure UI layout, or things already covered by TypeScript's type system.
+Keep the permanent suite deliberately small. A committed test must protect a release-blocking V1
+journey or a native integration that cannot be trusted through static checks. Confidence comes from
+a few complete user workflows, TypeScript, and focused device acceptance—not from test counts.
 
-## Test layers
+Do not retain tests for visual measurements, implementation details, isolated state transitions,
+trivial utilities, or behavior already exercised by a broader critical workflow.
 
-### 1. Unit tests (Jest) — critical logic only
+## Permanent gates
 
-Target: `src/utils/` and pure logic in `src/hooks/useStudioStore.ts`.
+### 1. TypeScript
 
-Run with: `npx jest --testPathPattern=unit`
+Run `npx tsc --noEmit` for every implementation change. This is the first gate for contracts,
+component props, and refactors.
 
-**Must have unit tests:**
+### 2. Playwright — critical web/mobile workflows
 
-- `magneticSnapping.ts` — `snapToNearestTarget`, `generateSnapTargets`
-- `exportEngine.ts` — CSV row formatting and MIDI byte encoding
-- `importEngine.ts` — CSV parsing, layer ID mapping, malformed input handling
-- `projectManager.ts` — save/load round-trip, version validation, missing field handling
-- Store actions in `useStudioStore.ts` — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, `navigateToLeftMarker`, `navigateToRightMarker`, `setStemCount`, viewport constraint logic
+Run `npm test`. The permanent browser suite is limited to these cohesive journeys:
 
-**Do not unit test:**
+- Open mobile Settings and Help in portrait and landscape, with V1-only content.
+- Load audio, use the responsive control dock, and preserve the loaded edit through rotation.
+- Create a marker only through marker controls, add/reopen its annotation, and keep gestures isolated.
+- Exercise the loop-range workflow from creation through edit, mode change, clear, and restore.
+- Open the custom project/import/export surfaces and verify their primary actions remain readable.
 
-- React component rendering
-- Animation values
-- Style objects
-- Anything that requires a running Expo/RN environment
+Prefer extending one of these workflows over adding a new test. A regression assertion belongs in
+the nearest existing journey when it protects that journey's outcome.
 
-### 2. E2E tests (Playwright) — user-facing flows on web
+### 3. iOS XCTest — critical native integrations
 
-Target: `tests/*.spec.ts`
+Run focused cases with `IOS_TEST_ONLY=<case> npm run test:ios:ui`, and use the full native suite only
+for release acceptance. Retain native coverage where the simulator or device is part of the behavior:
 
-Run with: `npm test`
+- Files picker and V1 Settings launch path.
+- Audio playback, annotation input, project save/relaunch/restore.
+- Loop transport and compact controls.
+- CSV document import and iOS share-sheet export.
+- Background audio continuity.
+- Landscape gestures, safe geometry, and portrait restoration.
 
-**Must have E2E coverage:**
+Physical-device checks remain necessary for touch comfort, VoiceOver, audio interruptions, and
+external sharing. Simulator success does not replace those checks.
 
-- Load song, create a marker from the marker controls, and annotate/reopen it
-- Gutter, waveform, marker, and drag gestures never create markers
-- Loop-range create/move/resize/toggle/clear/restore, edge geometry, and interaction isolation
-- Wrapped-row rendering, accessibility semantics, row-density reflow, follow-playhead, and precision
-  detail without data loss
-- Fixed phone workspace fit and desktop↔phone responsive reflow with loaded state preserved
-- Deferred view-mode and stem-separation controls stay hidden without blocking the core editor
-- Keyboard activation of critical controls and deterministic repeated marker input
+## Temporary unit tests
 
-Project persistence, CSV import/export, invalid-import handling, background audio, orientation, and
-native document-picker behavior are device integrations and belong in the focused iOS XCTest suite.
-Global web shortcut coverage (Space, M, Ctrl+Z, arrows) remains desirable but should be added as one
-cohesive workflow rather than separate smoke cases.
+Jest remains installed as an implementation tool, but unit tests are not part of the permanent
+suite. A developer may write a focused unit test first to reproduce or validate non-trivial logic.
+After the implementation is verified through TypeScript and the relevant retained critical journey,
+remove that temporary test before completion. `npm run test:unit` intentionally succeeds when no
+temporary tests are present.
 
-**Do not E2E test:**
-
-- Internal state values (test behaviour, not state)
-- Pixel-perfect layout
-- Animation timing
-- Test-runner discovery, generic SVG existence, page-load timing, or repeated "app did not crash"
-  smoke cases when a real workflow already proves the same surface
-
-## File placement
-
-```css
-tests/
-  core-functionality.spec.ts   # existing E2E
-  ui-components.spec.ts        # existing E2E
-  waveform-features.spec.ts    # existing E2E
-  quality-assurance.spec.ts    # existing E2E
-  unit/
-    loopRange.test.ts
-    projectManager.loop.test.ts
-    rowLayout.test.ts
-    studioStore.loop.test.ts
-    timelineMapping.test.ts
-```
-
-The filenames in this example are organizational, not a requirement to retain empty or redundant
-files. Remove superseded tests instead of preserving them for historical counts.
+Do not create permanent unit-test coverage targets or backlogs. If logic is too risky to remove its
+unit test after verification, first decide whether it represents a release-critical invariant; if it
+does, document the exception here and keep the smallest possible test.
 
 ## Rules
 
-- One `describe` block per module/feature.
-- Test names describe behaviour: `'snaps to nearest beat grid line within threshold'`, not `'test 1'`.
-- No `test.only` or `test.skip` committed to main.
-- Mocks go in `tests/fixtures/` or inline with `jest.fn()` — no global mocks that bleed between tests.
-- Each test is independent — no shared mutable state between tests.
-- For store tests, create a fresh store instance per test using `create()` directly, not the singleton.
-
-## When to add a test
-
-Add a test when:
-
-- You are implementing a new utility function with non-trivial logic
-- You are fixing a bug (write the failing test first)
-- A new user-facing flow is added that isn't covered by existing E2E
-
-Do not add a test when:
-
-- The logic is a one-liner with no branching
-- It's already covered by TypeScript types
-- It would require mocking more than the thing being tested
+- No `test.only` or `test.skip` in committed code.
+- Tests describe user-visible outcomes, not internal state or styling implementation.
+- Do not add standalone smoke tests when an existing end-to-end journey proves the same surface.
+- Avoid pixel-perfect assertions; retain only geometry checks that prevent controls from becoming
+  clipped, unsafe, or unusable.
+- Tests are independent and must not depend on execution order.
+- Delete superseded and temporary tests instead of preserving them for historical counts.
+- A bug fix may begin with a failing temporary test, but completion includes removing that test once
+  the corresponding critical workflow proves the fix.

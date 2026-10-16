@@ -64,7 +64,19 @@ inclusion: always
   pickers, and share sheets retain platform styling.
 - Custom menus, drawers, modal panels, and nested menu cards reuse that liquid-glass surface language;
   primary actions use the app accent, neutral actions use quiet glass, and destructive actions retain
-  their semantic colour. Avoid isolated opaque greys or unrelated blue/green action fills.
+  their semantic colour. Text on an accent-filled action uses `colors.onAccent`; never reuse muted
+  secondary text on the bright accent. Avoid isolated opaque greys or unrelated blue/green action fills.
+- On phones, top-level utility destinations such as Settings and Help are full-screen pages rather
+  than partial drawers or centered desktop dialogs. They must fill both portrait and landscape,
+  respect every safe-area edge, retain an obvious 44-point Close action, and put touch guidance
+  before desktop keyboard shortcuts. Nested utility navigation swaps content inside the existing
+  full-screen surface instead of stacking another native modal; use Back only for that nested return,
+  and do not add a directional arrow to a true Close action.
+- Place mobile Settings at the trailing/rightmost end of a horizontal global toolbar. Full-screen
+  utility pages enter from the trailing edge, and deeper pages use the same horizontal push/reveal
+  direction; do not use the platform modal's bottom-up sheet transition for this navigation stack.
+  Present the stack over a transparent full-screen host so the live app remains visible behind the
+  moving page—never expose the platform modal's default white background during the transition.
 - Annotation indicators use the shared violet marker colour without a dark outline. On phones,
   annotation editing is an explicit marker-gated modal draft with Save/Cancel; the selected marker's
   read-only callout is bounded to two lines and truncates at the tail above the overview.

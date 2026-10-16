@@ -21,6 +21,7 @@ export interface ThemeColors {
   readonly text: string;
   readonly textSecondary: string;
   readonly accent: string;
+  readonly onAccent: string;
   readonly controlActive: string;
   readonly marker: string;
   readonly success: string;
@@ -62,6 +63,7 @@ export const darkTheme: Readonly<ThemeColors> = Object.freeze({
   text: '#ffffff',
   textSecondary: '#999999',
   accent: '#ff6600',
+  onAccent: '#000000',
   controlActive: '#ad563f',
   marker: '#c084fc',
   success: '#00ff00',

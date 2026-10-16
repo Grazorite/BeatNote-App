@@ -36,8 +36,8 @@
 
 **Last updated:** 2026-10-16
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
-**Build gate:** `npx tsc --noEmit` (types), `npx jest --testPathPatterns=unit` (unit), and `npm test`
-(Playwright E2E)
+**Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
+focused iOS XCTest for native surfaces changed by the task
 
 ### Milestone: M2 — Core choreography and rehearsal workflow (in progress)
 
@@ -50,11 +50,11 @@ potentially adding a hybrid path later.
 |--------|-------|
 | Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
 | Export formats implemented | 2 of 3 (CSV exposed in V1; MIDI retained for V2; PDF planned) |
-| Stem separation | Deferred; types, store fields, cache, and cache tests preserved |
+| Stem separation | Deferred; types, store fields, and cache preserved |
 | Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
-| Unit tests | 129 passing (13 suites) |
-| iOS UI tests | Latest aggregate: 8/14 passed and 6 simulator tests were signal-killed; focused dock/range and V1 launch checks pass |
-| E2E spec files | 4 (Playwright, 17/17 passing) |
+| Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
+| iOS UI tests | 6 critical native integrations retained; focused V1 launch/settings check passes |
+| E2E spec files | 2 (Playwright, 6 critical journeys) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
 
 ### Current Focus
@@ -64,15 +64,13 @@ potentially adding a hybrid path later.
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
 2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
-   background audio playback, long-track overview tap/drag seeking, annotation during playback,
-   compact controls, project save/relaunch/restore, CSV I/O, settings drawer, wrapped gestures,
-   responsive detail mode, orientation reflow, and landscape geometry. Interactive Xcode 27 testing
+   background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
+   and landscape gestures/geometry. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
 3. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-4. Close the remaining production-unit coverage gap, then advance 8-count/rehearsal features and
-   provider-neutral monetisation groundwork; do not resume
+4. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -89,8 +87,6 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Add remaining unit tests for `magneticSnapping`, `exportEngine`, `importEngine`, and broader `projectManager` scenarios
-- [ ] Add unit tests for real store actions — `addMarker`, `removeMarker`, `removeLastMarker`, `redoLastMarker`, navigate, `setStemCount`, viewport constraints
 - [ ] Implement 8-count / phrase grid mode — `countSize` state, phrase snapping, transport count display
 - [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
@@ -106,7 +102,8 @@ potentially adding a hybrid path later.
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
-- [ ] Complete loop-range overview physical-device acceptance — Phases 1–17 and the automated gate are verified (116 unit, 16 E2E, 14/14 iOS); physical performance, VoiceOver, contrast, and audible-boundary checks remain
+- [ ] Complete loop-range overview physical-device acceptance — implementation and retained critical
+      browser/native flows pass; physical performance, VoiceOver, contrast, and audible-boundary checks remain
 
 ### ⏸ Deferred — V2/V3
 
@@ -115,6 +112,13 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Replace mobile Settings and Help with safe full-screen pages, make Help swap in immediately
+      without stacking a modal, place Settings at the trailing toolbar edge, use iPhone-style
+      right-edge push transitions over the live app without a white host flash, keep Settings Close
+      free of back-navigation decoration, remove V1 BPM controls, make CSV action text readable on
+      orange, and retain only critical tests
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `package.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ImportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/modals/exportModal.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/layout/sidebar.ts`, `src/styles/theme.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, removed `tests/unit/`, `tests/core-functionality.spec.ts`, and `tests/quality-assurance.spec.ts`</sub>
 
 - [x] Keep timed annotation callouts readable during playback with a 2-second dwell, 350-millisecond
       fade, successive-annotation replacement, and source-marker editing
@@ -132,10 +136,6 @@ potentially adding a hybrid path later.
 - [x] Unify portrait/landscape media glass and every custom menu, then correct annotation dots,
       full-field glass, long-text overflow, and unloaded media-control states
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ErrorModal.tsx`, `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/styles/common.ts`, `src/styles/components/`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Bring transient dock popups into the liquid-glass family, center wrapped-row gutter timestamps,
-      and describe the V1 CSV's BPM-derived timing precisely
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/design.md`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/controls/controlDock.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -210,6 +210,60 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-16 — Finish V1 settings and critical-test cleanup
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1 full-screen settings/help, CSV contrast, and critical-only tests → Done
+
+**Changed:**
+
+- Replaced the phone's width-animated settings drawer with a safe-area-aware full-screen page in
+  portrait and landscape, removing the bottom color gap and expansion-time text bunching.
+- Removed visible BPM settings from V1 and rebuilt Help as a full-screen, mobile-first guide with
+  touch controls before secondary web keyboard shortcuts.
+- Added the semantic `onAccent` theme color and applied solid black, semibold text to both lines of
+  the orange Import CSV and Export CSV actions.
+- Made mobile Help swap into the existing Settings modal immediately instead of presenting a second
+  full-screen native modal; its Back action returns to Settings, while Settings Close has no arrow.
+- Moved Settings to the rightmost end of the mobile toolbar and replaced bottom-up modal motion with
+  a 280-millisecond trailing-edge push: Settings enters from the right, Help pushes over it, and Back
+  reverses that navigation while retaining the underlying page.
+- Changed the mobile modal host to transparent `overFullScreen` presentation so the live BeatNote
+  workspace remains behind the moving Settings page instead of exposing the native white host.
+- Replaced 129 permanent unit tests, 11 redundant browser journeys, and 8 overlapping native cases
+  with 6 critical Playwright journeys and 6 native integration cases. Jest remains available only
+  for temporary test-first checks that must be removed after verification.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and `npm run test:unit` → clean; the temporary unit suite
+  correctly reports no tests and exits successfully.
+- Elevated Playwright gate on port 8082 → 6/6 critical journeys passed, including computed black
+  text for both labels on both CSV actions.
+- Focused iOS `testStudioLaunchesAndDocumentPickerOpens` → passed on iPhone 17 Pro / iOS 26.2;
+  result bundle `ios/build/BeatNoteUITests-1792161700307.xcresult`.
+- Device Hub loaded the fresh 1,175-module bundle; the portrait Settings page visibly fills the
+  device, respects the safe area, has no BPM control or bottom strip, and no longer width-expands.
+- Device Hub visual review confirmed the arrowless Settings Close and immediate in-surface Help
+  navigation; the focused Settings/Help Playwright workflows pass 2/2.
+- Device Hub confirmed the rightmost Settings placement and final native page geometry. Focused iOS
+  launch/settings passed with the trailing-position assertion; result bundle
+  `ios/build/BeatNoteUITests-1792162543533.xcresult`.
+- Device Hub reloaded the transparent host and confirmed Settings covers the live app cleanly; the
+  focused Settings transition browser workflow passes 1/1 after the host change.
+
+**Not verified / known gaps:**
+
+- Physical-device VoiceOver, touch comfort, and external CSV sharing remain pending.
+- Native landscape Settings is covered by the responsive implementation and browser geometry check;
+  Device Hub's manual rotate view rendered the simulator surface sideways during this pass.
+- Metro is running on port 8081 so the mounted Debug app remains usable in Device Hub.
+
+**Next agent should:**
+
+- Continue physical-device acceptance, beginning with Settings/Help rotation and CSV share-sheet
+  readability on real hardware.
 
 ### 2026-10-16 — Extend timed annotation readability
 
@@ -344,38 +398,4 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run focused native launch/annotation/orientation tests, then continue physical-device acceptance.
-
-### 2026-10-16 — Refine glass popups, gutters, and CSV wording
-
-**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `d533a72`
-**Kanban moved:** Liquid-glass popups, centered gutters, and precise V1 CSV contents → Done
-
-**Changed:**
-
-- Reused `GlassBackdrop` for the dock toast and playback-speed chooser, adding a lighter translucent
-  toast variant with 12-point corners and a subtle 10%-white highlight instead of the saturated teal
-  toast outline.
-- Centered every wrapped-row timestamp horizontally and vertically within its full-height gutter box.
-- Replaced the vague CSV claim with the exact current behavior: timestamps, BPM-derived 4-beat
-  `bar:beat` timing, and annotations; Help and Export now use matching wording.
-- Documented the liquid-glass popup rule in durable styling guidance and the dock design.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean.
-- Unit gate → 119/119 passed across 11 suites.
-- Focused phone dock/workspace Playwright workflows → 2/2 passed; full Playwright gate → 17/17 passed.
-
-**Not verified / known gaps:**
-
-- Native simulator visual inspection was not rerun; native CSV copy coverage was updated for the next
-  aggregate.
-- Routine native success alerts and system pickers/share sheets retain platform styling; this change
-  targets the custom transient dock popup family.
-- The user's concurrent icon-proportion work and this polish are included in `d533a72`; no unrelated
-  dirty changes were reverted.
-
-**Next agent should:**
-
-- Run the native visual/VoiceOver acceptance pass, then continue the active full-surface glass work.
 

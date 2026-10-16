@@ -100,16 +100,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
 
   const actions = (
     <>
-      {isMobile && (
-        <TouchableOpacity
-          style={[styles.button, styles.buttonMobile, styles.sidebarToggleMobile]}
-          onPress={toggleSidebar}
-          accessibilityLabel="Open settings sidebar"
-          testID="sidebar-open-toggle"
-        >
-          <BeatNoteIcon name="settings" size={18} />
-        </TouchableOpacity>
-      )}
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
         onPress={handleChooseAudio}
@@ -165,6 +155,17 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <BeatNoteIcon name="export" size={20} color={hasExportableMarkers ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export CSV</Text>
       </TouchableOpacity>
+
+      {isMobile && (
+        <TouchableOpacity
+          style={[styles.button, styles.buttonMobile, styles.sidebarToggleMobile]}
+          onPress={toggleSidebar}
+          accessibilityLabel="Open settings"
+          testID="sidebar-open-toggle"
+        >
+          <BeatNoteIcon name="settings" size={18} />
+        </TouchableOpacity>
+      )}
     </>
   );
 

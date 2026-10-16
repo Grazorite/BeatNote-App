@@ -72,10 +72,10 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onClose, onSuccess }
             disabled={isImporting}
             testID="select-csv-file"
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, styles.primaryButtonText]}>
               {isImporting ? 'Importing...' : 'Choose CSV'}
             </Text>
-            <Text style={styles.buttonSubtext}>
+            <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
               Importing the same file again may create duplicate markers
             </Text>
           </TouchableOpacity>

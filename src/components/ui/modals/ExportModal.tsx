@@ -84,10 +84,10 @@ const ExportModal: React.FC<ExportModalProps> = ({
             disabled={isExporting}
             testID="export-csv"
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, styles.primaryButtonText]}>
               Export CSV
             </Text>
-            <Text style={styles.buttonSubtext}>
+            <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
               Includes timestamps, BPM-derived bar:beat timing, and annotations
             </Text>
           </TouchableOpacity>

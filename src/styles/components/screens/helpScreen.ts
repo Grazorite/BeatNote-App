@@ -9,6 +9,12 @@ export const helpScreenStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  mobileOverlay: {
+    padding: 0,
+    backgroundColor: colors.background,
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+  },
   modal: {
     position: 'relative',
     backgroundColor: 'transparent',
@@ -20,6 +26,14 @@ export const helpScreenStyles = StyleSheet.create({
     borderColor: colors.borderSubtle,
     overflow: 'hidden',
   },
+  mobileModal: {
+    flex: 1,
+    width: '100%',
+    maxWidth: '100%',
+    maxHeight: '100%',
+    borderRadius: 0,
+    borderWidth: 0,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -27,6 +41,10 @@ export const helpScreenStyles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderSubtle,
+  },
+  mobileHeader: {
+    minHeight: 64,
+    paddingBottom: 12,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -40,18 +58,29 @@ export const helpScreenStyles = StyleSheet.create({
   },
   closeButton: {
     backgroundColor: colors.surfaceGlass,
+    minHeight: 44,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: dimensions.borderRadius,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
   closeButtonText: {
     color: colors.text,
     fontWeight: '600',
   },
   scrollContainer: {
+    flex: 1,
     maxHeight: 600,
+  },
+  mobileScrollContainer: {
+    maxHeight: '100%',
+  },
+  scrollContent: {
     padding: 16,
   },
   section: {

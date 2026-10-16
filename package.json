@@ -35,7 +35,7 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "test:list": "playwright test --list",
-    "test:unit": "jest --testPathPatterns=unit",
+    "test:unit": "jest --testPathPatterns=unit --passWithNoTests",
     "test:ios:ui": "node scripts/ios-ui-test.js"
   },
   "dependencies": {

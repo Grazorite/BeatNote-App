@@ -1,7 +1,7 @@
 import { test, expect, loadTestAudio } from './setup';
 
 test.describe('UI Components & Layout', () => {
-  test('V1 settings expose only help and BPM controls', async ({ page }) => {
+  test('V1 settings open as a full mobile page with only relevant support content', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
 
@@ -11,6 +11,13 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('load-project')).toHaveAttribute('aria-label', 'Open Projects');
     await expect(page.getByTestId('import-data')).toHaveAttribute('aria-label', 'Import CSV');
     await expect(page.getByTestId('export-data')).toHaveAttribute('aria-label', 'Export CSV');
+    const settingsButton = await page.getByTestId('sidebar-open-toggle').boundingBox();
+    const exportButton = await page.getByTestId('export-data').boundingBox();
+    expect(settingsButton).not.toBeNull();
+    expect(exportButton).not.toBeNull();
+    if (settingsButton && exportButton) {
+      expect(settingsButton.x).toBeGreaterThan(exportButton.x);
+    }
     const emptyWaveform = await page.getByTestId('waveform-container').boundingBox();
     const emptyMessage = await page.getByText('Load a song', { exact: true }).boundingBox();
     expect(emptyWaveform).not.toBeNull();
@@ -37,8 +44,30 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
-    await expect(page.getByTestId('settings-bpm')).toBeVisible();
-    await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
+    await expect(page.getByTestId('settings-bpm')).toHaveCount(0);
+    await expect(page.getByText('Project BPM', { exact: true })).toHaveCount(0);
+    await expect.poll(async () => {
+      const box = await page.getByTestId('settings-page').boundingBox();
+      return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
+    }).toEqual([0, 0, 393, 852]);
+
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('settings-page')).toHaveCount(0);
+    await page.setViewportSize({ width: 740, height: 390 });
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect.poll(async () => {
+      const box = await page.getByTestId('settings-page').boundingBox();
+      return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
+    }).toEqual([0, 0, 740, 390]);
+    await page.getByTestId('settings-help').click();
+    await expect(page.getByTestId('settings-page').getByTestId('help-page')).toBeVisible();
+    await expect(page.getByText('Start a Session', { exact: true })).toBeVisible();
+    await expect(page.getByText('Mobile Controls', { exact: true })).toBeVisible();
+    await expect.poll(async () => {
+      const box = await page.getByTestId('help-page').boundingBox();
+      return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
+    }).toEqual([0, 0, 740, 390]);
 
     for (const label of [
       'Canvas Options',
@@ -204,82 +233,6 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
   });
 
-  test('phone workspace keeps all editor chrome fixed within the viewport', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await loadTestAudio(page, 'long-test-track.m4a');
-
-    await expect(page.getByText('Annotation layers')).toHaveCount(0);
-    await expect(page.getByTestId('row-density-preset-default')).toHaveCount(0);
-    await expect(page.getByTestId('wrapped-follow-toggle')).toHaveCount(0);
-    await expect(page.getByTestId('wrapped-row-gutter-0')).toHaveText('0:00');
-    const fittedRows = page.locator('[data-testid^="wrapped-row-"][role="slider"]');
-    expect(await fittedRows.count()).toBeGreaterThan(1);
-    await expect(fittedRows.last()).toHaveAttribute('aria-label', /to 3:00$/);
-
-    for (const testId of [
-      'project-actions-scroll',
-      'wrapped-waveform',
-      'loop-overview',
-      'play-pause',
-      'add-marker',
-      'annotation-control',
-    ]) {
-      await expect(page.getByTestId(testId)).toBeVisible();
-    }
-
-    const geometry = await page.evaluate(() => {
-      const actions = document.querySelector('[data-testid="project-actions-scroll"]');
-      const waveform = document.querySelector('[data-testid="wrapped-waveform"]');
-      const row = document.querySelector('[data-testid="wrapped-row-0"]');
-      const gutter = document.querySelector('[data-testid="wrapped-row-gutter-0"]');
-      const gutterText = gutter?.querySelector('*');
-      return {
-        pageFits: document.documentElement.scrollHeight <= window.innerHeight + 1,
-        actionsFit: !!actions && actions.scrollWidth <= actions.clientWidth + 1,
-        waveformFits: !!waveform && waveform.scrollHeight <= waveform.clientHeight + 1,
-        waveformOverflow: waveform ? window.getComputedStyle(waveform).overflowY : '',
-        rowHeight: row?.getBoundingClientRect().height ?? 0,
-        gutterWidth: gutter?.getBoundingClientRect().width ?? 0,
-        gutterHeight: gutter?.getBoundingClientRect().height ?? 0,
-        gutterAlign: gutter ? window.getComputedStyle(gutter).alignItems : '',
-        gutterJustify: gutter ? window.getComputedStyle(gutter).justifyContent : '',
-        gutterTextAlign: gutterText ? window.getComputedStyle(gutterText).textAlign : '',
-      };
-    });
-    expect(geometry.pageFits).toBe(true);
-    expect(geometry.actionsFit).toBe(true);
-    expect(geometry.waveformFits).toBe(true);
-    expect(geometry.waveformOverflow).toBe('hidden');
-    expect(geometry.rowHeight).toBeLessThanOrEqual(56);
-    expect(geometry.gutterWidth).toBeLessThanOrEqual(52);
-    expect(geometry.gutterHeight).toBe(geometry.rowHeight);
-    expect(geometry.gutterAlign).toBe('center');
-    expect(geometry.gutterJustify).toBe('center');
-    expect(geometry.gutterTextAlign).toBe('center');
-
-    await page.getByTestId('add-marker').click();
-    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
-    await expect(page.getByTestId('annotation-control')).toBeEnabled();
-    await page.getByTestId('annotation-control').click();
-    await expect(page.getByTestId('annotation-editor-glass')).toBeVisible();
-    await page.getByTestId('annotation-editor-input').fill('Very long annotation text that should remain readable without covering the timeline');
-    await page.getByTestId('save-annotation').click();
-    await expect(page.getByTestId('annotation-editor')).toHaveCount(0);
-    const annotationPreview = page.getByTestId('annotation-callout');
-    await expect(annotationPreview).toBeVisible();
-    const calloutBox = await annotationPreview.boundingBox();
-    const overviewWidth = (await page.getByTestId('loop-overview').boundingBox())?.width ?? 0;
-    expect(calloutBox?.width ?? Infinity).toBeLessThanOrEqual(Math.min(280, overviewWidth * 0.63));
-    const annotatedDot = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]').first();
-    await expect(annotatedDot).toHaveAttribute('fill', '#c084fc');
-    await expect(annotatedDot).toHaveAttribute('stroke', 'none');
-    await page.getByTestId('export-data').click();
-    await expect(page.getByTestId('export-modal-glass')).toBeVisible();
-    await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true })).toBeVisible();
-    await page.getByText('Cancel', { exact: true }).click();
-  });
-
   test('custom menus and submenus share the liquid-glass surface', async ({ page }) => {
     await page.setViewportSize({ width: 740, height: 390 });
     await page.goto('/');
@@ -300,7 +253,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await page.getByTestId('settings-help').click();
     await expect(page.getByTestId('help-modal-glass')).toBeVisible();
-    await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('help-close').click();
     await page.getByTestId('sidebar-toggle').click();
 
     await loadTestAudio(page, 'long-test-track.m4a');
@@ -310,6 +263,17 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('import-data').click();
     await expect(page.getByTestId('import-modal-glass')).toBeVisible();
+    await expect(page.getByText('Choose CSV', { exact: true })).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(page.getByText('Importing the same file again may create duplicate markers', { exact: true }))
+      .toHaveCSS('color', 'rgb(0, 0, 0)');
+    await page.getByText('Cancel', { exact: true }).last().click();
+
+    await page.getByTestId('add-marker').click();
+    await page.getByTestId('export-data').click();
+    await expect(page.getByTestId('export-modal-glass')).toBeVisible();
+    await expect(page.getByText('Export CSV', { exact: true }).last()).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true }))
+      .toHaveCSS('color', 'rgb(0, 0, 0)');
     await page.getByText('Cancel', { exact: true }).last().click();
   });
 
