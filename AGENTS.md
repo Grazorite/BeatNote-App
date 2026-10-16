@@ -213,7 +213,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-16 — Finish V1 settings and critical-test cleanup
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `fd99b7c`
 **Kanban moved:** V1 full-screen settings/help, CSV contrast, and critical-only tests → Done
 
 **Changed:**
