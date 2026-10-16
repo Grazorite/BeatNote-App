@@ -635,7 +635,11 @@ without relying only on hue.
 The control dock, bounded annotation callout, and modal annotation editor share a restrained dark
 diagonal glass gradient with a fine translucent highlight stroke. The editor uses an explicit draft
 and Save/Cancel actions; the callout is centered above the overview, capped at two lines and 280
-points, and tail-truncates without covering the waveform gutter.
+points, and tail-truncates without covering the waveform gutter. During playback, the newest reached
+annotated marker owns a 2-second reading window followed by a 350-millisecond exit fade. A successive
+annotated marker replaces it immediately and restarts that window, while an unannotated marker leaves
+the current note intact. This borrows timed-comment chronology without adding social avatars or
+stacking multiple notes over the rehearsal canvas.
 
 ## Error Handling
 

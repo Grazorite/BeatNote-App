@@ -628,8 +628,13 @@ consolidating the controls does not break how I work.
    clear/restore action.
 7. ON an iPhone layout, THE bottom dock row SHALL remain above the device bottom safe area and curved
    corners without clipping any button.
-8. WHEN the current marker has an annotation, THE app SHALL render a centered, bounded two-line
-   callout above the Loop_Overview with tail truncation; activating it SHALL reopen the modal editor.
+8. WHEN playback reaches an annotated marker, THE app SHALL render a centered, bounded two-line
+   callout above the Loop_Overview with tail truncation, keep it readable for 2 seconds, then fade it
+   out over approximately 350 milliseconds; activating the lingering callout SHALL reopen that
+   marker's modal editor.
+9. IF playback reaches another annotated marker while a callout is visible, THEN the newer
+   annotation SHALL replace it immediately and restart the dwell period; an unannotated marker SHALL
+   NOT clear the still-visible annotation.
 
 ## Out of Scope
 

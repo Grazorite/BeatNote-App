@@ -561,6 +561,16 @@ The implementation follows the product decisions resolved in the requirements an
   - [x] 29.5 Verify TypeScript, 123 unit tests, 17 Playwright workflows, and focused native
     multi-character annotation and landscape/orientation workflows.
 
+### Phase 17 — Timed annotation readability
+
+- [x] 30. Keep reached annotations readable during live playback
+  - [x] 30.1 Hold the newest reached annotated marker for 2 seconds, fade it over 350 milliseconds,
+    replace it immediately on a successive annotated marker, and ignore unannotated markers for
+    replacement.
+  - [x] 30.2 Keep the lingering callout bound to its source marker for editing while leaving the
+    dock Annotation action gated to the existing 100-millisecond playhead tolerance.
+  - [x] 30.3 Unit-test dwell expiry, successive replacement, tie-breaking, and unannotated markers.
+
 ## Notes
 
 - Tasks marked with `*` are optional test sub-tasks and can be skipped for a faster MVP; core

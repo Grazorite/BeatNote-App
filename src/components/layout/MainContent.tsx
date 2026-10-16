@@ -3,7 +3,11 @@ import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-nat
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
-import { findMarkerNearTime, getMarkerAnnotation } from '../../utils/markerSelection';
+import {
+  findMarkerNearTime,
+  findTimedAnnotationMarker,
+  getMarkerAnnotation,
+} from '../../utils/markerSelection';
 import ProjectControls from '../ui/controls/ProjectControls';
 
 import LoopRangeOverview from '../ui/controls/LoopRangeOverview';
@@ -76,12 +80,14 @@ const MainContent: React.FC<MainContentProps> = ({
   const updateMarkerAnnotation = useStudioStore(state => state.updateMarkerAnnotation);
   const currentMarker = findMarkerNearTime(allLayersData, currentTime, activeLayerId);
   const currentAnnotation = getMarkerAnnotation(allLayersData, currentMarker);
+  const timedAnnotationMarker = findTimedAnnotationMarker(allLayersData, currentTime, activeLayerId);
+  const displayedAnnotation = getMarkerAnnotation(allLayersData, timedAnnotationMarker);
   const editingAnnotation = getMarkerAnnotation(allLayersData, editingMarker);
 
-  const openAnnotationEditor = () => {
-    if (!currentMarker) return;
-    setSelectedMarker(currentMarker);
-    setEditingMarker(currentMarker);
+  const openAnnotationEditor = (marker: SelectedMarker | null = currentMarker) => {
+    if (!marker) return;
+    setSelectedMarker(marker);
+    setEditingMarker(marker);
   };
   const closeAnnotationEditor = () => setEditingMarker(null);
   const saveAnnotation = (text: string) => {
@@ -181,8 +187,12 @@ const MainContent: React.FC<MainContentProps> = ({
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
         <DockToast message={toast.message} action={toast.action} />
-        {currentMarker && currentAnnotation.trim() && (
-          <AnnotationCallout text={currentAnnotation} onPress={openAnnotationEditor} />
+        {timedAnnotationMarker && displayedAnnotation.trim() && (
+          <AnnotationCallout
+            key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
+            text={displayedAnnotation}
+            onPress={() => openAnnotationEditor(timedAnnotationMarker)}
+          />
         )}
         <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
       </View>
@@ -222,7 +232,7 @@ const MainContent: React.FC<MainContentProps> = ({
           onPlaybackSpeedChange={setPlaybackSpeed}
           canAnnotate={currentMarker !== null}
           hasAnnotation={Boolean(currentAnnotation.trim())}
-          onAnnotate={openAnnotationEditor}
+          onAnnotate={() => openAnnotationEditor()}
           onToast={toast.show}
         />
       </View>

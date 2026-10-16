@@ -1976,6 +1976,60 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Relaunch the app for the user's simulator visual pass, then continue physical-device acceptance.
+
+#### Archived Done item — custom BeatNote icon family
+
+- [x] Modernise and refine every button icon with a shared custom BeatNote family, including the
+      single-note audio glyph, thin open repeat grammar, bounded-range cue, invariant marker sizing,
+      solid rounded transport, and subdued active/operation fills
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/`, `src/components/icons/`, `src/components/layout/StemsView.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/`, `src/components/ui/screens/HelpScreen.tsx`</sub>
+
+### 2026-10-15 — Create and refine the BeatNote icon family
+
+**Agent:** orchestrator (Codex) + context-gatherer + DSH-Qwen Leonardo concept pass · **Commit(s):** `d533a72`
+**Kanban moved:** Modernise and simplify every button icon; define custom-icon principles → Done
+
+**Changed:**
+
+- Added a central 24×24 `BeatNoteIcon` SVG family spanning project/data actions, transport,
+  choreography markers, loop utilities, disclosure/view controls, and annotation-layer instruments,
+  then simplified the first concept pass to iOS-inspired monoline geometry and stronger negative space.
+- Refined the set from the user's visual references: reduced audio loading to one music note, restored
+  a familiar save-file silhouette, enlarged CSV direction arrows, rounded and filled transport
+  geometry, and unified every marker action around one single-border shield silhouette.
+- Made add/remove marker operations subdued green/red without cramped `+`/`−` cues, made
+  remove-previous a red shield with its left arrow on the right, preserved one full-size shield in
+  every navigation composite, and placed marker or `•—•` bounded-range cues inside the thin open
+  repeat chassis.
+- Added a muted control-state orange distinct from the brighter timeline/brand accent and applied it
+  consistently to filled active buttons and selected segmented controls.
+- Replaced every current button's direct Lucide use while retaining numeric BPM/speed controls as
+  text, existing button chrome, test IDs, accessible names/states, and control behavior.
+- Codified the rounded 1.75-point outline, one-silhouette/one-modifier limit, optical balance,
+  small-size legibility, and accessibility requirements in durable steering; primary transport
+  glyphs use simple solid geometry while detailed decorative motifs are explicitly avoided.
+- Updated the playback-dock design/task record to make the shared custom family the ongoing source
+  for dock glyphs. DSH task `session-cb84715b-2187-4e71-9b6b-83ec0b16139b` supplied the bounded
+  first-pass concepts; Codex retained the clearer bookmark language for marker navigation.
+
+**Verified:**
+
+- `git diff --check`, `npx tsc --noEmit`, and the unit gate → clean; 119/119 tests passed across 11 suites.
+- Elevated full Playwright gate on port 8082 → 17/17 passed.
+- Desktop browser visual inspection of unloaded and fixture-loaded states → the toolbar and dock
+  render the single note, open repeat chassis, solid rounded transport, invariant marker shields,
+  subdued state colours, and the compact bounded-range cue at actual control size.
+- Browser assertions confirm add-marker transitions green add → red remove → green add while the
+  existing repeat/inner-loop behavior and accessible state checks remain intact.
+
+**Not verified / known gaps:**
+
+- Native simulator and physical-iPhone visual/VoiceOver review were not rerun for the icon-only change.
+- The icon work and the three earlier local commits are included in the push containing `d533a72`.
+
+**Next agent should:**
+
+- Continue physical-device visual/VoiceOver acceptance for the completed icon family.
 #### Archived Done item — unloaded annotation spacing
 
 - [x] Add an 8-point gap above the phone dock and keep the annotation field blank and non-interactive

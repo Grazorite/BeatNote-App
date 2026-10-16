@@ -52,7 +52,7 @@ potentially adding a hybrid path later.
 | Export formats implemented | 2 of 3 (CSV exposed in V1; MIDI retained for V2; PDF planned) |
 | Stem separation | Deferred; types, store fields, cache, and cache tests preserved |
 | Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
-| Unit tests | 126 passing (13 suites) |
+| Unit tests | 129 passing (13 suites) |
 | iOS UI tests | Latest aggregate: 8/14 passed and 6 simulator tests were signal-killed; focused dock/range and V1 launch checks pass |
 | E2E spec files | 4 (Playwright, 17/17 passing) |
 | Native Expo modules | 0 (`modules/` directory does not exist yet) |
@@ -116,6 +116,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Keep timed annotation callouts readable during playback with a 2-second dwell, 350-millisecond
+      fade, successive-annotation replacement, and source-marker editing
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/utils/markerSelection.ts`, `tests/unit/markerSelection.test.ts`</sub>
+
 - [x] Establish a typed colour-theme foundation with a registered immutable dark palette, semantic
       contract, compatibility access, and explicit rules for adding palettes and runtime switching
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/styles/theme.ts`, `src/styles/common.ts`, `tests/unit/theme.test.ts`</sub>
@@ -132,11 +136,6 @@ potentially adding a hybrid path later.
 - [x] Bring transient dock popups into the liquid-glass family, center wrapped-row gutter timestamps,
       and describe the V1 CSV's BPM-derived timing precisely
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/design.md`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/controls/controlDock.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Modernise and refine every button icon with a shared custom BeatNote family, including the
-      single-note audio glyph, thin open repeat grammar, bounded-range cue, invariant marker sizing,
-      solid rounded transport, and subdued active/operation fills
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/specs/playback-marker-control-dock/`, `src/components/icons/`, `src/components/layout/StemsView.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/`, `src/components/ui/screens/HelpScreen.tsx`</sub>
 
 ---
 
@@ -211,6 +210,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-16 — Extend timed annotation readability
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Timed annotation dwell and successive replacement → Done
+
+**Changed:**
+
+- Extended the mobile annotation callout from a 100-millisecond playhead match to a 2-second
+  media-time reading window followed by a 350-millisecond exit fade.
+- Shortened the original 3-second proposal to 2 seconds after the user's on-device timing feedback.
+- Made the newest reached annotated marker replace the prior callout immediately, while unannotated
+  markers leave the current note visible and same-time ties prefer the active layer.
+- Kept the lingering callout bound to its source marker for editing while preserving the dock
+  Annotation button's strict near-marker gate.
+- Recorded the timed-comment chronology decision in the playback-dock requirements, design, and
+  completed task list.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 129/129 passed across 13 suites, including dwell, replacement, tie, and blank-marker cases.
+- Focused timing suite after the 2-second adjustment → 5/5 passed; TypeScript remained clean.
+- Full Playwright gate → 17/17 passed.
+
+**Not verified / known gaps:**
+
+- The fade and live music timing have not yet been visually assessed on a physical iPhone.
+- The implementation and handover updates remain uncommitted.
+
+**Next agent should:**
+
+- Check the 2-second dwell and 350-millisecond fade on-device during the existing physical acceptance pass.
 
 ### 2026-10-16 — Establish the colour-theme foundation
 
@@ -346,51 +378,4 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run the native visual/VoiceOver acceptance pass, then continue the active full-surface glass work.
-
-### 2026-10-15 — Create and refine the BeatNote icon family
-
-**Agent:** orchestrator (Codex) + context-gatherer + DSH-Qwen Leonardo concept pass · **Commit(s):** `d533a72`
-**Kanban moved:** Modernise and simplify every button icon; define custom-icon principles → Done
-
-**Changed:**
-
-- Added a central 24×24 `BeatNoteIcon` SVG family spanning project/data actions, transport,
-  choreography markers, loop utilities, disclosure/view controls, and annotation-layer instruments,
-  then simplified the first concept pass to iOS-inspired monoline geometry and stronger negative space.
-- Refined the set from the user's visual references: reduced audio loading to one music note, restored
-  a familiar save-file silhouette, enlarged CSV direction arrows, rounded and filled transport
-  geometry, and unified every marker action around one single-border shield silhouette.
-- Made add/remove marker operations subdued green/red without cramped `+`/`−` cues, made
-  remove-previous a red shield with its left arrow on the right, preserved one full-size shield in
-  every navigation composite, and placed marker or `•—•` bounded-range cues inside the thin open
-  repeat chassis.
-- Added a muted control-state orange distinct from the brighter timeline/brand accent and applied it
-  consistently to filled active buttons and selected segmented controls.
-- Replaced every current button's direct Lucide use while retaining numeric BPM/speed controls as
-  text, existing button chrome, test IDs, accessible names/states, and control behavior.
-- Codified the rounded 1.75-point outline, one-silhouette/one-modifier limit, optical balance,
-  small-size legibility, and accessibility requirements in durable steering; primary transport
-  glyphs use simple solid geometry while detailed decorative motifs are explicitly avoided.
-- Updated the playback-dock design/task record to make the shared custom family the ongoing source
-  for dock glyphs. DSH task `session-cb84715b-2187-4e71-9b6b-83ec0b16139b` supplied the bounded
-  first-pass concepts; Codex retained the clearer bookmark language for marker navigation.
-
-**Verified:**
-
-- `git diff --check`, `npx tsc --noEmit`, and the unit gate → clean; 119/119 tests passed across 11 suites.
-- Elevated full Playwright gate on port 8082 → 17/17 passed.
-- Desktop browser visual inspection of unloaded and fixture-loaded states → the toolbar and dock
-  render the single note, open repeat chassis, solid rounded transport, invariant marker shields,
-  subdued state colours, and the compact bounded-range cue at actual control size.
-- Browser assertions confirm add-marker transitions green add → red remove → green add while the
-  existing repeat/inner-loop behavior and accessible state checks remain intact.
-
-**Not verified / known gaps:**
-
-- Native simulator and physical-iPhone visual/VoiceOver review were not rerun for the icon-only change.
-- The icon work and the three earlier local commits are included in the push containing `d533a72`.
-
-**Next agent should:**
-
-- Continue physical-device visual/VoiceOver acceptance for the completed icon family.
 

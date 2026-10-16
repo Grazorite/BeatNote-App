@@ -1,6 +1,8 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { annotationCalloutStyles as styles } from '../../../styles/components/controls/annotationCallout';
+import { ANNOTATION_FADE_MS } from '../../../utils/markerSelection';
 import GlassBackdrop from './GlassBackdrop';
 
 interface AnnotationCalloutProps {
@@ -8,11 +10,13 @@ interface AnnotationCalloutProps {
   onPress: () => void;
 }
 
-/** Show a bounded preview for only the annotation at the current marker. */
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+/** Show a bounded timed preview for the most recently reached annotated marker. */
 const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress }) => {
   if (!text.trim()) return null;
   return (
-    <TouchableOpacity
+    <AnimatedTouchableOpacity
       testID="annotation-callout"
       accessibilityRole="button"
       accessibilityLabel={`Annotation: ${text}`}
@@ -20,12 +24,14 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress }) 
       activeOpacity={0.86}
       onPress={onPress}
       style={styles.container}
+      entering={FadeIn.duration(160)}
+      exiting={FadeOut.duration(ANNOTATION_FADE_MS)}
     >
       <GlassBackdrop gradientId="annotation-callout-glass" radius={12} variant="callout" />
       <Text numberOfLines={2} ellipsizeMode="tail" style={styles.text} testID="annotation-callout-text">
         {text}
       </Text>
-    </TouchableOpacity>
+    </AnimatedTouchableOpacity>
   );
 };
 
