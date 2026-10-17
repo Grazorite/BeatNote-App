@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-16
+**Last updated:** 2026-10-18
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -51,7 +51,7 @@ potentially adding a hybrid path later.
 | Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
 | Export formats implemented | 2 of 3 (CSV exposed in V1; MIDI retained for V2; PDF planned) |
 | Stem separation | Deferred; types, store fields, and cache preserved |
-| Choreography features implemented | 1 of 6 (section looping implemented; physical-device acceptance pending) |
+| Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 6 critical native integrations retained; focused V1 launch/settings check passes |
 | E2E spec files | 2 (Playwright, 6 critical journeys) |
@@ -70,7 +70,9 @@ potentially adding a hybrid path later.
    app on this host.
 3. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-4. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+4. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+   range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
+5. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -92,12 +94,13 @@ potentially adding a hybrid path later.
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add `Count (phrase:beat)` column to CSV export using `countSize`
-- [ ] Implement slow-down / pitch-preserve playback — `playbackSpeed` state + `modules/audio-time-stretch/`
 - [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
 
 ### 🚧 In Progress
 
+- [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 Open-in delivery
+      spike and Phase 1 non-overlapping domain foundations are active
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -113,6 +116,15 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Stabilise direct playback-speed dragging, replace abrupt popup removal with an interruptible
+      collapse/fade, remove redundant speed feedback, and keep loaded-song Annotation actionable
+      with marker-prerequisite guidance
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Implement pitch-preserved playback speed from 0.5×–2× in 0.05× increments, with an adjustable
+      popup slider, common presets, reset, project persistence, and responsive accessibility
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/ios-testflight.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/types/project.ts`, `src/utils/playbackSpeed.ts`, `src/utils/projectManager.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Replace the Settings sliders glyph with a simple rounded gear in the shared icon family
       <sub>**Key Artifacts:** `src/components/icons/BeatNoteIcon.tsx`</sub>
 
@@ -126,15 +138,6 @@ potentially adding a hybrid path later.
 - [x] Keep timed annotation callouts readable during playback with a 2-second dwell, 350-millisecond
       fade, successive-annotation replacement, and source-marker editing
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/utils/markerSelection.ts`, `tests/unit/markerSelection.test.ts`</sub>
-
-- [x] Establish a typed colour-theme foundation with a registered immutable dark palette, semantic
-      contract, compatibility access, and explicit rules for adding palettes and runtime switching
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/styles/theme.ts`, `src/styles/common.ts`, `tests/unit/theme.test.ts`</sub>
-
-- [x] Replace the compact mobile annotation field with marker-gated modal editing, a bounded
-      selected-marker callout, reversible marker deletion, the agreed portrait/landscape dock order,
-      safe-area project padding, and orientation-stable glass sizing
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/hooks/useDockToast.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/modals/annotationEditorModal.ts`, `src/utils/markerSelection.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/unit/markerSelection.test.ts`, `tests/unit/studioStore.innerLoop.test.ts`, `tests/waveform-features.spec.ts`</sub>
 
 ---
 
@@ -209,6 +212,132 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-18 — Start local music library foundations
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `d7e9e2a`
+**Kanban moved:** `local-music-library-queue` Phase 0 and non-overlapping Phase 1 work → In Progress
+
+**Changed:**
+
+- Reconciled the new spec with the shipped playback-speed ADR: provider/library decisions now use
+  ADR-012 through ADR-016, local pitch-preserving speed remains supported, and `ImportJobView` is
+  defined instead of referenced implicitly.
+- Added the library, queue, migration, CSV-import, and shared-constant type foundations, plus pure
+  queue/sort/search/shuffle/navigation and import/duplicate/relink/orphan decision utilities.
+- Ran the OQ-4 spike in an isolated app ID and recorded a provisional
+  `LSSupportsOpeningDocumentsInPlace = false` decision in the design. The disposable app and build
+  directory were removed afterwards.
+- DSH-Qwen audited the Open-in surface successfully. Its isolated queue implementation failed twice
+  without producing a file; Codex cancelled it and implemented/reviewed the utility directly.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and Markdown lint for the changed spec files → clean.
+- Elevated full retained Playwright gate on port 8082 → 6/6 critical journeys passed after the
+  playback and library foundation commits were reconciled.
+- Temporary queue and import-decision checks → 7/7 passed, then removed per project policy.
+- Prebuild preserved the `.beatnote` declaration under both in-place settings and added the scratch
+  MP3/M4A declaration without editing the repository's native project.
+- On iPhone 17 Pro / iOS 26.2 Simulator, warm and cold M4A delivery reached React Native Linking
+  under both settings as `Documents/Inbox` copies; MP3 also reached both paths with the key `true`.
+
+**Not verified / known gaps:**
+
+- Physical Files and third-party-app delivery remains blocked on a signed device build, so the key
+  decision is provisional. Simulator `openurl` cannot prove security-scoped in-place behaviour.
+- A `.beatnote` host URL opened Files UI instead of Linking; its declaration was preserved, but its
+  delivery path still needs physical-device validation.
+- The dependency alignment and playback-speed work were reconciled separately in `738c3ae`; the
+  installed dependency tree now matches the committed manifests.
+- Task 3.2 and the dependent project/draft utilities remain the next implementation slice.
+
+**Next agent should:**
+
+- Implement Task 3.2 and the dependent persisted-content/fingerprint utilities.
+
+### 2026-10-18 — Refine speed-popup interaction and annotation guidance
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `738c3ae`
+**Kanban moved:** Playback-speed direct-manipulation refinement → Done
+
+**Changed:**
+
+- Made slider coordinates stable across the full track so the thumb follows a drag without jumping
+  when it passes over the fill or thumb, while retaining 0.05× normalization from 0.5× through 2×.
+- Removed redundant speed toasts, increased the popup's glass opacity, and added a 700-millisecond
+  dwell followed by a 420-millisecond collapse/fade toward the Speed control.
+- Made that dismissal interruptible: touching the fading popup restores it immediately, and Speed,
+  preset, and Reset presses all use the same transition instead of abruptly unmounting the panel.
+- Kept Annotation enabled whenever audio is loaded; away from a marker it now leaves the editor
+  closed and shows the actionable "Add a marker first" toast.
+- DSH-Qwen task `session-2a700c81-465d-4e6d-90eb-32babefb66e9` supplied the bounded popup draft;
+  Codex reviewed it and corrected web-coordinate stability and interrupted-animation completion.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean before lifecycle bookkeeping.
+- Focused retained dock journey → 1/1 passed, including exact intermediate drag values, fade
+  interruption, delayed auto-close, and animated button/preset/Reset dismissal.
+- Full retained Playwright gate on port 8082 → 6/6 critical journeys passed, including loaded-song
+  Annotation prerequisite feedback.
+- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2,
+  including 2× pitch-preserved rate/reset, loaded-song Annotation feedback, and loop transport;
+  result bundle `ios/build/BeatNoteUITests-1792259719500.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device touch feel, VoiceOver, Bluetooth output, and audible pitch/artifact quality remain
+  part of the active playback-speed acceptance checklist.
+- Concurrent `local-music-library-queue` work and its untracked files remain outside this task.
+
+**Next agent should:**
+
+- Complete the on-device playback-speed checklist, paying particular attention to interrupting the
+  fade with a second touch and dragging continuously at 0.5× and 2×.
+
+### 2026-10-17 — Ship pitch-preserved playback speed
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `738c3ae`
+**Kanban moved:** Slow-down / pitch-preserve playback → Done
+
+**Changed:**
+
+- Added normalized global and project-persisted playback speed from 0.5× through 2× in 0.05×
+  increments, defaulting safely to 1× for missing or invalid project values.
+- Replaced the placeholder speed chooser with a responsive glass popup containing a live slider,
+  current value, endpoints, eight common presets, Reset to 1×, and adjustable accessibility actions.
+- Connected the store to `expo-audio`, forcing pitch correction on and requesting its high-quality
+  algorithm whenever the speed or underlying player changes; no custom native module is needed for
+  the supported range.
+- Updated the playback-dock spec and durable architecture/iOS guidance to replace the superseded
+  custom-module and web pitch-shift assumptions.
+- DSH-Qwen delegation session `session-a4538ec3-46a5-4e53-8fe0-d7b431adb5b2` failed before producing
+  output or edits; Codex implemented and verified the feature directly.
+
+**Verified:**
+
+- Temporary normalization checks → 2/2 passed for invalid input, clamping, and 0.05× quantization;
+  the temporary test was removed per the project testing policy.
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Full retained Playwright gate on port 8082 → 6/6 passed; the dock journey verifies the 0.75×
+  preset, slider-only 0.85× value, browser engine rate and pitch flag, popup bounds in both
+  orientations, rotation persistence, and reset.
+- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2; 2×
+  advanced the media clock faster than wall time, reset returned to 1×, and loop transport remained
+  intact. Result bundle: `ios/build/BeatNoteUITests-1792196091966.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device listening is still required for pitch fidelity and artifacts across the range,
+  plus VoiceOver, live adjustment comfort, Bluetooth, interruptions, and background/loop behavior.
+- Expo/Jest dependencies were aligned with the Expo SDK 54 recommendations in the same commit.
+- The local-music library foundations were committed separately in `d7e9e2a`.
+
+**Next agent should:**
+
+- Run the playback-speed physical-device checklist with music containing exposed vocals and sustained
+  notes, checking 0.5×, 0.75×, 1.25×, 1.5×, and 2× through speakers and Bluetooth.
 
 ### 2026-10-17 — Replace Settings sliders with a gear
 
@@ -289,105 +418,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue physical-device acceptance, beginning with Settings/Help rotation and CSV share-sheet
   readability on real hardware.
-
-### 2026-10-16 — Extend timed annotation readability
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `e6bd48f`
-**Kanban moved:** Timed annotation dwell and successive replacement → Done
-
-**Changed:**
-
-- Extended the mobile annotation callout from a 100-millisecond playhead match to a 2-second
-  media-time reading window followed by a 350-millisecond exit fade.
-- Shortened the original 3-second proposal to 2 seconds after the user's on-device timing feedback.
-- Made the newest reached annotated marker replace the prior callout immediately, while unannotated
-  markers leave the current note visible and same-time ties prefer the active layer.
-- Kept the lingering callout bound to its source marker for editing while preserving the dock
-  Annotation button's strict near-marker gate.
-- Recorded the timed-comment chronology decision in the playback-dock requirements, design, and
-  completed task list.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean.
-- Unit gate → 129/129 passed across 13 suites, including dwell, replacement, tie, and blank-marker cases.
-- Focused timing suite after the 2-second adjustment → 5/5 passed; TypeScript remained clean.
-- Full Playwright gate → 17/17 passed.
-
-**Not verified / known gaps:**
-
-- The fade and live music timing have not yet been visually assessed on a physical iPhone.
-- The implementation, tests, specs, and archived handover rotation are included in `e6bd48f`.
-
-**Next agent should:**
-
-- Check the 2-second dwell and 350-millisecond fade on-device during the existing physical acceptance pass.
-
-### 2026-10-16 — Establish the colour-theme foundation
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
-**Kanban moved:** Typed colour-theme foundation → Done
-
-**Changed:**
-
-- Added a typed, immutable `ThemeColors` contract, the registered `darkTheme`, a default-theme name,
-  and a pure palette accessor so future palettes must provide every semantic role.
-- Kept the existing `colors` export as a compatibility alias to the registered dark palette, avoiding
-  visual or behavioural churn while current module-level `StyleSheet` definitions remain static.
-- Documented palette registration, semantic-token use, contrast/state requirements, and the boundary
-  between today’s static palette and future runtime switching.
-
-**Verified:**
-
-- `git diff --check` and `npx tsc --noEmit` → clean.
-- Unit gate → 126/126 passed across 13 suites, including the new registry/immutability tests.
-- Full Playwright gate on port 8082 → 17/17 passed with the refactor preserving current rendering.
-
-**Not verified / known gaps:**
-
-- Dark remains the only complete palette; no user-facing theme selector or runtime provider was added.
-- Existing colour literals outside the central palette remain migration debt and should move to
-  semantic tokens when those components are next changed.
-- This work and the prior user-approved icon/glass changes are included in `d533a72`.
-
-**Next agent should:**
-
-- Continue physical-device acceptance; add a second complete palette before introducing runtime
-  theme selection or theme-aware style factories.
-
-### 2026-10-16 — Replace compact annotations and harden marker deletion
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
-**Kanban moved:** Marker-gated annotations, reversible deletion, and responsive dock refinement → Done
-
-**Changed:**
-
-- Replaced the compact phone annotation field with a dock action enabled only at a nearby marker,
-  a native-stable modal draft editor with explicit Save/Cancel, and a bounded two-line callout above
-  the overview. The callout uses a darker but still translucent liquid-glass surface.
-- Added bounded marker-deletion history that preserves annotations, an actionable Undo toast, and a
-  long-press menu for restoring the latest deletion or deleting all earlier markers with confirmation.
-- Applied the exact portrait/landscape button order, standardised marker glyph size, reclaimed the
-  removed landscape annotation-row height, added safe-area-aware Projects/Close padding, and made
-  glass backdrops remeasure after rotation.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `git diff --check`, and unit gate → clean; 123/123 tests passed across 12 suites.
-- Full Playwright gate → 17/17 passed, including annotation modal/callout, Undo, Projects padding,
-  exact dock order, and portrait-landscape-portrait glass geometry.
-- Focused native annotation test typed `Live marker note` character by character and passed; focused
-  native landscape/orientation workflow passed on iPhone 17 Pro / iOS 26.2.
-- Device Hub visual review confirmed the expanded unloaded landscape canvas, safe Projects/Close
-  insets, and a full-width portrait dock after returning from landscape.
-
-**Not verified / known gaps:**
-
-- Physical-device VoiceOver, touch comfort, and keyboard acceptance remain pending.
-- This work and the prior user-approved icon/glass changes are included in `d533a72`.
-
-**Next agent should:**
-
-- Continue the active physical-device acceptance checklist, especially VoiceOver actions and
-  long-press deletion comfort on hardware.
-

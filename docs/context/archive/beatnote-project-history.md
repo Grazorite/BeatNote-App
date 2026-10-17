@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Establish a typed colour-theme foundation with a registered immutable dark palette, semantic
+      contract, compatibility access, and explicit rules for adding palettes and runtime switching
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `src/styles/theme.ts`, `src/styles/common.ts`, `tests/unit/theme.test.ts`</sub>
+
 - [x] Align startup settings, project/audio actions, and CSV import/export with the one-lane V1 UX:
       start with settings closed, distinguish raw audio from saved Projects, expose CSV-only I/O,
       report marker counts instead of hidden layers, and explain the remaining BPM behavior
@@ -132,6 +136,38 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-16 — Establish the colour-theme foundation
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
+**Kanban moved:** Typed colour-theme foundation → Done
+
+**Changed:**
+
+- Added a typed, immutable `ThemeColors` contract, the registered `darkTheme`, a default-theme name,
+  and a pure palette accessor so future palettes must provide every semantic role.
+- Kept the existing `colors` export as a compatibility alias to the registered dark palette, avoiding
+  visual or behavioural churn while current module-level `StyleSheet` definitions remain static.
+- Documented palette registration, semantic-token use, contrast/state requirements, and the boundary
+  between today’s static palette and future runtime switching.
+
+**Verified:**
+
+- `git diff --check` and `npx tsc --noEmit` → clean.
+- Unit gate → 126/126 passed across 13 suites, including the new registry/immutability tests.
+- Full Playwright gate on port 8082 → 17/17 passed with the refactor preserving current rendering.
+
+**Not verified / known gaps:**
+
+- Dark remains the only complete palette; no user-facing theme selector or runtime provider was added.
+- Existing colour literals outside the central palette remain migration debt and should move to
+  semantic tokens when those components are next changed.
+- This work and the prior user-approved icon/glass changes are included in `d533a72`.
+
+**Next agent should:**
+
+- Continue physical-device acceptance; add a second complete palette before introducing runtime
+  theme selection or theme-aware style factories.
 
 ### 2026-10-15 — Align V1 startup and project data actions
 
@@ -2142,3 +2178,79 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Run focused native launch/annotation/orientation tests, then continue physical-device acceptance.
+
+#### Archived Done item — marker-gated annotation workflow
+
+- [x] Replace the compact mobile annotation field with marker-gated modal editing, a bounded
+      selected-marker callout, reversible marker deletion, the agreed portrait/landscape dock order,
+      safe-area project padding, and orientation-stable glass sizing
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/coding-standards.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/GlassBackdrop.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/hooks/useDockToast.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/modals/annotationEditorModal.ts`, `src/utils/markerSelection.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/unit/markerSelection.test.ts`, `tests/unit/studioStore.innerLoop.test.ts`, `tests/waveform-features.spec.ts`</sub>
+
+### 2026-10-16 — Replace compact annotations and harden marker deletion
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `d533a72`
+**Kanban moved:** Marker-gated annotations, reversible deletion, and responsive dock refinement → Done
+
+**Changed:**
+
+- Replaced the compact phone annotation field with a dock action enabled only at a nearby marker,
+  a native-stable modal draft editor with explicit Save/Cancel, and a bounded two-line callout above
+  the overview. The callout uses a darker but still translucent liquid-glass surface.
+- Added bounded marker-deletion history that preserves annotations, an actionable Undo toast, and a
+  long-press menu for restoring the latest deletion or deleting all earlier markers with confirmation.
+- Applied the exact portrait/landscape button order, standardised marker glyph size, reclaimed the
+  removed landscape annotation-row height, added safe-area-aware Projects/Close padding, and made
+  glass backdrops remeasure after rotation.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and unit gate → clean; 123/123 tests passed across 12 suites.
+- Full Playwright gate → 17/17 passed, including annotation modal/callout, Undo, Projects padding,
+  exact dock order, and portrait-landscape-portrait glass geometry.
+- Focused native annotation test typed `Live marker note` character by character and passed; focused
+  native landscape/orientation workflow passed on iPhone 17 Pro / iOS 26.2.
+- Device Hub visual review confirmed the expanded unloaded landscape canvas, safe Projects/Close
+  insets, and a full-width portrait dock after returning from landscape.
+
+**Not verified / known gaps:**
+
+- Physical-device VoiceOver, touch comfort, and keyboard acceptance remain pending.
+- This work and the prior user-approved icon/glass changes are included in `d533a72`.
+
+**Next agent should:**
+
+- Continue the active physical-device acceptance checklist, especially VoiceOver actions and
+  long-press deletion comfort on hardware.
+
+### 2026-10-16 — Extend timed annotation readability
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `e6bd48f`
+**Kanban moved:** Timed annotation dwell and successive replacement → Done
+
+**Changed:**
+
+- Extended the mobile annotation callout from a 100-millisecond playhead match to a 2-second
+  media-time reading window followed by a 350-millisecond exit fade.
+- Shortened the original 3-second proposal to 2 seconds after the user's on-device timing feedback.
+- Made the newest reached annotated marker replace the prior callout immediately, while unannotated
+  markers leave the current note visible and same-time ties prefer the active layer.
+- Kept the lingering callout bound to its source marker for editing while preserving the dock
+  Annotation button's strict near-marker gate.
+- Recorded the timed-comment chronology decision in the playback-dock requirements, design, and
+  completed task list.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean.
+- Unit gate → 129/129 passed across 13 suites, including dwell, replacement, tie, and blank-marker cases.
+- Focused timing suite after the 2-second adjustment → 5/5 passed; TypeScript remained clean.
+- Full Playwright gate → 17/17 passed.
+
+**Not verified / known gaps:**
+
+- The fade and live music timing have not yet been visually assessed on a physical iPhone.
+- The implementation, tests, specs, and archived handover rotation are included in `e6bd48f`.
+
+**Next agent should:**
+
+- Check the 2-second dwell and 350-millisecond fade on-device during the existing physical acceptance pass.
