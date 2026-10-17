@@ -1,0 +1,21 @@
+export const DRAFT_AUTOSAVE_DEBOUNCE_MS = 500;
+export const DRAFT_FLUSH_TIMEOUT_MS = 2_000;
+export const PREVIOUS_RESTART_THRESHOLD_MS = 3_000;
+export const PROJECT_NAME_MAX_LENGTH = 100;
+export const DISPLAY_TITLE_MAX_LENGTH = 200;
+export const MAX_AUDIO_FILE_BYTES = 500 * 1024 * 1024;
+export const FREE_SPACE_MARGIN_BYTES = 50 * 1024 * 1024;
+export const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'] as const;
+export const MIN_TOUCH_TARGET_PT = 44;
+export const IMPORT_DECODE_TIMEOUT_MS = 10_000;
+export const ORPHAN_FILE_MIN_AGE_MS = 86_400_000;
+export const SHEET_MEDIUM_DETENT_RATIO = 0.5;
+export const SHEET_SETTLE_MS = 350;
+export const SHEET_CLOSE_DRAG_RATIO = 0.25;
+export const CSV_UNDO_TOAST_MS = 5_000;
+export const PERSISTENCE_AUTO_RETRY_LIMIT = 3;
+export const MIGRATION_IMPORT_ATTEMPT_LIMIT = 3;
+export const LEGACY_DURATION_TOLERANCE_MS = 50;
+export const MAX_TEXT_SCALE = 2;
+
+export type SupportedAudioExtensionWithDot = typeof SUPPORTED_AUDIO_EXTENSIONS[number];
