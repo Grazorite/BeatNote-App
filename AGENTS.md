@@ -99,8 +99,8 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 Open-in delivery
-      spike and Phase 1 non-overlapping domain foundations are active
+- [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
+      Phase 1 foundations through project grouping are complete, with CSV transforms next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -212,6 +212,44 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-18 — Build project and draft persistence foundations
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `0c0e0f0`, `1e0fa29`
+**Kanban moved:** local library project/draft foundations → In Progress
+
+**Changed:**
+
+- Added the V1.2 saved-project, persisted-content, and per-song draft contracts while keeping the
+  legacy `BeatNoteProject` shape and load path intact; moved `LayerId` to the shared project domain
+  and re-exported it from the store for compatibility.
+- Added pure extraction/application and project-envelope mapping that preserve unknown top-level,
+  settings, and layer fields, plus canonical serialisation and versioned 106-bit content fingerprints.
+- Added invalid-record isolation for every library storage family, the six-rule song-load resolver,
+  dirty/switch/save planning helpers, and project-name/export/grouping decisions.
+- Preserved a concurrent installed `expo-dev-client` addition as the separate dependency commit
+  `1e0fa29`; DSH-Qwen review and validator delegations were cancelled after they stalled without
+  output or file changes.
+
+**Verified:**
+
+- Temporary focused unit checks → 17/17 passed across fingerprint, persisted-content round trip,
+  draft resolution, validation isolation, and name/grouping behavior; files were then removed per
+  the temporary-test policy.
+- `npx tsc --noEmit`, `git diff --check`, Markdown lint for the updated task list, and the empty
+  permanent unit command → clean.
+- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- The new pure utilities are not wired to repositories, autosave, track switching, or UI yet.
+- Physical-device Open-in delivery and all existing hardware acceptance items remain pending.
+- Native prebuild/autolinking was not rerun specifically for the concurrent `expo-dev-client` addition.
+
+**Next agent should:**
+
+- Implement Task 9.1 CSV preview/replace transforms, then continue into the persistence pipeline and
+  repositories that consume these validated records.
 
 ### 2026-10-18 — Start local music library foundations
 
@@ -364,57 +402,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
   share-sheet readability on real hardware.
-
-### 2026-10-16 — Finish V1 settings and critical-test cleanup
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `fd99b7c`
-**Kanban moved:** V1 full-screen settings/help, CSV contrast, and critical-only tests → Done
-
-**Changed:**
-
-- Replaced the phone's width-animated settings drawer with a safe-area-aware full-screen page in
-  portrait and landscape, removing the bottom color gap and expansion-time text bunching.
-- Removed visible BPM settings from V1 and rebuilt Help as a full-screen, mobile-first guide with
-  touch controls before secondary web keyboard shortcuts.
-- Added the semantic `onAccent` theme color and applied solid black, semibold text to both lines of
-  the orange Import CSV and Export CSV actions.
-- Made mobile Help swap into the existing Settings modal immediately instead of presenting a second
-  full-screen native modal; its Back action returns to Settings, while Settings Close has no arrow.
-- Moved Settings to the rightmost end of the mobile toolbar and replaced bottom-up modal motion with
-  a 280-millisecond trailing-edge push: Settings enters from the right, Help pushes over it, and Back
-  reverses that navigation while retaining the underlying page.
-- Changed the mobile modal host to transparent `overFullScreen` presentation so the live BeatNote
-  workspace remains behind the moving Settings page instead of exposing the native white host.
-- Replaced 129 permanent unit tests, 11 redundant browser journeys, and 8 overlapping native cases
-  with 6 critical Playwright journeys and 6 native integration cases. Jest remains available only
-  for temporary test-first checks that must be removed after verification.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `git diff --check`, and `npm run test:unit` → clean; the temporary unit suite
-  correctly reports no tests and exits successfully.
-- Elevated Playwright gate on port 8082 → 6/6 critical journeys passed, including computed black
-  text for both labels on both CSV actions.
-- Focused iOS `testStudioLaunchesAndDocumentPickerOpens` → passed on iPhone 17 Pro / iOS 26.2;
-  result bundle `ios/build/BeatNoteUITests-1792161700307.xcresult`.
-- Device Hub loaded the fresh 1,175-module bundle; the portrait Settings page visibly fills the
-  device, respects the safe area, has no BPM control or bottom strip, and no longer width-expands.
-- Device Hub visual review confirmed the arrowless Settings Close and immediate in-surface Help
-  navigation; the focused Settings/Help Playwright workflows pass 2/2.
-- Device Hub confirmed the rightmost Settings placement and final native page geometry. Focused iOS
-  launch/settings passed with the trailing-position assertion; result bundle
-  `ios/build/BeatNoteUITests-1792162543533.xcresult`.
-- Device Hub reloaded the transparent host and confirmed Settings covers the live app cleanly; the
-  focused Settings transition browser workflow passes 1/1 after the host change.
-
-**Not verified / known gaps:**
-
-- Physical-device VoiceOver, touch comfort, and external CSV sharing remain pending.
-- Native landscape Settings is covered by the responsive implementation and browser geometry check;
-  Device Hub's manual rotate view rendered the simulator surface sideways during this pass.
-- Metro is running on port 8081 so the mounted Debug app remains usable in Device Hub.
-
-**Next agent should:**
-
-- Continue physical-device acceptance, beginning with Settings/Help rotation and CSV share-sheet
-  readability on real hardware.
