@@ -1,6 +1,6 @@
 import { create, type StateCreator } from 'zustand';
 import { ProjectManager, PROJECT_VERSION, compareProjectVersion } from '../utils/projectManager';
-import { BeatNoteProject } from '../types/project';
+import { BeatNoteProject, type LayerId } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
 import type { ImportResult } from '../utils/importTypes';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
@@ -17,7 +17,7 @@ import {
 } from '../utils/loopRange';
 import { DEFAULT_PLAYBACK_SPEED, normalizePlaybackSpeed } from '../utils/playbackSpeed';
 
-export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
+export type { LayerId } from '../types/project';
 
 export interface MarkerAnnotation {
   timestamp: number;

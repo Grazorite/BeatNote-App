@@ -120,7 +120,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 1.1, 1.2, 1.5, 1.6, 1.10, 2.5, 25.1_
 
-  - [ ] 3.2 Extend `src/types/project.ts` with saved-project and draft types
+  - [x] 3.2 Extend `src/types/project.ts` with saved-project and draft types
     - After the playback-speed work is committed, add `SAVED_PROJECT_VERSION = '1.2.0'`,
       `PersistedLayer`, `PersistedContent` (with `extras`), `SavedProject` (with `projectId`,
       `musicItemId`, `revision`, and the informational `audio`), `SavedProjectSummary`,
@@ -130,8 +130,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       compiles unchanged.
     - _Requirements: 1.3, 1.4, 1.7, 1.8, 11.7_
 
-- [ ] 4. Persisted_Content extraction and Content_Fingerprint
-  - [ ] 4.1 Implement `src/utils/persistedContent.ts`
+- [x] 4. Persisted_Content extraction and Content_Fingerprint
+  - [x] 4.1 Implement `src/utils/persistedContent.ts`
     - `extractPersistedContent(state)` reads exactly the Persisted_Content fields (including
       `playbackSpeed`, loop range, and `isLoopRangeEnabled`) and excludes every Session_State
       field. `applyPersistedContent` returns the store patch. `splitProjectEnvelope` and
@@ -140,7 +140,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 1.8, 11.1, 11.2, 16.15_
 
-  - [ ] 4.2 Implement `src/utils/contentFingerprint.ts`
+  - [x] 4.2 Implement `src/utils/contentFingerprint.ts`
     - `canonicalize` sorts layers by ID, markers numerically, and annotations by timestamp then
       code-unit text. It orders keys at every depth, omits `undefined`, and maps non-finite numbers
       to `null`. Envelope fields and `metadata.duration` are excluded.
@@ -159,8 +159,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 1.8, 11.5, 16.15**
     - Temporary: `tests/unit/contentFingerprint.test.ts`.
 
-- [ ] 5. Stored-record shape validation
-  - [ ] 5.1 Implement `src/utils/recordValidation.ts`
+- [x] 5. Stored-record shape validation
+  - [x] 5.1 Implement `src/utils/recordValidation.ts`
     - Shape guards for `MusicItem`, `SavedProject`, `SongDraft`, `PlaybackQueue`, `LibraryRecord`,
       `ProjectIndexRecord`, and `MigrationJournal`. They return `{ valid, invalidIds }` without
       mutating input, so a family loads its valid subset and reports each invalid ID once.
@@ -172,8 +172,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 1.9**
     - Temporary: `tests/unit/recordValidation.test.ts`.
 
-- [ ] 6. Draft resolution, Switch_Guard decision, and save planning
-  - [ ] 6.1 Implement `src/utils/draftResolution.ts`
+- [x] 6. Draft resolution, Switch_Guard decision, and save planning
+  - [x] 6.1 Implement `src/utils/draftResolution.ts`
     - `resolveSongLoad(input)` applies the design's six ordered rules: explicit project, deleted
       baseline as unnamed, baseline advance on equal fingerprint, dirty or unsaved draft, newest
       project with `modifiedAt` then revision then Project_ID tie-break, and unnamed or empty draft.
@@ -248,8 +248,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Temporary: `tests/unit/queueOrder.test.ts` (it targets `nextSkipCandidate`; Task 28.3
       reuses it).
 
-- [ ] 8. Project names, export filenames, and Project_Manager grouping
-  - [ ] 8.1 Implement `src/utils/projectNames.ts`
+- [x] 8. Project names, export filenames, and Project_Manager grouping
+  - [x] 8.1 Implement `src/utils/projectNames.ts`
     - `validateProjectName` trims and rejects names that are empty or longer than 100 characters.
       `findNameClash` matches same-Music_Item names case-insensitively, and `suggestUniqueName`
       returns the lowest `(n)` with n ≥ 2, truncating the base to fit.
