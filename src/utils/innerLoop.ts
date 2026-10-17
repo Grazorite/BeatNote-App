@@ -21,5 +21,3 @@ export const nextInnerLoopState = (current: InnerLoopState): InnerLoopState => {
 export const canEnterRangeState = (songDuration: number, hasValidRange: boolean): boolean => (
   hasValidRange || (Number.isFinite(songDuration) && songDuration >= MIN_LOOP_DURATION_MS)
 );
-
-export const formatSpeedLabel = (value: number): string => `${value}×`;

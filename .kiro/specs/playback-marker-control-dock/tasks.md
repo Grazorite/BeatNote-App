@@ -8,25 +8,23 @@ store state first (the `Inner_Loop_State` derivations and the net-new `cycleInne
 full unit and property coverage), then the shared dock component scaffolding and `MainContent.tsx`
 phone-branch wiring, then the responsive 2×8 grid and the dominant 2×2 play/pause block, then the
 explicit marker controls, the tri-state inner-loop control, the whole-song range auto-init, the
-independent repeat interaction, the shared toast, the reserved placeholders, and the playback-speed
-contract. Pure logic and state are separated from UI integration throughout, and the dock lands as a
+independent repeat interaction, the shared toast, the reserved placeholders, and pitch-preserved
+playback speed. Pure logic and state are separated from UI integration throughout, and the dock lands as a
 single phone-only `ControlDock` that replaces the former `AudioControls` + `MarkerButton` rows while
 the desktop branch keeps those two components unchanged.
 
 All code is TypeScript / React Native, matching the existing codebase and
 [`coding-standards.md`](../../steering/coding-standards.md). All timestamps are integer milliseconds
 (ADR-009); all global state stays in the single store `useStudioStore` (ADR-001); all colours come
-from `src/styles/common.ts` (ADR-006). This feature changes NO `useAudioPlayer.ts` loop logic — the
-dock only changes which store fields the UI sets and when. No playlist, shuffle, or native
-time-stretch engine work is included (see Out of Scope in the spec).
+from `src/styles/common.ts` (ADR-006). The speed phase adds one isolated rate-setting effect to
+`useAudioPlayer.ts` without changing its loop decisions. No playlist or shuffle engine work is
+included (see Out of Scope in the spec).
 
 ### Scope boundary
 
-This is layout, interaction, state-wiring, accessibility, and feedback for the phone control dock
-only. The playlist/queue data model, the shuffle engine, the native pitch-preserving playback-speed
-engine (`modules/audio-time-stretch/`), a persisted `playbackSpeed` field, moving loop handles into
-the wrapped gutter, and desktop layout redesign are all out of scope. Reserved controls and the
-playback-speed button are stable contracts only.
+This is layout, interaction, state-wiring, accessibility, feedback, and pitch-preserved playback
+speed for the phone control dock. The playlist/queue data model, shuffle engine, rates outside
+0.5×–2×, moving loop handles into the wrapped gutter, and desktop layout redesign are out of scope.
 
 ### Verification checkpoints
 
@@ -392,7 +390,7 @@ The implementation follows the product decisions resolved in the requirements an
       the design so the deferred engine connects later without redesign; default `options` to the
       documented set pending Open decision 1 (R14.6).
     - Open a compact speed chooser popover on tap listing the supported speeds; selecting one updates
-      the displayed label, dismisses the popover, and fires a speed toast; invoke no time-stretch
+      the displayed label and dismisses the popover; invoke no time-stretch
       engine (R14.2, R14.3, R14.4, R14.5, R14.7).
     - Keep the control interactive and non-blocking to the rest of the dock when the native engine is
       unavailable (R14.5).
@@ -404,6 +402,39 @@ The implementation follows the product decisions resolved in the requirements an
 - [x] 18. Checkpoint — playback-speed contract
   - Run `npx tsc --noEmit` and `PLAYWRIGHT_PORT=8082 npm test`.
   - Ensure all tests pass, ask the user if questions arise.
+
+### Phase 9b — Live pitch-preserved playback speed
+
+- [x] 18a. Connect the control to the cross-platform audio engine
+  - [x] Add normalized global and project-persisted `playbackSpeed` state covering 0.5×–2× in 0.05×
+    increments, defaulting to 1× and safely normalizing older project data.
+  - [x] Replace the placeholder chooser with an adjustable slider, current value, range labels,
+    Reset to 1×, and common presets `0.5×, 0.75×, 0.8×, 0.9×, 1×, 1.25×, 1.5×, 2×`.
+  - [x] Force pitch correction on and apply `setPlaybackRate(speed, 'high')` whenever the player or
+    selected speed changes; retain the rate across existing transport and loop operations.
+  - [x] Add adjustable accessibility semantics and extend the retained responsive dock journey to
+    cover bounds, preset and slider values, engine rate/pitch flags, rotation, reset, and clipping.
+  - Files: `src/utils/playbackSpeed.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useAudioPlayer.ts`,
+    `src/types/project.ts`, `src/utils/projectManager.ts`, `src/components/layout/MainContent.tsx`,
+    `src/components/ui/controls/PlaybackSpeedControl.tsx`,
+    `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`.
+  - _Requirements: 3.3, 3.4, 14.1–14.8, 17.1, 17.6_
+
+- [x] 18b. Refine direct-manipulation feedback after simulator acceptance
+  - [x] Track slider movement from stable track coordinates so the thumb cannot jump when the touch
+    target changes beneath the finger.
+  - [x] Remove redundant playback-speed toasts, retain visible button/popup value updates, begin a
+    collapse/fade toward Speed 700 milliseconds after drag release, let touch during the fade restore
+    the popup, use the same fade immediately for Speed/preset/Reset dismissal, and slightly increase
+    popup opacity.
+  - [x] Keep Annotation enabled for loaded audio; when the playhead is away from a marker, leave the
+    editor closed and toast "Add a marker first".
+  - Files: `src/components/ui/controls/PlaybackSpeedControl.tsx`,
+    `src/styles/components/controls/playbackSpeedControl.ts`,
+    `src/components/ui/controls/AnnotationDockButton.tsx`,
+    `src/components/ui/controls/ControlDock.tsx`, `tests/ui-components.spec.ts`,
+    `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
+  - _Requirements: 14.4, 14.7, 14.9, 18.2_
 
 ### Phase 10 — Accessibility metadata and announcements
 
@@ -552,8 +583,9 @@ The implementation follows the product decisions resolved in the requirements an
 - [x] 29. Replace the compact phone annotation field and harden marker deletion
   - [x] 29.1 Put Annotation, Speed, and Remove Previous in portrait row 2 columns 6–8 and put
     Inner Loop/Annotation in landscape row 3.
-  - [x] 29.2 Enable Annotation only at a marker, edit through an explicit modal draft, and show a
-    centered two-line callout above the overview.
+  - [x] 29.2 Enable Annotation for loaded audio, edit at a marker through an explicit modal draft,
+    explain the marker prerequisite when away from one, and show a centered two-line callout above
+    the overview.
   - [x] 29.3 Preserve deleted markers and annotations in bounded history, expose toast Undo, and
     provide long-press restore/bulk-delete actions with destructive confirmation.
   - [x] 29.4 Remeasure glass backdrops after orientation changes, reclaim the removed landscape
@@ -589,10 +621,10 @@ The implementation follows the product decisions resolved in the requirements an
   active playback across tap/drag seeking.
 - The overview and clear/restore action remain unmounted until audio is loaded, and iOS uses a
   34-point minimum bottom safe-area floor to keep the lowest dock row clear of curved corners.
-- Task shapes follow the resolved product decisions for the speed set, pre-engine behaviour,
+- Task shapes follow the resolved product decisions for the speed range and engine behaviour,
   landscape toast placement, and reserved accessible pattern.
-- No playlist, shuffle, native time-stretch, or persistence-schema tasks are included, per the spec
-  Out of Scope.
+- No playlist, shuffle, or playback-rate expansion beyond 0.5×–2× is included, per the spec Out of
+  Scope.
 
 ## Task Dependency Graph
 

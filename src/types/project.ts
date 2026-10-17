@@ -32,6 +32,7 @@ export interface BeatNoteProject {
     countSize?: 4 | 6 | 8;
     rowDensity?: RowDensity;
     followPlayhead?: boolean;
+    playbackSpeed?: number;
     loopRange?: { startMs: number; endMs: number } | null;
     loopEnabled?: boolean;
   };

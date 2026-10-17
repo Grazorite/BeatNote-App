@@ -84,11 +84,15 @@ Allows dancers to learn sections at reduced speed without the pitch shifting dow
 
 ### Slow-down implementation
 
-- iOS: native `AVAudioUnitTimePitch` via the `modules/audio-time-stretch/` Expo Module
-- Web: `AudioContext` with `AudioBufferSourceNode.playbackRate` (no pitch preservation — acceptable degradation on web)
-- Add a playback speed control to the transport bar: `0.5x | 0.75x | 1x` (default `1x`)
-- Speed state: `playbackSpeed: 0.5 | 0.75 | 1.0` in the store
-- The speed control is only fully functional on iOS; on web show it with a "(pitch may shift)" note
+- Use the existing `expo-audio` player on iOS, Android, and web; set `shouldCorrectPitch = true` and
+  apply `setPlaybackRate(speed, 'high')` at the audio-player boundary.
+- Support 0.5× through 2× in 0.05× increments, defaulting to 1×.
+- Offer common presets: `0.5×, 0.75×, 0.8×, 0.9×, 1×, 1.25×, 1.5×, 2×`.
+- Store `playbackSpeed` globally and persist it with the project, normalizing missing, invalid, or
+  out-of-range saved values to the supported contract.
+- Keep pitch preservation mandatory rather than exposing a pitch-shift toggle.
+- Reconsider a custom native time-stretch module only if a future product requirement exceeds 2×
+  or physical-device acceptance finds the built-in engine inadequate.
 
 ## Annotation vocabulary
 

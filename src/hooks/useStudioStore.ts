@@ -15,6 +15,7 @@ import {
   reclampLoopRangeToDuration,
   resizeLoopBound,
 } from '../utils/loopRange';
+import { DEFAULT_PLAYBACK_SPEED, normalizePlaybackSpeed } from '../utils/playbackSpeed';
 
 export type LayerId = 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -77,6 +78,7 @@ export interface StudioStore {
   countSize: 4 | 6 | 8;
   rowDensity: RowDensity;
   followPlayhead: boolean;
+  playbackSpeed: number;
   loopStartMs: number | null;
   loopEndMs: number | null;
   isLoopRangeEnabled: boolean;
@@ -114,6 +116,7 @@ export interface StudioStore {
   setCountSize: (size: 4 | 6 | 8) => void;
   setRowDensity: (density: RowDensity) => void;
   setFollowPlayhead: (follow: boolean) => void;
+  setPlaybackSpeed: (speed: number) => void;
   setLoopRange: (startMs: number | null, endMs: number | null) => boolean;
   setLoopStartAtPlayhead: (playheadMs: number) => void;
   setLoopEndAtPlayhead: (playheadMs: number) => void;
@@ -242,6 +245,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   countSize: 8,
   rowDensity: { mode: 'phrase' },
   followPlayhead: true,
+  playbackSpeed: DEFAULT_PLAYBACK_SPEED,
   loopStartMs: null,
   loopEndMs: null,
   isLoopRangeEnabled: false,
@@ -355,6 +359,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setCountSize: (size) => set({ countSize: size }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
+  setPlaybackSpeed: (speed) => set({ playbackSpeed: normalizePlaybackSpeed(speed) }),
   setLoopRange: (startMs, endMs) => {
     const state = get();
     if (startMs === null && endMs === null) {
@@ -905,6 +910,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
         countSize: state.countSize,
         rowDensity: state.rowDensity,
         followPlayhead: state.followPlayhead,
+        playbackSpeed: state.playbackSpeed,
         loopRange: validLoopRange
           ? { startMs: state.loopStartMs as number, endMs: state.loopEndMs as number }
           : null,
@@ -949,6 +955,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       countSize: project.settings.countSize ?? 8,
       rowDensity: project.settings.rowDensity ?? { mode: 'phrase' },
       followPlayhead: project.settings.followPlayhead ?? true,
+      playbackSpeed: normalizePlaybackSpeed(project.settings.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED),
       showGridLines: project.settings.showGridLines,
       layerSpecificNavigation: project.settings.layerSpecificNavigation,
       songLoaded: true,

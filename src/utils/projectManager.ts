@@ -5,6 +5,7 @@ import {
   normalizeLoopRange,
   reclampLoopRangeToDuration,
 } from './loopRange';
+import { normalizePlaybackSpeed } from './playbackSpeed';
 
 const PROJECTS_KEY = 'beatnote_projects';
 export const PROJECT_VERSION = '1.1.0';
@@ -96,6 +97,7 @@ const withProjectDefaults = (project: BeatNoteProject): BeatNoteProject => norma
     countSize: project.settings.countSize ?? 8,
     rowDensity: project.settings.rowDensity ?? { mode: 'phrase' },
     followPlayhead: project.settings.followPlayhead ?? true,
+    playbackSpeed: normalizePlaybackSpeed(project.settings.playbackSpeed ?? 1),
   },
 });
 

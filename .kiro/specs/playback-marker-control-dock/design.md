@@ -9,7 +9,7 @@ block in columns 4–5, dividing marker and playlist actions (left, columns 1–
 and modifiers (right, columns 6–8). The dock consolidates the existing store-backed behaviours
 (markers, navigation, whole-track repeat, the two mutually exclusive inner loops, custom-range
 editing) into direct controls, adds a tri-state inner-loop control, reserves clearly-marked
-placeholders for future playlist/shuffle work, introduces a playback-speed button contract, and adds
+placeholders for future playlist/shuffle work, provides pitch-preserved playback speed, and adds
 one shared transient toast.
 
 This design satisfies the full requirements set in [`requirements.md`](./requirements.md). It is a
@@ -18,10 +18,9 @@ changes no code and no tests.
 
 ### Scope boundary
 
-In scope: layout, interaction, state wiring, accessibility, and feedback for the phone control dock,
-reusing existing store state. Out of scope (per [`requirements.md`](./requirements.md) and the
-steering backlog): the playlist/queue data model, a shuffle engine, the native pitch-preserving
-playback-speed engine (`modules/audio-time-stretch/`), a persisted `playbackSpeed` field, moving loop
+In scope: layout, interaction, state wiring, accessibility, feedback, and pitch-preserved speed for
+the phone control dock. Out of scope (per [`requirements.md`](./requirements.md) and the steering
+backlog): the playlist/queue data model, a shuffle engine, playback outside 0.5×–2×, moving loop
 handles into the wrapped gutter, and desktop layout redesign. Timestamps stay integer milliseconds
 (ADR-009); all global state stays in the single Zustand store `useStudioStore` (ADR-001); all colours
 come from `src/styles/common.ts` (ADR-006, coding standards).
@@ -40,7 +39,7 @@ The behaviour below was read directly from source and constrains the design.
 | Playback loop logic | `src/hooks/useAudioPlayer.ts` | Polls every `PLAYBACK_UPDATE_INTERVAL_MS = 50` with `END_OF_TRACK_TOLERANCE_MS = 100`. Computes `effectiveLoopStartMs/EndMs` from the range when `isLoopRangeEnabled`, else from `markerLoopRangeAtTime` when `isLoopMarkerActive`; `loopIsEnabled = isLoopRangeEnabled \|\| isLoopMarkerActive`. Inner loop governs playback while enabled; whole-track repeat applies only at end-of-track when no inner wrap occurs. Seek suspends decisions via `loopDecisionSuspendedRef`; invalid range skips wrap via `failedLoopRangeKeyRef`. |
 | Range editor | `src/components/ui/controls/LoopRangeOverview.tsx` | `testID="loop-overview"`; owns `loop-overview-handle-start`/`loop-overview-handle-end`, the track region, accessible actions, and web action probes. Does not seek; hidden when `showTimeline` is false. |
 | Persistence | `src/types/project.ts`, `src/utils/projectManager.ts` | `settings.loopRange: { startMs; endMs } \| null`, `settings.loopEnabled?: boolean`; `PROJECT_VERSION = '1.1.0'`; `normalizePersistedLoop` clears ranges older than `1.1.0` and re-clamps/rejects out-of-range bounds. |
-| Playback speed | n/a | No `playbackSpeed` store field, no `setPlaybackSpeed`, no native module. Deferred to the steering backlog. |
+| Playback speed | `PlaybackSpeedControl.tsx`, store, `useAudioPlayer.ts` | Store-backed 0.5×–2× range in 0.05× steps; `expo-audio` applies mandatory pitch correction with high quality where supported (ADR-011). |
 | Toast | n/a | No shared toast mechanism exists today. Net-new. |
 
 ### Goals and non-goals
@@ -151,8 +150,8 @@ desktop UI.
 `isLoopRangeEnabled`, `isRepeatActive`, `loopStartMs`, `loopEndMs`) through the same existing actions
 that `AudioControls`/`MarkerButton` call today, so the 50 ms poll, the `effectiveLoop*` resolution,
 the seek suspension (`loopDecisionSuspendedRef`), and the invalid-range skip (`failedLoopRangeKeyRef`)
-all behave identically. `LoopRangeOverview` remains the only range editor. No new persistence or
-migration is introduced.
+all behave identically. `LoopRangeOverview` remains the only range editor. Loop persistence and
+migration stay unchanged; playback speed adds one backward-compatible optional project setting.
 
 ## Components and Interfaces
 
@@ -206,9 +205,9 @@ pressable button (accessibility role `button`, **not** natively disabled) whose 
 description and state announce "coming soon" (reserved / in development). This is deliberately
 distinct from the `unavailable` state, which is natively disabled and announces "temporarily
 unavailable". A `reserved` button stays pressable so a press can surface its in-development toast
-(R7.4); an `unavailable` control cannot receive that press. The pre-engine `PlaybackSpeedControl`
-adopts this same "coming soon" reserved pattern while remaining interactive (R14.6). The non-colour
-cue stays the small corner "soon" badge.
+(R7.4); an `unavailable` control cannot receive that press. `PlaybackSpeedControl` is instead a
+normal available control whenever audio is loaded and exposes its numeric value (R14.6). The
+reserved control's non-colour cue stays the small corner "soon" badge.
 
 ### `PlayPauseControl.tsx`
 
@@ -234,36 +233,29 @@ accessible value that uniquely names `off`, `markers`, or `range` (R8.9, R17.2).
 `testID="playback-speed"`. The one control that shows text, not an icon (R3.2, R3.3). It renders the
 current speed as `${value}×` (for example `1×`, `0.75×`), defaulting to `1×` (R14.1), fully inside its
 cell for every supported value with no clipping or wrapping (R3.4). Tapping opens a compact speed
-chooser popover above the button listing the supported speeds in ascending order as selectable
-options (R14.2); selecting one updates the displayed value, dismisses the popover (R14.3), and fires a
-speed toast (R14.4). Because the native engine is out of scope, the control is purely a stable
-**contract**: it holds the selected label in local state and does not call any time-stretch engine
-(R14.5, R14.7, R14.8).
+chooser above the button with a 0.5×–2× adjustable slider in 0.05× steps, range labels, Reset to 1×,
+and common presets (R14.2–R14.4). Changes write the global store immediately; `useAudioPlayer`
+observes that state, forces pitch correction on, and calls `setPlaybackRate(value, 'high')` (R14.5).
 
 ```typescript
 interface PlaybackSpeedControlProps {
-  // Stable contract so the deferred engine can connect later without redesigning the dock (R14.6).
-  value?: number;                    // current multiplier; defaults to 1
-  options?: number[];                // supported speeds; default [0.75, 0.8, 1, 1.25, 2] (R14.2, R14.7)
-  onSelect?: (value: number) => void; // deferred engine wires this to setPlaybackSpeed later
+  value?: number;                    // current normalized multiplier; defaults to 1
+  options?: readonly number[];       // common presets; the slider owns the full range
+  onSelect?: (value: number) => void; // writes normalized global playbackSpeed
   onToast?: (message: string) => void;
 }
 
 function formatSpeedLabel(value: number): string; // -> `${value}×`, e.g. 0.75 -> "0.75×"
 ```
 
-The supported-speed set and default are **resolved** (R14.2): the authoritative ordered set is
-`[0.75, 0.8, 1, 1.25, 2]`, displayed `0.75×, 0.8×, 1×, 1.25×, 2×`, with `1×` as the default. The set
-stays data-driven through the `options` prop (defaulting to that list) so it can be extended later
-without a contract change (R14.7); the contract does not hard-fix the set.
+The range and default are **resolved** (R14.2): normalize all values to 0.05× steps between 0.5× and
+2×, defaulting to 1×. Presets remain data-driven and default to
+`[0.5, 0.75, 0.8, 0.9, 1, 1.25, 1.5, 2]`; they are shortcuts, not the complete supported set.
 
-The pre-engine behaviour is also **resolved**: until the native time-stretch engine ships, selecting a
-speed updates the displayed label and fires the Dock_Toast but does **not** change the actual audio
-playback rate (R14.5), so the control is never silently inert. The control presents an explicit
-"coming soon" affordance consistent with the reserved-control accessible pattern (R14.6, and the
-resolved reserved pattern below). `onSelect` today only updates the local label and emits the toast;
-the deferred playback-speed engine wires real rate changes later through this same stable contract. No
-time-stretch engine is implemented here (R14.8).
+The engine path is also resolved by ADR-011. `useAudioPlayer` sets `shouldCorrectPitch = true` before
+every rate application and requests high-quality correction. The effect depends on both player and
+speed so source/player recreation reapplies the contract; native play, seek, scrub, repeat, and loop
+operations retain the player's configured rate.
 
 ### `DockToast.tsx` and `useDockToast.ts`
 
@@ -350,21 +342,17 @@ subscription that spans these fields.
 // src/utils/innerLoop.ts
 type InnerLoopState = 'off' | 'markers' | 'range';
 
-// Local to the dock (not in the store, not persisted)
+// Local presentation state; playbackSpeed itself lives in the store and project settings.
 interface DockToastState {
   message: string | null;
   nonce: number; // bumps on every show() so identical consecutive messages restart the timer
 }
 
-interface PlaybackSpeedUiState {
-  value: number;       // multiplier, default 1 (not persisted by this feature)
-  chooserOpen: boolean;
-}
 ```
 
-No change to `BeatNoteProject` or `settings`. The custom-range fields `settings.loopRange` /
-`settings.loopEnabled` already exist and are reused unchanged; `playbackSpeed` is deliberately **not**
-added to the schema (out of scope). Invariants carried: inner-loop mutual exclusion
+`BeatNoteProject.settings.playbackSpeed` is optional for backward compatibility and normalized on
+load; save writes the current value. The custom-range fields `settings.loopRange` /
+`settings.loopEnabled` remain unchanged. Invariants carried: inner-loop mutual exclusion
 (`isLoopMarkerActive` and `isLoopRangeEnabled` never both true), `Inner_Loop_State` is a pure function
 of those two flags, and at most one `DockToast` is visible at a time.
 
@@ -526,7 +514,7 @@ that triggered it without shifting the waveform.
 | Inner loop → range blocked (no valid range) | "No range available" | R8.10 |
 | Repeat on | "Repeat track on" | R9.3 |
 | Repeat off | "Repeat track off" | R9.4 |
-| Speed selected | the selected multiplier (for example "0.75×") | R14.4 |
+| Annotation pressed away from a marker | "Add a marker first" | R18.2 |
 | First track reserved | "First track is in development" | R7.2 |
 | Previous track reserved | "Previous track is in development" | R7.2 |
 | Next track reserved | "Next track is in development" | R7.2 |
@@ -542,13 +530,13 @@ No toast for play/pause, previous-marker navigation, or next-marker navigation (
 
 ## Persistence and migration
 
-No project schema or migration change. Custom-range persistence already exists:
+Custom-range persistence already exists:
 `settings.loopRange: { startMs; endMs } | null` and `settings.loopEnabled?: boolean` in
 `src/types/project.ts`, with `PROJECT_VERSION = '1.1.0'` and `normalizePersistedLoop` in
 `projectManager.ts` clearing ranges from projects older than `1.1.0` and re-clamping or rejecting
-out-of-range bounds (R13.1–R13.5). This feature reuses that path unchanged: the dock sets the same
-store fields the save path already serialises. `playbackSpeed` is **not** persisted by this feature;
-the speed value lives only in `PlaybackSpeedControl` local state (out of scope for persistence).
+out-of-range bounds (R13.1–R13.5). `settings.playbackSpeed?: number` is additive and backward
+compatible: missing or invalid values load as 1×, while valid values clamp and quantize through the
+same 0.5×–2× / 0.05× normalization used by the live store action.
 
 ## Test identifiers and accessibility
 
@@ -582,14 +570,15 @@ in the tasks phase, not here. The desktop `AudioControls`/`MarkerButton` retain 
 | Remove previous | `button` | always pressable; no target produces the explanatory toast (R5.3) |
 | Repeat | toggle button | `checked` = `isRepeatActive` (R9.5, R17.2); `aria-pressed`/`aria-disabled` on web (R17.6) |
 | Inner loop | button-with-value (adjustable-style) | accessible value uniquely names `off`/`markers`/`range` (R8.9, R17.2); never ambiguous |
+| Annotation | `button` | disabled only without audio; at a marker opens the editor, otherwise explains the marker prerequisite by toast |
 | Speed | `button` | label includes the current multiplier; opens the chooser |
 | Reserved (track/shuffle) | pressable-but-reserved (role `button`, not natively disabled) | announces "coming soon" (reserved / in development), distinct from the disabled state's "temporarily unavailable" (R7.5, R17.4); stays operable so a press fires the toast |
 | Empty cell | none | no role, no activation affordance (R1.5) |
 
 A reserved control must stay pressable (not natively disabled) because a natively disabled control
 cannot receive a press to surface its toast (R7.4). Its accessibility description and state announce
-"coming soon" rather than "temporarily unavailable", and the pre-engine `PlaybackSpeedControl` uses
-this same resolved pattern (R14.6, R17.4). On web every interactive control is
+"coming soon" rather than "temporarily unavailable". `PlaybackSpeedControl` instead exposes
+adjustable semantics and its current value (R14.7). On web every interactive control is
 keyboard-reachable and operable; toggles set `aria-pressed`, unavailable controls set `aria-disabled`
 (R17.6). Icon-only buttons retain their accessibility label, role, checked/disabled states, and a
 44×44 target even with text hidden (R17.5).
@@ -651,7 +640,8 @@ stacking multiple notes over the rehearsal canvas.
 | Cycle into `range` with `songDuration` 0/unknown or `< MIN_LOOP_DURATION_MS` | R11.7, R11.8 | Do not call `setLoopRange`; stay out of `range`; toast "No range available" |
 | `setLoopRange(0, songDuration)` fails validation | R11.2 | Leave bounds unchanged; do not enter `range`; toast "No range available" |
 | Reserved control pressed | R7.3 | No playback/navigation/ordering change; fire the in-development toast only |
-| Speed selected before engine exists | R14.5, R14.7 | Update label + toast only; invoke no time-stretch engine |
+| Speed selected | R14.4–R14.9 | Normalize store state, apply pitch-preserved engine rate, and update visible labels without a redundant toast; after 700 ms collapse/fade toward Speed, with touch-to-cancel during the fade; Speed, preset, and Reset presses use the same animation immediately |
+| Annotation pressed away from a marker | R18.2 | Keep the editor closed and toast "Add a marker first" |
 | Identical consecutive toast message | R15.4 | Render once visually with a timer restart; emit a single announcement, suppress the repeat |
 | Marker operation fails/unavailable | R15.9 | Toast names the no-change and reason; no success message |
 
@@ -768,22 +758,16 @@ stacking a second toast.
 All five product decisions are now resolved in [`requirements.md`](./requirements.md); the design
 reflects them as follows, with the choice recorded for the record:
 
-1. **Supported playback-speed set and default.** The `PlaybackSpeedControl` contract accepts an
-   `options` array and a `value`. The authoritative ordered set is `[0.75, 0.8, 1, 1.25, 2]`
-   (displayed `0.75×, 0.8×, 1×, 1.25×, 2×`) with `1×` as the default, following the fine-grained
-   requirement examples rather than the backlog's `0.5 | 0.75 | 1.0`. The set stays data-driven via
-   the `options` prop so it can be extended later without a contract change.
-2. **Speed button behaviour before the engine ships.** Resolved as the explicit in-development path:
-   selecting a speed updates the displayed label and fires the Dock_Toast but does not change the
-   actual audio rate, and the control presents a "coming soon" affordance consistent with the
-   reserved-control pattern. It is never silently inert, and the stable contract lets the deferred
-   engine wire real rate changes later via the same `onSelect`.
+1. **Supported playback-speed range and default.** `PlaybackSpeedControl` accepts an `options` array
+   for presets and a `value`; the full contract is 0.5×–2× in 0.05× steps with 1× as the default.
+2. **Speed engine behaviour.** Selecting or adjusting speed updates the persisted store, applies the
+   rate immediately through `expo-audio`, and keeps pitch correction mandatory (ADR-011).
 3. **Toast placement in the landscape rail.** Resolved: in portrait the toast anchors directly above
    the dock; in the landscape rail it anchors to the rail's waveform-facing inner edge (the left of
    the rail with today's right-hand rail layout). In both orientations it is a non-layout overlay that
    does not shift the waveform or dock.
-4. **Reserved-control accessible pattern.** Resolved: each reserved control, and the pre-engine
-   `PlaybackSpeedControl`, is a pressable button (role `button`, not natively disabled) whose
+4. **Reserved-control accessible pattern.** Resolved: each reserved track/shuffle control is a
+   pressable button (role `button`, not natively disabled) whose
    accessibility description and state announce "coming soon" (reserved / in development), distinct
    from a disabled control's "temporarily unavailable".
 5. **Edge feedback for marker navigation.** Resolved: the Previous_Marker_Control and

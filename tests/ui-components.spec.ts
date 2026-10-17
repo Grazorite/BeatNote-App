@@ -87,6 +87,40 @@ test.describe('UI Components & Layout', () => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
     await expect(page.getByTestId('loop-overview')).toHaveCount(0);
+    await page.evaluate(() => {
+      const monitoredWindow = window as typeof window & {
+        __beatNoteAudioSettings?: { rate?: number; preservesPitch?: boolean };
+      };
+      monitoredWindow.__beatNoteAudioSettings = {};
+      const rateDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'playbackRate');
+      const pitchDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'preservesPitch');
+      if (rateDescriptor?.get && rateDescriptor.set) {
+        Object.defineProperty(HTMLMediaElement.prototype, 'playbackRate', {
+          configurable: true,
+          get: rateDescriptor.get,
+          set(value: number) {
+            monitoredWindow.__beatNoteAudioSettings = {
+              ...monitoredWindow.__beatNoteAudioSettings,
+              rate: value,
+            };
+            rateDescriptor.set?.call(this, value);
+          },
+        });
+      }
+      if (pitchDescriptor?.get && pitchDescriptor.set) {
+        Object.defineProperty(HTMLMediaElement.prototype, 'preservesPitch', {
+          configurable: true,
+          get: pitchDescriptor.get,
+          set(value: boolean) {
+            monitoredWindow.__beatNoteAudioSettings = {
+              ...monitoredWindow.__beatNoteAudioSettings,
+              preservesPitch: value,
+            };
+            pitchDescriptor.set?.call(this, value);
+          },
+        });
+      }
+    });
     await loadTestAudio(page, 'long-test-track.m4a');
 
     await expect(page.getByTestId('control-dock')).toBeVisible();
@@ -143,11 +177,65 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('repeat-toggle').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Repeat track on');
     await expect(page.getByTestId('repeat-track-icon').first()).toHaveAttribute('fill', 'none');
+    await expect(page.getByTestId('dock-toast')).toHaveCount(0, { timeout: 2500 });
     await page.getByTestId('playback-speed').click();
     await expect(page.getByTestId('playback-speed-glass')).toBeVisible();
+    await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemin', '0.5');
+    await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemax', '2');
     await page.getByRole('button', { name: 'Select 0.75× playback speed' }).click();
     await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
-    await expect(page.getByTestId('dock-toast')).toHaveText('0.75× selected; playback speed is coming soon');
+    await expect(page.getByTestId('dock-toast')).toHaveCount(0);
+    await expect.poll(async () => page.evaluate(() => (
+      window as typeof window & {
+        __beatNoteAudioSettings?: { rate?: number; preservesPitch?: boolean };
+      }
+    ).__beatNoteAudioSettings)).toEqual({ rate: 0.75, preservesPitch: true });
+    const speedButton = page.getByTestId('playback-speed');
+    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    await speedButton.click();
+    await expect(page.getByTestId('playback-speed-chooser')).toBeVisible();
+    await speedButton.click();
+    await expect(page.getByTestId('playback-speed-chooser')).toBeVisible();
+    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    await speedButton.click();
+    const speedSlider = page.getByTestId('playback-speed-slider');
+    const speedSliderBox = await speedSlider.boundingBox();
+    expect(speedSliderBox).not.toBeNull();
+    if (speedSliderBox) {
+      const sliderY = speedSliderBox.y + speedSliderBox.height / 2;
+      await page.mouse.move(speedSliderBox.x + speedSliderBox.width * 0.1, sliderY);
+      await page.mouse.down();
+      await page.mouse.move(speedSliderBox.x + speedSliderBox.width * 0.5, sliderY, { steps: 4 });
+      await expect(page.getByTestId('playback-speed')).toContainText('1.25×');
+      await page.mouse.move(speedSliderBox.x + speedSliderBox.width * 0.8, sliderY, { steps: 4 });
+      await page.mouse.up();
+    }
+    await expect(page.getByTestId('playback-speed')).toContainText('1.7×');
+    await expect(page.getByTestId('dock-toast')).toHaveCount(0);
+    await expect.poll(async () => page.evaluate(() => (
+      window as typeof window & {
+        __beatNoteAudioSettings?: { rate?: number; preservesPitch?: boolean };
+      }
+    ).__beatNoteAudioSettings)).toEqual({ rate: 1.7, preservesPitch: true });
+    await expect(page.getByTestId('playback-speed-chooser')).toBeVisible();
+    await page.waitForTimeout(760);
+    const fadingSliderBox = await speedSlider.boundingBox();
+    expect(fadingSliderBox).not.toBeNull();
+    if (fadingSliderBox) {
+      const fadingSliderY = fadingSliderBox.y + fadingSliderBox.height / 2;
+      await page.mouse.move(fadingSliderBox.x + fadingSliderBox.width * 0.8, fadingSliderY);
+      await page.mouse.down();
+    }
+    await page.waitForTimeout(150);
+    const resumedSliderBox = await speedSlider.boundingBox();
+    expect(resumedSliderBox).not.toBeNull();
+    if (resumedSliderBox) {
+      const sliderY = resumedSliderBox.y + resumedSliderBox.height / 2;
+      await page.mouse.move(resumedSliderBox.x + resumedSliderBox.width * 0.7, sliderY);
+      await page.mouse.up();
+    }
+    await expect(page.getByTestId('playback-speed')).toContainText('1.55×');
+    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 2500 });
 
     const portraitOrder = await page.evaluate(() => {
       const x = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().x ?? 0;
@@ -173,7 +261,19 @@ test.describe('UI Components & Layout', () => {
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
-    await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
+    await expect(page.getByTestId('playback-speed')).toContainText('1.55×');
+    await page.getByTestId('playback-speed').click();
+    const landscapeSpeedChooser = await page.getByTestId('playback-speed-chooser').boundingBox();
+    expect(landscapeSpeedChooser).not.toBeNull();
+    if (landscapeSpeedChooser) {
+      expect(landscapeSpeedChooser.x).toBeGreaterThanOrEqual(0);
+      expect(landscapeSpeedChooser.y).toBeGreaterThanOrEqual(0);
+      expect(landscapeSpeedChooser.x + landscapeSpeedChooser.width).toBeLessThanOrEqual(740);
+      expect(landscapeSpeedChooser.y + landscapeSpeedChooser.height).toBeLessThanOrEqual(390);
+    }
+    await page.getByTestId('playback-speed-reset').click();
+    await expect(page.getByTestId('playback-speed')).toContainText('1×');
+    await expect(page.getByTestId('dock-toast')).toHaveCount(0);
     await expect(page.getByTestId('repeat-toggle')).toHaveAttribute('aria-pressed', 'true');
     const landscape = await page.evaluate(() => {
       const box = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect();

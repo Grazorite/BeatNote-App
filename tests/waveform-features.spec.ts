@@ -15,12 +15,17 @@ test.describe('Critical annotation workflow', () => {
       (await page.getByTestId('grand-total-markers').textContent())?.match(/\d+/)?.[0] || 0,
     );
 
+    const annotationButton = page.getByTestId('annotation-control');
+    await expect(annotationButton).toBeEnabled();
+    await annotationButton.click();
+    await expect(page.getByTestId('dock-toast')).toHaveText('Add a marker first');
+    await expect(page.getByTestId('annotation-editor-input')).not.toBeVisible();
+
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
     await expect.poll(markerCount).toBe(0);
     await page.getByTestId('add-marker').click();
     await expect.poll(markerCount).toBe(1);
 
-    const annotationButton = page.getByTestId('annotation-control');
     await expect(annotationButton).toBeEnabled();
     await annotationButton.click();
     await page.getByTestId('annotation-editor-input').fill('Turn together');

@@ -4,7 +4,8 @@ import { colors } from '../../../styles/common';
 import DockButton from './DockButton';
 
 interface AnnotationDockButtonProps {
-  enabled: boolean;
+  songLoaded: boolean;
+  atMarker: boolean;
   hasAnnotation: boolean;
   compact?: boolean;
   onPress: () => void;
@@ -12,7 +13,8 @@ interface AnnotationDockButtonProps {
 
 /** Open the focused annotation editor only while the playhead is at a marker. */
 const AnnotationDockButton: React.FC<AnnotationDockButtonProps> = ({
-  enabled,
+  songLoaded,
+  atMarker,
   hasAnnotation,
   compact,
   onPress,
@@ -20,12 +22,14 @@ const AnnotationDockButton: React.FC<AnnotationDockButtonProps> = ({
   <DockButton
     compact={compact}
     testID="annotation-control"
-    label={enabled ? (hasAnnotation ? 'Edit annotation' : 'Add annotation') : 'Add annotation unavailable'}
-    hint={enabled ? 'Opens the annotation editor for the marker at the playhead' : 'Move the playhead to a marker first'}
-    state={enabled ? 'inactive' : 'unavailable'}
+    label={songLoaded ? (hasAnnotation ? 'Edit annotation' : 'Add annotation') : 'Add annotation unavailable'}
+    hint={songLoaded
+      ? (atMarker ? 'Opens the annotation editor for the marker at the playhead' : 'Add a marker at the playhead first')
+      : 'Load a song first'}
+    state={songLoaded ? 'inactive' : 'unavailable'}
     onPress={onPress}
   >
-    <BeatNoteIcon name="annotation" size={20} color={enabled ? colors.text : colors.textSecondary} />
+    <BeatNoteIcon name="annotation" size={20} color={songLoaded ? colors.text : colors.textSecondary} />
   </DockButton>
 );
 

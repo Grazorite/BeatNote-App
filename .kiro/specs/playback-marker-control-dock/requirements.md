@@ -15,13 +15,12 @@ both rows, which visually divides marker and playlist actions (left, columns 1�
 modes and modifiers (right, columns 6–8). The dock consolidates the existing store-backed behaviours
 (markers, navigation, whole-track repeat, the two mutually exclusive inner loops, custom-range
 editing) into direct, explicit controls, reserves clearly-marked placeholders for future
-playlist/shuffle work, introduces a tri-state inner-loop control, adds a playback-speed button
-contract, and provides one shared transient toast for dock feedback.
+playlist/shuffle work, introduces a tri-state inner-loop control, adds pitch-preserved playback
+speed, and provides one shared transient toast for dock feedback.
 
 This feature is layout, interaction, state-wiring, accessibility, and feedback for the control dock.
-It is NOT the implementation of playlist navigation, a shuffle engine, or the native
-pitch-preserving playback-speed engine. Those are reserved controls or deferred backlog items (see
-Out of Scope).
+It is NOT the implementation of playlist navigation or a shuffle engine. Those remain reserved
+controls or deferred backlog items (see Out of Scope).
 
 ### Verified current state
 
@@ -75,13 +74,9 @@ requirements:
   `settings.loopRange: { startMs; endMs } | null` and `settings.loopEnabled?: boolean`.
   `projectManager.ts` uses `PROJECT_VERSION = '1.1.0'` and `normalizePersistedLoop`, which clears the
   range for projects older than `1.1.0` and re-clamps or rejects out-of-range persisted bounds.
-- There is NO `playbackSpeed` store field, no `setPlaybackSpeed` action, and no speed control today.
-  The `modules/audio-time-stretch/` native module does not exist. The deferred playback-speed feature
-  (`playbackSpeed: 0.5 | 0.75 | 1.0`, pitch preservation) lives in the steering backlog
-  (`choreography-features.md`, `release-roadmap.md`). This dock's chooser uses the finer-grained set
-  `0.75×, 0.8×, 1×, 1.25×, 2×` for the button contract, while the native pitch-preserving engine
-  (future) will map onto whichever subset it supports; the dock contract does not depend on the
-  engine's set.
+- `playbackSpeed` is global project state normalized to 0.05× increments from 0.5× through 2×. The
+  existing `expo-audio` player applies the value with mandatory pitch correction and high-quality
+  correction on iOS/web; no custom native module is required for this range (ADR-011).
 - There is NO shared toast mechanism in the dock today.
 - Timestamps are integer milliseconds (ADR-009). All global state lives in the single Zustand store
   `useStudioStore` (ADR-001). Platforms: web (primary dev/test, Playwright), iOS (XCTest), Android
@@ -189,9 +184,9 @@ and uncluttered.
 2. THE Control_Dock SHALL render no visible text label inside any button EXCEPT Playback_Speed_Control.
 3. THE Playback_Speed_Control SHALL display the current playback speed as its visible content
    formatted as the numeric multiplier followed by a multiplication sign (×).
-4. THE Playback_Speed_Control SHALL display each of the values `1×`, `0.8×`, `0.75×`, `1.25×`, and
-   `2×` fully within its Grid_Cell with no character clipped, wrapped to a second line, or extending
-   beyond the cell bounds.
+4. THE Playback_Speed_Control SHALL display every supported value from `0.5×` through `2×` fully
+   within its Grid_Cell with no character clipped, wrapped to a second line, or extending beyond the
+   cell bounds.
 5. WHEN a control is rendered, THE Control_Dock SHALL apply colour values drawn only from the existing
    BeatNote colour tokens defined in `src/styles/common.ts` and SHALL render every icon using a
    `lucide-react-native` icon component.
@@ -476,39 +471,35 @@ survives reopening a project.
 
 ### Requirement 14: Playback-speed button contract
 
-**User Story:** As a user, I want a speed control in the dock, so that the layout is ready for
-pitch-preserving slow-down when it ships.
+**User Story:** As a user, I want a speed control in the dock, so that I can rehearse at a different
+tempo without changing the music's pitch.
 
 #### Acceptance Criteria
 
 1. THE Playback_Speed_Control (testID `playback-speed`) SHALL display the current playback speed value
    as numeric multiplier text (for example `1×`, `0.75×`, `2×`), defaulting to `1×`.
-2. THE Playback_Speed_Control SHALL support exactly the ordered speed set `0.75×`, `0.8×`, `1×`,
-   `1.25×`, `2×`, with `1×` as the default, and WHEN the user activates Playback_Speed_Control THE
-   Playback_Speed_Control SHALL present a speed chooser popup listing exactly these five options in
-   ascending order as selectable options.
-3. WHEN the user selects a speed from the chooser, THE Playback_Speed_Control SHALL update its
-   displayed value to the selected multiplier and dismiss the chooser popup.
-4. WHEN the user selects a speed from the chooser, THE Dock_Toast SHALL display the newly selected
-   speed multiplier.
-5. WHILE the native pitch-preserving engine is unavailable, WHEN the user selects a speed from the
-   chooser, THE Playback_Speed_Control SHALL update its displayed value and emit the Dock_Toast per
-   criterion 4 but SHALL NOT change the actual audio playback rate, so the control updates its label
-   and toast rather than remaining silently inert.
-6. WHILE the native pitch-preserving engine is unavailable, THE Playback_Speed_Control SHALL present an
-   explicit in-development affordance consistent with the Reserved_Control "coming soon" accessible
-   semantics (Requirement 7 criterion 5 and Requirement 17 criterion 4), SHALL remain interactive, and
-   SHALL NOT disable or block any other control within the Control_Dock.
-7. THE Playback_Speed_Control contract SHALL remain stable so the deferred playback-speed feature can
-   connect its state and chooser without redesigning the Control_Dock, and THE supported speed set
-   SHALL be supplied as a data-driven ordered list (an `options` prop) so the set can grow without a
-   contract change.
-8. THE Playback_Speed_Control SHALL NOT invoke or implement the native time-stretch engine as part of
-   this feature.
-
-> The supported-speed set and default are resolved: the chooser offers `0.75×, 0.8×, 1×, 1.25×, 2×`
-> with `1×` as the default. The set is intentionally extensible — the `options` prop stays data-driven
-> so additional speeds can be added later without redesigning the Control_Dock.
+2. THE Playback_Speed_Control SHALL support every 0.05× step from `0.5×` through `2×`, with `1×` as
+   the default, and SHALL clamp and quantize invalid input to that contract.
+3. WHEN activated, THE Playback_Speed_Control SHALL present a popup containing an adjustable slider,
+   the current value, range endpoints, Reset to 1×, and the common presets `0.5×`, `0.75×`, `0.8×`,
+   `0.9×`, `1×`, `1.25×`, `1.5×`, and `2×`.
+4. WHEN the user moves the slider, selects a preset, resets, or invokes an accessibility increment or
+   decrement, THE displayed value and global `playbackSpeed` SHALL update immediately without a
+   redundant Dock_Toast because the dock button and popup already display the applied multiplier.
+5. WHEN `playbackSpeed` changes or the audio player/source is recreated, THE Audio_Player SHALL set
+   pitch correction true and apply the rate with high-quality pitch correction where supported.
+6. THE selected speed SHALL survive play, pause, seek, scrub, loop wrap, source loading, orientation
+   changes, and project save/load without changing pitch intentionally.
+7. THE popup and slider SHALL remain within the phone viewport in portrait and landscape; the slider
+   SHALL expose adjustable semantics, numeric bounds, current value, and increment/decrement actions.
+8. THE implementation SHALL use the installed `expo-audio` engine for the supported range and SHALL
+   NOT add a custom native time-stretch module unless a future requirement exceeds that engine.
+9. WHILE the user drags the slider, THE thumb SHALL track the finger from a stable track coordinate
+   without jumping as the touched descendant changes; after release, THE popup SHALL remain visible
+   for approximately 700 milliseconds, then collapse and fade toward the Speed control before
+   dismissing. IF the user touches the popup during that fade, THEN it SHALL return to full focus,
+   cancel dismissal, and remain interactive. Pressing the Speed control again, selecting a preset,
+   or choosing Reset SHALL use the same animated dismissal without the 700-millisecond delay.
 
 ### Requirement 15: Shared dock toast feedback
 
@@ -590,9 +581,7 @@ operable, so that I can annotate without seeing the icons.
 4. THE Control_Dock SHALL distinguish an in-development Reserved_Control from a disabled control by
    rendering the Reserved_Control as a pressable button (accessibility role button, not natively
    disabled) whose accessibility description and state announce "coming soon" (reserved / in
-   development) rather than "temporarily unavailable", and THE Control_Dock SHALL apply this same
-   "coming soon" accessible pattern to the Playback_Speed_Control while the native pitch-preserving
-   engine is unavailable.
+   development) rather than "temporarily unavailable".
 5. WHILE visible text labels are hidden on icon-only buttons, THE Control_Dock SHALL retain each
    control's accessibility label, role, checked and disabled states, and a touch target of at least 44
    by 44 points.
@@ -614,8 +603,9 @@ consolidating the controls does not break how I work.
    consolidation, SHALL NOT create a marker, and SHALL continue playback from the new position when
    playback was active before the gesture.
 2. WHILE the Control_Dock is displayed, THE app SHALL omit the persistent compact annotation field.
-   Annotation_Control SHALL be enabled only while the playhead is within 100 milliseconds of a
-   marker and SHALL open a modal draft editor with explicit Save and Cancel actions.
+   Annotation_Control SHALL be enabled whenever audio is loaded. While the playhead is within 100
+   milliseconds of a marker it SHALL open a modal draft editor with explicit Save and Cancel actions;
+   otherwise it SHALL leave the editor closed and show "Add a marker first" in the Dock_Toast.
 3. WHEN a user activates Add_Marker_Control, THE Control_Dock SHALL create or toggle a marker only
    through that control per Requirement 4, keeping marker mutation exclusive to the marker controls.
 4. IF a user taps or drags on the gutter or wrapped-waveform display, THEN THE Control_Dock SHALL NOT
@@ -643,8 +633,6 @@ The following are explicitly NOT part of this feature:
 - The playlist and queue data model, and any actual first-track, previous-track, or next-track
   navigation behind the Reserved_Control placeholders.
 - The shuffle engine behind Shuffle_Control.
-- The native pitch-preserving playback-speed engine (`modules/audio-time-stretch/`) and the
-  `playbackSpeed` store field; this feature defines only the Playback_Speed_Control contract.
 - Moving loop handles into the wrapped waveform gutter.
 - Redesigning the waveform canvas or its wrapped-row rendering.
 - Unrelated desktop layout changes or project-management UI changes.
@@ -654,21 +642,16 @@ The following are explicitly NOT part of this feature:
 The five product decisions that were previously open are now resolved. Each resolution is recorded
 below so the rationale is preserved alongside the requirements that implement it:
 
-1. **Supported playback-speed set and default (Requirement 14).** The chooser offers the ordered set
-   `0.75×, 0.8×, 1×, 1.25×, 2×` with `1×` as the default, following the fine-grained requirement
-   examples rather than the backlog's `0.5 | 0.75 | 1.0`. The set is intentionally extensible: it is
-   supplied as a data-driven ordered `options` list so additional speeds can be added without a
-   contract change.
-2. **Playback-speed button behaviour before the engine ships (Requirement 14).** The
-   Playback_Speed_Control follows an explicit in-development path until the native pitch-preserving
-   engine ships. Selecting a speed updates the displayed value and emits a Dock_Toast but does not
-   change the actual audio playback rate, and the control presents a "coming soon" affordance
-   consistent with the Reserved_Control accessible pattern. It is never silently inert.
+1. **Supported playback-speed range and default (Requirement 14).** The chooser covers 0.5× through
+   2× in 0.05× increments with 1× as the default and keeps eight common values as quick presets.
+2. **Pitch-preserved engine behaviour (Requirement 14).** The Playback_Speed_Control writes global,
+   project-persisted state and `useAudioPlayer` applies it immediately through `expo-audio` with pitch
+   correction always enabled. A custom module is unnecessary for the supported range (ADR-011).
 3. **Toast placement (Requirement 15).** In both orientations the Dock_Toast anchors directly above
    the Loop_Overview on the canvas side as a non-layout overlay that does not shift the waveform,
    overview, annotation callout, or dock.
-4. **Reserved_Control accessible pattern (Requirements 7 and 17).** Each Reserved_Control, and the
-   pre-engine Playback_Speed_Control, is a pressable button (role button, not natively disabled) whose
+4. **Reserved_Control accessible pattern (Requirements 7 and 17).** Each track/shuffle
+   Reserved_Control is a pressable button (role button, not natively disabled) whose
    accessibility description and state announce "coming soon" (reserved / in development), distinct
    from a disabled control's "temporarily unavailable".
 5. **Marker-navigation edge feedback (Requirements 6 and 15).** The Previous_Marker_Control and

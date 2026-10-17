@@ -68,15 +68,16 @@ const ControlDock: React.FC<ControlDockProps> = ({
     <View style={cellStyle}>
       <AnnotationDockButton
         compact={isLandscape}
-        enabled={canAnnotate}
+        songLoaded={songLoaded}
+        atMarker={canAnnotate}
         hasAnnotation={hasAnnotation}
-        onPress={onAnnotate}
+        onPress={canAnnotate ? onAnnotate : () => onToast('Add a marker first')}
       />
     </View>
   );
   const speed = (
     <View style={cellStyle}>
-      <PlaybackSpeedControl compact={isLandscape} value={playbackSpeed} onSelect={onPlaybackSpeedChange} onToast={onToast} />
+      <PlaybackSpeedControl compact={isLandscape} value={playbackSpeed} onSelect={onPlaybackSpeedChange} />
     </View>
   );
   const firstTrack = reserved('first-track-control', 'First track', 'First track is in development', <BeatNoteIcon name="first" size={20} color={colors.textSecondary} />);

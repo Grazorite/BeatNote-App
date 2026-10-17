@@ -196,8 +196,37 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.width, element("add-marker").frame.width * 1.9)
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.height, element("add-marker").frame.height * 1.9)
 
+    let speed = element("playback-speed")
+    XCTAssertTrue(speed.label.contains("1×"))
+    speed.tap()
+    let doubleSpeed = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Select 2× playback speed")
+    ).firstMatch
+    XCTAssertTrue(doubleSpeed.waitForExistence(timeout: 5))
+    doubleSpeed.tap()
+    XCTAssertTrue(speed.label.contains("2×"))
+    let playbackTime = element("playback-current-time")
+    element("play-pause").tap()
+    Thread.sleep(forTimeInterval: 2.0)
+    element("play-pause").tap()
+    XCTAssertGreaterThanOrEqual(
+      playbackSeconds(from: playbackTime.label),
+      3,
+      "Two-times playback should advance the media clock faster than wall time."
+    )
+    speed.tap()
+    let resetSpeed = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Reset playback speed to 1×")
+    ).firstMatch
+    XCTAssertTrue(resetSpeed.waitForExistence(timeout: 5))
+    resetSpeed.tap()
+    XCTAssertTrue(speed.label.contains("1×"))
+
     XCTAssertFalse(element("remove-last-marker").isEnabled)
-    XCTAssertFalse(element("annotation-control").isEnabled)
+    XCTAssertTrue(element("annotation-control").isEnabled)
+    element("annotation-control").tap()
+    let markerRequiredToast = app.staticTexts["Add a marker first"]
+    XCTAssertTrue(markerRequiredToast.waitForExistence(timeout: 2))
 
     let clearControl = element("loop-overview-clear")
     XCTAssertTrue(clearControl.exists)
@@ -220,7 +249,6 @@ final class BeatNoteUITests: XCTestCase {
     let lastRow = rows.element(boundBy: rows.count - 1)
     XCTAssertTrue(lastRow.exists && lastRow.isHittable)
     lastRow.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
-    let playbackTime = element("playback-current-time")
     XCTAssertGreaterThan(playbackSeconds(from: playbackTime.label), 0)
     element("play-pause").tap()
     Thread.sleep(forTimeInterval: 6.0)

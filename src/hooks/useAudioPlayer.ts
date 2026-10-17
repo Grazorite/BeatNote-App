@@ -47,6 +47,7 @@ export const useCustomAudioPlayer = () => {
     setSongDuration,
     setCurrentTime,
     resetLoopForNewAudio,
+    playbackSpeed,
   } = useStudioStore(useShallow(state => ({
     isPlaying: state.isPlaying,
     layers: state.layers,
@@ -58,6 +59,7 @@ export const useCustomAudioPlayer = () => {
     setSongDuration: state.setSongDuration,
     setCurrentTime: state.setCurrentTime,
     resetLoopForNewAudio: state.resetLoopForNewAudio,
+    playbackSpeed: state.playbackSpeed,
   })));
 
   const showError = useCallback((title: string, message: string) => {
@@ -71,6 +73,20 @@ export const useCustomAudioPlayer = () => {
   useEffect(() => {
     playerStatusRef.current = playerStatus;
   }, [playerStatus]);
+
+  useEffect(() => {
+    if (!player) return;
+    try {
+      player.shouldCorrectPitch = true;
+      player.setPlaybackRate(playbackSpeed, 'high');
+    } catch (playbackRateError) {
+      console.error('Playback speed configuration error:', playbackRateError);
+      showError(
+        'Playback Speed Error',
+        'BeatNote could not apply pitch-preserved playback speed. Playback remains available at the last working speed.',
+      );
+    }
+  }, [player, playbackSpeed, showError]);
 
   useEffect(() => {
     setAudioModeAsync({

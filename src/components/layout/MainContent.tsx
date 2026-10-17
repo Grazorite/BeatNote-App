@@ -70,10 +70,11 @@ const MainContent: React.FC<MainContentProps> = ({
   const opacity = useSharedValue(1);
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const toast = useDockToast();
   const currentTime = useStudioStore(state => state.currentTime);
+  const playbackSpeed = useStudioStore(state => state.playbackSpeed);
+  const setPlaybackSpeed = useStudioStore(state => state.setPlaybackSpeed);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
   const allLayersData = useStudioStore(state => state.allLayersData);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);

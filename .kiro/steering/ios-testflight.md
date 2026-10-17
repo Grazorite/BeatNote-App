@@ -146,8 +146,11 @@ The following features require native iOS modules (Swift bridging via Expo Modul
 
 | Feature | Module location | Status |
 | --- | --- | --- |
-| Pitch-preserving slow-down | `modules/audio-time-stretch/` | Planned |
 | Demucs CoreML inference | `modules/stem-separation/` | Planned |
 | Waveform extraction (mobile) | `modules/waveform-extractor/` | Planned |
 
 Use `expo-modules-core` to write these as Expo Modules (Swift + TypeScript interface). Do not use bare `react-native` native modules.
+
+Pitch-preserving playback from 0.5× through 2× uses `expo-audio` directly and does not require a
+custom native module (ADR-011). Physical-device acceptance must still assess musical quality,
+Bluetooth output, interruptions, background continuity, loops, and live rate changes.

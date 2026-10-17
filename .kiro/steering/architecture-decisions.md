@@ -62,6 +62,17 @@ limited to development or an explicitly labelled experimental mode.
 Rationale: this prevents key extraction and unexpected cost while supporting a commercial credit or
 allowance model without coupling the client permanently to one provider.
 
+### ADR-011: Use expo-audio for pitch-preserved playback from 0.5× to 2×
+
+Playback speed uses the existing `expo-audio` player, with `shouldCorrectPitch` always enabled and
+`setPlaybackRate(speed, 'high')` applied at the player boundary. Supported values are normalized to
+0.05× increments from 0.5× through 2×. A custom `AVAudioUnitTimePitch` Expo Module is not required
+for this range; reconsider a native engine only if a future requirement exceeds the mobile player's
+2× ceiling or physical-device quality proves insufficient.
+Rationale: the installed cross-platform player already maps high-quality iOS correction to Apple's
+spectral time-pitch algorithm, preserves pitch on web, and keeps rate state through its existing
+play, pause, seek, loop, source, and background-audio lifecycle.
+
 ## Patterns to follow
 
 ### Platform branching
