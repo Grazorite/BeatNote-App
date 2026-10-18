@@ -352,7 +352,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 2 — Persistence_Pipeline, repositories, and migration
 
-- [ ] 12. Build the serialised Persistence_Pipeline
+- [x] 12. Build the serialised Persistence_Pipeline
   - [x] 12.1 Implement the FIFO worker and coalescing in `src/features/library/persistencePipeline.ts`
     - One queue and one worker: exactly one `WriteOp` runs at a time, in enqueue order. A
       `coalesceKey` replaces only a queued (never running) op in place. `enqueueWrite` resolves
@@ -360,7 +360,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 12.8, 12.9_
 
-  - [ ] 12.2 Add read-health write blocking and corrupt-value quarantine
+  - [x] 12.2 Add read-health write blocking and corrupt-value quarantine
     - `markReadFailed` / `markReadSucceeded` per key and per family. An op targeting a failed key
       rejects with `PersistenceBlockedError` without touching storage. Repositories copy an
       unparseable raw value to `<key>_corrupt_<timestamp>` before marking it, and raise a
@@ -401,7 +401,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 11.3, 12.11, 26.1_
 
-  - [ ] 13.3 Add the per-Project_ID project repository with index reconcile
+  - [x] 13.3 Add the per-Project_ID project repository with index reconcile
     - Write `beatnote.project.v2.<projectId>` first, then `beatnote.projects.v2.index`. At boot,
       list `beatnote.project.v2.` keys, rebuild missing or stale index entries, and drop orphaned
       ones. Deletion removes the key first, then the index.

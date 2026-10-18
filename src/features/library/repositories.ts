@@ -1,20 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LibraryPrefs, LibraryRecord } from '../../types/library';
 import type { MigrationJournal } from '../../types/migration';
-import type { SongDraft } from '../../types/project';
+import {
+  SAVED_PROJECT_VERSION,
+  type ProjectIndexRecord,
+  type SavedProject,
+  type SavedProjectSummary,
+  type SongDraft,
+} from '../../types/project';
 import type { PlaybackQueue } from '../../types/queue';
 import {
   validateLibraryPrefs,
   validateLibraryRecord,
   validateMigrationJournal,
   validatePlaybackQueue,
+  validateProjectIndexRecord,
+  validateSavedProject,
   validateSongDraft,
   type ValidationResult,
 } from '../../utils/recordValidation';
 import {
   enqueueWrite,
+  markFamilyReadFailed,
+  markFamilyReadSucceeded,
   markReadFailed,
   markReadSucceeded,
+  PersistenceReadError,
   type PersistenceIssue,
   type PersistenceKeyFamily,
 } from './persistencePipeline';
@@ -23,6 +34,8 @@ export const LIBRARY_KEY = 'beatnote.library.v1';
 export const LIBRARY_PREFS_KEY = 'beatnote.library.prefs.v1';
 export const QUEUE_KEY = 'beatnote.queue.v1';
 export const MIGRATION_JOURNAL_KEY = 'beatnote.migration.v1';
+export const PROJECT_INDEX_KEY = 'beatnote.projects.v2.index';
+export const PROJECT_KEY_PREFIX = 'beatnote.project.v2.';
 
 export interface RepositoryOptions {
   now?: () => number;
@@ -83,12 +96,14 @@ async function reportReadFailure<T>(
 async function readRecord<T>(
   definition: RecordDefinition<T>,
   options: RepositoryOptions = {},
+  throwOnFailure = false,
 ): Promise<T | null> {
   let raw: string | null;
   try {
     raw = await AsyncStorage.getItem(definition.key);
   } catch (error) {
     await reportReadFailure(definition, error, options);
+    if (throwOnFailure) throw new PersistenceReadError(definition.label, error);
     return null;
   }
 
@@ -108,6 +123,7 @@ async function readRecord<T>(
       console.error(`Failed to quarantine corrupt value for ${definition.key}`, quarantineError);
     }
     await reportReadFailure(definition, error, options);
+    if (throwOnFailure) throw new PersistenceReadError(definition.label, error);
     return null;
   }
 
@@ -115,6 +131,17 @@ async function readRecord<T>(
   if (result.invalidIds.length > 0) {
     console.warn(`Ignored invalid ${definition.label} records`, result.invalidIds);
     markReadFailed(definition.key);
+    if (throwOnFailure) {
+      const error = new Error(`Invalid ${definition.label}`);
+      options.onIssue?.({
+        kind: 'readFailed',
+        label: definition.label,
+        message: `BeatNote couldn't read ${definition.label}`,
+        error,
+        retry: async () => { await readRecord(definition, options, true); },
+      });
+      throw new PersistenceReadError(definition.label, error);
+    }
   } else {
     markReadSucceeded(definition.key);
   }
@@ -181,3 +208,188 @@ export const writeDraft = (
   }
   return writeRecord(draftDefinition(musicItemId), draft, options, `draft:${musicItemId}`);
 };
+
+export const projectKey = (projectId: string): string => `${PROJECT_KEY_PREFIX}${projectId}`;
+
+const projectDefinition = (projectId: string): RecordDefinition<SavedProject> => ({
+  key: projectKey(projectId),
+  family: 'project',
+  label: `project ${projectId}`,
+  validate: value => validateSavedProject(value, projectId),
+});
+
+const projectIndexDefinition: RecordDefinition<ProjectIndexRecord> = {
+  key: PROJECT_INDEX_KEY,
+  family: 'projectIndex',
+  label: 'the project index',
+  validate: validateProjectIndexRecord,
+};
+
+const compareVersions = (left: string, right: string): number => {
+  const parse = (version: string): number[] => version
+    .split('.')
+    .slice(0, 3)
+    .map(part => Number.parseInt(part, 10) || 0);
+  const leftParts = parse(left);
+  const rightParts = parse(right);
+  for (let index = 0; index < 3; index += 1) {
+    if (leftParts[index] !== rightParts[index]) return leftParts[index] - rightParts[index];
+  }
+  return 0;
+};
+
+export const toProjectSummary = (project: SavedProject): SavedProjectSummary => ({
+  projectId: project.projectId,
+  musicItemId: project.musicItemId,
+  name: project.metadata.name,
+  revision: project.revision,
+  modifiedAt: project.metadata.modifiedAt,
+  markerCount: project.layers.reduce((count, layer) => count + layer.markers.length, 0),
+  version: project.version,
+  readOnly: compareVersions(project.version, SAVED_PROJECT_VERSION) > 0,
+});
+
+const emptyProjectIndex = (): ProjectIndexRecord => ({ schemaVersion: 1, projects: {} });
+
+const projectIndexWith = (
+  index: ProjectIndexRecord,
+  project: SavedProject,
+): ProjectIndexRecord => ({
+  schemaVersion: 1,
+  projects: { ...index.projects, [project.projectId]: toProjectSummary(project) },
+});
+
+const projectIndexWithout = (
+  index: ProjectIndexRecord,
+  projectId: string,
+): ProjectIndexRecord => {
+  const projects = { ...index.projects };
+  delete projects[projectId];
+  return { schemaVersion: 1, projects };
+};
+
+const readIndexForMutation = async (options: RepositoryOptions): Promise<ProjectIndexRecord> => (
+  await readRecord(projectIndexDefinition, options, true) ?? emptyProjectIndex()
+);
+
+export const readProject = (projectId: string, options?: RepositoryOptions) => (
+  readRecord(projectDefinition(projectId), options)
+);
+
+export async function writeProject(
+  project: SavedProject,
+  options: RepositoryOptions = {},
+): Promise<void> {
+  const validation = validateSavedProject(project, project.projectId);
+  if (validation.valid === null) return Promise.reject(new Error('Invalid saved project'));
+  const key = projectKey(project.projectId);
+  return enqueueWrite({
+    label: `project ${project.metadata.name}`,
+    family: 'project',
+    targetKeys: [key, PROJECT_INDEX_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const index = await readIndexForMutation(options);
+      await AsyncStorage.setItem(key, JSON.stringify(project));
+      await AsyncStorage.setItem(PROJECT_INDEX_KEY, JSON.stringify(projectIndexWith(index, project)));
+    },
+  });
+}
+
+export async function deleteProject(
+  projectId: string,
+  options: RepositoryOptions = {},
+): Promise<void> {
+  const key = projectKey(projectId);
+  return enqueueWrite({
+    label: `project ${projectId}`,
+    family: 'project',
+    targetKeys: [key, PROJECT_INDEX_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const index = await readIndexForMutation(options);
+      await AsyncStorage.removeItem(key);
+      await AsyncStorage.setItem(PROJECT_INDEX_KEY, JSON.stringify(projectIndexWithout(index, projectId)));
+    },
+  });
+}
+
+export async function readStoredRevision(
+  projectId: string,
+  options: RepositoryOptions = {},
+): Promise<number | null> {
+  let revision: number | null = null;
+  await enqueueWrite({
+    label: `project ${projectId}`,
+    family: 'project',
+    targetKeys: [projectKey(projectId)],
+    onIssue: options.onIssue,
+    run: async () => {
+      revision = (await readRecord(projectDefinition(projectId), options, true))?.revision ?? null;
+    },
+  });
+  return revision;
+}
+
+const sameIndex = (left: ProjectIndexRecord, right: ProjectIndexRecord): boolean => (
+  JSON.stringify(left) === JSON.stringify(right)
+);
+
+const projectReadOptions = (
+  options: RepositoryOptions,
+  retry: () => Promise<void>,
+): RepositoryOptions => ({
+  ...options,
+  onIssue: issue => options.onIssue?.({ ...issue, retry }),
+});
+
+/** Load all project source records and repair the derived index after interrupted writes. */
+export async function readProjectIndex(
+  options: RepositoryOptions = {},
+): Promise<ProjectIndexRecord | null> {
+  const retry = async (): Promise<void> => { await readProjectIndex(options); };
+  markFamilyReadFailed('project');
+  markFamilyReadFailed('projectIndex');
+
+  let keys: string[];
+  try {
+    keys = (await AsyncStorage.getAllKeys())
+      .filter(key => key.startsWith(PROJECT_KEY_PREFIX))
+      .sort();
+  } catch (error) {
+    options.onIssue?.({
+      kind: 'readFailed',
+      label: 'projects',
+      message: "BeatNote couldn't read projects",
+      error,
+      retry,
+    });
+    return null;
+  }
+
+  const readOptions = projectReadOptions(options, retry);
+  let storedIndex: ProjectIndexRecord;
+  try {
+    storedIndex = await readRecord(projectIndexDefinition, readOptions, true)
+      ?? emptyProjectIndex();
+  } catch {
+    return null;
+  }
+
+  const projects: Record<string, SavedProjectSummary> = {};
+  for (const key of keys) {
+    const projectId = key.slice(PROJECT_KEY_PREFIX.length);
+    const project = await readRecord(projectDefinition(projectId), readOptions);
+    if (project !== null) projects[projectId] = toProjectSummary(project);
+  }
+  const reconciled: ProjectIndexRecord = { schemaVersion: 1, projects };
+
+  markFamilyReadSucceeded('project');
+  markFamilyReadSucceeded('projectIndex');
+  if (!sameIndex(storedIndex, reconciled)) {
+    await writeRecord(projectIndexDefinition, reconciled, options);
+  }
+  return reconciled;
+}

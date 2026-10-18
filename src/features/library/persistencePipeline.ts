@@ -49,6 +49,17 @@ export class PersistenceStorageFullError extends Error {
   }
 }
 
+/** A repository read failed while a serialised operation was running. */
+export class PersistenceReadError extends Error {
+  readonly cause: unknown;
+
+  constructor(label: string, cause: unknown) {
+    super(`BeatNote couldn't read ${label}`);
+    this.name = 'PersistenceReadError';
+    this.cause = cause;
+  }
+}
+
 interface Waiter {
   resolve: () => void;
   reject: (reason: unknown) => void;
@@ -118,7 +129,9 @@ async function runEntry(entry: QueueEntry): Promise<void> {
       await entry.op.run();
       return;
     } catch (error) {
-      if (error instanceof PersistenceBlockedError) throw error;
+      if (error instanceof PersistenceBlockedError || error instanceof PersistenceReadError) {
+        throw error;
+      }
       if (await isStorageFull(entry.op, error)) {
         const storageError = new PersistenceStorageFullError(entry.op.label, error);
         notifyIssue(entry.op, 'storageFull', storageError);
