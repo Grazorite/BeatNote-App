@@ -345,7 +345,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 28.2, 28.3, 28.4, 28.5, 28.9, 28.10, 28.11, 28.13**
     - Temporary: `tests/unit/migrationPlan.test.ts`.
 
-- [ ] 11. Checkpoint — pure layer
+- [x] 11. Checkpoint — pure layer
   - Run `npx tsc --noEmit`, `npm run test:unit`, and `git diff --check`.
   - Confirm no new `src/utils/` file imports React, React Native, Expo, or AsyncStorage.
   - Ensure all tests pass, ask the user if questions arise.
@@ -353,7 +353,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 ### Phase 2 — Persistence_Pipeline, repositories, and migration
 
 - [ ] 12. Build the serialised Persistence_Pipeline
-  - [ ] 12.1 Implement the FIFO worker and coalescing in `src/features/library/persistencePipeline.ts`
+  - [x] 12.1 Implement the FIFO worker and coalescing in `src/features/library/persistencePipeline.ts`
     - One queue and one worker: exactly one `WriteOp` runs at a time, in enqueue order. A
       `coalesceKey` replaces only a queued (never running) op in place. `enqueueWrite` resolves
       when its op, or the op that superseded it, settles. Provide `cancelQueued(coalesceKey)`.
