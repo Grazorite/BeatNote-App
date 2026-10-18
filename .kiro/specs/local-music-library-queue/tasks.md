@@ -395,7 +395,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 1.9, 6.6, 18.5, 26.1_
 
-  - [ ] 13.2 Add the per-Music_Item draft repository
+  - [x] 13.2 Add the per-Music_Item draft repository
     - `readDraft(id)` / `writeDraft(id, draft)` on `beatnote.draft.v1.<musicItemId>`, so a draft
       write rewrites no other draft and no project.
     - Verification evidence: `npx tsc --noEmit` clean.

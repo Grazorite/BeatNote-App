@@ -1,12 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LibraryPrefs, LibraryRecord } from '../../types/library';
 import type { MigrationJournal } from '../../types/migration';
+import type { SongDraft } from '../../types/project';
 import type { PlaybackQueue } from '../../types/queue';
 import {
   validateLibraryPrefs,
   validateLibraryRecord,
   validateMigrationJournal,
   validatePlaybackQueue,
+  validateSongDraft,
   type ValidationResult,
 } from '../../utils/recordValidation';
 import {
@@ -123,11 +125,13 @@ function writeRecord<T>(
   definition: RecordDefinition<T>,
   value: T,
   options: RepositoryOptions = {},
+  coalesceKey?: string,
 ): Promise<void> {
   return enqueueWrite({
     label: definition.label,
     family: definition.family,
     targetKeys: [definition.key],
+    coalesceKey,
     availableBytes: options.availableBytes,
     onIssue: options.onIssue,
     run: () => AsyncStorage.setItem(definition.key, JSON.stringify(value)),
@@ -152,3 +156,28 @@ export const readMigrationJournal = (options?: RepositoryOptions) => (
 export const writeMigrationJournal = (value: MigrationJournal, options?: RepositoryOptions) => (
   writeRecord(journalDefinition, value, options)
 );
+
+export const draftKey = (musicItemId: string): string => (
+  `beatnote.draft.v1.${musicItemId}`
+);
+
+const draftDefinition = (musicItemId: string): RecordDefinition<SongDraft> => ({
+  key: draftKey(musicItemId),
+  family: 'draft',
+  label: `the draft for ${musicItemId}`,
+  validate: value => validateSongDraft(value, musicItemId),
+});
+
+export const readDraft = (musicItemId: string, options?: RepositoryOptions) => (
+  readRecord(draftDefinition(musicItemId), options)
+);
+export const writeDraft = (
+  musicItemId: string,
+  draft: SongDraft,
+  options?: RepositoryOptions,
+): Promise<void> => {
+  if (draft.musicItemId !== musicItemId) {
+    return Promise.reject(new Error('Draft music item ID does not match its storage key'));
+  }
+  return writeRecord(draftDefinition(musicItemId), draft, options, `draft:${musicItemId}`);
+};
