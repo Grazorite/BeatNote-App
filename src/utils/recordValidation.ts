@@ -1,5 +1,6 @@
 import type {
   Collection,
+  LibraryPrefs,
   LibraryRecord,
   MusicItem,
 } from '../types/library';
@@ -258,6 +259,28 @@ export function validateLibraryRecord(value: unknown): ValidationResult<LibraryR
 export function isLibraryRecord(value: unknown): value is LibraryRecord {
   const result = validateLibraryRecord(value);
   return result.valid !== null && result.invalidIds.length === 0;
+}
+
+/** Validate the singleton library preferences record. */
+export function validateLibraryPrefs(
+  value: unknown,
+): ValidationResult<LibraryPrefs | null> {
+  if (!isRecord(value)
+    || value.schemaVersion !== 1
+    || !isString(value.sort)
+    || !SORT_KEYS.has(value.sort)
+    || (value.missingAudioNoticeShownForMigration !== null
+      && !isNonNegativeInteger(value.missingAudioNoticeShownForMigration))) {
+    return { valid: null, invalidIds: ['library-prefs'] };
+  }
+  return {
+    valid: {
+      schemaVersion: 1,
+      sort: value.sort as LibraryPrefs['sort'],
+      missingAudioNoticeShownForMigration: value.missingAudioNoticeShownForMigration,
+    },
+    invalidIds: [],
+  };
 }
 
 /** Validate a parsed SavedProject value and identify its storage ID on failure. */

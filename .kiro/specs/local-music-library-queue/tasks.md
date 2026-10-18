@@ -369,7 +369,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 26.2, 26.3, 10.17_
 
-  - [ ] 12.3 Add failure classification and automatic retry
+  - [x] 12.3 Add failure classification and automatic retry
     - Storage-full errors (web `QuotaExceededError`, native space/full messages, or under 1 MB free
       after a failure) never retry and raise "BeatNote is out of storage space" naming the item.
       Other failures retry the same op at the head of the queue after 1 s, 2 s, and 4 s, then
@@ -388,7 +388,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Temporary: `tests/unit/persistencePipeline.test.ts`.
 
 - [ ] 13. Implement typed repositories in `src/features/library/repositories.ts`
-  - [ ] 13.1 Add the library, prefs, queue, and journal repositories
+  - [x] 13.1 Add the library, prefs, queue, and journal repositories
     - Read and write `beatnote.library.v1`, `beatnote.library.prefs.v1`, `beatnote.queue.v1`, and
       `beatnote.migration.v1`, each through `recordValidation` and the pipeline. Invalid records are
       excluded from memory, logged by ID, and never rewritten. No audio bytes go to AsyncStorage.
