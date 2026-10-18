@@ -416,6 +416,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `beatnote_projects`. Keep `withProjectDefaults`, `normalizePersistedLoop`, and
       `compareProjectVersion` for load-time normalisation. Make this edit only after the
       playback-speed work in that file is committed.
+    - Sequence this removal with Task 26.7's replacement-service cutover so the existing shipped
+      Save, Rename, and Delete actions remain functional between implementation commits.
     - Verification evidence: `npx tsc --noEmit` clean; a project-wide search finds no remaining
       writer of `beatnote_projects`.
     - _Requirements: 26.3, 28.11_
@@ -436,15 +438,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       third launch.
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 28.1, 28.2, 28.3, 28.4, 28.5, 28.9, 28.10, 28.11, 28.13, 28.15_
+    - Runner implementation and focused interruption checks are complete. Keep this checkbox open
+      until Task 13.4 freezes `beatnote_projects` during Task 26.7's replacement-service cutover.
 
-  - [ ] 14.2 Add interruption-safe resume
+  - [x] 14.2 Add interruption-safe resume
     - On resume, `importing` entries delete their `stagedRelativePath` when no Music_Item
       references it and re-run. Already-migrated entries are skipped, and journal-stored Project_IDs
       make re-runs write the same keys.
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 28.7, 28.8_
 
-  - [ ] 14.3 Expose migration status and the unresolved-audio notice data
+  - [x] 14.3 Expose migration status and the unresolved-audio notice data
     - Track `unresolvedCount` and gate the one-time notice on
       `LibraryPrefs.missingAudioNoticeShownForMigration`. Expose read-only (newer-version) summaries
       for the Project_Manager.

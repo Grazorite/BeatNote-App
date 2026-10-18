@@ -5,7 +5,10 @@ import type {
   MusicItem,
 } from '../types/library';
 import type { MigrationEntry, MigrationJournal } from '../types/migration';
+import { SAVED_PROJECT_VERSION } from '../types/project';
 import type {
+  BeatNoteProject,
+  LegacyStoredProject,
   PersistedContent,
   PersistedLayer,
   ProjectIndexRecord,
@@ -163,12 +166,13 @@ export function isMusicItem(value: unknown): value is MusicItem {
     || !isString(value.originalFilename)
     || !isString(value.extension)
     || !EXTENSIONS.has(value.extension)
-    || !isPositiveInteger(value.byteSize)
+    || !isNonNegativeInteger(value.byteSize)
     || (value.contentHash !== null && !isString(value.contentHash))
     || (value.durationMs !== null && !isNonNegativeInteger(value.durationMs))
     || !isString(value.addedAt)
     || (value.lastPlayedAt !== null && !isString(value.lastPlayedAt))
     || (value.availability !== 'available' && value.availability !== 'missing')
+    || (value.availability === 'available' && value.byteSize === 0)
     || !isBoolean(value.removed)
     || !isStringArray(value.collectionIds)) return false;
   if (value.legacy !== undefined) {
@@ -181,19 +185,45 @@ export function isMusicItem(value: unknown): value is MusicItem {
   return true;
 }
 
-/** Return whether a parsed value has the complete SavedProject shape. */
-export function isSavedProject(value: unknown): value is SavedProject {
+/** Return whether a parsed value has the complete legacy BeatNoteProject shape. */
+export function isBeatNoteProject(value: unknown): value is BeatNoteProject {
   return isRecord(value)
     && isString(value.version)
-    && isString(value.projectId)
-    && isString(value.musicItemId)
-    && isPositiveInteger(value.revision)
     && isProjectMetadata(value.metadata)
     && isAudioMetadata(value.audio)
     && Array.isArray(value.layers)
     && value.layers.every(isPersistedLayer)
     && hasAllLayersOnce(value.layers)
     && isProjectSettings(value.settings);
+}
+
+const versionParts = (version: string): number[] => version
+  .split('.')
+  .slice(0, 3)
+  .map(part => Number.parseInt(part, 10) || 0);
+
+const isNewerVersion = (version: string): boolean => {
+  const candidate = versionParts(version);
+  const current = versionParts(SAVED_PROJECT_VERSION);
+  for (let index = 0; index < 3; index += 1) {
+    if (candidate[index] !== current[index]) return candidate[index] > current[index];
+  }
+  return false;
+};
+
+const isNewerLegacyProject = (value: unknown): value is LegacyStoredProject => isRecord(value)
+  && isString(value.version)
+  && isNewerVersion(value.version)
+  && isRecord(value.metadata)
+  && isString(value.metadata.name)
+  && isString(value.metadata.modifiedAt);
+
+/** Return whether a parsed value has the complete SavedProject shape. */
+export function isSavedProject(value: unknown): value is SavedProject {
+  return isBeatNoteProject(value)
+    && isString(value.projectId)
+    && isString(value.musicItemId)
+    && isPositiveInteger(value.revision);
 }
 
 /** Return whether a parsed value has the complete SongDraft shape. */
@@ -259,6 +289,22 @@ export function validateLibraryRecord(value: unknown): ValidationResult<LibraryR
 export function isLibraryRecord(value: unknown): value is LibraryRecord {
   const result = validateLibraryRecord(value);
   return result.valid !== null && result.invalidIds.length === 0;
+}
+
+/** Validate the frozen whole-value legacy project record without normalising its children. */
+export function validateLegacyProjects(
+  value: unknown,
+): ValidationResult<Record<string, LegacyStoredProject> | null> {
+  if (!isRecord(value)) return { valid: null, invalidIds: ['legacy-projects'] };
+  const projects: Record<string, LegacyStoredProject> = {};
+  const invalidIds: string[] = [];
+  Object.entries(value).forEach(([legacyKey, candidate]) => {
+    if (isBeatNoteProject(candidate) || isNewerLegacyProject(candidate)) {
+      projects[legacyKey] = candidate;
+    }
+    else invalidIds.push(legacyKey);
+  });
+  return { valid: projects, invalidIds };
 }
 
 /** Validate the singleton library preferences record. */

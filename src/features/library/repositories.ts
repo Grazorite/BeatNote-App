@@ -3,6 +3,7 @@ import type { LibraryPrefs, LibraryRecord } from '../../types/library';
 import type { MigrationJournal } from '../../types/migration';
 import {
   SAVED_PROJECT_VERSION,
+  type LegacyStoredProject,
   type ProjectIndexRecord,
   type SavedProject,
   type SavedProjectSummary,
@@ -12,6 +13,7 @@ import type { PlaybackQueue } from '../../types/queue';
 import {
   validateLibraryPrefs,
   validateLibraryRecord,
+  validateLegacyProjects,
   validateMigrationJournal,
   validatePlaybackQueue,
   validateProjectIndexRecord,
@@ -36,6 +38,7 @@ export const QUEUE_KEY = 'beatnote.queue.v1';
 export const MIGRATION_JOURNAL_KEY = 'beatnote.migration.v1';
 export const PROJECT_INDEX_KEY = 'beatnote.projects.v2.index';
 export const PROJECT_KEY_PREFIX = 'beatnote.project.v2.';
+export const LEGACY_PROJECTS_KEY = 'beatnote_projects';
 
 export interface RepositoryOptions {
   now?: () => number;
@@ -78,6 +81,13 @@ const journalDefinition: RecordDefinition<MigrationJournal> = {
   validate: validateMigrationJournal,
 };
 
+const legacyProjectsDefinition: RecordDefinition<Record<string, LegacyStoredProject>> = {
+  key: LEGACY_PROJECTS_KEY,
+  family: 'project',
+  label: 'legacy projects',
+  validate: validateLegacyProjects,
+};
+
 async function reportReadFailure<T>(
   definition: RecordDefinition<T>,
   error: unknown,
@@ -96,14 +106,15 @@ async function reportReadFailure<T>(
 async function readRecord<T>(
   definition: RecordDefinition<T>,
   options: RepositoryOptions = {},
-  throwOnFailure = false,
+  throwOnReadFailure = false,
+  throwOnInvalid = throwOnReadFailure,
 ): Promise<T | null> {
   let raw: string | null;
   try {
     raw = await AsyncStorage.getItem(definition.key);
   } catch (error) {
     await reportReadFailure(definition, error, options);
-    if (throwOnFailure) throw new PersistenceReadError(definition.label, error);
+    if (throwOnReadFailure) throw new PersistenceReadError(definition.label, error);
     return null;
   }
 
@@ -123,7 +134,7 @@ async function readRecord<T>(
       console.error(`Failed to quarantine corrupt value for ${definition.key}`, quarantineError);
     }
     await reportReadFailure(definition, error, options);
-    if (throwOnFailure) throw new PersistenceReadError(definition.label, error);
+    if (throwOnReadFailure) throw new PersistenceReadError(definition.label, error);
     return null;
   }
 
@@ -131,7 +142,7 @@ async function readRecord<T>(
   if (result.invalidIds.length > 0) {
     console.warn(`Ignored invalid ${definition.label} records`, result.invalidIds);
     markReadFailed(definition.key);
-    if (throwOnFailure) {
+    if (throwOnInvalid) {
       const error = new Error(`Invalid ${definition.label}`);
       options.onIssue?.({
         kind: 'readFailed',
@@ -166,6 +177,9 @@ function writeRecord<T>(
 }
 
 export const readLibrary = (options?: RepositoryOptions) => readRecord(libraryDefinition, options);
+export const readLibraryStrict = (options?: RepositoryOptions) => (
+  readRecord(libraryDefinition, options, true)
+);
 export const writeLibrary = (value: LibraryRecord, options?: RepositoryOptions) => (
   writeRecord(libraryDefinition, value, options)
 );
@@ -180,8 +194,14 @@ export const writeQueue = (value: PlaybackQueue, options?: RepositoryOptions) =>
 export const readMigrationJournal = (options?: RepositoryOptions) => (
   readRecord(journalDefinition, options)
 );
+export const readMigrationJournalStrict = (options?: RepositoryOptions) => (
+  readRecord(journalDefinition, options, true)
+);
 export const writeMigrationJournal = (value: MigrationJournal, options?: RepositoryOptions) => (
   writeRecord(journalDefinition, value, options)
+);
+export const readLegacyProjects = (options?: RepositoryOptions) => (
+  readRecord(legacyProjectsDefinition, options, true, false)
 );
 
 export const draftKey = (musicItemId: string): string => (

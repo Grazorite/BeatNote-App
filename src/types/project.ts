@@ -42,6 +42,19 @@ export interface BeatNoteProject {
   };
 }
 
+/** Minimal envelope retained for a future-version legacy project that this build must not rewrite. */
+export interface NewerLegacyProject {
+  [key: string]: unknown;
+  version: string;
+  metadata: {
+    [key: string]: unknown;
+    name: string;
+    modifiedAt: string;
+  };
+}
+
+export type LegacyStoredProject = BeatNoteProject | NewerLegacyProject;
+
 export interface ProjectListItem {
   filename: string;
   name: string;

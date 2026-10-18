@@ -1547,10 +1547,19 @@ Details:
   only when `legacy.filename` is exactly equal (case-sensitive) and both durations are present and
   within `LEGACY_DURATION_TOLERANCE_MS`; if either duration is absent, create a new item
   (Requirement 28.5). The missing item's title is the filename without its extension.
+- A migrated-missing item stores `byteSize: 0`, `contentHash: null`, and a non-playable relative
+  placeholder `missing/<musicItemId>.<extension>`; `availability: 'missing'` prevents source
+  resolution until Relink replaces those fields. Unknown legacy extensions use `mp3` only as the
+  inert metadata fallback.
+- The migration runner's injected importer receives awaited `onStaged(relativePath)` and
+  `onCommitted(musicItemId)` callbacks. The Import_Pipeline adapter added in Task 19.4 calls the
+  first immediately after staging and the second inside Import_Commit before deleting the source
+  copy or resolving, closing both interruption windows in the journal.
 - **Interruption.** On resume, entries in `importing` have their `stagedRelativePath` deleted if no
   Music_Item references it, and the step re-runs; the orphan sweep removes any other unreferenced
-  copy (Requirement 28.7). Project IDs stored in the journal before writing make re-runs write the
-  same key, so the result is idempotent.
+  copy (Requirement 28.7). The injected `discardStaged` operation is idempotent and resolves when a
+  committed move already removed the staged path. Project IDs stored in the journal before writing
+  make re-runs write the same key, so the result is idempotent.
 - **Notice.** When `unresolvedCount > 0` and `LibraryPrefs.missingAudioNoticeShownForMigration !==
   1`, show "<n> projects need their audio reconnected" with Show Projects, which opens the Project
   Manager scrolled to the first affected row; then store `1` (Requirement 28.12).
