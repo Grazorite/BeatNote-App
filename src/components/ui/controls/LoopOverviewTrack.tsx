@@ -39,7 +39,14 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
       <Svg width={Math.max(0, width)} height={34}>
         <Rect x={0} y={0} width={Math.max(0, width)} height={34} fill={colors.loopTrack} />
         {waveformPath ? (
-          <Path d={waveformPath} stroke={colors.success} strokeWidth={1} fill="none" opacity={0.7} />
+          <Path
+            d={waveformPath}
+            stroke={colors.success}
+            strokeWidth={1}
+            fill="none"
+            opacity={0.7}
+            testID="loop-overview-peaks"
+          />
         ) : (
           <Rect x={0} y={15} width={Math.max(0, width)} height={4} fill={colors.border} />
         )}

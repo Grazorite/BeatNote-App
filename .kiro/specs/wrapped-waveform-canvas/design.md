@@ -711,14 +711,19 @@ kept **separate from timeline geometry** (geometry depends only on timestamps/BP
    `[startMs, endMs)` range.
 3. **Detailed cached peaks** — a high-res slice of the same `useWaveformData` peaks.
 
-The current `useWaveformData` **mobile sine-wave fallback is a known limitation, not the design
-target.** When no real peaks exist on a platform, the design renders the **solid timing bar**, not a
-synthetic waveform. `generateWaveformPath(peaks, width, height, startTime, duration, totalDuration)`
-is reused to render a per-row slice (`startTime = row.startMs`, `duration = row.endMs - row.startMs`).
+`useWaveformData` delegates decoding to a platform provider. Web uses Web Audio and native iOS uses
+the local `BeatNoteWaveform` Expo Module, which streams decoded float PCM through `AVAssetReader` and
+reduces it to the same normalized peak contract without retaining the decoded song in memory. Calls
+for the same URI and resolution share one in-flight request and one session cache. When no real peaks
+exist on a platform, the design renders the **solid timing bar**, not a synthetic waveform.
+`generateWaveformPath(peaks, width, height, startTime, duration, totalDuration)` is reused to render a
+per-row slice (`startTime = row.startMs`, `duration = row.endMs - row.startMs`).
 
-Future Lite/Pro gating of waveform resolution is **out of scope** here and must not be entangled with
-geometry: Lite keeps a useful wrapped timeline + a basic waveform (timing bar or low-res). No
-monetisation is implemented.
+The provider request carries `basic` or `detailed` resolution explicitly. V1 currently requests
+`detailed` for acceptance and implements no paywall; a future provider-neutral capability service
+can select that resolution without putting purchase-vendor state in waveform components. Lite keeps
+a useful wrapped timeline + basic real peaks or the timing bar, while detailed cached/zoomable peaks
+remain a V2 Pro candidate. Resolution never changes timeline geometry.
 
 ---
 

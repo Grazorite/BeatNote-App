@@ -45,6 +45,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const [trackWidth, setTrackWidth] = useState(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const dismissingRef = useRef(false);
   const dismissProgress = useRef(new Animated.Value(0)).current;
   const value = normalizePlaybackSpeed(controlledValue ?? localValue);
   const progress = (value - MIN_PLAYBACK_SPEED) / (MAX_PLAYBACK_SPEED - MIN_PLAYBACK_SPEED);
@@ -64,12 +65,14 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const restorePopup = useCallback(() => {
     clearCloseTimer();
     stopDismissAnimation();
+    dismissingRef.current = false;
     dismissProgress.setValue(0);
   }, [clearCloseTimer, dismissProgress, stopDismissAnimation]);
 
   const animateDismiss = useCallback(() => {
     clearCloseTimer();
     stopDismissAnimation();
+    dismissingRef.current = true;
     const dismissAnimation = Animated.timing(dismissProgress, {
       toValue: 1,
       duration: DRAG_FADE_DURATION_MS,
@@ -111,7 +114,17 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   useEffect(() => () => {
     clearCloseTimer();
     stopDismissAnimation();
+    dismissingRef.current = false;
   }, [clearCloseTimer, stopDismissAnimation]);
+
+  useEffect(() => {
+    if (!open) dismissingRef.current = false;
+  }, [open]);
+
+  const showPopup = useCallback(() => {
+    restorePopup();
+    setOpen(true);
+  }, [restorePopup]);
 
   const updateFromTrackX = useCallback((trackX: number) => {
     if (trackWidth <= 0) return;
@@ -245,14 +258,15 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         hint="Opens playback speed controls"
         state={songLoaded ? (value === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active') : 'unavailable'}
         onPress={() => {
+          if (dismissingRef.current) {
+            showPopup();
+            return;
+          }
           if (open) {
             animateDismiss();
             return;
           }
-          clearCloseTimer();
-          stopDismissAnimation();
-          dismissProgress.setValue(0);
-          setOpen(true);
+          showPopup();
         }}
         accessibilityActions={[
           { name: 'increment', label: 'Increase playback speed' },

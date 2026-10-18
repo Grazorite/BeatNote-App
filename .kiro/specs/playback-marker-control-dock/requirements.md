@@ -499,7 +499,10 @@ tempo without changing the music's pitch.
    for approximately 700 milliseconds, then collapse and fade toward the Speed control before
    dismissing. IF the user touches the popup during that fade, THEN it SHALL return to full focus,
    cancel dismissal, and remain interactive. Pressing the Speed control again, selecting a preset,
-   or choosing Reset SHALL use the same animated dismissal without the 700-millisecond delay.
+   or choosing Reset SHALL use the same animated dismissal without the 700-millisecond delay. IF the
+   Speed control is pressed while dismissal is still completing, THEN the popup SHALL reopen
+   immediately on that first press. THE popup SHALL render above the central Play_Pause_Control and
+   every other dock control throughout its visible and fading states.
 
 ### Requirement 15: Shared dock toast feedback
 

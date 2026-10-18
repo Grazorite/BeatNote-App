@@ -90,6 +90,14 @@ final class BeatNoteUITests: XCTestCase {
 
   func testAudioAnnotationAndProjectRestore() {
     loadBundledSimulatorAudio()
+    XCTAssertTrue(
+      element("wrapped-row-peaks-0").waitForExistence(timeout: 10),
+      "Native audio loading should decode real waveform peaks for wrapped rows."
+    )
+    XCTAssertTrue(
+      element("loop-overview-peaks").waitForExistence(timeout: 5),
+      "Native audio loading should decode real waveform peaks for the overview strip."
+    )
 
     let playback = element("play-pause")
     XCTAssertTrue(playback.waitForExistence(timeout: 10))
@@ -205,6 +213,15 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(doubleSpeed.waitForExistence(timeout: 5))
     doubleSpeed.tap()
     XCTAssertTrue(speed.label.contains("2×"))
+    Thread.sleep(forTimeInterval: 0.38)
+    speed.tap()
+    let reopenedResetSpeed = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == %@", "Reset playback speed to 1×")
+    ).firstMatch
+    XCTAssertTrue(reopenedResetSpeed.waitForExistence(timeout: 1))
+    XCTAssertTrue(reopenedResetSpeed.isHittable, "The speed popup must stay above the Play control.")
+    speed.tap()
+    Thread.sleep(forTimeInterval: 0.5)
     let playbackTime = element("playback-current-time")
     element("play-pause").tap()
     Thread.sleep(forTimeInterval: 2.0)

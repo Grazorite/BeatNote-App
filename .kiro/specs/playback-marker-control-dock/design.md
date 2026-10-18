@@ -242,7 +242,6 @@ interface PlaybackSpeedControlProps {
   value?: number;                    // current normalized multiplier; defaults to 1
   options?: readonly number[];       // common presets; the slider owns the full range
   onSelect?: (value: number) => void; // writes normalized global playbackSpeed
-  onToast?: (message: string) => void;
 }
 
 function formatSpeedLabel(value: number): string; // -> `${value}×`, e.g. 0.75 -> "0.75×"
@@ -256,6 +255,12 @@ The engine path is also resolved by ADR-011. `useAudioPlayer` sets `shouldCorrec
 every rate application and requests high-quality correction. The effect depends on both player and
 speed so source/player recreation reapplies the contract; native play, seek, scrub, repeat, and loop
 operations retain the player's configured rate.
+
+The chooser owns an explicit dismissal ref in addition to its rendered `open` state. A Speed press
+while that ref is active reverses the close immediately instead of starting a second close against a
+still-mounted but transparent chooser. The speed cell and its containing dock row form the highest
+dock stacking context; the row uses touch-through semantics across its empty centre cells so the
+central Play control remains operable whenever the chooser is absent (R14.9).
 
 ### `DockToast.tsx` and `useDockToast.ts`
 
@@ -640,7 +645,7 @@ stacking multiple notes over the rehearsal canvas.
 | Cycle into `range` with `songDuration` 0/unknown or `< MIN_LOOP_DURATION_MS` | R11.7, R11.8 | Do not call `setLoopRange`; stay out of `range`; toast "No range available" |
 | `setLoopRange(0, songDuration)` fails validation | R11.2 | Leave bounds unchanged; do not enter `range`; toast "No range available" |
 | Reserved control pressed | R7.3 | No playback/navigation/ordering change; fire the in-development toast only |
-| Speed selected | R14.4–R14.9 | Normalize store state, apply pitch-preserved engine rate, and update visible labels without a redundant toast; after 700 ms collapse/fade toward Speed, with touch-to-cancel during the fade; Speed, preset, and Reset presses use the same animation immediately |
+| Speed selected | R14.4–R14.9 | Normalize store state, apply pitch-preserved engine rate, and update visible labels without a redundant toast; after 700 ms collapse/fade toward Speed, with touch-to-cancel during the fade; Speed, preset, and Reset presses use the same animation immediately; a first press during close reopens, and the chooser remains above Play |
 | Annotation pressed away from a marker | R18.2 | Keep the editor closed and toast "Add a marker first" |
 | Identical consecutive toast message | R15.4 | Render once visually with a timer restart; emit a single announcement, suppress the repeat |
 | Marker operation fails/unavailable | R15.9 | Toast names the no-change and reason; no success message |

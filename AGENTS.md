@@ -55,7 +55,7 @@ potentially adding a hybrid path later.
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 6 critical native integrations retained; focused V1 launch/settings check passes |
 | E2E spec files | 2 (Playwright, 6 critical journeys) |
-| Native Expo modules | 0 (`modules/` directory does not exist yet) |
+| Native Expo modules | 1 (`BeatNoteWaveform`, iOS AVAssetReader extraction) |
 
 ### Current Focus
 
@@ -65,7 +65,7 @@ potentially adding a hybrid path later.
 2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
-   and landscape gestures/geometry. Interactive Xcode 27 testing
+   landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
 3. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
@@ -117,6 +117,15 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Standardise real waveform extraction between the web build and native iOS, replacing native
+      synthetic peaks with an AVAssetReader Expo module and keeping resolution behind a
+      capability-ready provider boundary for a future Lite/Pro distinction
+      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `modules/beatnote-waveform/`, `package.json`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction*`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+- [x] Keep the playback-speed popup above the central Play control and make the first Speed press
+      during or immediately after dismissal reopen it without a dead tap
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/controlDock.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add reusable CSV preview/replace/undo and legacy migration planning transforms, and enforce
       version 1.0.0 parity across package metadata, Expo/Metro, and generated iOS development builds
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `.kiro/steering/ios-testflight.md`, `app.json`, `package.json`, `plugins/withVersionConsistency.js`, `scripts/check-version-consistency.js`, `src/utils/csvReplace.ts`, `src/utils/importEngine.ts`, `src/utils/migrationPlan.ts`</sub>
@@ -129,20 +138,6 @@ potentially adding a hybrid path later.
 - [x] Implement pitch-preserved playback speed from 0.5×–2× in 0.05× increments, with an adjustable
       popup slider, common presets, reset, project persistence, and responsive accessibility
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/ios-testflight.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/types/project.ts`, `src/utils/playbackSpeed.ts`, `src/utils/projectManager.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Replace the Settings sliders glyph with a simple rounded gear in the shared icon family
-      <sub>**Key Artifacts:** `src/components/icons/BeatNoteIcon.tsx`</sub>
-
-- [x] Replace mobile Settings and Help with safe full-screen pages, make Help swap in immediately
-      without stacking a modal, place Settings at the trailing toolbar edge, use iPhone-style
-      right-edge push transitions over the live app without a white host flash, keep Settings Close
-      free of back-navigation decoration, remove V1 BPM controls, make CSV action text readable on
-      orange, and retain only critical tests
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `package.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ImportModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/modals/exportModal.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/layout/sidebar.ts`, `src/styles/theme.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`, removed `tests/unit/`, `tests/core-functionality.spec.ts`, and `tests/quality-assurance.spec.ts`</sub>
-
-- [x] Keep timed annotation callouts readable during playback with a 2-second dwell, 350-millisecond
-      fade, successive-annotation replacement, and source-marker editing
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/utils/markerSelection.ts`, `tests/unit/markerSelection.test.ts`</sub>
 
 ---
 
@@ -217,6 +212,83 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-18 — Standardise native waveform extraction
+
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `uncommitted`
+**Kanban moved:** Web/native waveform parity → Done
+
+**Changed:**
+
+- Replaced the native random waveform fallback with a local Expo module that streams decoded PCM
+  through AVAssetReader, reduces it to normalized peak/RMS buckets, and supplies both the wrapped
+  gutter rows and loop overview strip with real audio-derived peaks.
+- Introduced platform extraction providers, explicit `basic`/`detailed` resolution, shared in-memory
+  and in-flight caches, and an honest timing-bar fallback on unsupported platforms.
+- Kept entitlement logic out of extraction and documented a future V2 split: Lite can retain a
+  basic real waveform while Pro can add detailed, persistent, zoomable waveform capability.
+- Added retained iOS identifiers for decoded row and overview peaks and updated the waveform spec,
+  architecture decision, roadmap, module count, and active simulator coverage.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, Expo autolinking resolution, CocoaPods installation, and a
+  full unsigned iOS simulator build → passed; `BeatNoteWaveformModule` was discovered and compiled.
+- Device Hub on iPhone 17 Pro / iOS 26.2 loaded `Dionela_Marilag.mp3` and visibly rendered matching
+  real waveform structure in all wrapped rows and the green overview strip.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused native journey found both new waveform identifiers after loading audio; the journey later
+  failed after annotation save because the app hit a React Native Yoga assertion, outside extraction.
+  Result bundle: `ios/build/BeatNoteUITests-1792328753084.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device extraction performance, thermal/memory behavior, VoiceOver, and very long or
+  unusual audio formats still require acceptance.
+- Android intentionally retains the timing-bar fallback until a native decoder provider is added.
+- The downstream Yoga crash in the broader annotation journey needs separate diagnosis; waveform
+  assertions completed successfully before it occurred.
+
+**Next agent should:**
+
+- Run real-device waveform acceptance with short and long MP3/M4A files, then continue the physical
+  playback-speed and control-dock checks.
+
+### 2026-10-18 — Fix speed-popup reopening and transport stacking
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Playback-speed post-dismissal and stacking regression → Done
+
+**Changed:**
+
+- Added an explicit closing-state ref so a Speed press during the final dismissal frame reverses the
+  close and restores the chooser instead of restarting an invisible close animation.
+- Raised both the speed cell and its containing dock row above the central Play control; empty centre
+  cells remain touch-through, so Play stays operable whenever the chooser is absent.
+- Extended the retained browser journey to reopen during the near-transparent close interval, prove
+  the chooser remains open, and hit-test the chooser above Play at their overlap point.
+- Updated the speed contract and design to require first-press reopening and topmost dock stacking.
+
+**Verified:**
+
+- Focused retained dock journey → 1/1 passed, including close reversal and popup-over-Play hit testing.
+- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate on port 8082 → clean;
+  6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Two focused iOS attempts built successfully but stopped in shared test setup before reaching the
+  popup assertions because the newly added Expo development client did not expose BeatNote's toolbar
+  within the existing 10-second launch wait. Result bundles:
+  `ios/build/BeatNoteUITests-1792281624743.xcresult` and
+  `ios/build/BeatNoteUITests-1792281686987.xcresult`.
+- The user's physical-phone screenshot was the Expo web build in Safari; the refreshed phone surface
+  and native development client still need direct visual confirmation of the corrected stacking.
+
+**Next agent should:**
+
+- Align the iOS UI harness with the Expo development-client launch path, then rerun the focused speed
+  case; continue the physical-device pitch and interaction checklist afterward.
 
 ### 2026-10-18 — Add CSV migration transforms and version parity
 
@@ -338,86 +410,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement Task 3.2 and the dependent persisted-content/fingerprint utilities.
-
-### 2026-10-18 — Refine speed-popup interaction and annotation guidance
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `738c3ae`
-**Kanban moved:** Playback-speed direct-manipulation refinement → Done
-
-**Changed:**
-
-- Made slider coordinates stable across the full track so the thumb follows a drag without jumping
-  when it passes over the fill or thumb, while retaining 0.05× normalization from 0.5× through 2×.
-- Removed redundant speed toasts, increased the popup's glass opacity, and added a 700-millisecond
-  dwell followed by a 420-millisecond collapse/fade toward the Speed control.
-- Made that dismissal interruptible: touching the fading popup restores it immediately, and Speed,
-  preset, and Reset presses all use the same transition instead of abruptly unmounting the panel.
-- Kept Annotation enabled whenever audio is loaded; away from a marker it now leaves the editor
-  closed and shows the actionable "Add a marker first" toast.
-- DSH-Qwen task `session-2a700c81-465d-4e6d-90eb-32babefb66e9` supplied the bounded popup draft;
-  Codex reviewed it and corrected web-coordinate stability and interrupted-animation completion.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean before lifecycle bookkeeping.
-- Focused retained dock journey → 1/1 passed, including exact intermediate drag values, fade
-  interruption, delayed auto-close, and animated button/preset/Reset dismissal.
-- Full retained Playwright gate on port 8082 → 6/6 critical journeys passed, including loaded-song
-  Annotation prerequisite feedback.
-- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2,
-  including 2× pitch-preserved rate/reset, loaded-song Annotation feedback, and loop transport;
-  result bundle `ios/build/BeatNoteUITests-1792259719500.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical-device touch feel, VoiceOver, Bluetooth output, and audible pitch/artifact quality remain
-  part of the active playback-speed acceptance checklist.
-- Concurrent `local-music-library-queue` work and its untracked files remain outside this task.
-
-**Next agent should:**
-
-- Complete the on-device playback-speed checklist, paying particular attention to interrupting the
-  fade with a second touch and dragging continuously at 0.5× and 2×.
-
-### 2026-10-17 — Ship pitch-preserved playback speed
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `738c3ae`
-**Kanban moved:** Slow-down / pitch-preserve playback → Done
-
-**Changed:**
-
-- Added normalized global and project-persisted playback speed from 0.5× through 2× in 0.05×
-  increments, defaulting safely to 1× for missing or invalid project values.
-- Replaced the placeholder speed chooser with a responsive glass popup containing a live slider,
-  current value, endpoints, eight common presets, Reset to 1×, and adjustable accessibility actions.
-- Connected the store to `expo-audio`, forcing pitch correction on and requesting its high-quality
-  algorithm whenever the speed or underlying player changes; no custom native module is needed for
-  the supported range.
-- Updated the playback-dock spec and durable architecture/iOS guidance to replace the superseded
-  custom-module and web pitch-shift assumptions.
-- DSH-Qwen delegation session `session-a4538ec3-46a5-4e53-8fe0-d7b431adb5b2` failed before producing
-  output or edits; Codex implemented and verified the feature directly.
-
-**Verified:**
-
-- Temporary normalization checks → 2/2 passed for invalid input, clamping, and 0.05× quantization;
-  the temporary test was removed per the project testing policy.
-- `npx tsc --noEmit` and `git diff --check` → clean.
-- Full retained Playwright gate on port 8082 → 6/6 passed; the dock journey verifies the 0.75×
-  preset, slider-only 0.85× value, browser engine rate and pitch flag, popup bounds in both
-  orientations, rotation persistence, and reset.
-- Focused iOS `testLoopRangeToggleAndTransportFits` → 1/1 passed on iPhone 17 Pro / iOS 26.2; 2×
-  advanced the media clock faster than wall time, reset returned to 1×, and loop transport remained
-  intact. Result bundle: `ios/build/BeatNoteUITests-1792196091966.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical-device listening is still required for pitch fidelity and artifacts across the range,
-  plus VoiceOver, live adjustment comfort, Bluetooth, interruptions, and background/loop behavior.
-- Expo/Jest dependencies were aligned with the Expo SDK 54 recommendations in the same commit.
-- The local-music library foundations were committed separately in `d7e9e2a`.
-
-**Next agent should:**
-
-- Run the playback-speed physical-device checklist with music containing exposed vocals and sustained
-  notes, checking 0.5×, 0.75×, 1.25×, 1.5×, and 2× through speakers and Bluetooth.

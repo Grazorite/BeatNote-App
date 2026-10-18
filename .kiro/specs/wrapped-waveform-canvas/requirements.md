@@ -351,6 +351,10 @@ capability, so that I can use the wrapped view before native waveform extraction
    only, independent of which waveform source is used.
 5. WHERE the Lite tier is in effect, THE Wrapped_View SHALL retain a usable wrapped timeline with at
    least a basic waveform.
+6. ON native iOS, THE Waveform_Provider SHALL decode real audio peaks off the UI thread and SHALL
+   provide the same timestamp-aligned waveform content used by the web provider.
+7. THE waveform components SHALL request a resolution from the Waveform_Provider without reading a
+   purchase vendor directly, so a future capability service can select basic or detailed extraction.
 
 ### Requirement 18: State and persistence
 

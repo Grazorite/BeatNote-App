@@ -18,8 +18,14 @@ Rationale: avoids the complexity of React Native Testing Library for logic that 
 
 ### ADR-003: Expo Modules API for native iOS features
 
-All native iOS code (CoreML inference, AVAudioUnitTimePitch, waveform extraction) is written as Expo Modules (Swift + TypeScript interface) under `modules/`. No bare `react-native` native modules.
-Rationale: Expo Modules integrate cleanly with EAS Build and don't require ejecting from Expo managed workflow.
+All native iOS code (CoreML inference, AVAudioUnitTimePitch, waveform extraction) is written as Expo
+Modules (Swift + TypeScript interface) under `modules/`. No bare `react-native` native modules.
+Native waveform extraction uses the `BeatNoteWaveform` module and an `AVAssetReader` streaming
+decoder. UI clients call the platform `waveformExtraction` provider with an explicit `basic` or
+`detailed` resolution; they do not import the native module or entitlement vendors directly.
+Rationale: Expo Modules integrate cleanly with EAS Build and don't require ejecting from Expo managed
+workflow. The provider boundary keeps rendering portable and leaves future Lite/Pro policy separate
+from audio decoding.
 
 ### ADR-004: Hybrid stem separation (on-device + cloud)
 

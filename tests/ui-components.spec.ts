@@ -191,12 +191,33 @@ test.describe('UI Components & Layout', () => {
       }
     ).__beatNoteAudioSettings)).toEqual({ rate: 0.75, preservesPitch: true });
     const speedButton = page.getByTestId('playback-speed');
-    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    const speedChooser = page.getByTestId('playback-speed-chooser');
+    await page.waitForTimeout(360);
+    await speedButton.click({ force: true });
+    await expect(speedChooser).toBeVisible();
+    await expect.poll(async () => speedChooser.evaluate(element => (
+      Number.parseFloat(window.getComputedStyle(element).opacity)
+    ))).toBeGreaterThan(0.9);
+    await page.waitForTimeout(500);
+    await expect(speedChooser).toBeVisible();
+    const chooserIsAbovePlay = await page.evaluate(() => {
+      const chooser = document.querySelector('[data-testid="playback-speed-chooser"]');
+      const play = document.querySelector('[data-testid="play-pause"]');
+      if (!chooser || !play) return false;
+      const chooserBox = chooser.getBoundingClientRect();
+      const playBox = play.getBoundingClientRect();
+      const left = Math.max(chooserBox.left, playBox.left);
+      const right = Math.min(chooserBox.right, playBox.right);
+      const top = Math.max(chooserBox.top, playBox.top);
+      const bottom = Math.min(chooserBox.bottom, playBox.bottom);
+      if (left >= right || top >= bottom) return false;
+      const topElement = document.elementFromPoint((left + right) / 2, (top + bottom) / 2);
+      return Boolean(topElement?.closest('[data-testid="playback-speed-chooser"]'));
+    });
+    expect(chooserIsAbovePlay).toBe(true);
     await speedButton.click();
-    await expect(page.getByTestId('playback-speed-chooser')).toBeVisible();
-    await speedButton.click();
-    await expect(page.getByTestId('playback-speed-chooser')).toBeVisible();
-    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    await expect(speedChooser).toBeVisible();
+    await expect(speedChooser).toHaveCount(0, { timeout: 1000 });
     await speedButton.click();
     const speedSlider = page.getByTestId('playback-speed-slider');
     const speedSliderBox = await speedSlider.boundingBox();

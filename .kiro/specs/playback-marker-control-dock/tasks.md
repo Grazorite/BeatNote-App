@@ -436,6 +436,17 @@ The implementation follows the product decisions resolved in the requirements an
     `tests/waveform-features.spec.ts`, `tests/ios/BeatNoteUITests.swift`.
   - _Requirements: 14.4, 14.7, 14.9, 18.2_
 
+- [x] 18c. Correct post-dismissal reopening and transport stacking
+  - [x] Treat a Speed-button press during the popup's closing interval as an immediate reopen instead
+    of restarting dismissal.
+  - [x] Raise the complete speed-control dock cell above the central play control while preserving
+    portrait and landscape geometry.
+  - [x] Add retained browser coverage for immediate reopen and popup-over-transport stacking.
+  - Files: `src/components/ui/controls/ControlDock.tsx`,
+    `src/components/ui/controls/PlaybackSpeedControl.tsx`,
+    `src/styles/components/controls/controlDock.ts`, `tests/ui-components.spec.ts`.
+  - _Requirements: 3.4, 14.4, 14.9_
+
 ### Phase 10 — Accessibility metadata and announcements
 
 - [x] 19. Add accessibility semantics across the dock

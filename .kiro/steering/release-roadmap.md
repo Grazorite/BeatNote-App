@@ -51,7 +51,9 @@ Pro candidates:
 
 - Unlimited saved projects
 - All six layers and custom layer names
-- Detailed, cached, zoomable waveforms; Lite retains a useful basic waveform
+- Detailed, persistently cached, zoomable waveforms; Lite retains a useful basic real waveform or
+  timing-bar fallback. V1's platform extraction providers already accept a resolution selected by a
+  future provider-neutral capability service, but no entitlement is enforced yet.
 - Pitch-preserving slow playback
 - PDF choreography sheets and MIDI export
 - Advanced snapping, reusable project templates, and custom annotation vocabularies

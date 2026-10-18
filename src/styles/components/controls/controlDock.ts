@@ -33,12 +33,23 @@ export const controlDockStyles = StyleSheet.create({
     minWidth: 0,
     height: 44,
   },
+  popupCell: {
+    position: 'relative',
+    zIndex: 20,
+    elevation: 20,
+    overflow: 'visible',
+  },
   landscapeRow: {
     flexDirection: 'row',
     width: '100%',
     flex: 1,
     minHeight: 0,
     gap: 3,
+  },
+  popupRow: {
+    position: 'relative',
+    zIndex: 19,
+    overflow: 'visible',
   },
   landscapeCell: {
     height: '100%',

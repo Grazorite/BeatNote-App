@@ -76,7 +76,7 @@ const ControlDock: React.FC<ControlDockProps> = ({
     </View>
   );
   const speed = (
-    <View style={cellStyle}>
+    <View style={[cellStyle, styles.popupCell]}>
       <PlaybackSpeedControl compact={isLandscape} value={playbackSpeed} onSelect={onPlaybackSpeedChange} />
     </View>
   );
@@ -93,7 +93,7 @@ const ControlDock: React.FC<ControlDockProps> = ({
           <View style={styles.landscapeRow}>{marker('add')}{marker('removePrevious')}</View>
           <View style={styles.landscapeRow}>{innerLoop}{annotation}</View>
           <View style={styles.landscapePlayBlock}><PlayPauseControl onTogglePlayback={onTogglePlayback} /></View>
-          <View style={styles.landscapeRow}>{repeat}{speed}</View>
+          <View style={[styles.landscapeRow, styles.popupRow]} pointerEvents="box-none">{repeat}{speed}</View>
           <View style={styles.landscapeRow}>{firstTrack}{shuffle}</View>
           <View style={styles.landscapeRow}>{previousTrack}{nextTrack}</View>
         </View>
@@ -112,7 +112,7 @@ const ControlDock: React.FC<ControlDockProps> = ({
           <Spacer /><Spacer />
           {repeat}{innerLoop}{shuffle}
         </View>
-        <View style={styles.row}>
+        <View style={[styles.row, styles.popupRow]} pointerEvents="box-none">
           {firstTrack}{previousTrack}{nextTrack}
           <Spacer /><Spacer />
           {annotation}

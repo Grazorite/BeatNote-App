@@ -1,0 +1,10 @@
+{
+  "name": "beatnote-waveform",
+  "version": "1.0.0",
+  "description": "BeatNote native waveform peak extraction",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

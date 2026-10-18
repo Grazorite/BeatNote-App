@@ -173,6 +173,14 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
 
 - [x] 11. Checkpoint — wrapped rendering
   - Run `npx tsc --noEmit` and `npm test`.
+
+- [x] 11.1 Add real native iOS waveform extraction
+  - Add the architecture-approved local Expo Module using `AVAssetReader`, route web and iOS through
+    a capability-ready `basic`/`detailed` provider contract, deduplicate concurrent requests, and
+    retain the timing bar on unsupported platforms or extraction failure.
+  - Extend the retained native audio journey to require real peaks in both wrapped rows and the
+    overview strip.
+  - _Requirements: 17.1, 17.2, 17.3, 17.5, 17.6, 17.7_
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 5 — Gestures, seeking, and marker placement
