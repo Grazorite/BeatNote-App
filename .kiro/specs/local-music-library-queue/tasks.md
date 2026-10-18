@@ -278,8 +278,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 23.3**
     - Temporary: `tests/unit/projectNames.test.ts`.
 
-- [ ] 9. CSV preview and replace transforms
-  - [ ] 9.1 Implement `src/utils/csvReplace.ts`
+- [x] 9. CSV preview and replace transforms
+  - [x] 9.1 Implement `src/utils/csvReplace.ts`
     - `parseCsvForPreview(text, layers, songDuration)` reuses the existing `ImportEngine` row
       parsing. It keeps the thrown empty and header-less errors but returns
       `importedMarkerCount: 0` instead of throwing when no rows are importable, and it reports
@@ -309,7 +309,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 3.2, 3.3, 3.5, 3.6, 4.1, 4.4, 4.5, 5.6, 5.7, 5.8, 6.3, 7.8, 28.6_
 
-  - [ ] 10.2 Implement `src/utils/migrationPlan.ts`
+  - [x] 10.2 Implement `src/utils/migrationPlan.ts`
     - `classifyLegacyUri(uri, platform, fileInfo)` returns `durableFile`, `liveCache`, `purged`,
       `sessionObjectUrl`, `inlineData`, or `unknown`. `findMissingItemMatch` reuses an item only
       for an exact case-sensitive filename and both durations within 50 ms.

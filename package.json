@@ -25,8 +25,11 @@
   },
   "homepage": "https://github.com/yourusername/BeatNote-App#readme",
   "scripts": {
+    "prestart": "npm run check:version",
     "start": "expo start",
+    "preandroid": "npm run check:version",
     "android": "expo run:android",
+    "preios": "npm run check:version",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "playwright test",
@@ -36,6 +39,7 @@
     "test:report": "playwright show-report",
     "test:list": "playwright test --list",
     "test:unit": "jest --testPathPatterns=unit --passWithNoTests",
+    "check:version": "node scripts/check-version-consistency.js",
     "test:ios:ui": "node scripts/ios-ui-test.js"
   },
   "dependencies": {

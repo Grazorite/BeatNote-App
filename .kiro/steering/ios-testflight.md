@@ -17,7 +17,7 @@ The generated `ios/` directory is intentionally ignored. Native configuration mu
 
 ### Interactive Xcode 27 workflow
 
-1. Start Metro from the project root: `npx expo start --dev-client --localhost --port 8081`.
+1. Start Metro from the project root: `npm start -- --dev-client --localhost --port 8081`.
 2. Open `ios/BeatNote.xcworkspace` in Xcode. If it does not exist, run `npx expo prebuild -p ios`
    first.
 3. Select the `BeatNote` scheme and an iPhone simulator in Xcode's run-destination control.
@@ -32,6 +32,13 @@ stops with `Can't determine id of Simulator app`, so use Xcode's Run action inst
 The minimum iOS deployment target is 15.1. `expo-build-properties` sets the app target, while
 `plugins/withIosPodDeploymentTarget.js` aligns third-party pods that otherwise declare obsolete
 deployment targets rejected by current Xcode versions.
+
+`package.json` and `app.json` must carry the same user-facing semantic version. `npm start`,
+`npm run ios`, and `npm run android` run `npm run check:version` first; the check also validates an
+existing generated iOS project's `CFBundleShortVersionString` and `MARKETING_VERSION` values.
+`plugins/withVersionConsistency.js` reapplies the Expo version during every iOS prebuild. The native
+build number (`ios.buildNumber`, `CFBundleVersion`) and Android `versionCode` are separate monotonic
+release counters and are not expected to equal the semantic version string.
 
 ## Automated iOS acceptance tests
 

@@ -1,5 +1,5 @@
-import { LayerId } from '../hooks/useStudioStore';
-import { ImportResult } from './importTypes';
+import type { LayerId } from '../hooks/useStudioStore';
+import type { ImportResult } from './importTypes';
 
 const layerIdMap: Record<string, LayerId> = {
   Vocals: 'vocals',
@@ -42,7 +42,7 @@ function splitCsvLine(line: string): string[] {
 }
 
 export class ImportEngine {
-  static async importFromCSV(csvContent: string): Promise<ImportResult> {
+  static parseCSV(csvContent: string, allowNoValidRows = false): ImportResult {
     const lines = csvContent
       .split('\n')
       .map((line) => line.trim())
@@ -101,7 +101,7 @@ export class ImportEngine {
       importedMarkers += 1;
     }
 
-    if (importedMarkers === 0) {
+    if (importedMarkers === 0 && !allowNoValidRows) {
       throw new Error('No valid marker rows were found in the CSV');
     }
 
@@ -110,5 +110,9 @@ export class ImportEngine {
       importedMarkers,
       skippedRows,
     };
+  }
+
+  static async importFromCSV(csvContent: string): Promise<ImportResult> {
+    return ImportEngine.parseCSV(csvContent);
   }
 }
