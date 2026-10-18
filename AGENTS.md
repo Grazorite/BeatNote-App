@@ -100,7 +100,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      Phase 1 foundations through project grouping are complete, with CSV transforms next
+      Phase 1 foundations through CSV replace and migration planning are complete, with the
+      persistence pipeline next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -115,6 +116,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Add reusable CSV preview/replace/undo and legacy migration planning transforms, and enforce
+      version 1.0.0 parity across package metadata, Expo/Metro, and generated iOS development builds
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `.kiro/steering/ios-testflight.md`, `app.json`, `package.json`, `plugins/withVersionConsistency.js`, `scripts/check-version-consistency.js`, `src/utils/csvReplace.ts`, `src/utils/importEngine.ts`, `src/utils/migrationPlan.ts`</sub>
 
 - [x] Stabilise direct playback-speed dragging, replace abrupt popup removal with an interruptible
       collapse/fade, remove redundant speed feedback, and keep loaded-song Annotation actionable
@@ -212,6 +217,46 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-18 — Add CSV migration transforms and version parity
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1149eb5`
+**Kanban moved:** local library CSV/migration decisions → In Progress
+
+**Changed:**
+
+- Added a shared CSV parser path that keeps legacy import errors while allowing a zero-row preview,
+  reports existing/imported/skipped/beyond-duration counts, replaces all layer marker data, and
+  captures/restores the actual prior draft state.
+- Added deterministic legacy URI classification, missing-item matching, non-destructive V1.2
+  project conversion, and resumable journal-step selection.
+- Made `1.0.0` consistent across package and Expo configuration, generated iOS marketing/bundle
+  metadata, the installed simulator app, and the running localhost Expo manifest. Added preflight
+  checks before Metro and native run commands plus a prebuild plugin to prevent drift.
+- DSH-Qwen produced the initial CSV transform, then stalled on the corrective follow-up. Codex
+  removed its duplicated parser and guessed draft state before verification.
+
+**Verified:**
+
+- Temporary focused CSV and migration checks → 10/10 passed, including parser compatibility,
+  zero-row preview, counts, replace/undo, URI classes, matching, preservation, and journal order;
+  the temporary tests were then removed per policy.
+- `npm run check:version`, `npx tsc --noEmit`, `git diff --check`, and the empty permanent unit gate
+  → clean; `npx expo prebuild --platform ios --no-install` reapplied native configuration.
+- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+- The running Expo localhost manifest reports version `1.0.0` and iOS build `1`; the installed
+  iPhone 17 Pro simulator app reports `CFBundleShortVersionString` `1.0.0` and build `1`.
+
+**Not verified / known gaps:**
+
+- CSV transforms and migration decisions are not wired to repositories, store actions, or UI yet.
+- The physical iPhone development client was not inspected directly; its localhost manifest is
+  aligned, but a native binary version change would still require rebuilding that client.
+- Concurrent playback-dock edits remain uncommitted and outside `1149eb5`.
+
+**Next agent should:**
+
+- Implement Task 11's serialised persistence pipeline, then the typed repositories that consume it.
 
 ### 2026-10-18 — Build project and draft persistence foundations
 
@@ -376,29 +421,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Run the playback-speed physical-device checklist with music containing exposed vocals and sustained
   notes, checking 0.5×, 0.75×, 1.25×, 1.5×, and 2× through speakers and Bluetooth.
-
-### 2026-10-17 — Replace Settings sliders with a gear
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `48b312b`
-**Kanban moved:** Settings gear icon → Done
-
-**Changed:**
-
-- Replaced the shared Settings sliders glyph with a conventional eight-tooth gear and centre hub,
-  retaining BeatNote's 24×24 geometry, 1.75-point rounded stroke, button sizing, and accessibility.
-
-**Verified:**
-
-- `git diff --check` and `npx tsc --noEmit` → clean.
-- Full retained Playwright gate on port 8082 → 6/6 critical journeys passed.
-- Browser visual review at 393×852 → the gear is clear and balanced in the trailing phone toolbar slot.
-
-**Not verified / known gaps:**
-
-- Native simulator and physical-iPhone visual review were not rerun for this one-glyph change.
-- The icon, archived handover rotation, and lifecycle state are included in `48b312b`.
-
-**Next agent should:**
-
-- Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
-  share-sheet readability on real hardware.

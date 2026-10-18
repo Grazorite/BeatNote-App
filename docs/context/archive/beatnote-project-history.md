@@ -2308,3 +2308,29 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Continue physical-device acceptance, beginning with Settings/Help rotation and CSV share-sheet
   readability on real hardware.
+
+### 2026-10-17 — Replace Settings sliders with a gear
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `48b312b`
+**Kanban moved:** Settings gear icon → Done
+
+**Changed:**
+
+- Replaced the shared Settings sliders glyph with a conventional eight-tooth gear and centre hub,
+  retaining BeatNote's 24×24 geometry, 1.75-point rounded stroke, button sizing, and accessibility.
+
+**Verified:**
+
+- `git diff --check` and `npx tsc --noEmit` → clean.
+- Full retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+- Browser visual review at 393×852 → the gear is clear and balanced in the trailing phone toolbar slot.
+
+**Not verified / known gaps:**
+
+- Native simulator and physical-iPhone visual review were not rerun for this one-glyph change.
+- The icon, archived handover rotation, and lifecycle state are included in `48b312b`.
+
+**Next agent should:**
+
+- Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
+  share-sheet readability on real hardware.
