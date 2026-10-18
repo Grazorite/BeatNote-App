@@ -215,7 +215,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-18 — Standardise native waveform extraction
 
-**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `02aef09`
 **Kanban moved:** Web/native waveform parity → Done
 
 **Changed:**
@@ -256,7 +256,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-18 — Fix speed-popup reopening and transport stacking
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) · **Commit(s):** `02aef09`
 **Kanban moved:** Playback-speed post-dismissal and stacking regression → Done
 
 **Changed:**
