@@ -533,8 +533,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       no-source capability defaults, availability-first resolution, and typed unavailable errors.
     - _Requirements: 25.1, 25.2, 25.5, 25.6_
 
-- [ ] 19. Implement the shared Import_Pipeline
-  - [ ] 19.1 Implement the stages, FIFO job queue, and cancellation in `src/features/library/importPipeline.ts`
+- [x] 19. Implement the shared Import_Pipeline
+  - [x] 19.1 Implement the stages, FIFO job queue, and cancellation in `src/features/library/importPipeline.ts`
     - Run stages 1–11 in the design's order. Jobs run one at a time in arrival order. Cancellation
       is a flag checked between stages and after the copy resolves, and it is ignored once
       Import_Commit starts. A library-write failure at commit deletes the committed file. Any
@@ -542,28 +542,38 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Expose a job observer so Task 21.1 can mirror `importJobs` into the store without the
       pipeline holding global state.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Implemented the ordered stages, serial FIFO, observer snapshots with failure isolation,
+      retained/dismissible failures, and cancellation cleanup before (but never during) metadata
+      commit. Focused temporary checks passed.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.17, 4.6, 6.5_
 
-  - [ ] 19.2 Add duplicate and reattach handling
+  - [x] 19.2 Add duplicate and reattach handling
     - An available match discards the staged file and returns `duplicate` (the track switch is
       wired in Task 28.6). A missing or removed match commits under a new physical UUID, clears
       `removed`, restores Imported_Music, and keeps the Music_Item_ID. A matching filename with a
       different hash creates a new item.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Available duplicates are rechecked against physical storage before discarding the incoming
+      copy; stale, missing, and removed matches reuse their stable item ID and restore membership.
     - _Requirements: 4.1, 4.3, 4.4, 4.5, 24.4_
 
-  - [ ] 19.3 Add the Relink flow
+  - [x] 19.3 Add the Relink flow
     - With `relinkTargetId`, run stages 1–8 and branch through `decideRelink`. Return
       `relinkNeedsConfirm` for `looksOriginal` and `confirmMismatch`. A confirmed relink updates the
       reference, size, hash, duration, and availability and deletes the old physical file. Cancel or
       a dismissed picker discards the staged copy and changes nothing.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Exact matches attach immediately; mismatch confirmations retain a private staged token and
+      their confirm/cancel continuations re-enter the same FIFO before committing or cleaning up.
     - _Requirements: 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 28.6_
 
-  - [ ] 19.4 Connect migration to the Import_Pipeline
+  - [x] 19.4 Connect migration to the Import_Pipeline
     - Pass `enqueueImport({ origin: 'migration' })` as the migration runner's importer, including
       `inlineData` decoding to a Blob on web and duplicate detection by hash.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Added a migration adapter that maps all successful import outcomes to `imported`, awaits the
+      staging/commit journal callbacks, and resolves nullable/data-URI byte sizes through the web
+      Blob-backed adapter path.
     - _Requirements: 28.2, 28.4, 28.15_
 
   - [ ]* 19.5 Write property test for pre-commit failure cleanup
@@ -576,11 +586,14 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 3.17**
     - Temporary: `tests/unit/importPipeline.test.ts`.
 
-- [ ] 20. Checkpoint — native and import services
+- [x] 20. Checkpoint — native and import services
   - Run `npx tsc --noEmit`, `npm run test:unit`, `git diff --check`, and the focused
     `IOS_TEST_ONLY=testStudioLaunchesAndDocumentPickerOpens npm run test:ios:ui` to prove the
     module builds and the app still launches.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verified `npm run check:version`, `npx tsc --noEmit`, the empty permanent unit gate,
+    6/6 retained Playwright journeys, and the focused iOS launch/document-picker XCTest. Result:
+    `ios/build/BeatNoteUITests-1792384573386.xcresult`.
 
 ### Phase 4 — Store slices and audio URI ownership
 

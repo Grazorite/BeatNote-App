@@ -8,6 +8,8 @@ export interface StagedAudio {
 export interface AudioStoreAdapter {
   ensureDirectories(): Promise<void>;
   availableBytes(): Promise<number | null>;
+  sourceByteSize(sourceUri: string): Promise<number | null>;
+  randomUUID(): string;
   stage(
     sourceUri: string,
     expectedBytes: number,
@@ -24,7 +26,18 @@ export interface AudioStoreAdapter {
   deleteSourceCopy(sourceUri: string): Promise<void>;
 }
 
-export type ImportErrorCode = 'copyIncomplete' | 'decodeTimeout' | 'stagedAudioMissing';
+export type ImportErrorCode =
+  | 'unsupported'
+  | 'invalidSize'
+  | 'insufficientSpace'
+  | 'copyFailed'
+  | 'copyIncomplete'
+  | 'hashFailed'
+  | 'decodeFailed'
+  | 'decodeTimeout'
+  | 'commitFailed'
+  | 'targetMissing'
+  | 'stagedAudioMissing';
 
 export class ImportError extends Error {
   readonly code: ImportErrorCode;

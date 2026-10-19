@@ -152,6 +152,20 @@ export const audioStore: AudioStoreAdapter = {
     }
   },
 
+  async sourceByteSize(sourceUri: string): Promise<number | null> {
+    try {
+      const response = await fetch(sourceUri);
+      if (!response.ok) return null;
+      return (await response.blob()).size;
+    } catch {
+      return null;
+    }
+  },
+
+  randomUUID(): string {
+    return crypto.randomUUID().toLocaleLowerCase('en-US');
+  },
+
   async stage(
     sourceUri: string,
     expectedBytes: number,
@@ -163,7 +177,7 @@ export const audioStore: AudioStoreAdapter = {
     if (blob.size !== expectedBytes) {
       throw new ImportError('copyIncomplete', `Copied ${blob.size} of ${expectedBytes} bytes`);
     }
-    const stagingRef = crypto.randomUUID().toLocaleLowerCase('en-US');
+    const stagingRef = audioStore.randomUUID();
     stagedAudio.set(stagingRef, { blob, hash: null });
     return { stagingRef, byteSize: blob.size };
   },

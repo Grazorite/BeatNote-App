@@ -307,6 +307,8 @@ export interface StagedAudio {
 export interface AudioStoreAdapter {
   ensureDirectories(): Promise<void>;                       // Music_Directory and .staging/
   availableBytes(): Promise<number | null>;                 // null when not reportable (R3.6)
+  sourceByteSize(sourceUri: string): Promise<number | null>; // fallback when a source reports no size
+  randomUUID(): string;                                     // platform-safe UUID for IDs and paths
   stage(
     sourceUri: string,
     expectedBytes: number,
@@ -384,11 +386,17 @@ export type ImportOutcome =
 
 export function enqueueImport(request: ImportRequest): Promise<ImportOutcome>;
 export function cancelImport(jobId: string): void;
+export function dismissImportJob(jobId: string): void;
+export function resolveRelinkConfirmation(
+  stagingRef: string,
+  useFile: boolean,
+): Promise<ImportOutcome>;
 ```
 
 Jobs run one at a time in arrival order (Requirement 3.17); the queue is in-memory and its visible
-state is mirrored to the store's `importJobs`. Stage details are in
-Import ingestion pipeline (below).
+state is mirrored to the store's `importJobs`. Failed jobs remain observable until dismissed.
+Relink confirmation continuations re-enter the same FIFO, so physical and metadata commits never
+overlap another import. Stage details are in Import ingestion pipeline (below).
 
 ### `persistencePipeline` service
 

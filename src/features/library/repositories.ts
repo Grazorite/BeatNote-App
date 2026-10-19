@@ -183,6 +183,32 @@ export const readLibraryStrict = (options?: RepositoryOptions) => (
 export const writeLibrary = (value: LibraryRecord, options?: RepositoryOptions) => (
   writeRecord(libraryDefinition, value, options)
 );
+
+export interface LibraryMutation<T> {
+  library: LibraryRecord;
+  result: T;
+}
+
+/** Serialise a whole-record library read/modify/write so concurrent edits cannot be lost. */
+export async function mutateLibrary<T>(
+  mutate: (current: LibraryRecord | null) => LibraryMutation<T> | Promise<LibraryMutation<T>>,
+  options: RepositoryOptions = {},
+): Promise<T> {
+  let result: T | undefined;
+  await enqueueWrite({
+    label: libraryDefinition.label,
+    family: libraryDefinition.family,
+    targetKeys: [libraryDefinition.key],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const mutation = await mutate(await readRecord(libraryDefinition, options, true));
+      await AsyncStorage.setItem(libraryDefinition.key, JSON.stringify(mutation.library));
+      result = mutation.result;
+    },
+  });
+  return result as T;
+}
 export const readLibraryPrefs = (options?: RepositoryOptions) => readRecord(prefsDefinition, options);
 export const writeLibraryPrefs = (value: LibraryPrefs, options?: RepositoryOptions) => (
   writeRecord(prefsDefinition, value, options)

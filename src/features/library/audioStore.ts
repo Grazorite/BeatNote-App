@@ -70,8 +70,12 @@ export const audioStore: AudioStoreAdapter = {
     const root = musicDirectory();
     root.create({ idempotent: true, intermediates: true });
     stagingDirectory().create({ idempotent: true, intermediates: true });
-    if (!await LibraryStorage.isExcludedFromBackup(root.uri)) {
-      await LibraryStorage.setExcludedFromBackup(root.uri, true);
+    try {
+      if (!await LibraryStorage.isExcludedFromBackup(root.uri)) {
+        await LibraryStorage.setExcludedFromBackup(root.uri, true);
+      }
+    } catch (error) {
+      console.error('Unable to apply the music backup-exclusion policy', error);
     }
   },
 
@@ -82,6 +86,19 @@ export const audioStore: AudioStoreAdapter = {
     } catch {
       return null;
     }
+  },
+
+  async sourceByteSize(sourceUri: string): Promise<number | null> {
+    try {
+      const size = new File(sourceUri).info().size;
+      return typeof size === 'number' && Number.isFinite(size) && size >= 0 ? size : null;
+    } catch {
+      return null;
+    }
+  },
+
+  randomUUID(): string {
+    return LibraryStorage.randomUUID();
   },
 
   async stage(
