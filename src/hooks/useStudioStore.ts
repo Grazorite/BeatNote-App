@@ -16,6 +16,23 @@ import {
   resizeLoopBound,
 } from '../utils/loopRange';
 import { DEFAULT_PLAYBACK_SPEED, normalizePlaybackSpeed } from '../utils/playbackSpeed';
+import type { DockToastAction } from './useDockToast';
+import type {
+  ImportJobView,
+  LibrarySortKey,
+  MusicItem,
+} from '../types/library';
+import type { CsvImportPreview, CsvUndoSnapshot, DraftUiState } from '../types/csvImport';
+import type {
+  DraftBaseline,
+  PersistedContent,
+  SavedProjectSummary,
+} from '../types/project';
+import type { PlaybackQueue } from '../types/queue';
+import type { PersistenceIssue } from '../features/library/persistencePipeline';
+import { writeQueue } from '../features/library/repositories';
+import { subscribeImportJobs } from '../features/library/importPipeline';
+import { applyPersistedContent } from '../utils/persistedContent';
 
 export type { LayerId } from '../types/project';
 
@@ -55,7 +72,65 @@ export interface MarkerDeletionBatch {
   markers: DeletedMarker[];
 }
 
+export type LibraryStatus = 'booting' | 'migrating' | 'ready' | 'readError';
+export type SwitchPhase = 'idle' | 'guard' | 'flushing' | 'resolving' | 'loading'
+  | 'committing' | 'rollingBack';
+
+export interface SwitchDestination {
+  musicItemId: string;
+  origin: 'queueNext' | 'queuePrevious' | 'queueFirst' | 'library' | 'openIn'
+    | 'duplicate' | 'launch' | 'projectOpen' | 'deleteCurrent';
+  explicitProjectId?: string;
+  queueIndex?: number;
+  rebuildQueue?: boolean;
+}
+
+export interface SwitchGuardPrompt {
+  pendingDestination: SwitchDestination;
+}
+
+export interface TrackCommitPayload {
+  musicItemId: string;
+  audioUri: string;
+  audioFilename: string;
+  content: PersistedContent;
+  songDuration: number;
+  baseline: DraftBaseline | null;
+  baselineFingerprint: string | null;
+  baselineName: string | null;
+  lastWrittenFingerprint: string | null;
+  draftUiState: DraftUiState;
+  queueIndex?: number;
+  isPlaying: boolean;
+  loadedProjectSource?: BeatNoteProject | null;
+}
+
 export interface StudioStore {
+  libraryItems: Record<string, MusicItem>;
+  librarySort: LibrarySortKey;
+  projectSummaries: Record<string, SavedProjectSummary>;
+  importJobs: ImportJobView[];
+  libraryStatus: LibraryStatus;
+  persistenceIssues: PersistenceIssue[];
+  libraryNotice: { id: number; message: string; action?: DockToastAction } | null;
+  libraryNoticeSequence: number;
+  isLibrarySheetOpen: boolean;
+  currentMusicItemId: string | null;
+  currentAudioUri: string | null;
+  currentAudioFilename: string | null;
+  draftBaseline: DraftBaseline | null;
+  draftBaselineFingerprint: string | null;
+  draftBaselineName: string | null;
+  lastWrittenFingerprint: string | null;
+  draftUiState: DraftUiState;
+  saveInProgress: boolean;
+  csvPreview: CsvImportPreview | null;
+  csvUndo: CsvUndoSnapshot | null;
+  queue: PlaybackQueue | null;
+  switchPhase: SwitchPhase;
+  switchGuard: SwitchGuardPrompt | null;
+  pendingSwitchTargetId: string | null;
+  loadingMusicItemId: string | null;
   isPlaying: boolean;
   currentTime: number;
   ghostPlayheadTime: number | null; // Last clicked position on waveform
@@ -99,6 +174,20 @@ export interface StudioStore {
   magneticSnapping: boolean;
   showAnnotations: boolean;
   isTextInputFocused: boolean;
+  setLibraryItems: (items: Record<string, MusicItem>) => void;
+  setLibrarySort: (sort: LibrarySortKey) => void;
+  setCurrentAudioSource: (uri: string | null, filename: string | null) => void;
+  setQueue: (queue: PlaybackQueue | null) => void;
+  setDraftBaseline: (
+    baseline: DraftBaseline | null,
+    fingerprint: string | null,
+    name: string | null,
+  ) => void;
+  setLastWrittenFingerprint: (fingerprint: string) => void;
+  notify: (message: string, action?: DockToastAction) => void;
+  openLibrarySheet: () => void;
+  closeLibrarySheet: () => void;
+  applyTrackState: (payload: TrackCommitPayload) => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
@@ -223,6 +312,31 @@ const restoreDeletedMarkers = (layers: Layer[], batch: MarkerDeletionBatch): Lay
 });
 
 export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
+  libraryItems: {},
+  librarySort: 'recentlyAdded',
+  projectSummaries: {},
+  importJobs: [],
+  libraryStatus: 'booting',
+  persistenceIssues: [],
+  libraryNotice: null,
+  libraryNoticeSequence: 0,
+  isLibrarySheetOpen: false,
+  currentMusicItemId: null,
+  currentAudioUri: null,
+  currentAudioFilename: null,
+  draftBaseline: null,
+  draftBaselineFingerprint: null,
+  draftBaselineName: null,
+  lastWrittenFingerprint: null,
+  draftUiState: 'emptyUnnamed',
+  saveInProgress: false,
+  csvPreview: null,
+  csvUndo: null,
+  queue: null,
+  switchPhase: 'idle',
+  switchGuard: null,
+  pendingSwitchTargetId: null,
+  loadingMusicItemId: null,
   isPlaying: false,
   currentTime: 0,
   ghostPlayheadTime: null,
@@ -269,6 +383,110 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   stemSeparationStatus: 'idle',
   stemSeparationProgress: 0,
   separatedStemUris: {},
+  setLibraryItems: (items) => set({ libraryItems: items }),
+  setLibrarySort: (sort) => set({ librarySort: sort }),
+  setCurrentAudioSource: (uri, filename) => set({
+    currentAudioUri: uri,
+    currentAudioFilename: filename,
+  }),
+  setQueue: (queue) => {
+    set({ queue });
+    void writeQueue(queue, {
+      onIssue: issue => set((state) => ({
+        persistenceIssues: [
+          ...state.persistenceIssues.filter(existing => (
+            existing.kind !== issue.kind || existing.label !== issue.label
+          )),
+          issue,
+        ],
+      })),
+    }).catch(() => undefined);
+  },
+  setDraftBaseline: (baseline, fingerprint, name) => set({
+    draftBaseline: baseline,
+    draftBaselineFingerprint: fingerprint,
+    draftBaselineName: name,
+  }),
+  setLastWrittenFingerprint: (fingerprint) => set({ lastWrittenFingerprint: fingerprint }),
+  notify: (message, action) => set((state) => {
+    const id = state.libraryNoticeSequence + 1;
+    return {
+      libraryNoticeSequence: id,
+      libraryNotice: {
+        id,
+        message,
+        ...(action === undefined ? {} : { action }),
+      },
+    };
+  }),
+  openLibrarySheet: () => set({ isLibrarySheetOpen: true }),
+  closeLibrarySheet: () => set({ isLibrarySheetOpen: false }),
+  applyTrackState: (payload) => set((state) => {
+    const content = applyPersistedContent(payload.content);
+    const duration = Number.isFinite(payload.songDuration) && payload.songDuration > 0
+      ? Math.floor(payload.songDuration + 0.5)
+      : payload.songDuration;
+    const durationIsValid = Number.isFinite(duration) && duration > 0;
+    const requestedRange = {
+      loopStartMs: content.loopStartMs,
+      loopEndMs: content.loopEndMs,
+    };
+    const normalizedRange = durationIsValid
+      ? reclampLoopRangeToDuration(requestedRange, duration)
+      : requestedRange;
+    const loopIsValid = durationIsValid && isValidLoopRange(normalizedRange, duration);
+    const activeLayerId = content.layers.some(layer => layer.id === state.activeLayerId)
+      ? state.activeLayerId
+      : content.layers[0]?.id ?? state.activeLayerId;
+    const nextQueue = payload.queueIndex === undefined || state.queue === null
+      ? state.queue
+      : { ...state.queue, currentIndex: payload.queueIndex };
+
+    return {
+      ...content,
+      playbackSpeed: normalizePlaybackSpeed(content.playbackSpeed),
+      loopStartMs: loopIsValid ? normalizedRange.loopStartMs : null,
+      loopEndMs: loopIsValid ? normalizedRange.loopEndMs : null,
+      isLoopRangeEnabled: loopIsValid && content.isLoopRangeEnabled,
+      pendingLoopRangeEnabled: !durationIsValid
+        && requestedRange.loopStartMs !== null
+        && requestedRange.loopEndMs !== null
+        && content.isLoopRangeEnabled,
+      currentMusicItemId: payload.musicItemId,
+      currentAudioUri: payload.audioUri,
+      currentAudioFilename: payload.audioFilename,
+      songDuration: duration,
+      songLoaded: true,
+      isPlaying: payload.isPlaying,
+      currentTime: 0,
+      viewportStartTime: 0,
+      viewportDuration: durationIsValid ? duration : state.viewportDuration,
+      pixelsPerSecond: durationIsValid ? 800 / (duration / 1000) : state.pixelsPerSecond,
+      activeLayerId,
+      draftBaseline: payload.baseline,
+      draftBaselineFingerprint: payload.baselineFingerprint,
+      draftBaselineName: payload.baselineName,
+      lastWrittenFingerprint: payload.lastWrittenFingerprint,
+      draftUiState: payload.draftUiState,
+      queue: nextQueue,
+      loadedProjectSource: payload.loadedProjectSource ?? null,
+      ghostPlayheadTime: null,
+      selectedRowIndex: null,
+      selectedMarker: null,
+      lastRemovedMarker: null,
+      markerDeletionHistory: [],
+      loopRestoreSnapshot: null,
+      isLoopMarkerActive: false,
+      libraryNotice: null,
+      isLibrarySheetOpen: false,
+      showHelpScreen: false,
+      showExportModal: false,
+      showImportModal: false,
+      csvPreview: null,
+      csvUndo: null,
+      isTextInputFocused: false,
+    };
+  }),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
@@ -997,3 +1215,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
 });
 
 export const useStudioStore = create<StudioStore>(studioStoreCreator);
+
+subscribeImportJobs(importJobs => {
+  useStudioStore.setState({ importJobs: importJobs.map(job => ({ ...job })) });
+});

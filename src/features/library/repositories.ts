@@ -214,9 +214,19 @@ export const writeLibraryPrefs = (value: LibraryPrefs, options?: RepositoryOptio
   writeRecord(prefsDefinition, value, options)
 );
 export const readQueue = (options?: RepositoryOptions) => readRecord(queueDefinition, options);
-export const writeQueue = (value: PlaybackQueue, options?: RepositoryOptions) => (
-  writeRecord(queueDefinition, value, options)
-);
+export const writeQueue = (
+  value: PlaybackQueue | null,
+  options: RepositoryOptions = {},
+): Promise<void> => enqueueWrite({
+  label: queueDefinition.label,
+  family: queueDefinition.family,
+  targetKeys: [queueDefinition.key],
+  availableBytes: options.availableBytes,
+  onIssue: options.onIssue,
+  run: () => value === null
+    ? AsyncStorage.removeItem(queueDefinition.key)
+    : AsyncStorage.setItem(queueDefinition.key, JSON.stringify(value)),
+});
 export const readMigrationJournal = (options?: RepositoryOptions) => (
   readRecord(journalDefinition, options)
 );

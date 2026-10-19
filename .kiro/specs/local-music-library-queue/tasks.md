@@ -597,39 +597,46 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 4 — Store slices and audio URI ownership
 
-- [ ] 21. Add the library, draft/project, queue, and switch slices to `useStudioStore`
-  - [ ] 21.1 Add the library slice
+- [x] 21. Add the library, draft/project, queue, and switch slices to `useStudioStore`
+  - [x] 21.1 Add the library slice
     - `libraryItems`, `librarySort`, `projectSummaries`, `importJobs`, `libraryStatus`,
       `persistenceIssues`, `libraryNotice`, and `isLibrarySheetOpen`, with thin actions
       (`setLibraryItems`, `setLibrarySort`, `notify`, `openLibrarySheet`, `closeLibrarySheet`).
       Mirror Import_Pipeline jobs through the Task 19.1 observer. Use `set((state) => …)` for
       derived updates and keep selectors granular.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Added the complete library/session mirror, monotonic notice IDs, thin actions, and the
+      Import_Pipeline observer bridge.
     - _Requirements: 1.10, 3.15, 10.7, 10.16, 10.17_
 
-  - [ ] 21.2 Add the draft and project slice
+  - [x] 21.2 Add the draft and project slice
     - `currentMusicItemId`, `draftBaseline`, `draftBaselineFingerprint`, `draftBaselineName`,
       `lastWrittenFingerprint`, `draftUiState`, `saveInProgress`, `csvPreview`, and `csvUndo`, with
       `setDraftBaseline` and `setLastWrittenFingerprint`.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Added the current-item, draft-baseline, fingerprint, save, and CSV session fields and actions.
     - _Requirements: 11.7, 16.4, 16.17_
 
-  - [ ] 21.3 Add the queue slice
+  - [x] 21.3 Add the queue slice
     - `queue` and `setQueue`, persisting through the queue repository on every change, with no
       Project_ID or draft reference.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Queue replacements and clears now persist through the shared serialised repository pipeline
+      without rolling back the in-memory mirror on a write failure.
     - _Requirements: 1.5, 1.6, 18.5_
 
-  - [ ] 21.4 Add the switch slice and the atomic `applyTrackState`
+  - [x] 21.4 Add the switch slice and the atomic `applyTrackState`
     - `switchPhase`, `switchGuard`, `pendingSwitchTargetId`, and `loadingMusicItemId`.
       `applyTrackState(payload)` is one `set()` that writes the current item, the audio URI, every
       Persisted_Content field (with the existing `loadProject` normalisation), `songDuration`,
       baseline fields, and the queue index. It resets Session_State and `currentTime` to 0, sets
       `isLoopMarkerActive: false`, and leaves `isRepeatActive` untouched.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - One store commit now applies the source identity, transitional filename, normalized persisted
+      content, duration, draft baseline, queue index, and session reset while preserving Repeat.
     - _Requirements: 13.8, 15.2, 15.13_
 
-  - [ ] 21.5 Move the playing audio URI into the store
+  - [x] 21.5 Move the playing audio URI into the store
     - Add `currentAudioUri`. Change `useCustomAudioPlayer` (`src/hooks/useAudioPlayer.ts`) to derive
       its `AudioSource` from a narrow `currentAudioUri` selector instead of local `useState`. Leave
       loop-wrap and end-of-track logic unchanged.
@@ -638,6 +645,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       only after the playback-speed changes to both files are committed.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes
       unchanged.
+    - `useCustomAudioPlayer` now memoizes its source from a narrow store URI selector. The legacy
+      picker/project loaders write URI and filename through the temporary store-backed shim.
     - _Requirements: 1.7, 15.2_
 
   - [ ]* 21.6 Write property test for the library identity and retention invariant
@@ -659,10 +668,13 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 6.3, 6.4_
 
-- [ ] 23. Checkpoint — store slices
+- [x] 23. Checkpoint — store slices
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verified version consistency at `1.0.0`, TypeScript, the empty permanent unit gate, diff
+    hygiene, and all 6 retained Playwright journeys. Temporary focused store checks passed 4/4 and
+    were removed per policy.
 
 ### Phase 5 — Draft autosave (before any queue navigation)
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAudioPlayer, useAudioPlayerStatus, AudioSource, setAudioModeAsync } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
@@ -25,14 +25,18 @@ const PLAYBACK_UPDATE_INTERVAL_MS = 50;
  * - Waveform scrubbing with play state preservation
  */
 export const useCustomAudioPlayer = () => {
-  const [audioSource, setAudioSource] = useState<AudioSource | null>(null);
-  const [audioFilename, setAudioFilename] = useState<string | null>(null);
   const [wasPlayingBeforeScrub, setWasPlayingBeforeScrub] = useState(false);
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
   const previousSampleRef = useRef<number | null>(null);
   const loopDecisionSuspendedRef = useRef(false);
   const loopSeekInFlightRef = useRef(false);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
+  const currentAudioUri = useStudioStore(state => state.currentAudioUri);
+  const currentAudioFilename = useStudioStore(state => state.currentAudioFilename);
+  const audioSource = useMemo<AudioSource | null>(
+    () => currentAudioUri ? { uri: currentAudioUri } : null,
+    [currentAudioUri],
+  );
   const player = useAudioPlayer(audioSource);
   const playerStatus = useAudioPlayerStatus(player);
   const playerStatusRef = useRef(playerStatus);
@@ -46,6 +50,7 @@ export const useCustomAudioPlayer = () => {
     setSongLoaded,
     setSongDuration,
     setCurrentTime,
+    setCurrentAudioSource,
     resetLoopForNewAudio,
     playbackSpeed,
   } = useStudioStore(useShallow(state => ({
@@ -58,6 +63,7 @@ export const useCustomAudioPlayer = () => {
     setSongLoaded: state.setSongLoaded,
     setSongDuration: state.setSongDuration,
     setCurrentTime: state.setCurrentTime,
+    setCurrentAudioSource: state.setCurrentAudioSource,
     resetLoopForNewAudio: state.resetLoopForNewAudio,
     playbackSpeed: state.playbackSpeed,
   })));
@@ -134,8 +140,7 @@ export const useCustomAudioPlayer = () => {
         
         try {
           resetLoopForNewAudio();
-          setAudioSource({ uri: file.uri });
-          setAudioFilename(file.name);
+          setCurrentAudioSource(file.uri, file.name);
           setSongLoaded(true);
           Alert.alert('Success', `Audio file "${file.name}" loaded successfully!`);
         } catch (audioError) {
@@ -159,10 +164,9 @@ export const useCustomAudioPlayer = () => {
       showError('Audio Unavailable', 'This project does not contain a saved audio file reference.');
       return;
     }
-    setAudioSource({ uri });
-    setAudioFilename(filename);
+    setCurrentAudioSource(uri, filename);
     setSongLoaded(true);
-  }, [setSongLoaded, showError]);
+  }, [setCurrentAudioSource, setSongLoaded, showError]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;
@@ -418,8 +422,8 @@ export const useCustomAudioPlayer = () => {
 
   return {
     sound: player,
-    audioUri: typeof audioSource === 'object' && audioSource?.uri ? audioSource.uri : null,
-    audioFilename,
+    audioUri: currentAudioUri,
+    audioFilename: currentAudioFilename,
     loadProjectAudio,
     loadSong,
     togglePlayback,
