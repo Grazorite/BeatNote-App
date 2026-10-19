@@ -426,6 +426,164 @@ export async function mutateProjectAndDraft<T>(
   return result as T;
 }
 
+export type ProjectMutation<T> =
+  | { kind: 'noWrite'; result: T }
+  | { kind: 'write'; project: SavedProject; result: T };
+
+/** Re-read and update one stable project record plus its derived index in one pipeline step. */
+export async function mutateProject<T>(
+  projectId: string,
+  decide: (
+    stored: SavedProject | null,
+    index: ProjectIndexRecord,
+  ) => ProjectMutation<T> | Promise<ProjectMutation<T>>,
+  options: RepositoryOptions = {},
+): Promise<T> {
+  let result: T | undefined;
+  let pendingWrite: Extract<ProjectMutation<T>, { kind: 'write' }> | null = null;
+  await enqueueWrite({
+    label: `project ${projectId}`,
+    family: 'project',
+    targetKeys: [projectKey(projectId), PROJECT_INDEX_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const stored = await readRecord(projectDefinition(projectId), options, true);
+      const index = await readIndexForMutation(options);
+      const mutation = pendingWrite !== null
+        && stored !== null
+        && JSON.stringify(stored) === JSON.stringify(pendingWrite.project)
+        ? pendingWrite
+        : await decide(stored, index);
+      result = mutation.result;
+      if (mutation.kind === 'noWrite') return;
+      pendingWrite = mutation;
+
+      if (mutation.project.projectId !== projectId) {
+        throw new Error('Renamed project identity does not match its storage key');
+      }
+      if (validateSavedProject(mutation.project, projectId).valid === null) {
+        throw new Error('Invalid saved project');
+      }
+      await AsyncStorage.setItem(projectKey(projectId), JSON.stringify(mutation.project));
+      await AsyncStorage.setItem(
+        PROJECT_INDEX_KEY,
+        JSON.stringify(projectIndexWith(index, mutation.project)),
+      );
+    },
+  });
+  return result as T;
+}
+
+export interface ProjectDeletionResult {
+  project: SavedProject | null;
+  index: ProjectIndexRecord;
+  draft: SongDraft | null;
+  removedLibraryItem: boolean;
+}
+
+interface PendingProjectDeletion extends ProjectDeletionResult {
+  draftToWrite: SongDraft | null;
+  library: LibraryRecord | null;
+}
+
+/** Delete one project, optionally detach its current draft, and prune an unreferenced removed item. */
+export async function deleteProjectWithDependencies(
+  projectId: string,
+  replacementDraft: SongDraft | null,
+  options: RepositoryOptions = {},
+  onCommitted?: (result: ProjectDeletionResult) => void,
+): Promise<ProjectDeletionResult> {
+  let result: ProjectDeletionResult = {
+    project: null,
+    index: emptyProjectIndex(),
+    draft: null,
+    removedLibraryItem: false,
+  };
+  let pending: PendingProjectDeletion | null = null;
+  await enqueueWrite({
+    label: `project ${projectId}`,
+    family: 'project',
+    targetKeys: [projectKey(projectId), PROJECT_INDEX_KEY, LIBRARY_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      if (pending === null) {
+        const stored = await readRecord(projectDefinition(projectId), options, true);
+        const index = await readIndexForMutation(options);
+        if (stored === null) {
+          result = { project: null, index, draft: null, removedLibraryItem: false };
+          return;
+        }
+        if (replacementDraft !== null
+          && (replacementDraft.musicItemId !== stored.musicItemId
+            || replacementDraft.baseline !== null)) {
+          throw new Error('Deleted project replacement must be an unnamed draft for the same song');
+        }
+
+        const nextIndex = projectIndexWithout(index, projectId);
+        const storedDraft = await readRecord(
+          draftDefinition(stored.musicItemId),
+          options,
+          true,
+        );
+        const detachedStoredDraft = storedDraft?.baseline?.projectId === projectId
+          ? {
+            ...storedDraft,
+            baseline: null,
+            baselineFingerprint: null,
+            updatedAt: new Date((options.now ?? Date.now)()).toISOString(),
+          }
+          : null;
+        const currentDraft = replacementDraft ?? detachedStoredDraft ?? storedDraft;
+        const draftToWrite = replacementDraft ?? detachedStoredDraft;
+        const library = await readRecord(libraryDefinition, options, true);
+        const item = library?.items[stored.musicItemId] ?? null;
+        const hasOtherProject = Object.values(nextIndex.projects)
+          .some(summary => summary.musicItemId === stored.musicItemId);
+        const shouldRemoveItem = item?.removed === true
+          && !hasOtherProject
+          && currentDraft === null;
+        let nextLibrary = library;
+        if (shouldRemoveItem && library !== null) {
+          const items = { ...library.items };
+          delete items[stored.musicItemId];
+          nextLibrary = { ...library, items };
+        }
+        pending = {
+          project: stored,
+          index: nextIndex,
+          draft: currentDraft,
+          removedLibraryItem: shouldRemoveItem,
+          draftToWrite,
+          library: shouldRemoveItem ? nextLibrary : null,
+        };
+      }
+
+      if (pending.project === null) return;
+      if (pending.draftToWrite !== null) {
+        await AsyncStorage.setItem(
+          draftKey(pending.project.musicItemId),
+          JSON.stringify(pending.draftToWrite),
+        );
+      }
+      await AsyncStorage.removeItem(projectKey(projectId));
+      await AsyncStorage.setItem(PROJECT_INDEX_KEY, JSON.stringify(pending.index));
+      if (pending.library !== null) {
+        await AsyncStorage.setItem(LIBRARY_KEY, JSON.stringify(pending.library));
+      }
+      result = {
+        project: pending.project,
+        index: pending.index,
+        draft: pending.draft,
+        removedLibraryItem: pending.removedLibraryItem,
+      };
+      onCommitted?.(result);
+    },
+  });
+  return result;
+}
+
 export const readProject = (projectId: string, options?: RepositoryOptions) => (
   readRecord(projectDefinition(projectId), options)
 );

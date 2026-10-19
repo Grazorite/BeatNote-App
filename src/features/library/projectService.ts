@@ -25,6 +25,8 @@ import audioStore from './audioStore';
 import { flushDraft } from './draftAutosave';
 import { cancelQueued, type PersistenceIssue } from './persistencePipeline';
 import {
+  deleteProjectWithDependencies,
+  mutateProject,
   mutateProjectAndDraft,
   toProjectSummary,
   type ProjectDraftMutation,
@@ -39,6 +41,14 @@ export type SaveResult =
   | { kind: 'readOnly'; projectId: string }
   | { kind: 'noSong' }
   | { kind: 'failed'; reason: string; retry: () => Promise<SaveResult> };
+
+export type RenameResult =
+  | { kind: 'renamed'; project: SavedProject }
+  | { kind: 'invalidName'; error: string }
+  | { kind: 'nameConflict'; suggestion: string }
+  | { kind: 'readOnly'; projectId: string }
+  | { kind: 'notFound'; projectId: string }
+  | { kind: 'failed'; reason: string; retry: () => Promise<RenameResult> };
 
 interface SaveOptions {
   overwriteConflict?: boolean;
@@ -56,6 +66,8 @@ interface ProjectServiceDependencies {
   now: () => number;
   availableBytes: () => number | null | Promise<number | null>;
   mutateProjectAndDraft: typeof mutateProjectAndDraft;
+  mutateProject: typeof mutateProject;
+  deleteProjectWithDependencies: typeof deleteProjectWithDependencies;
   flushDraft: typeof flushDraft;
   cancelQueued: typeof cancelQueued;
 }
@@ -67,6 +79,8 @@ const defaultDependencies: ProjectServiceDependencies = {
   now: Date.now,
   availableBytes: audioStore.availableBytes,
   mutateProjectAndDraft,
+  mutateProject,
+  deleteProjectWithDependencies,
   flushDraft,
   cancelQueued,
 };
@@ -422,6 +436,7 @@ async function runSave(
         };
       },
       {
+        now: dependencies.now,
         availableBytes: dependencies.availableBytes,
         onIssue: issue => { reported.issue = issue; },
       },
@@ -476,6 +491,198 @@ async function runSave(
   }
 }
 
+async function runRename(
+  dependencies: ProjectServiceDependencies,
+  projectId: string,
+  requestedName: string,
+): Promise<RenameResult> {
+  const validation = validateProjectName(requestedName);
+  if (!validation.valid) return { kind: 'invalidName', error: validation.error };
+
+  const reported: { issue?: PersistenceIssue } = {};
+  try {
+    const result = await dependencies.mutateProject<RenameResult>(
+      projectId,
+      (stored, index) => {
+        if (stored === null) {
+          return { kind: 'noWrite', result: { kind: 'notFound', projectId } };
+        }
+        if (compareProjectVersion(stored.version, SAVED_PROJECT_VERSION) > 0) {
+          return { kind: 'noWrite', result: { kind: 'readOnly', projectId } };
+        }
+        const summaries = Object.values(index.projects);
+        const clash = findNameClash(validation.value, stored.musicItemId, summaries, projectId);
+        if (clash !== null) {
+          return {
+            kind: 'noWrite',
+            result: {
+              kind: 'nameConflict',
+              suggestion: suggestUniqueName(
+                validation.value,
+                stored.musicItemId,
+                summaries,
+                projectId,
+              ),
+            },
+          };
+        }
+        const renamed: SavedProject = {
+          ...stored,
+          metadata: {
+            ...stored.metadata,
+            name: validation.value,
+          },
+        };
+        return { kind: 'write', project: renamed, result: { kind: 'renamed', project: renamed } };
+      },
+      {
+        availableBytes: dependencies.availableBytes,
+        onIssue: issue => { reported.issue = issue; },
+      },
+    );
+    if (result.kind === 'renamed') {
+      dependencies.setState((state: StudioStore) => ({
+        projectSummaries: {
+          ...state.projectSummaries,
+          [projectId]: toProjectSummary(result.project),
+        },
+        ...(state.draftBaseline?.projectId === projectId ? {
+          draftBaselineName: result.project.metadata.name,
+          loadedProjectSource: state.loadedProjectSource?.projectId === projectId
+            ? result.project
+            : state.loadedProjectSource,
+        } : {}),
+        persistenceIssues: state.persistenceIssues.filter(issue => (
+          issue.label !== `project ${projectId}`
+          && issue.label !== `project-rename:${projectId}`
+        )),
+      }));
+    }
+    return result;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    const retry = () => runRename(dependencies, projectId, requestedName);
+    upsertIssue(dependencies, {
+      kind: reported.issue?.kind ?? 'writeFailed',
+      label: `project-rename:${projectId}`,
+      message: 'Project not renamed',
+      detail: reason,
+      error,
+      retry: async () => {
+        const result = await retry();
+        if (result.kind !== 'renamed') throw new Error(
+          result.kind === 'failed' ? result.reason : 'Project rename still needs attention',
+        );
+      },
+    });
+    return { kind: 'failed', reason, retry };
+  }
+}
+
+async function runDelete(
+  dependencies: ProjectServiceDependencies,
+  projectId: string,
+): Promise<void> {
+  const initial = dependencies.getState();
+  const deletingCurrentBaseline = initial.currentMusicItemId !== null
+    && initial.draftBaseline?.projectId === projectId;
+  const replacementContent = deletingCurrentBaseline
+    ? extractPersistedContent(initial)
+    : null;
+  const replacementDraft: SongDraft | null = replacementContent === null
+    || initial.currentMusicItemId === null
+    ? null
+    : {
+      schemaVersion: 1,
+      musicItemId: initial.currentMusicItemId,
+      baseline: null,
+      baselineFingerprint: null,
+      content: replacementContent,
+      updatedAt: new Date(dependencies.now()).toISOString(),
+    };
+
+  dependencies.setState({ saveInProgress: true });
+  if (replacementDraft !== null) dependencies.cancelQueued(`draft:${replacementDraft.musicItemId}`);
+  const reported: { issue?: PersistenceIssue } = {};
+  let committed = false;
+  let needsDraftFlush = false;
+  const applyDeletion = (result: Awaited<ReturnType<typeof deleteProjectWithDependencies>>): void => {
+    committed = true;
+    dependencies.setState((state: StudioStore) => {
+      const stillCurrent = result.project !== null
+        && state.currentMusicItemId === result.project.musicItemId
+        && state.draftBaseline?.projectId === projectId;
+      const libraryItems = result.removedLibraryItem && result.project !== null
+        ? Object.fromEntries(Object.entries(state.libraryItems).filter(
+          ([musicItemId]) => musicItemId !== result.project?.musicItemId,
+        ))
+        : state.libraryItems;
+      if (!stillCurrent) {
+        needsDraftFlush = state.libraryStatus === 'ready'
+          && state.songLoaded
+          && state.currentMusicItemId !== null;
+        return {
+          projectSummaries: result.index.projects,
+          libraryItems,
+          saveInProgress: false,
+          persistenceIssues: state.persistenceIssues.filter(issue => (
+            issue.label !== `project ${projectId}`
+            && issue.label !== `project-delete:${projectId}`
+          )),
+        };
+      }
+
+      const currentContent = extractPersistedContent(state);
+      const currentFingerprint = computeContentFingerprint(currentContent);
+      const durableFingerprint = result.draft === null
+        ? null
+        : computeContentFingerprint(result.draft.content);
+      needsDraftFlush = durableFingerprint === null || currentFingerprint !== durableFingerprint;
+      return {
+        projectSummaries: result.index.projects,
+        libraryItems,
+        draftBaseline: null,
+        draftBaselineFingerprint: null,
+        draftBaselineName: null,
+        lastWrittenFingerprint: durableFingerprint,
+        draftUiState: 'unsaved',
+        saveInProgress: false,
+        persistenceIssues: state.persistenceIssues.filter(issue => (
+          issue.label !== `project ${projectId}`
+          && issue.label !== `project-delete:${projectId}`
+        )),
+      };
+    });
+  };
+  try {
+    const result = await dependencies.deleteProjectWithDependencies(
+      projectId,
+      replacementDraft,
+      {
+        now: dependencies.now,
+        availableBytes: dependencies.availableBytes,
+        onIssue: issue => { reported.issue = issue; },
+      },
+      applyDeletion,
+    );
+    if (!committed) applyDeletion(result);
+    if (needsDraftFlush) void dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
+  } catch (error) {
+    dependencies.setState({ saveInProgress: false });
+    void dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
+    const reason = error instanceof Error ? error.message : String(error);
+    upsertIssue(dependencies, {
+      kind: reported.issue?.kind ?? 'writeFailed',
+      label: `project-delete:${projectId}`,
+      message: 'Project not deleted',
+      detail: reason,
+      error,
+      retry: () => runDelete(dependencies, projectId),
+    });
+    throw error;
+  }
+}
+
 export const saveCurrent = (options?: SaveOptions): Promise<SaveResult> => (
   runSave(defaultDependencies, 'current', null, options)
 );
@@ -484,10 +691,20 @@ export const saveAsNew = (name: string): Promise<SaveResult> => (
   runSave(defaultDependencies, 'new', name)
 );
 
+export const renameProject = (projectId: string, name: string): Promise<RenameResult> => (
+  runRename(defaultDependencies, projectId, name)
+);
+
+export const deleteProject = (projectId: string): Promise<void> => (
+  runDelete(defaultDependencies, projectId)
+);
+
 /** Test seam for save/revision/name race verification without replacing the global store. */
 export const createProjectService = (dependencies: ProjectServiceDependencies) => ({
   saveCurrent: (options?: SaveOptions) => runSave(dependencies, 'current', null, options),
   saveAsNew: (name: string) => runSave(dependencies, 'new', name),
+  renameProject: (projectId: string, name: string) => runRename(dependencies, projectId, name),
+  deleteProject: (projectId: string) => runDelete(dependencies, projectId),
 });
 
 export type { ProjectServiceDependencies, SaveOptions };

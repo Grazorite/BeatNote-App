@@ -775,12 +775,18 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       them against the new baseline.
     - _Requirements: 16.7, 16.8, 16.9, 16.10, 16.11, 16.17, 27.5, 28.10_
 
-  - [ ] 26.3 Implement `renameProject` and `deleteProject`
+  - [x] 26.3 Implement `renameProject` and `deleteProject`
     - Rename keeps the Project_ID and storage key and enforces per-song uniqueness. Delete removes
       only that project. Deleting the current baseline converts the draft to an Unnamed_Draft with
       its content. When a removed Music_Item has lost its last project and its draft, delete its
       record. The queue is never touched.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Rename now preserves project identity, revision, save order, content, and queue state while
+      enforcing same-song uniqueness inside the serialised mutation. Delete detaches current and
+      stored baselines to unnamed drafts, never changes the queue, and prunes a hidden removed item
+      only after its final project and draft dependencies are gone.
+    - Temporary focused service/repository checks passed 6/6, including current and noncurrent
+      draft detachment and removed-item cleanup, then were removed per policy.
     - _Requirements: 2.3, 20.7, 24.1, 24.2, 24.6, 24.7, 24.9_
 
   - [ ] 26.4 Implement same-song `openProject` and `revertToSaved`
