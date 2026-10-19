@@ -686,8 +686,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 5 — Draft autosave (before any queue navigation)
 
-- [ ] 24. Implement draft autosave and its failure surfaces
-  - [ ] 24.1 Implement `src/features/library/draftAutosave.ts`
+- [x] 24. Implement draft autosave and its failure surfaces
+  - [x] 24.1 Implement `src/features/library/draftAutosave.ts`
     - `startDraftAutosave()` subscribes to the Persisted_Content tuple, compared shallowly, while a
       song is loaded and `libraryStatus === 'ready'`. The delay is
       `min(500, firstUnwrittenAt + 2000 − now)`. Writes use coalesce key `draft:<id>`, snapshot the
@@ -696,41 +696,56 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - `flushDraft(timeoutMs)` clears the timer, enqueues immediately, and races the timeout. After
       each write, recompute `draftUiState`.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Added a shallow authored-content subscription, bounded debounce, execution-time snapshots,
+      fingerprint skips, mid-write re-arming, explicit flush results, and exact draft-failure
+      recovery without persisting Session_State.
     - _Requirements: 11.1, 11.2, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.11_
 
-  - [ ] 24.2 Wire `AppState` flushing and foreground retry in `useLibraryLifecycle`
+  - [x] 24.2 Wire `AppState` flushing and foreground retry in `useLibraryLifecycle`
     - Flush immediately on `background` and `inactive`. Retry failed draft writes on `active` and
       at the next change. Start autosave only after boot completes. The subscription cleans up on
       unmount.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Autosave starts only while boot is ready, flushes on inactive/background, retries the current
+      failed draft on active, and tears down its listener and timers on lifecycle cleanup.
     - _Requirements: 12.7, 12.12_
 
-  - [ ] 24.3 Create `PersistenceBanner` and mount it in `StudioScreen`
+  - [x] 24.3 Create `PersistenceBanner` and mount it in `StudioScreen`
     - `src/components/ui/common/PersistenceBanner.tsx` with
       `src/styles/components/common/persistenceBanner.ts` renders a persistent "Draft not saved.
       Your latest changes are only on screen." banner, plus storage-full and read-error issues,
       each with a 44×44 Retry. Use the liquid-glass surface, semantic tokens, and text plus icon
       (not colour alone). Remove the banner on a successful write.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - The shared glass banner now owns read/write/storage errors, preserves refreshed failures after
+      Retry, exposes 44-point focused Retry controls, and shows the exact draft warning with storage
+      detail when applicable.
     - _Requirements: 12.12, 12.13, 26.2, 26.5, 26.6, 29.1, 29.3_
 
-  - [ ] 24.4 Forward `libraryNotice` into the dock toast
+  - [x] 24.4 Forward `libraryNotice` into the dock toast
     - In `src/components/layout/MainContent.tsx`, forward each new `libraryNotice` (by `id`) to the
       existing `useDockToast.show(message, action)`, so import, Open_In, and save confirmations
       reach the Dock_Toast from outside `MainContent`.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` dock journey
       still passes.
+    - Notices are forwarded once per monotonic ID; repeated identical messages remount for a fresh
+      accessibility announcement, and desktop now has a toast host as well as mobile.
     - _Requirements: 3.13, 16.14_
 
-  - [ ]* 24.5 Write property test for autosave latency and snapshots
+  - [x]* 24.5 Write property test for autosave latency and snapshots
     - **Property 12: Autosave bounds latency and writes the latest snapshot**
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4, 12.5**
     - Temporary: `tests/unit/draftAutosave.test.ts` with Jest fake timers.
+    - Temporary focused checks passed 6/6 for bounded latency, execution-time snapshots,
+      mid-write edits, failure/retry, durable reversion, and cleanup; then removed per policy.
 
-- [ ] 25. Checkpoint — autosave
+- [x] 25. Checkpoint — autosave
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verified version consistency at `1.0.0`, TypeScript, the empty permanent unit gate, diff
+    hygiene, and all 6 retained Playwright journeys. Temporary autosave checks passed 6/6 before
+    removal.
 
 ### Phase 6 — Safe Save, Save as New, revisions, and names (before track controls)
 

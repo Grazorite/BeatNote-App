@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { useStudioStore, type StudioStore } from '../../hooks/useStudioStore';
 import {
@@ -10,10 +10,11 @@ import {
 import type { MigrationJournal } from '../../types/migration';
 import type { LegacyStoredProject, ProjectIndexRecord } from '../../types/project';
 import type { PlaybackQueue } from '../../types/queue';
-import { ORPHAN_FILE_MIN_AGE_MS } from '../../utils/libraryConstants';
+import { DRAFT_FLUSH_TIMEOUT_MS, ORPHAN_FILE_MIN_AGE_MS } from '../../utils/libraryConstants';
 import { restoreQueue } from '../../utils/queueOrder';
 import audioStore from './audioStore';
 import type { AudioStoreAdapter } from './audioStoreTypes';
+import { flushDraft, retryFailedDraft, startDraftAutosave } from './draftAutosave';
 import { getImportJobs, migrationImporter } from './importPipeline';
 import {
   migrationNoticeCount,
@@ -333,4 +334,20 @@ export function useLibraryLifecycle(): void {
       .then(ran => { orphanSweepStarted.current = ran; })
       .finally(() => { orphanSweepInFlight.current = false; });
   }, [importJobs, libraryStatus]);
+
+  useEffect(() => {
+    if (libraryStatus !== 'ready') return undefined;
+    const stopAutosave = startDraftAutosave();
+    const appStateSubscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        void flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
+      } else if (nextState === 'active') {
+        void retryFailedDraft();
+      }
+    });
+    return () => {
+      appStateSubscription.remove();
+      stopAutosave();
+    };
+  }, [libraryStatus]);
 }

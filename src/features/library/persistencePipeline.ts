@@ -23,6 +23,7 @@ export interface PersistenceIssue {
   kind: 'readFailed' | 'storageFull' | 'writeFailed';
   label: string;
   message: string;
+  detail?: string;
   error: unknown;
   retry: () => Promise<void>;
 }

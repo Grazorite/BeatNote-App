@@ -36,7 +36,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     allLayersData,
     toggleSidebar,
     libraryStatus,
-    persistenceIssues,
   } = useStudioStore(useShallow(state => ({
     songLoaded: state.songLoaded,
     saveProject: state.saveProject,
@@ -44,7 +43,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     allLayersData: state.allLayersData,
     toggleSidebar: state.toggleSidebar,
     libraryStatus: state.libraryStatus,
-    persistenceIssues: state.persistenceIssues,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -92,7 +90,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     .reduce((sum, layer) => sum + layer.markers.length, 0);
   const hasExportableMarkers = songLoaded && visibleMarkerCount > 0;
   const libraryLocked = libraryStatus !== 'ready';
-  const readIssue = persistenceIssues.find(issue => issue.kind === 'readFailed');
 
   useEffect(() => {
     if (!libraryLocked) return;
@@ -204,24 +201,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <Text style={styles.libraryStatus} accessibilityLiveRegion="polite" testID="library-migration-status">
           Updating your library…
         </Text>
-      )}
-      {libraryStatus === 'readError' && (
-        <View style={styles.libraryError} accessibilityLiveRegion="polite" testID="library-read-error">
-          <Text style={styles.libraryStatus}>
-            {readIssue?.message ?? "BeatNote couldn't read library data"}
-          </Text>
-          {readIssue && (
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={() => { void readIssue.retry(); }}
-              accessibilityRole="button"
-              accessibilityLabel="Retry reading library data"
-              testID="library-read-retry"
-            >
-              <Text style={styles.retryText}>Retry</Text>
-            </TouchableOpacity>
-          )}
-        </View>
       )}
       {isMobile ? (
         <View style={styles.mobileActions} testID="project-actions-scroll">{actions}</View>

@@ -273,6 +273,39 @@ export const writeDraft = (
   return writeRecord(draftDefinition(musicItemId), draft, options, `draft:${musicItemId}`);
 };
 
+/**
+ * Enqueue a coalescible draft write whose value is captured only when the
+ * persistence pipeline begins the operation. Returning null skips storage.
+ */
+export const writeDraftSnapshot = (
+  musicItemId: string,
+  snapshot: () => SongDraft | null,
+  onCommitted: (draft: SongDraft | null) => void,
+  options: RepositoryOptions = {},
+): Promise<void> => {
+  const definition = draftDefinition(musicItemId);
+  return enqueueWrite({
+    label: definition.label,
+    family: definition.family,
+    targetKeys: [definition.key],
+    coalesceKey: `draft:${musicItemId}`,
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const draft = snapshot();
+      if (draft === null) {
+        onCommitted(null);
+        return;
+      }
+      if (draft.musicItemId !== musicItemId) {
+        throw new Error('Draft music item ID does not match its storage key');
+      }
+      await AsyncStorage.setItem(definition.key, JSON.stringify(draft));
+      onCommitted(draft);
+    },
+  });
+};
+
 export const projectKey = (projectId: string): string => `${PROJECT_KEY_PREFIX}${projectId}`;
 
 const projectDefinition = (projectId: string): RecordDefinition<SavedProject> => ({

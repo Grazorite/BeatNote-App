@@ -72,6 +72,8 @@ const MainContent: React.FC<MainContentProps> = ({
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const toast = useDockToast();
+  const libraryNotice = useStudioStore(state => state.libraryNotice);
+  const lastForwardedNoticeId = useRef(0);
   const currentTime = useStudioStore(state => state.currentTime);
   const playbackSpeed = useStudioStore(state => state.playbackSpeed);
   const setPlaybackSpeed = useStudioStore(state => state.setPlaybackSpeed);
@@ -109,6 +111,12 @@ const MainContent: React.FC<MainContentProps> = ({
     opacity.value = 0;
     opacity.value = withTiming(1, { duration: 200 });
   }, [viewMode]);
+
+  useEffect(() => {
+    if (libraryNotice === null || libraryNotice.id === lastForwardedNoticeId.current) return;
+    lastForwardedNoticeId.current = libraryNotice.id;
+    toast.show(libraryNotice.message, libraryNotice.action ?? null);
+  }, [libraryNotice, toast.show]);
   
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value
@@ -187,7 +195,7 @@ const MainContent: React.FC<MainContentProps> = ({
   if (isMobile) {
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
-        <DockToast message={toast.message} action={toast.action} />
+        <DockToast key={toast.nonce} message={toast.message} action={toast.action} />
         {timedAnnotationMarker && displayedAnnotation.trim() && (
           <AnnotationCallout
             key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
@@ -265,7 +273,10 @@ const MainContent: React.FC<MainContentProps> = ({
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       contentContainerStyle={styles.container}
     >
-      {projectControls}
+      <View>
+        {projectControls}
+        <DockToast key={toast.nonce} message={toast.message} action={toast.action} />
+      </View>
       {waveform}
       {timeline}
       <View style={styles.controlsRow}>
