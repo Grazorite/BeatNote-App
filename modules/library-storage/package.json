@@ -1,0 +1,10 @@
+{
+  "name": "library-storage",
+  "version": "1.0.0",
+  "description": "BeatNote app-owned audio storage primitives",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

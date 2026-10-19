@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["LibraryStorageModule"]
+  },
+  "android": {
+    "modules": ["com.beatnote.librarystorage.LibraryStorageModule"]
+  }
+}

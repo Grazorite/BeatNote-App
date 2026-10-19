@@ -154,7 +154,8 @@ The following features require native iOS modules (Swift bridging via Expo Modul
 | Feature | Module location | Status |
 | --- | --- | --- |
 | Demucs CoreML inference | `modules/stem-separation/` | Planned |
-| Waveform extraction (mobile) | `modules/waveform-extractor/` | Planned |
+| Waveform extraction (mobile) | `modules/beatnote-waveform/` | Implemented |
+| App-owned music storage primitives | `modules/library-storage/` | Implemented |
 
 Use `expo-modules-core` to write these as Expo Modules (Swift + TypeScript interface). Do not use bare `react-native` native modules.
 

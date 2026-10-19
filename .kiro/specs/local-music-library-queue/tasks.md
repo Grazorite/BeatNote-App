@@ -468,8 +468,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 3 — Native storage module, audio-store adapters, and Import_Pipeline
 
-- [ ] 16. Create the `modules/library-storage` Expo Module
-  - [ ] 16.1 Add the TypeScript interface and module configuration
+- [x] 16. Create the `modules/library-storage` Expo Module
+  - [x] 16.1 Add the TypeScript interface and module configuration
     - Create `modules/library-storage/expo-module.config.json` and `src/index.ts` exposing
       `getMusicDirectoryUri`, `setExcludedFromBackup`, `isExcludedFromBackup`, `md5File`, and
       `randomUUID`. Add a web implementation (`src/index.web.ts`) whose `randomUUID` uses
@@ -477,7 +477,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean; Expo autolinking lists the module.
     - _Requirements: 2.1, 6.1, 6.2_
 
-  - [ ] 16.2 Implement the iOS module in Swift
+  - [x] 16.2 Implement the iOS module in Swift
     - `ios/LibraryStorageModule.swift` resolves and creates `Library/Application Support/BeatNote/Music/`.
       It sets and reads `NSURLIsExcludedFromBackupKey`, computes a streaming MD5 in 1 MiB chunks
       with CryptoKit `Insecure.MD5` (lowercase hex), and returns a lowercased `NSUUID`. No edits
@@ -486,11 +486,13 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `IOS_TEST_ONLY=testStudioLaunchesAndDocumentPickerOpens npm run test:ios:ui` succeeds.
     - _Requirements: 2.1, 6.1, 6.2, 4.6_
 
-  - [ ] 16.3 Implement the Android module in Kotlin
+  - [x] 16.3 Implement the Android module in Kotlin
     - `android/…/LibraryStorageModule.kt` uses `noBackupFilesDir/BeatNote/Music`, a no-op
       `setExcludedFromBackup`, a streaming MD5, and `UUID.randomUUID()`.
     - Verification evidence: `npx tsc --noEmit` clean; the Android Gradle compile succeeds if an
       Android toolchain is available. Otherwise record it as not verified.
+    - Android autolinking resolves the module; local Kotlin compilation is not verified because this
+      host has no Java runtime installed.
     - _Requirements: 6.1, 6.2_
 
 - [ ] 17. Implement the audio-store adapters
