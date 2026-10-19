@@ -495,8 +495,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       host has no Java runtime installed.
     - _Requirements: 6.1, 6.2_
 
-- [ ] 17. Implement the audio-store adapters
-  - [ ] 17.1 Implement `src/features/library/audioStore.ts` (native)
+- [x] 17. Implement the audio-store adapters
+  - [x] 17.1 Implement `src/features/library/audioStore.ts` (native)
     - Follow the `AudioStoreAdapter` contract. `ensureDirectories` creates the Music and staging
       directories and re-applies backup exclusion at every launch. `availableBytes` uses
       `Paths.availableDiskSpace`. `stage` uses legacy `copyAsync` with a size check, `hash` calls
@@ -506,9 +506,11 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `deleteSourceCopy` deletes only cache and `Documents/Inbox/` copies. `sweepOrphans` delegates
       the choice to `selectOrphans`, logs each failure, and continues.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Implemented with exact byte verification and partial-copy cleanup, transient player release,
+      cache/Inbox-only source cleanup, and failure-tolerant orphan sweeping. TypeScript is clean.
     - _Requirements: 2.5, 3.1, 3.4, 3.7, 3.10, 3.11, 3.12, 3.14, 5.1, 6.1, 6.2, 6.3, 6.4, 6.5, 7.9_
 
-  - [ ] 17.2 Implement `src/features/library/audioStore.web.ts` (IndexedDB)
+  - [x] 17.2 Implement `src/features/library/audioStore.web.ts` (IndexedDB)
     - Database `beatnote-audio` v1, store `audio`. `availableBytes` uses
       `navigator.storage.estimate()` or `null`. Staging is an in-memory `Blob`, the hash is
       `sha256:` from Web Crypto, and the duration probe uses `HTMLAudioElement`. `commit` is one
@@ -516,6 +518,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `resolvePlayableUri` creates an object URL and revokes the previous one on switch.
       Request `navigator.storage.persist()` once after the first import.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Implemented with atomic IndexedDB writes, in-memory staging, SHA-256 hashing, metadata cleanup,
+      and a track-keyed object URL that is revoked on switch or deletion. TypeScript is clean.
     - _Requirements: 3.18, 6.6, 27.2, 27.3, 27.4, 27.6_
 
 - [ ] 18. Implement the provider-neutral source boundary

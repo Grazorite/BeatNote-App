@@ -307,7 +307,11 @@ export interface StagedAudio {
 export interface AudioStoreAdapter {
   ensureDirectories(): Promise<void>;                       // Music_Directory and .staging/
   availableBytes(): Promise<number | null>;                 // null when not reportable (R3.6)
-  stage(sourceUri: string, expectedBytes: number): Promise<StagedAudio>;
+  stage(
+    sourceUri: string,
+    expectedBytes: number,
+    extension: SupportedAudioExtension,
+  ): Promise<StagedAudio>; // extension is the validated result, not inferred from picker/content URI
   hash(staged: StagedAudio): Promise<string>;               // 'md5:<hex>' native, 'sha256:<hex>' web
   probeDuration(staged: StagedAudio, timeoutMs: number): Promise<number>; // ms, positive finite
   commit(staged: StagedAudio, physicalName: string): Promise<string>;     // returns relative path
@@ -326,7 +330,8 @@ Native behaviour:
   true, intermediates: true })`, then calls `setExcludedFromBackup(musicDirUri, true)` (OQ-2). At
   every launch it reads `isExcludedFromBackup` and re-applies the flag if a restore cleared it.
 - `availableBytes` returns `Paths.availableDiskSpace`.
-- `stage` uses legacy `copyAsync` (asynchronous, unlike `File.copy`) to `.staging/<uuid>.<ext>`,
+- `stage` uses the already validated extension because picker and content URIs do not reliably
+  retain a suffix, then legacy `copyAsync` (asynchronous, unlike `File.copy`) to `.staging/<uuid>.<ext>`,
   then compares `new File(staged).size` with `expectedBytes` (Requirement 3.10). A mismatch deletes
   the staged file and throws `ImportError('copyIncomplete')`.
 - `hash` calls `LibraryStorage.md5File`.
