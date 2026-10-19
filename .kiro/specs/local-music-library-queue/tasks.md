@@ -654,18 +654,26 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - **Validates: Requirements 1.10, 2.1, 2.2, 2.3, 2.4, 2.5, 5.11, 24.1, 24.7**
     - Temporary: `tests/unit/libraryReducer.test.ts` against a fresh `create()` store.
 
-- [ ] 22. Add the boot sequence in `src/features/library/useLibraryLifecycle.ts`
-  - [ ] 22.1 Implement boot steps 1–4 and mount the hook once in `StudioScreen`
+- [x] 22. Add the boot sequence in `src/features/library/useLibraryLifecycle.ts`
+  - [x] 22.1 Implement boot steps 1–4 and mount the hook once in `StudioScreen`
     - Read the library, prefs, project index (with reconcile), queue, and journal. On read failure,
       set `libraryStatus = 'readError'`, raise the error with Retry, and block writes. Run migration
       when needed, showing "Updating your library…" with Save, imports, and switching disabled.
       Run `ensureDirectories`, mark missing files, and restore the queue with `restoreQueue`.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - Added an injectable coordinator and one root hook mount. Boot performs strict singleton reads,
+      derived-index reconciliation, resumable migration with status locking, managed-store setup,
+      availability reconciliation, queue repair, atomic hydration, and full-boot Retry. Invalid
+      derived index children rebuild from project source records; per-project I/O failures abort
+      reconciliation without shrinking the index.
     - _Requirements: 5.2, 10.17, 18.6, 18.7, 18.9, 26.2, 28.1, 28.14, 27.6_
 
-  - [ ] 22.2 Run the orphan sweep after boot when no import is running
+  - [x] 22.2 Run the orphan sweep after boot when no import is running
     - Log the removed count. Failures are logged without user-facing errors.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - The root lifecycle waits for `ready` and an idle Import_Pipeline, protects every local
+      reference (including removed/missing records), logs the count, and logs failures without a
+      user-facing persistence issue.
     - _Requirements: 6.3, 6.4_
 
 - [x] 23. Checkpoint — store slices

@@ -10,8 +10,10 @@ import MainContent from '../../components/layout/MainContent';
 import HelpScreen from '../../components/ui/screens/HelpScreen';
 import { ErrorModal } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
+import { useLibraryLifecycle } from '../library/useLibraryLifecycle';
 
 export default function StudioScreen() {
+  useLibraryLifecycle();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isMobile = Platform.OS === 'web'

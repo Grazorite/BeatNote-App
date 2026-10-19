@@ -108,6 +108,7 @@ async function readRecord<T>(
   options: RepositoryOptions = {},
   throwOnReadFailure = false,
   throwOnInvalid = throwOnReadFailure,
+  onInvalid?: (invalidIds: readonly string[]) => void,
 ): Promise<T | null> {
   let raw: string | null;
   try {
@@ -140,6 +141,7 @@ async function readRecord<T>(
 
   const result = definition.validate(parsed);
   if (result.invalidIds.length > 0) {
+    onInvalid?.(result.invalidIds);
     console.warn(`Ignored invalid ${definition.label} records`, result.invalidIds);
     markReadFailed(definition.key);
     if (throwOnInvalid) {
@@ -210,10 +212,16 @@ export async function mutateLibrary<T>(
   return result as T;
 }
 export const readLibraryPrefs = (options?: RepositoryOptions) => readRecord(prefsDefinition, options);
+export const readLibraryPrefsStrict = (options?: RepositoryOptions) => (
+  readRecord(prefsDefinition, options, true)
+);
 export const writeLibraryPrefs = (value: LibraryPrefs, options?: RepositoryOptions) => (
   writeRecord(prefsDefinition, value, options)
 );
 export const readQueue = (options?: RepositoryOptions) => readRecord(queueDefinition, options);
+export const readQueueStrict = (options?: RepositoryOptions) => (
+  readRecord(queueDefinition, options, true)
+);
 export const writeQueue = (
   value: PlaybackQueue | null,
   options: RepositoryOptions = {},
@@ -427,24 +435,40 @@ export async function readProjectIndex(
 
   const readOptions = projectReadOptions(options, retry);
   let storedIndex: ProjectIndexRecord;
+  let indexNeedsRepair = false;
   try {
-    storedIndex = await readRecord(projectIndexDefinition, readOptions, true)
+    storedIndex = await readRecord(
+      projectIndexDefinition,
+      readOptions,
+      true,
+      false,
+      () => { indexNeedsRepair = true; },
+    )
       ?? emptyProjectIndex();
   } catch {
     return null;
   }
 
   const projects: Record<string, SavedProjectSummary> = {};
+  let projectReadFailed = false;
   for (const key of keys) {
     const projectId = key.slice(PROJECT_KEY_PREFIX.length);
-    const project = await readRecord(projectDefinition(projectId), readOptions);
+    const project = await readRecord(projectDefinition(projectId), {
+      ...readOptions,
+      onIssue: issue => {
+        projectReadFailed = true;
+        readOptions.onIssue?.(issue);
+      },
+    });
     if (project !== null) projects[projectId] = toProjectSummary(project);
   }
+  if (projectReadFailed) return null;
   const reconciled: ProjectIndexRecord = { schemaVersion: 1, projects };
 
+  markReadSucceeded(PROJECT_INDEX_KEY);
   markFamilyReadSucceeded('project');
   markFamilyReadSucceeded('projectIndex');
-  if (!sameIndex(storedIndex, reconciled)) {
+  if (indexNeedsRepair || !sameIndex(storedIndex, reconciled)) {
     await writeRecord(projectIndexDefinition, reconciled, options);
   }
   return reconciled;

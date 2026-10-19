@@ -30,6 +30,7 @@ import type {
 } from '../types/project';
 import type { PlaybackQueue } from '../types/queue';
 import type { PersistenceIssue } from '../features/library/persistencePipeline';
+import type { ReadOnlyLegacyProjectSummary } from '../features/library/migration';
 import { writeQueue } from '../features/library/repositories';
 import { subscribeImportJobs } from '../features/library/importPipeline';
 import { applyPersistedContent } from '../utils/persistedContent';
@@ -109,6 +110,8 @@ export interface StudioStore {
   libraryItems: Record<string, MusicItem>;
   librarySort: LibrarySortKey;
   projectSummaries: Record<string, SavedProjectSummary>;
+  readOnlyLegacyProjects: ReadOnlyLegacyProjectSummary[];
+  migrationNoticeCount: number | null;
   importJobs: ImportJobView[];
   libraryStatus: LibraryStatus;
   persistenceIssues: PersistenceIssue[];
@@ -315,6 +318,8 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   libraryItems: {},
   librarySort: 'recentlyAdded',
   projectSummaries: {},
+  readOnlyLegacyProjects: [],
+  migrationNoticeCount: null,
   importJobs: [],
   libraryStatus: 'booting',
   persistenceIssues: [],

@@ -23,6 +23,30 @@ export const projectControlsStyles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 6,
   },
+  libraryStatus: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    paddingHorizontal: dimensions.spacing.sm,
+    paddingVertical: dimensions.spacing.xs,
+  },
+  libraryError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: dimensions.spacing.sm,
+  },
+  retryButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: dimensions.spacing.sm,
+  },
+  retryText: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   sidebarToggleMobile: {
     minWidth: 0,
   },

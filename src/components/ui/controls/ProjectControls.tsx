@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
@@ -29,18 +29,29 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   onLoadProjectAudio,
   isMobile = false,
 }) => {
-  const { songLoaded, saveProject, loadProject, allLayersData, toggleSidebar } = useStudioStore(useShallow(state => ({
+  const {
+    songLoaded,
+    saveProject,
+    loadProject,
+    allLayersData,
+    toggleSidebar,
+    libraryStatus,
+    persistenceIssues,
+  } = useStudioStore(useShallow(state => ({
     songLoaded: state.songLoaded,
     saveProject: state.saveProject,
     loadProject: state.loadProject,
     allLayersData: state.allLayersData,
     toggleSidebar: state.toggleSidebar,
+    libraryStatus: state.libraryStatus,
+    persistenceIssues: state.persistenceIssues,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const handleSaveProject = useCallback(async (projectName: string) => {
+    if (libraryStatus !== 'ready') return;
     if (!audioUri || !audioFilename) {
       Alert.alert('Error', 'No audio file loaded');
       return;
@@ -54,9 +65,10 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       console.error('Save error:', error);
       Alert.alert('Error', 'Failed to save project');
     }
-  }, [audioUri, audioFilename, saveProject]);
+  }, [audioUri, audioFilename, libraryStatus, saveProject]);
 
   const handleLoadProject = useCallback(async (filename: string) => {
+    if (libraryStatus !== 'ready') return;
     try {
       const audio = await loadProject(filename);
       onLoadProjectAudio(audio.audioUri, audio.audioFilename);
@@ -64,7 +76,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     } catch (error) {
       Alert.alert('Error', 'Failed to load project');
     }
-  }, [loadProject, onLoadProjectAudio]);
+  }, [libraryStatus, loadProject, onLoadProjectAudio]);
 
   const handleImportSuccess = useCallback((result: ImportResult) => {
     setShowImportModal(false);
@@ -79,8 +91,18 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     .filter(layer => layer.isVisible)
     .reduce((sum, layer) => sum + layer.markers.length, 0);
   const hasExportableMarkers = songLoaded && visibleMarkerCount > 0;
+  const libraryLocked = libraryStatus !== 'ready';
+  const readIssue = persistenceIssues.find(issue => issue.kind === 'readFailed');
+
+  useEffect(() => {
+    if (!libraryLocked) return;
+    setShowProjectManager(false);
+    setShowSaveModal(false);
+    setShowImportModal(false);
+  }, [libraryLocked]);
 
   const handleChooseAudio = useCallback(() => {
+    if (libraryStatus !== 'ready') return;
     const hasAnnotations = allLayersData.some(layer =>
       layer.markers.length > 0 || layer.annotations.length > 0,
     );
@@ -96,13 +118,19 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         { text: 'Choose Audio', onPress: onLoadSong },
       ],
     );
-  }, [allLayersData, onLoadSong, songLoaded]);
+  }, [allLayersData, libraryStatus, onLoadSong, songLoaded]);
 
   const actions = (
     <>
       <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, songLoaded && styles.buttonLoaded]}
-        onPress={handleChooseAudio}
+        style={[
+          styles.button,
+          isMobile && styles.buttonMobile,
+          songLoaded && !libraryLocked && styles.buttonLoaded,
+          libraryLocked && styles.buttonDisabled,
+        ]}
+        onPress={libraryLocked ? undefined : handleChooseAudio}
+        disabled={libraryLocked}
         accessibilityLabel={songLoaded ? 'Replace Audio File' : 'Choose Audio File'}
         testID="load-song"
       >
@@ -111,22 +139,23 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
-        onPress={songLoaded ? () => {
+        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked) && styles.buttonDisabled]}
+        onPress={songLoaded && !libraryLocked ? () => {
           Keyboard.dismiss();
           setShowSaveModal(true);
         } : undefined}
-        disabled={!songLoaded}
+        disabled={!songLoaded || libraryLocked}
         accessibilityLabel="Save Project"
         testID="save-project"
       >
-        <BeatNoteIcon name="save" size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="save" size={20} color={songLoaded && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Save Project</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile]}
-        onPress={() => setShowProjectManager(true)}
+        style={[styles.button, isMobile && styles.buttonMobile, libraryLocked && styles.buttonDisabled]}
+        onPress={libraryLocked ? undefined : () => setShowProjectManager(true)}
+        disabled={libraryLocked}
         accessibilityLabel="Open Projects"
         testID="load-project"
       >
@@ -135,13 +164,13 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, !songLoaded && styles.buttonDisabled]}
-        onPress={songLoaded ? () => setShowImportModal(true) : undefined}
-        disabled={!songLoaded}
+        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked) && styles.buttonDisabled]}
+        onPress={songLoaded && !libraryLocked ? () => setShowImportModal(true) : undefined}
+        disabled={!songLoaded || libraryLocked}
         accessibilityLabel="Import CSV"
         testID="import-data"
       >
-        <BeatNoteIcon name="import" size={20} color={songLoaded ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="import" size={20} color={songLoaded && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import CSV</Text>
       </TouchableOpacity>
 
@@ -171,6 +200,29 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
 
   return (
     <View style={isMobile ? styles.controlsMobile : styles.controls}>
+      {libraryStatus === 'migrating' && (
+        <Text style={styles.libraryStatus} accessibilityLiveRegion="polite" testID="library-migration-status">
+          Updating your library…
+        </Text>
+      )}
+      {libraryStatus === 'readError' && (
+        <View style={styles.libraryError} accessibilityLiveRegion="polite" testID="library-read-error">
+          <Text style={styles.libraryStatus}>
+            {readIssue?.message ?? "BeatNote couldn't read library data"}
+          </Text>
+          {readIssue && (
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => { void readIssue.retry(); }}
+              accessibilityRole="button"
+              accessibilityLabel="Retry reading library data"
+              testID="library-read-retry"
+            >
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       {isMobile ? (
         <View style={styles.mobileActions} testID="project-actions-scroll">{actions}</View>
       ) : actions}

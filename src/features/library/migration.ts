@@ -219,7 +219,7 @@ async function cleanupInterruptedStage(
   entry.stagedRelativePath = null;
 }
 
-const readOnlySummaries = (
+export const readOnlyLegacyProjectSummaries = (
   legacy: Record<string, LegacyStoredProject>,
   journal: MigrationJournal,
 ): ReadOnlyLegacyProjectSummary[] => Object.values(journal.entries)
@@ -400,6 +400,6 @@ export async function runMigration(
     status,
     journal: snapshotJournal(journal),
     unresolvedNoticeCount: migrationNoticeCount(journal, prefs),
-    readOnlyProjects: readOnlySummaries(legacy, journal),
+    readOnlyProjects: readOnlyLegacyProjectSummaries(legacy, journal),
   };
 }
