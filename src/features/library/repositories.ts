@@ -369,6 +369,63 @@ const readIndexForMutation = async (options: RepositoryOptions): Promise<Project
   await readRecord(projectIndexDefinition, options, true) ?? emptyProjectIndex()
 );
 
+export type ProjectDraftMutation<T> =
+  | { kind: 'noWrite'; result: T }
+  | { kind: 'write'; project: SavedProject; draft: SongDraft; result: T };
+
+/** Re-read and save a project plus its baseline draft in one serialized pipeline operation. */
+export async function mutateProjectAndDraft<T>(
+  projectId: string,
+  musicItemId: string,
+  decide: (
+    stored: SavedProject | null,
+    index: ProjectIndexRecord,
+  ) => ProjectDraftMutation<T> | Promise<ProjectDraftMutation<T>>,
+  options: RepositoryOptions = {},
+): Promise<T> {
+  let result: T | undefined;
+  let pendingWrite: Extract<ProjectDraftMutation<T>, { kind: 'write' }> | null = null;
+  await enqueueWrite({
+    label: `project ${projectId}`,
+    family: 'project',
+    targetKeys: [projectKey(projectId), PROJECT_INDEX_KEY, draftKey(musicItemId)],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const stored = await readRecord(projectDefinition(projectId), options, true);
+      const index = await readIndexForMutation(options);
+      const mutation = pendingWrite !== null
+        && stored !== null
+        && JSON.stringify(stored) === JSON.stringify(pendingWrite.project)
+        ? pendingWrite
+        : await decide(stored, index);
+      result = mutation.result;
+      if (mutation.kind === 'noWrite') return;
+      pendingWrite = mutation;
+
+      if (mutation.project.projectId !== projectId
+        || mutation.project.musicItemId !== musicItemId
+        || mutation.draft.musicItemId !== musicItemId) {
+        throw new Error('Project save identity does not match its storage keys');
+      }
+      if (validateSavedProject(mutation.project, projectId).valid === null) {
+        throw new Error('Invalid saved project');
+      }
+      if (validateSongDraft(mutation.draft, musicItemId).valid === null) {
+        throw new Error('Invalid song draft');
+      }
+
+      await AsyncStorage.setItem(projectKey(projectId), JSON.stringify(mutation.project));
+      await AsyncStorage.setItem(
+        PROJECT_INDEX_KEY,
+        JSON.stringify(projectIndexWith(index, mutation.project)),
+      );
+      await AsyncStorage.setItem(draftKey(musicItemId), JSON.stringify(mutation.draft));
+    },
+  });
+  return result as T;
+}
+
 export const readProject = (projectId: string, options?: RepositoryOptions) => (
   readRecord(projectDefinition(projectId), options)
 );

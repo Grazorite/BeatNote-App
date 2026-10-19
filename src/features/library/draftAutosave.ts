@@ -147,6 +147,7 @@ export function createDraftAutosave(
       firstUnwrittenAt = null;
       return;
     }
+    if (state.saveInProgress) return;
     const now = dependencies.now();
     if (firstUnwrittenAt === null) firstUnwrittenAt = now;
     const remainingMaxLatency = firstUnwrittenAt + DRAFT_FLUSH_TIMEOUT_MS - now;
@@ -172,7 +173,7 @@ export function createDraftAutosave(
     writeInFlight = dependencies.writeSnapshot(requestedItemId, () => {
       const state = dependencies.getState();
       if (state.libraryStatus !== 'ready' || !state.songLoaded
-        || state.currentMusicItemId !== requestedItemId) return null;
+        || state.currentMusicItemId !== requestedItemId || state.saveInProgress) return null;
 
       const content = extractPersistedContent(state);
       const fingerprint = computeContentFingerprint(content);

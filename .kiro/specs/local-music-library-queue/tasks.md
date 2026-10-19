@@ -750,7 +750,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 ### Phase 6 — Safe Save, Save as New, revisions, and names (before track controls)
 
 - [ ] 26. Implement `src/features/library/projectService.ts` and the save prompts
-  - [ ] 26.1 Implement `saveCurrent` and `saveAsNew` as single pipeline steps
+  - [x] 26.1 Implement `saveCurrent` and `saveAsNew` as single pipeline steps
     - Route through `planSave`. An Unnamed_Draft or deleted baseline returns `needsName`. Update in
       place keeps the Project_ID, name, and `createdAt` and sets revision + 1 and `modifiedAt` now.
       Save as New creates a new Project_ID for the same Music_Item.
@@ -759,14 +759,20 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       the draft write, and return `failed` with the reason. Write `version` `1.2.0` unless a loaded
       newer version and its unknown fields are preserved.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Save and Save as New cancel queued draft work, re-read and write project/index/draft in one
+      serialised operation, retain the old baseline on failure, and repair interrupted partial
+      writes without incrementing the revision twice.
     - _Requirements: 12.9, 12.10, 16.1, 16.2, 16.3, 16.4, 16.12, 16.13, 16.15_
 
-  - [ ] 26.2 Add the revision conflict, name clashes, read-only projects, and `saveInProgress`
+  - [x] 26.2 Add the revision conflict, name clashes, read-only projects, and `saveInProgress`
     - Re-read the stored revision inside the op. A greater revision returns `revisionConflict`, and
       Overwrite writes stored + 1. A clash returns `nameConflict` with `suggestUniqueName`.
       Newer-version projects block Save over themselves but allow Save as New.
       `saveInProgress` disables Save, Save as New, and switching.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - The save service guards song/baseline identity before and after the write, preserves the
+      latest stored unknown fields on overwrite, keeps edits made during a save dirty, and flushes
+      them against the new baseline.
     - _Requirements: 16.7, 16.8, 16.9, 16.10, 16.11, 16.17, 27.5, 28.10_
 
   - [ ] 26.3 Implement `renameProject` and `deleteProject`
@@ -812,10 +818,13 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes.
     - _Requirements: 16.2, 1.7_
 
-  - [ ]* 26.8 Write unit tests for the save and autosave race
+  - [x]* 26.8 Write unit tests for the save and autosave race
     - A Save enqueued while a debounced draft write is pending cancels it and writes the project
       and draft in one step. A failed project write re-enqueues the draft and keeps the old baseline.
       Temporary: `tests/unit/projectService.test.ts`.
+    - Temporary focused checks passed 13/13 across naming, revision/read-only conflicts,
+      in-flight edits and switches, unknown fields, failure recovery, ID collisions, and
+      repository-level partial-write retry; then removed per policy.
     - _Requirements: 12.9, 12.10, 16.13_
 
 - [ ] 27. Checkpoint — save semantics
