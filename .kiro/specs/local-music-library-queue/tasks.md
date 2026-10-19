@@ -522,13 +522,15 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       and a track-keyed object URL that is revoked on switch or deletion. TypeScript is clean.
     - _Requirements: 3.18, 6.6, 27.2, 27.3, 27.4, 27.6_
 
-- [ ] 18. Implement the provider-neutral source boundary
-  - [ ] 18.1 Implement `src/features/library/sourceResolver.ts`
+- [x] 18. Implement the provider-neutral source boundary
+  - [x] 18.1 Implement `src/features/library/sourceResolver.ts`
     - Provider registry with the `local` provider and `LOCAL_CAPABILITIES`. Pitch-preserving speed
       is supported, per design resolution 2 (ADR-011). `resolve` runs `checkAvailable` before
       `resolvePlayableUri` and throws `SourceUnavailableError` on failure. `capabilitiesFor(item)`
       is available for capability gates. No credentials or account fields exist anywhere.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Implemented with an explicit local-provider registry, all shipped local capabilities enabled,
+      no-source capability defaults, availability-first resolution, and typed unavailable errors.
     - _Requirements: 25.1, 25.2, 25.5, 25.6_
 
 - [ ] 19. Implement the shared Import_Pipeline
