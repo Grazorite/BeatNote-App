@@ -1,5 +1,6 @@
 package com.beatnote.librarystorage
 
+import android.net.Uri
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
@@ -17,7 +18,7 @@ class LibraryStorageModule : Module() {
     Name("LibraryStorage")
 
     Function("getMusicDirectoryUri") {
-      musicDirectory().toURI().toString()
+      Uri.fromFile(musicDirectory()).toString()
     }
 
     AsyncFunction("setExcludedFromBackup") { _: String, _: Boolean ->
