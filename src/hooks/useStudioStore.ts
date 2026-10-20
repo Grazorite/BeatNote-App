@@ -1,6 +1,5 @@
 import { create, type StateCreator } from 'zustand';
-import { ProjectManager, PROJECT_VERSION, compareProjectVersion } from '../utils/projectManager';
-import { BeatNoteProject, type LayerId } from '../types/project';
+import type { BeatNoteProject, LayerId } from '../types/project';
 import { ImportEngine } from '../utils/importEngine';
 import type { ImportResult } from '../utils/importTypes';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
@@ -246,8 +245,6 @@ export interface StudioStore {
   zoomTimeline: (direction: 'in' | 'out') => void;
   skipPlayhead: (direction: 'left' | 'right') => void;
   setSongLoaded: (loaded: boolean) => void;
-  saveProject: (name: string, audioUri: string, audioFilename: string) => Promise<string>;
-  loadProject: (filename: string) => Promise<{ audioUri: string; audioFilename: string }>;
   importFromCSV: (csvContent: string) => Promise<ImportResult>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
@@ -1091,110 +1088,6 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       activeLayerId: activeExists ? state.activeLayerId : newVisibleLayers[0].id
     };
   }),
-  saveProject: async (name: string, audioUri: string, audioFilename: string) => {
-    const state = get();
-    const compatibilitySource = state.loadedProjectSource
-      && compareProjectVersion(state.loadedProjectSource.version, PROJECT_VERSION) > 0
-      ? state.loadedProjectSource
-      : null;
-    const validLoopRange = isValidLoopRange(
-      { loopStartMs: state.loopStartMs, loopEndMs: state.loopEndMs },
-      state.songDuration,
-    );
-    const project: BeatNoteProject = {
-      ...(compatibilitySource ?? {}),
-      version: compatibilitySource?.version ?? PROJECT_VERSION,
-      metadata: {
-        name,
-        bpm: state.bpm,
-        duration: state.songDuration,
-        stemCount: state.stemCount,
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-      },
-      audio: {
-        uri: audioUri,
-        filename: audioFilename,
-      },
-      layers: state.allLayersData.map(layer => ({
-        id: layer.id,
-        name: layer.name,
-        color: layer.color,
-        markers: layer.markers,
-        annotations: layer.annotations,
-        isVisible: layer.isVisible,
-      })),
-      settings: {
-        ...(compatibilitySource?.settings ?? {}),
-        viewMode: state.viewMode,
-        showGridLines: state.showGridLines,
-        layerSpecificNavigation: state.layerSpecificNavigation,
-        primaryView: state.primaryView,
-        countSize: state.countSize,
-        rowDensity: state.rowDensity,
-        followPlayhead: state.followPlayhead,
-        playbackSpeed: state.playbackSpeed,
-        loopRange: validLoopRange
-          ? { startMs: state.loopStartMs as number, endMs: state.loopEndMs as number }
-          : null,
-        loopEnabled: validLoopRange ? state.isLoopRangeEnabled : false,
-      },
-    };
-    const filename = await ProjectManager.saveProject(project);
-    set({ loadedProjectSource: project });
-    return filename;
-  },
-  loadProject: async (filename: string) => {
-    const project = await ProjectManager.loadProject(filename);
-    const loadedDuration = Number.isFinite(project.metadata.duration) && project.metadata.duration > 0
-      ? Math.floor(project.metadata.duration + 0.5)
-      : project.metadata.duration;
-    const persistedRange = project.settings.loopRange ?? null;
-    const hasPersistedRange = persistedRange !== null;
-    const loadedRange = hasPersistedRange
-      ? { loopStartMs: persistedRange.startMs, loopEndMs: persistedRange.endMs }
-      : { loopStartMs: null, loopEndMs: null };
-    const durationIsValid = Number.isFinite(loadedDuration) && loadedDuration > 0;
-    const loopIsValid = durationIsValid && isValidLoopRange(loadedRange, loadedDuration);
-    const requestedEnabled = project.settings.loopEnabled === true;
-    const updatedAllLayers = allLayers.map(layer => {
-      const projectLayer = project.layers.find(pl => pl.id === layer.id);
-      return projectLayer ? {
-        ...layer,
-        markers: projectLayer.markers,
-        annotations: projectLayer.annotations || [],
-        isVisible: projectLayer.isVisible,
-      } : layer;
-    });
-    
-    set({
-      allLayersData: updatedAllLayers,
-      layers: getLayersForDisplay(updatedAllLayers, project.metadata.stemCount),
-      stemCount: project.metadata.stemCount,
-      bpm: project.metadata.bpm,
-      songDuration: loadedDuration,
-      viewMode: project.settings.viewMode,
-      primaryView: project.settings.primaryView ?? 'wrapped',
-      countSize: project.settings.countSize ?? 8,
-      rowDensity: project.settings.rowDensity ?? { mode: 'phrase' },
-      followPlayhead: project.settings.followPlayhead ?? true,
-      playbackSpeed: normalizePlaybackSpeed(project.settings.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED),
-      showGridLines: project.settings.showGridLines,
-      layerSpecificNavigation: project.settings.layerSpecificNavigation,
-      songLoaded: true,
-      currentTime: 0,
-      selectedRowIndex: null,
-      selectedMarker: null,
-      loopStartMs: loadedRange.loopStartMs,
-      loopEndMs: loadedRange.loopEndMs,
-      isLoopRangeEnabled: loopIsValid && requestedEnabled,
-      isLoopMarkerActive: false,
-      pendingLoopRangeEnabled: !durationIsValid && hasPersistedRange && requestedEnabled,
-      loopRestoreSnapshot: null,
-      loadedProjectSource: project,
-    });
-    return { audioUri: project.audio.uri, audioFilename: project.audio.filename };
-  },
   importFromCSV: async (csvContent: string) => {
     const importData = await ImportEngine.importFromCSV(csvContent);
     const state = get();

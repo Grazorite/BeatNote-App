@@ -29,7 +29,7 @@ function collectVisibleMarkers(layers: Layer[]) {
 
 export function buildCsvContent(options: ExportOptions): { filename: string; content: string } {
   const allMarkers = collectVisibleMarkers(options.layers);
-  const filename = `${sanitizeProjectName(options.projectName)}_markers.csv`;
+  const filename = options.filename ?? `${sanitizeProjectName(options.projectName)}_markers.csv`;
 
   if (allMarkers.length === 0) {
     return {

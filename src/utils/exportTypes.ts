@@ -4,6 +4,8 @@ export type ExportFormat = 'midi' | 'csv';
 
 export interface ExportOptions {
   format: ExportFormat;
+  /** Optional caller-supplied safe filename, including extension. */
+  filename?: string;
   layers: Layer[];
   bpm: number;
   songDuration: number;

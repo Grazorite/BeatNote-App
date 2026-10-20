@@ -749,7 +749,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 6 — Safe Save, Save as New, revisions, and names (before track controls)
 
-- [ ] 26. Implement `src/features/library/projectService.ts` and the save prompts
+- [x] 26. Implement `src/features/library/projectService.ts` and the save prompts
   - [x] 26.1 Implement `saveCurrent` and `saveAsNew` as single pipeline steps
     - Route through `planSave`. An Unnamed_Draft or deleted baseline returns `needsName`. Update in
       place keeps the Project_ID, name, and `createdAt` and sets revision + 1 and `modifiedAt` now.
@@ -789,23 +789,33 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       draft detachment and removed-item cleanup, then were removed per policy.
     - _Requirements: 2.3, 20.7, 24.1, 24.2, 24.6, 24.7, 24.9_
 
-  - [ ] 26.4 Implement same-song `openProject` and `revertToSaved`
+  - [x] 26.4 Implement same-song `openProject` and `revertToSaved`
     - For the current Music_Item, return `needsGuard` when the draft is dirty. Otherwise load the
       project as the baseline through `applyTrackState` without changing audio or queue. Revert
       restores the baseline content and is enabled only when the draft is `dirty`. Cross-song
       opening returns `needsSwitch` (handled by Task 28.6).
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Same-song open now returns a guard result for dirty drafts, atomically applies clean project
+      content as the new baseline without changing the audio URI or queue, and persists the new
+      draft. Cross-song rows return `needsSwitch`; Revert is available only for a dirty named
+      baseline and supersedes safely if the active baseline changes during its read.
+    - Temporary focused checks passed 5/5 and were removed per policy.
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.6, 17.8, 17.9, 20.7_
 
-  - [ ] 26.5 Implement `exportProjectCsv`
+  - [x] 26.5 Implement `exportProjectCsv`
     - `'current'` exports the in-memory working state. A Project_ID exports the stored content
       (including "Audio missing" projects) without loading it. Use `sanitizeExportFilename` and the
       existing `ExportEngine` platform files. A write failure reports "Export failed"; a dismissed
       share sheet changes nothing.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Current export now snapshots the live working state; Project_ID export reads stored content
+      without loading it or requiring playable audio. Both use the exact sanitized `<name>.csv`
+      override through the existing platform engines, return `Export failed` on write errors, and
+      leave state unchanged when sharing is dismissed.
+    - Temporary focused checks passed 4/4 and were removed per policy.
     - _Requirements: 23.1, 23.2, 23.3, 23.4, 25.6_
 
-  - [ ] 26.6 Create `SaveProjectPrompt` and `ConfirmDialog`, and wire `save-project`
+  - [x] 26.6 Create `SaveProjectPrompt` and `ConfirmDialog`, and wire `save-project`
     - `src/components/ui/modals/SaveProjectPrompt.tsx` replaces `SaveProjectModal.tsx`. It is
       prefilled with the Display_Title, shows the inline limit error with Confirm disabled, keeps
       the text, and shows the duplicate message with the suggestion. Cancel writes nothing.
@@ -815,13 +825,22 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       toast "Saved “<project>”" instead of an `Alert`.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes after
       updating the existing save assertions to the prompt.
+    - The replacement prompt now prefills the current song title, validates inline without losing
+      input, offers the next unique name after a duplicate, and restores accessibility focus on
+      close. Save uses the project service, disables during writes, resolves revision conflicts in
+      the shared glass dialog, and reports successful saves through the dock toast.
+    - The focused retained prompt/glass journey passed 1/1 before the full Phase 6 gate.
     - _Requirements: 16.5, 16.6, 16.7, 16.8, 16.14, 16.16, 29.1, 29.2, 29.8_
 
-  - [ ] 26.7 Retire the store's `saveProject` and `loadProject`
+  - [x] 26.7 Retire the store's `saveProject` and `loadProject`
     - Remove both store actions. Route the existing `ProjectManagerModal` Open through
       `projectService.openProject`. Until Task 28.6, a cross-song open uses the temporary audio shim
       from Task 21.5. Task 36 restructures the modal.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - Removed both legacy store actions. The existing manager now reads the V1.2 project index and
+      routes Open, Rename, and Delete through `projectService`; cross-song Open uses an explicitly
+      transitional store-backed audio bridge until Task 28.6 replaces it with the switch
+      transaction.
     - _Requirements: 16.2, 1.7_
 
   - [x]* 26.8 Write unit tests for the save and autosave race
@@ -833,10 +852,13 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       repository-level partial-write retry; then removed per policy.
     - _Requirements: 12.9, 12.10, 16.13_
 
-- [ ] 27. Checkpoint — save semantics
+- [x] 27. Checkpoint — save semantics
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verified version consistency at `1.0.0`, TypeScript, the empty permanent unit gate, diff
+    hygiene, and all 6 retained Playwright journeys. Focused temporary project-service checks
+    passed before removal, and the retained save-prompt journey passed 1/1.
 
 ### Phase 7 — Track_Switch_Transaction, guard, and queue controls
 

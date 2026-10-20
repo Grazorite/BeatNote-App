@@ -9,8 +9,13 @@ import {
 import { computeContentFingerprint } from '../../utils/contentFingerprint';
 import { planSave } from '../../utils/draftResolution';
 import { DRAFT_FLUSH_TIMEOUT_MS } from '../../utils/libraryConstants';
+import type {
+  ExportOptions,
+  ExportResult as EngineExportResult,
+} from '../../utils/exportTypes';
 import {
   findNameClash,
+  sanitizeExportFilename,
   suggestUniqueName,
   validateProjectName,
 } from '../../utils/projectNames';
@@ -28,6 +33,7 @@ import {
   deleteProjectWithDependencies,
   mutateProject,
   mutateProjectAndDraft,
+  readProject,
   toProjectSummary,
   type ProjectDraftMutation,
 } from './repositories';
@@ -50,6 +56,27 @@ export type RenameResult =
   | { kind: 'notFound'; projectId: string }
   | { kind: 'failed'; reason: string; retry: () => Promise<RenameResult> };
 
+export type OpenResult =
+  | { kind: 'opened'; project: SavedProject }
+  | { kind: 'needsGuard'; projectId: string }
+  | { kind: 'needsSwitch'; projectId: string; musicItemId: string }
+  | { kind: 'notFound'; projectId: string }
+  | { kind: 'superseded' }
+  | { kind: 'failed'; reason: string; retry: () => Promise<OpenResult> };
+
+export type RevertResult =
+  | { kind: 'reverted'; project: SavedProject }
+  | { kind: 'notAvailable' }
+  | { kind: 'notFound'; projectId: string }
+  | { kind: 'superseded' }
+  | { kind: 'failed'; reason: string; retry: () => Promise<RevertResult> };
+
+export type ProjectExportResult =
+  | { kind: 'exported'; result: EngineExportResult }
+  | { kind: 'notFound'; projectId: string }
+  | { kind: 'noSong' }
+  | { kind: 'failed'; message: 'Export failed'; reason: string };
+
 interface SaveOptions {
   overwriteConflict?: boolean;
 }
@@ -68,6 +95,8 @@ interface ProjectServiceDependencies {
   mutateProjectAndDraft: typeof mutateProjectAndDraft;
   mutateProject: typeof mutateProject;
   deleteProjectWithDependencies: typeof deleteProjectWithDependencies;
+  readProject: typeof readProject;
+  exportToCSV: (options: ExportOptions) => Promise<EngineExportResult>;
   flushDraft: typeof flushDraft;
   cancelQueued: typeof cancelQueued;
 }
@@ -81,6 +110,10 @@ const defaultDependencies: ProjectServiceDependencies = {
   mutateProjectAndDraft,
   mutateProject,
   deleteProjectWithDependencies,
+  readProject,
+  exportToCSV: async options => (
+    await import('../../utils/exportEngine')
+  ).ExportEngine.exportToCSV(options),
   flushDraft,
   cancelQueued,
 };
@@ -683,6 +716,207 @@ async function runDelete(
   }
 }
 
+const persistenceReason = (issue: PersistenceIssue): string => (
+  issue.error instanceof Error ? issue.error.message : String(issue.error)
+);
+
+async function applyProjectToCurrentSong(
+  dependencies: ProjectServiceDependencies,
+  project: SavedProject,
+  audioOverride?: { uri: string; filename: string; durationMs: number },
+): Promise<'applied' | 'superseded' | 'persistenceFailed'> {
+  const state = dependencies.getState();
+  if (audioOverride === undefined && (state.currentMusicItemId !== project.musicItemId
+    || !state.songLoaded
+    || state.currentAudioUri === null)) return 'superseded';
+
+  const { content } = splitProjectEnvelope(project);
+  const fingerprint = computeContentFingerprint(content);
+  dependencies.cancelQueued(`draft:${project.musicItemId}`);
+  state.applyTrackState({
+    musicItemId: project.musicItemId,
+    audioUri: audioOverride?.uri ?? state.currentAudioUri as string,
+    audioFilename: audioOverride?.filename
+      ?? state.currentAudioFilename
+      ?? state.libraryItems[project.musicItemId]?.originalFilename
+      ?? project.audio.filename,
+    content,
+    songDuration: audioOverride?.durationMs ?? state.songDuration,
+    baseline: { projectId: project.projectId, revision: project.revision },
+    baselineFingerprint: fingerprint,
+    baselineName: project.metadata.name,
+    lastWrittenFingerprint: null,
+    draftUiState: 'saved',
+    isPlaying: state.isPlaying,
+    loadedProjectSource: project,
+  });
+  const flushResult = await dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
+  return flushResult === 'failed' ? 'persistenceFailed' : 'applied';
+}
+
+async function runOpenProjectWithAudioShim(
+  dependencies: ProjectServiceDependencies,
+  projectId: string,
+  audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
+): Promise<OpenResult> {
+  const currentFlush = await dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
+  if (currentFlush === 'failed') {
+    return {
+      kind: 'failed',
+      reason: 'Current draft could not be saved before opening the project',
+      retry: () => runOpenProjectWithAudioShim(dependencies, projectId, audio),
+    };
+  }
+
+  const project = await dependencies.readProject(projectId, { now: dependencies.now });
+  if (project === null) return { kind: 'notFound', projectId };
+  if (project.musicItemId !== audio.musicItemId) return { kind: 'superseded' };
+  const applyResult = await applyProjectToCurrentSong(dependencies, project, audio);
+  if (applyResult === 'superseded') return { kind: 'superseded' };
+  if (applyResult === 'persistenceFailed') {
+    return {
+      kind: 'failed',
+      reason: 'Project opened, but its draft could not be saved',
+      retry: () => runOpenProjectWithAudioShim(dependencies, projectId, audio),
+    };
+  }
+  return { kind: 'opened', project };
+}
+
+async function runOpenProject(
+  dependencies: ProjectServiceDependencies,
+  projectId: string,
+): Promise<OpenResult> {
+  let reportedIssue: PersistenceIssue | null = null;
+  const project = await dependencies.readProject(projectId, {
+    now: dependencies.now,
+    onIssue: issue => { reportedIssue = issue; },
+  });
+  if (project === null) {
+    if (reportedIssue !== null) {
+      const issue = reportedIssue as PersistenceIssue;
+      upsertIssue(dependencies, issue);
+      const reason = persistenceReason(issue);
+      return {
+        kind: 'failed',
+        reason,
+        retry: () => runOpenProject(dependencies, projectId),
+      };
+    }
+    return { kind: 'notFound', projectId };
+  }
+
+  const state = dependencies.getState();
+  if (state.currentMusicItemId !== project.musicItemId) {
+    return { kind: 'needsSwitch', projectId, musicItemId: project.musicItemId };
+  }
+  if (state.draftUiState === 'dirty') return { kind: 'needsGuard', projectId };
+  const applyResult = await applyProjectToCurrentSong(dependencies, project);
+  if (applyResult === 'superseded') return { kind: 'superseded' };
+  if (applyResult === 'persistenceFailed') {
+    return {
+      kind: 'failed',
+      reason: 'Project opened, but its draft could not be saved',
+      retry: () => runOpenProject(dependencies, projectId),
+    };
+  }
+  return { kind: 'opened', project };
+}
+
+async function runRevertToSaved(
+  dependencies: ProjectServiceDependencies,
+): Promise<RevertResult> {
+  const initial = dependencies.getState();
+  const baseline = initial.draftBaseline;
+  if (initial.draftUiState !== 'dirty' || baseline === null) return { kind: 'notAvailable' };
+
+  let reportedIssue: PersistenceIssue | null = null;
+  const project = await dependencies.readProject(baseline.projectId, {
+    now: dependencies.now,
+    onIssue: issue => { reportedIssue = issue; },
+  });
+  if (project === null) {
+    if (reportedIssue !== null) {
+      const issue = reportedIssue as PersistenceIssue;
+      upsertIssue(dependencies, issue);
+      const reason = persistenceReason(issue);
+      return {
+        kind: 'failed',
+        reason,
+        retry: () => runRevertToSaved(dependencies),
+      };
+    }
+    return { kind: 'notFound', projectId: baseline.projectId };
+  }
+
+  const state = dependencies.getState();
+  if (state.currentMusicItemId !== project.musicItemId
+    || state.draftUiState !== 'dirty'
+    || !sameBaseline(state.draftBaseline, baseline)) return { kind: 'superseded' };
+  const applyResult = await applyProjectToCurrentSong(dependencies, project);
+  if (applyResult === 'superseded') return { kind: 'superseded' };
+  if (applyResult === 'persistenceFailed') {
+    return {
+      kind: 'failed',
+      reason: 'Saved content was restored, but its draft could not be saved',
+      retry: () => runRevertToSaved(dependencies),
+    };
+  }
+  return { kind: 'reverted', project };
+}
+
+async function runExportProjectCsv(
+  dependencies: ProjectServiceDependencies,
+  projectId: string | 'current',
+): Promise<ProjectExportResult> {
+  let content: PersistedContent;
+  let projectName: string;
+  let songDuration: number;
+
+  if (projectId === 'current') {
+    const state = dependencies.getState();
+    if (state.currentMusicItemId === null || !state.songLoaded) return { kind: 'noSong' };
+    content = extractPersistedContent(state);
+    projectName = state.draftBaselineName ?? 'Unnamed_Draft';
+    songDuration = state.songDuration;
+  } else {
+    let reportedIssue: PersistenceIssue | null = null;
+    const project = await dependencies.readProject(projectId, {
+      now: dependencies.now,
+      onIssue: issue => { reportedIssue = issue; },
+    });
+    if (project === null) {
+      if (reportedIssue !== null) {
+        const issue = reportedIssue as PersistenceIssue;
+        upsertIssue(dependencies, issue);
+        return { kind: 'failed', message: 'Export failed', reason: persistenceReason(issue) };
+      }
+      return { kind: 'notFound', projectId };
+    }
+    content = splitProjectEnvelope(project).content;
+    projectName = project.metadata.name;
+    songDuration = project.metadata.duration;
+  }
+
+  try {
+    const result = await dependencies.exportToCSV({
+      format: 'csv',
+      filename: sanitizeExportFilename(projectName),
+      layers: content.layers,
+      bpm: content.bpm,
+      songDuration,
+      projectName,
+    });
+    return { kind: 'exported', result };
+  } catch (error) {
+    return {
+      kind: 'failed',
+      message: 'Export failed',
+      reason: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 export const saveCurrent = (options?: SaveOptions): Promise<SaveResult> => (
   runSave(defaultDependencies, 'current', null, options)
 );
@@ -699,12 +933,37 @@ export const deleteProject = (projectId: string): Promise<void> => (
   runDelete(defaultDependencies, projectId)
 );
 
+export const openProject = (projectId: string): Promise<OpenResult> => (
+  runOpenProject(defaultDependencies, projectId)
+);
+
+/** Transitional cross-song bridge; Task 28.6 replaces this with requestTrackSwitch. */
+export const openProjectWithAudioShim = (
+  projectId: string,
+  audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
+): Promise<OpenResult> => runOpenProjectWithAudioShim(defaultDependencies, projectId, audio);
+
+export const revertToSaved = (): Promise<RevertResult> => (
+  runRevertToSaved(defaultDependencies)
+);
+
+export const exportProjectCsv = (
+  projectId: string | 'current',
+): Promise<ProjectExportResult> => runExportProjectCsv(defaultDependencies, projectId);
+
 /** Test seam for save/revision/name race verification without replacing the global store. */
 export const createProjectService = (dependencies: ProjectServiceDependencies) => ({
   saveCurrent: (options?: SaveOptions) => runSave(dependencies, 'current', null, options),
   saveAsNew: (name: string) => runSave(dependencies, 'new', name),
   renameProject: (projectId: string, name: string) => runRename(dependencies, projectId, name),
   deleteProject: (projectId: string) => runDelete(dependencies, projectId),
+  openProject: (projectId: string) => runOpenProject(dependencies, projectId),
+  openProjectWithAudioShim: (
+    projectId: string,
+    audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
+  ) => runOpenProjectWithAudioShim(dependencies, projectId, audio),
+  revertToSaved: () => runRevertToSaved(dependencies),
+  exportProjectCsv: (projectId: string | 'current') => runExportProjectCsv(dependencies, projectId),
 });
 
 export type { ProjectServiceDependencies, SaveOptions };

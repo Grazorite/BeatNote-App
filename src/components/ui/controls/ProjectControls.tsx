@@ -1,12 +1,22 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
 import { BeatNoteIcon } from '../../icons';
+import {
+  openProject,
+  openProjectWithAudioShim,
+  saveAsNew,
+  saveCurrent,
+  type OpenResult,
+  type SaveResult,
+} from '../../../features/library/projectService';
+import { resolveSource } from '../../../features/library/sourceResolver';
 import type { ImportResult } from '../../../utils/importTypes';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
-import SaveProjectModal from '../modals/SaveProjectModal';
+import ConfirmDialog from '../modals/ConfirmDialog';
+import SaveProjectPrompt from '../modals/SaveProjectPrompt';
 import ExportModal from '../modals/ExportModal';
 import ImportModal from '../modals/ImportModal';
 
@@ -26,55 +36,132 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   hasSound,
   audioUri,
   audioFilename,
-  onLoadProjectAudio,
   isMobile = false,
 }) => {
   const {
     songLoaded,
-    saveProject,
-    loadProject,
     allLayersData,
     toggleSidebar,
     libraryStatus,
+    currentMusicItemId,
+    libraryItems,
+    draftBaseline,
+    draftBaselineName,
+    saveInProgress,
   } = useStudioStore(useShallow(state => ({
     songLoaded: state.songLoaded,
-    saveProject: state.saveProject,
-    loadProject: state.loadProject,
     allLayersData: state.allLayersData,
     toggleSidebar: state.toggleSidebar,
     libraryStatus: state.libraryStatus,
+    currentMusicItemId: state.currentMusicItemId,
+    libraryItems: state.libraryItems,
+    draftBaseline: state.draftBaseline,
+    draftBaselineName: state.draftBaselineName,
+    saveInProgress: state.saveInProgress,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
-  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [savePromptInitialName, setSavePromptInitialName] = useState('');
+  const [duplicateSuggestion, setDuplicateSuggestion] = useState<string | null>(null);
+  const [showRevisionConflict, setShowRevisionConflict] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const handleSaveProject = useCallback(async (projectName: string) => {
-    if (libraryStatus !== 'ready') return;
-    if (!audioUri || !audioFilename) {
-      Alert.alert('Error', 'No audio file loaded');
+  const saveButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+
+  const defaultProjectName = currentMusicItemId === null
+    ? 'Untitled'
+    : libraryItems[currentMusicItemId]?.displayTitle ?? 'Untitled';
+
+  const openSavePrompt = useCallback((name: string) => {
+    setSavePromptInitialName(name);
+    setDuplicateSuggestion(null);
+    setShowSavePrompt(true);
+  }, []);
+
+  const handleSaveResult = useCallback((result: SaveResult) => {
+    switch (result.kind) {
+      case 'saved':
+        setShowSavePrompt(false);
+        setShowRevisionConflict(false);
+        setDuplicateSuggestion(null);
+        break;
+      case 'needsName':
+        openSavePrompt(result.suggestedName);
+        break;
+      case 'nameConflict':
+        setDuplicateSuggestion(result.suggestion);
+        setShowSavePrompt(true);
+        break;
+      case 'revisionConflict':
+        setShowRevisionConflict(true);
+        break;
+      case 'readOnly':
+        openSavePrompt(`${draftBaselineName ?? defaultProjectName} copy`);
+        break;
+      default:
+        break;
+    }
+  }, [defaultProjectName, draftBaselineName, openSavePrompt]);
+
+  const handleSaveCurrent = useCallback(async () => {
+    if (libraryStatus !== 'ready' || saveInProgress) return;
+    if (draftBaseline === null) {
+      openSavePrompt(defaultProjectName);
       return;
     }
-    
-    try {
-      await saveProject(projectName, audioUri, audioFilename);
-      setShowSaveModal(false);
-      Alert.alert('Project Saved', 'Your project is available in Projects.');
-    } catch (error) {
-      console.error('Save error:', error);
-      Alert.alert('Error', 'Failed to save project');
-    }
-  }, [audioUri, audioFilename, libraryStatus, saveProject]);
+    handleSaveResult(await saveCurrent());
+  }, [defaultProjectName, draftBaseline, handleSaveResult, libraryStatus, openSavePrompt, saveInProgress]);
 
-  const handleLoadProject = useCallback(async (filename: string) => {
-    if (libraryStatus !== 'ready') return;
+  const handleSaveAsNew = useCallback(async (projectName: string) => {
+    if (libraryStatus !== 'ready' || saveInProgress) return;
+    handleSaveResult(await saveAsNew(projectName));
+  }, [handleSaveResult, libraryStatus, saveInProgress]);
+
+  const reportOpenResult = useCallback((result: OpenResult): boolean => {
+    if (result.kind === 'opened') return true;
+    if (result.kind === 'needsGuard') {
+      Alert.alert('Save changes before opening?', 'Use Save Project or discard your edits before opening another project.');
+      return false;
+    }
+    if (result.kind === 'failed') {
+      Alert.alert('Project Not Opened', result.reason);
+      return false;
+    }
+    if (result.kind === 'notFound') {
+      Alert.alert('Project Not Found', 'This project is no longer available.');
+      return false;
+    }
+    if (result.kind === 'superseded') {
+      Alert.alert('Project Not Opened', 'The current song changed while the project was opening.');
+      return false;
+    }
+    return false;
+  }, []);
+
+  const handleLoadProject = useCallback(async (projectId: string): Promise<boolean> => {
+    if (libraryStatus !== 'ready') return false;
     try {
-      const audio = await loadProject(filename);
-      onLoadProjectAudio(audio.audioUri, audio.audioFilename);
-      Alert.alert('Project Opened', 'Your saved project is ready.');
+      const result = await openProject(projectId);
+      if (result.kind !== 'needsSwitch') return reportOpenResult(result);
+
+      const item = useStudioStore.getState().libraryItems[result.musicItemId];
+      if (!item || item.removed || item.availability !== 'available') {
+        Alert.alert('Audio Unavailable', 'Reconnect this project’s audio before opening it.');
+        return false;
+      }
+      const source = await resolveSource(item);
+      const switched = await openProjectWithAudioShim(projectId, {
+        musicItemId: item.id,
+        uri: source.uri,
+        filename: item.originalFilename,
+        durationMs: item.durationMs ?? 0,
+      });
+      return reportOpenResult(switched);
     } catch (error) {
       Alert.alert('Error', 'Failed to load project');
+      return false;
     }
-  }, [libraryStatus, loadProject, onLoadProjectAudio]);
+  }, [libraryStatus, reportOpenResult]);
 
   const handleImportSuccess = useCallback((result: ImportResult) => {
     setShowImportModal(false);
@@ -94,7 +181,8 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   useEffect(() => {
     if (!libraryLocked) return;
     setShowProjectManager(false);
-    setShowSaveModal(false);
+    setShowSavePrompt(false);
+    setShowRevisionConflict(false);
     setShowImportModal(false);
   }, [libraryLocked]);
 
@@ -136,13 +224,15 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked) && styles.buttonDisabled]}
-        onPress={songLoaded && !libraryLocked ? () => {
+        ref={saveButtonRef}
+        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked || saveInProgress) && styles.buttonDisabled]}
+        onPress={songLoaded && !libraryLocked && !saveInProgress ? () => {
           Keyboard.dismiss();
-          setShowSaveModal(true);
+          void handleSaveCurrent();
         } : undefined}
-        disabled={!songLoaded || libraryLocked}
+        disabled={!songLoaded || libraryLocked || saveInProgress}
         accessibilityLabel="Save Project"
+        accessibilityState={{ disabled: !songLoaded || libraryLocked || saveInProgress }}
         testID="save-project"
       >
         <BeatNoteIcon name="save" size={20} color={songLoaded && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
@@ -206,16 +296,45 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <View style={styles.mobileActions} testID="project-actions-scroll">{actions}</View>
       ) : actions}
 
-      <SaveProjectModal
-        visible={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        onSave={handleSaveProject}
+      <SaveProjectPrompt
+        visible={showSavePrompt}
+        initialName={savePromptInitialName}
+        duplicateSuggestion={duplicateSuggestion}
+        onClose={() => {
+          setShowSavePrompt(false);
+          setDuplicateSuggestion(null);
+        }}
+        onConfirm={handleSaveAsNew}
+        returnFocusRef={saveButtonRef}
+      />
+
+      <ConfirmDialog
+        visible={showRevisionConflict}
+        title="This project changed since you opened it"
+        message="Choose Overwrite to replace the newer saved version, or save these changes as a new project."
+        actions={[
+          {
+            label: 'Overwrite',
+            testID: 'confirm-overwrite-project',
+            onPress: () => { void saveCurrent({ overwriteConflict: true }).then(handleSaveResult); },
+          },
+          {
+            label: 'Save as New Project',
+            testID: 'conflict-save-as-new',
+            onPress: () => {
+              setShowRevisionConflict(false);
+              openSavePrompt(`${draftBaselineName ?? defaultProjectName} copy`);
+            },
+          },
+        ]}
+        onCancel={() => setShowRevisionConflict(false)}
+        returnFocusRef={saveButtonRef}
       />
 
       <ProjectManagerModal
         visible={showProjectManager}
         onClose={() => setShowProjectManager(false)}
-        onLoadProject={handleLoadProject}
+        onOpenProject={handleLoadProject}
       />
       
       <ExportModal

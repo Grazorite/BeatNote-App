@@ -1,50 +1,46 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, FlatList, TextInput, Alert, useWindowDimensions } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProjectManager } from '../../../utils/projectManager';
-import { ProjectListItem } from '../../../types/project';
+import { useStudioStore } from '../../../hooks/useStudioStore';
+import type { SavedProjectSummary } from '../../../types/project';
+import { deleteProject, renameProject } from '../../../features/library/projectService';
 import { projectManagerModalStyles as styles } from '../../../styles/components/modals/projectManagerModal';
-import GlassBackdrop from '../controls/GlassBackdrop';
 import { colors } from '../../../styles/common';
+import GlassBackdrop from '../controls/GlassBackdrop';
 
 interface ProjectManagerModalProps {
   visible: boolean;
   onClose: () => void;
-  onLoadProject: (filename: string) => void;
+  onOpenProject: (projectId: string) => Promise<boolean>;
 }
 
 const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   visible,
   onClose,
-  onLoadProject,
+  onOpenProject,
 }) => {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
-  const [projects, setProjects] = useState<ProjectListItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const projectSummaries = useStudioStore(state => state.projectSummaries);
+  const projects = useMemo(() => Object.values(projectSummaries).sort((left, right) => (
+    right.modifiedAt.localeCompare(left.modifiedAt)
+      || right.revision - left.revision
+      || left.projectId.localeCompare(right.projectId)
+  )), [projectSummaries]);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
 
-  const loadProjects = useCallback(async () => {
-    setLoading(true);
-    try {
-      const projectList = await ProjectManager.listProjects();
-      setProjects(projectList);
-    } catch (error) {
-      console.error('Failed to load projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (visible) {
-      loadProjects();
-    }
-  }, [visible, loadProjects]);
-
-  const handleDelete = useCallback((filename: string, name: string) => {
+  const handleDelete = useCallback((projectId: string, name: string) => {
     Alert.alert(
       'Delete Project',
       `Are you sure you want to delete "${name}"?`,
@@ -53,46 +49,46 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await ProjectManager.deleteProject(filename);
-              loadProjects();
-            } catch (error) {
+          onPress: () => {
+            void deleteProject(projectId).catch(() => {
               Alert.alert('Error', 'Failed to delete project');
-            }
+            });
           },
         },
-      ]
+      ],
     );
-  }, [loadProjects]);
+  }, []);
 
-  const handleRename = useCallback(async (filename: string) => {
-    if (!newName.trim()) return;
-    
-    try {
-      await ProjectManager.renameProject(filename, newName.trim());
+  const handleRename = useCallback(async (projectId: string) => {
+    const result = await renameProject(projectId, newName);
+    if (result.kind === 'renamed') {
       setEditingProject(null);
       setNewName('');
-      loadProjects();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to rename project');
+      return;
     }
-  }, [newName, loadProjects]);
-
-  const formatDuration = useCallback((ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }, []);
+    if (result.kind === 'nameConflict') {
+      setNewName(result.suggestion);
+      Alert.alert('Name Already Used', 'A project with this name already exists for this song.');
+      return;
+    }
+    if (result.kind === 'invalidName') {
+      Alert.alert('Invalid Project Name', result.error);
+      return;
+    }
+    Alert.alert('Error', 'Failed to rename project');
+  }, [newName]);
 
   const formatDate = useCallback((isoString: string) => {
     const date = new Date(isoString);
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`;
   }, []);
 
-  const renderProject = useCallback(({ item }: { item: ProjectListItem }) => (
+  const renderProject = useCallback(({ item }: { item: SavedProjectSummary }) => (
     <View style={styles.projectItem}>
-      {editingProject === item.filename ? (
+      {editingProject === item.projectId ? (
         <View>
           <TextInput
             style={styles.editInput}
@@ -104,7 +100,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           <View style={styles.editActions}>
             <TouchableOpacity
               style={[styles.actionButton, styles.saveButton]}
-              onPress={() => handleRename(item.filename)}
+              onPress={() => { void handleRename(item.projectId); }}
             >
               <Text style={styles.actionButtonText}>Save</Text>
             </TouchableOpacity>
@@ -121,21 +117,18 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         </View>
       ) : (
         <View>
-          <Text style={styles.projectName}>
-            {item.name}
-          </Text>
+          <Text style={styles.projectName}>{item.name}</Text>
           <Text style={styles.projectInfo}>
-            {formatDuration(item.duration)} • {item.markerCount} marker{item.markerCount === 1 ? '' : 's'}
+            {item.markerCount} marker{item.markerCount === 1 ? '' : 's'}
           </Text>
-          <Text style={styles.projectDate}>
-            Modified: {formatDate(item.modifiedAt)}
-          </Text>
+          <Text style={styles.projectDate}>Modified: {formatDate(item.modifiedAt)}</Text>
           <View style={styles.projectActions}>
             <TouchableOpacity
               style={[styles.actionButton, styles.loadButton]}
               onPress={() => {
-                onLoadProject(item.filename);
-                onClose();
+                void onOpenProject(item.projectId).then(opened => {
+                  if (opened) onClose();
+                });
               }}
               testID={`load-saved-project-${item.name}`}
             >
@@ -143,8 +136,9 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.renameButton]}
+              disabled={item.readOnly}
               onPress={() => {
-                setEditingProject(item.filename);
+                setEditingProject(item.projectId);
                 setNewName(item.name);
               }}
             >
@@ -152,7 +146,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
-              onPress={() => handleDelete(item.filename, item.name)}
+              onPress={() => handleDelete(item.projectId, item.name)}
               testID={`delete-saved-project-${item.name}`}
             >
               <Text style={styles.actionButtonText}>Delete</Text>
@@ -161,7 +155,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         </View>
       )}
     </View>
-  ), [editingProject, newName, handleRename, handleDelete, onLoadProject, onClose, formatDuration, formatDate]);
+  ), [editingProject, formatDate, handleDelete, handleRename, newName, onClose, onOpenProject]);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -174,13 +168,8 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             paddingRight: Math.max(20, insets.right + 12),
           },
         ]}>
-          <Text style={styles.title}>
-            Projects
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.closeButton}
-          >
+          <Text style={styles.title}>Projects</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
         </View>
@@ -192,19 +181,13 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             paddingRight: Math.max(20, insets.right + 12),
           },
         ]}>
-          {loading ? (
-            <Text style={styles.loadingText}>
-              Loading projects...
-            </Text>
-          ) : projects.length === 0 ? (
-            <Text style={styles.emptyText}>
-              No saved projects yet
-            </Text>
+          {projects.length === 0 ? (
+            <Text style={styles.emptyText}>No saved projects yet</Text>
           ) : (
             <FlatList
               data={projects}
               renderItem={renderProject}
-              keyExtractor={(item) => item.filename}
+              keyExtractor={item => item.projectId}
               showsVerticalScrollIndicator={false}
             />
           )}

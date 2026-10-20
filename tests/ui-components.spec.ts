@@ -380,6 +380,17 @@ test.describe('UI Components & Layout', () => {
     await loadTestAudio(page, 'long-test-track.m4a');
     await page.getByTestId('save-project').click();
     await expect(page.getByTestId('save-project-modal-glass')).toBeVisible();
+    const projectName = page.getByTestId('save-project-name');
+    await expect(projectName).not.toHaveValue('');
+    await projectName.fill('');
+    await expect(page.getByText('Project name is required', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('confirm-save-project')).toHaveAttribute('aria-disabled', 'true');
+    await projectName.fill('A'.repeat(101));
+    await expect(page.getByText('Project name must be 100 characters or fewer', { exact: true }))
+      .toBeVisible();
+    await expect(page.getByTestId('confirm-save-project')).toHaveAttribute('aria-disabled', 'true');
+    await projectName.fill('Glass Surface Project');
+    await expect(page.getByTestId('confirm-save-project')).not.toHaveAttribute('aria-disabled', 'true');
     await page.getByText('Cancel', { exact: true }).click();
 
     await page.getByTestId('import-data').click();

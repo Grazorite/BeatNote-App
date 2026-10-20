@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
 
-export const saveProjectModalStyles = StyleSheet.create({
+export const confirmDialogStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -11,55 +11,55 @@ export const saveProjectModalStyles = StyleSheet.create({
   },
   container: {
     position: 'relative',
-    backgroundColor: 'transparent',
+    width: '100%',
+    maxWidth: 440,
+    overflow: 'hidden',
     borderRadius: 16,
     padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    overflow: 'hidden',
   },
   title: {
     color: colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 20,
+    fontWeight: '700',
     textAlign: 'center',
+    marginBottom: 12,
   },
-  textInput: {
-    backgroundColor: colors.surfaceGlassStrong,
-    color: colors.text,
-    padding: 12,
-    borderRadius: dimensions.borderRadius,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    marginBottom: 20,
+  message: {
+    color: colors.textSecondary,
     fontSize: 16,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
+  actions: {
+    gap: 10,
   },
   button: {
-    padding: 12,
+    minHeight: 44,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
     borderRadius: dimensions.borderRadius,
-    flex: 1,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+  },
+  destructiveButton: {
+    backgroundColor: colors.iconDestructive,
   },
   cancelButton: {
     backgroundColor: colors.surfaceGlass,
-  },
-  saveButton: {
-    backgroundColor: colors.accent,
-    borderColor: colors.borderEmphasis,
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
   buttonText: {
     color: colors.text,
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
+  },
+  primaryButtonText: {
+    color: colors.onAccent,
+  },
+  destructiveButtonText: {
+    color: colors.text,
   },
 });
