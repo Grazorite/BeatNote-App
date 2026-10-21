@@ -43,4 +43,11 @@ export const dockButtonStyles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: colors.textSecondary,
   },
+  description: {
+    color: colors.textSecondary,
+    fontSize: 8,
+    lineHeight: 9,
+    textAlign: 'center',
+    marginTop: 1,
+  },
 });

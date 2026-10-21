@@ -142,4 +142,16 @@ export const mainContentStyles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
   },
+  capabilityDescription: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingHorizontal: dimensions.spacing.sm,
+    paddingVertical: dimensions.spacing.xs,
+  },
+  capabilityNotice: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

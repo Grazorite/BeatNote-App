@@ -934,7 +934,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       rollback, guard continuation/cancel, directional Skip, queue rebuild, launch restoration, and
       pending-request coalescing; the temporary file was then removed per the test strategy.
 
-- [ ] 29. Replace the reserved dock controls with queue controls
+- [x] 29. Replace the reserved dock controls with queue controls
   - [x] 29.1 Add the queue store actions
     - `firstTrack`, `previousTrack`, `nextTrack`, and `toggleShuffle` call `queueTarget` and
       `setShuffle`, then `requestTrackSwitch`, or seek to 0 keeping play state. Toggling shuffle
@@ -958,19 +958,27 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       passed 1/1 with the queue buttons in both portrait and landscape geometry.
     - _Requirements: 14.10, 16.17, 19.1, 19.9, 19.15, 19.16, 29.1, 29.2, 29.3_
 
-  - [ ] 29.3 Apply capability gates to dependent controls
+  - [x] 29.3 Apply capability gates to dependent controls
     - Gate exact-seek navigation, waveform and overview, `PlaybackSpeedControl`, the queue
       controls, Repeat, and Shuffle with `capabilitiesFor(currentItem)`. A gated control is
       disabled, shows a hint and a visible description naming the capability, and changes nothing
       when pressed. With `local`, nothing is gated in practice.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Exact-seek marker navigation, waveform interaction and overview, playback speed, queue,
+      Repeat, and Shuffle now disable against the loaded source's declared capabilities. Each
+      source-gated surface exposes both an accessibility hint and visible capability description;
+      the transitional direct-file loader retains local capabilities until its Phase 9 removal.
     - _Requirements: 25.3, 25.4_
 
-- [ ] 30. Checkpoint — switching and queue controls
+- [x] 30. Checkpoint — switching and queue controls
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`,
     `IOS_TEST_ONLY=testLoopRangeToggleAndTransportFits npm run test:ios:ui`, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verification evidence: version consistency reports `1.0.0`; TypeScript, the empty retained
+    unit gate, and `git diff --check` pass; all 6 retained Playwright journeys pass; focused iPhone
+    17 Pro / iOS 26.2 simulator transport geometry passes 1/1 in
+    `ios/build/BeatNoteUITests-1792554646546.xcresult`.
 
 ### Phase 8 — Library, toolbar, Project_Manager, and CSV UI
 

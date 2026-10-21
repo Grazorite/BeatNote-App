@@ -72,6 +72,14 @@ export const capabilitiesFor = (item: MusicItem | null): PlaybackCapabilities =>
   item === null ? NO_SOURCE_CAPABILITIES : getProvider(item.source.provider).capabilities
 );
 
+/** Preserve the transitional direct-file path as local until every picker routes through Library. */
+export const capabilitiesForLoadedItem = (
+  item: MusicItem | null,
+  hasDirectLocalAudio: boolean,
+): PlaybackCapabilities => item === null && hasDirectLocalAudio
+  ? LOCAL_CAPABILITIES
+  : capabilitiesFor(item);
+
 export const resolveSource = (item: MusicItem): Promise<{ uri: string }> => (
   getProvider(item.source.provider).resolve(item)
 );

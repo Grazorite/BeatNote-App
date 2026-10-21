@@ -6,6 +6,7 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import type { DockToastAction } from '../../../hooks/useDockToast';
 import { colors } from '../../../styles/common';
 import DockButton from './DockButton';
+import { capabilitiesForLoadedItem } from '../../../features/library/sourceResolver';
 
 type MarkerDockAction = 'previous' | 'add' | 'next' | 'removePrevious';
 
@@ -33,6 +34,10 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
     deletionHistory: store.markerDeletionHistory,
     restoreLastDeletion: store.restoreLastMarkerDeletion,
     deleteBefore: store.deleteMarkersBefore,
+    exactSeeking: capabilitiesForLoadedItem(
+      store.currentMusicItemId === null ? null : store.libraryItems[store.currentMusicItemId] ?? null,
+      store.songLoaded && store.currentAudioUri !== null,
+    ).exactSeeking,
   })));
   const activeLayer = state.layers.find(layer => layer.id === state.activeLayerId);
   const activeMarkers = activeLayer?.markers ?? [];
@@ -50,13 +55,15 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
   }, null);
   const canAdd = state.loaded && Boolean(activeLayer?.isVisible);
   const canOpenDeletionActions = state.deletionHistory.length > 0 || hasRemovable;
-  const enabled = action === 'removePrevious'
+  const requiresExactSeeking = action === 'previous' || action === 'next';
+  const capabilityGated = state.loaded && requiresExactSeeking && !state.exactSeeking;
+  const enabled = (action === 'removePrevious'
     ? state.loaded && canOpenDeletionActions
     : action === 'add'
       ? canAdd
       : action === 'previous'
         ? state.loaded && hasPrevious
-        : state.loaded && hasNext;
+        : state.loaded && hasNext) && (!requiresExactSeeking || state.exactSeeking);
 
   const restoreLastDeletion = () => {
     state.restoreLastDeletion();
@@ -153,7 +160,14 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
       compact={compact}
       testID={testIDs[action]}
       label={labels[action]}
-      hint={action === 'removePrevious' && enabled ? 'Double tap to delete. Press and hold for restore and bulk-delete actions.' : undefined}
+      hint={capabilityGated
+        ? 'Exact seeking is unavailable for this audio source'
+        : action === 'removePrevious' && enabled
+          ? 'Double tap to delete. Press and hold for restore and bulk-delete actions.'
+          : undefined}
+      description={capabilityGated
+        ? 'Not available for this source: exact seeking'
+        : undefined}
       state={enabled ? 'inactive' : 'unavailable'}
       onPress={activate}
       onLongPress={action === 'removePrevious' ? openDeletionActions : undefined}

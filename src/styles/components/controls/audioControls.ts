@@ -52,4 +52,11 @@ export const audioControlsStyles = StyleSheet.create({
     opacity: 0.01,
     overflow: 'hidden',
   },
+  capabilityDescription: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4,
+    textAlign: 'center',
+  },
 });

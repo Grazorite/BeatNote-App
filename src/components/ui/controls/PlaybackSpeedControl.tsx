@@ -22,6 +22,7 @@ import DockButton from './DockButton';
 import GlassBackdrop from './GlassBackdrop';
 import { playbackSpeedControlStyles as styles } from '../../../styles/components/controls/playbackSpeedControl';
 import { useStudioStore } from '../../../hooks/useStudioStore';
+import { capabilitiesForLoadedItem } from '../../../features/library/sourceResolver';
 
 const DRAG_CLOSE_DELAY_MS = 700;
 const DRAG_FADE_DURATION_MS = 420;
@@ -40,6 +41,10 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   compact,
 }) => {
   const songLoaded = useStudioStore(state => state.songLoaded);
+  const speedAvailable = useStudioStore(state => capabilitiesForLoadedItem(
+    state.currentMusicItemId === null ? null : state.libraryItems[state.currentMusicItemId] ?? null,
+    state.songLoaded && state.currentAudioUri !== null,
+  ).pitchPreservingSpeed);
   const [localValue, setLocalValue] = useState(DEFAULT_PLAYBACK_SPEED);
   const [open, setOpen] = useState(false);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -120,6 +125,13 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   useEffect(() => {
     if (!open) dismissingRef.current = false;
   }, [open]);
+
+  useEffect(() => {
+    if (speedAvailable) return;
+    clearCloseTimer();
+    stopDismissAnimation();
+    setOpen(false);
+  }, [clearCloseTimer, speedAvailable, stopDismissAnimation]);
 
   const showPopup = useCallback(() => {
     restorePopup();
@@ -255,8 +267,17 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         testID="playback-speed"
         label={`Playback speed ${formatSpeedLabel(value)}`}
         valueText={formatSpeedLabel(value)}
-        hint="Opens playback speed controls"
-        state={songLoaded ? (value === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active') : 'unavailable'}
+        hint={!songLoaded
+          ? 'Choose music to adjust playback speed'
+          : speedAvailable
+            ? 'Opens playback speed controls'
+            : 'Playback speed is unavailable for this audio source'}
+        description={songLoaded && !speedAvailable
+          ? 'Not available for this source: playback speed'
+          : undefined}
+        state={songLoaded && speedAvailable
+          ? (value === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active')
+          : 'unavailable'}
         onPress={() => {
           if (dismissingRef.current) {
             showPopup();

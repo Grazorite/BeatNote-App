@@ -25,6 +25,7 @@ import WaveformWorkspace from '../ui/waveform/WaveformWorkspace';
 import StemsView from './StemsView';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 import { mainContentStyles as styles } from '../../styles/layout/mainContent';
+import { capabilitiesForLoadedItem } from '../../features/library/sourceResolver';
 
 interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
@@ -73,6 +74,11 @@ const MainContent: React.FC<MainContentProps> = ({
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
+  const hasLoadedSong = useStudioStore(state => state.songLoaded);
+  const capabilities = useStudioStore(state => capabilitiesForLoadedItem(
+    state.currentMusicItemId === null ? null : state.libraryItems[state.currentMusicItemId] ?? null,
+    state.songLoaded && state.currentAudioUri !== null,
+  ));
   const lastForwardedNoticeId = useRef(0);
   const currentTime = useStudioStore(state => state.currentTime);
   const playbackSpeed = useStudioStore(state => state.playbackSpeed);
@@ -138,30 +144,56 @@ const MainContent: React.FC<MainContentProps> = ({
       isMobile={isMobile}
     />
   );
-  const waveform = (
-    <Animated.View style={[animatedStyle, isMobile && styles.mobileWaveform]}>
-      {!STEM_SEPARATION_UI_ENABLED || viewMode === 'unified' ? (
-        <WaveformWorkspace
-          audioUri={audioUri}
-          layers={layers}
-          onSeek={seekToPosition}
-          onScrubStart={startWaveformScrub}
-          onScrubEnd={endWaveformScrub}
-          isMobile={isMobile}
-          isLandscape={screenData.width > screenData.height}
-        />
-      ) : (
-        <StemsView
-          layers={layers}
-          audioUri={audioUri || undefined}
-          onSeek={seekToPosition}
-          onScrubStart={startWaveformScrub}
-          onScrubEnd={endWaveformScrub}
-        />
-      )}
-    </Animated.View>
+  const waveformCapabilityMessage = hasLoadedSong && !capabilities.waveformAccess
+    ? 'Not available for this source: waveform access'
+    : hasLoadedSong && !capabilities.exactSeeking
+      ? 'Not available for this source: exact seeking'
+      : null;
+  const waveformCapabilityNotice = waveformCapabilityMessage === null ? null : (
+    <View
+      style={styles.capabilityNotice}
+      accessible
+      accessibilityLabel="Waveform controls unavailable"
+      accessibilityHint={waveformCapabilityMessage}
+      accessibilityState={{ disabled: true }}
+    >
+      <Text style={styles.capabilityDescription}>{waveformCapabilityMessage}</Text>
+    </View>
   );
-  const timeline = <LoopRangeOverview audioUri={audioUri} />;
+  const waveform = !hasLoadedSong || capabilities.waveformAccess ? (
+    <>
+      <Animated.View
+        pointerEvents={!hasLoadedSong || capabilities.exactSeeking ? 'auto' : 'none'}
+        style={[animatedStyle, isMobile && styles.mobileWaveform]}
+      >
+        {!STEM_SEPARATION_UI_ENABLED || viewMode === 'unified' ? (
+          <WaveformWorkspace
+            audioUri={audioUri}
+            layers={layers}
+            onSeek={seekToPosition}
+            onScrubStart={startWaveformScrub}
+            onScrubEnd={endWaveformScrub}
+            isMobile={isMobile}
+            isLandscape={screenData.width > screenData.height}
+          />
+        ) : (
+          <StemsView
+            layers={layers}
+            audioUri={audioUri || undefined}
+            onSeek={seekToPosition}
+            onScrubStart={startWaveformScrub}
+            onScrubEnd={endWaveformScrub}
+          />
+        )}
+      </Animated.View>
+      {waveformCapabilityNotice}
+    </>
+  ) : (
+    waveformCapabilityNotice
+  );
+  const timeline = !hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)
+    ? <LoopRangeOverview audioUri={audioUri} />
+    : null;
   const audioControls = (
     <AudioControls
       onTogglePlayback={togglePlayback}
@@ -203,7 +235,9 @@ const MainContent: React.FC<MainContentProps> = ({
             onPress={() => openAnnotationEditor(timedAnnotationMarker)}
           />
         )}
-        <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
+        {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (
+          <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
+        )}
       </View>
     );
     const mobileCanvas = (

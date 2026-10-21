@@ -4,6 +4,7 @@ import {
   AccessibilityActionInfo,
   StyleProp,
   TouchableOpacity,
+  Text,
   View,
   ViewStyle,
 } from 'react-native';
@@ -18,6 +19,7 @@ interface DockButtonProps {
   checked?: boolean;
   valueText?: string;
   hint?: string;
+  description?: string;
   onPress?: () => void;
   onLongPress?: () => void;
   accessibilityActions?: AccessibilityActionInfo[];
@@ -34,6 +36,7 @@ const DockButton: React.FC<DockButtonProps> = ({
   checked,
   valueText,
   hint,
+  description,
   onPress,
   onLongPress,
   accessibilityActions,
@@ -56,8 +59,8 @@ const DockButton: React.FC<DockButtonProps> = ({
       accessibilityHint={hint ?? (state === 'reserved' ? 'Coming soon' : undefined)}
       accessibilityState={{ disabled: unavailable, checked }}
       accessibilityValue={valueText ? { text: valueText } : undefined}
-      accessibilityActions={accessibilityActions}
-      onAccessibilityAction={onAccessibilityAction}
+      accessibilityActions={unavailable ? undefined : accessibilityActions}
+      onAccessibilityAction={unavailable ? undefined : onAccessibilityAction}
       aria-valuetext={valueText}
       aria-disabled={unavailable}
       aria-pressed={checked}
@@ -65,6 +68,7 @@ const DockButton: React.FC<DockButtonProps> = ({
       hitSlop={compact ? 5 : 2}
     >
       {children}
+      {description && <Text style={styles.description}>{description}</Text>}
       {state === 'reserved' && <View style={styles.reservedDot} />}
     </TouchableOpacity>
   );

@@ -5,6 +5,7 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { BeatNoteIcon } from '../../icons';
 import { audioControlsStyles as styles } from '../../../styles/components/controls/audioControls';
 import { isValidLoopRange } from '../../../utils/loopRange';
+import { capabilitiesForLoadedItem } from '../../../features/library/sourceResolver';
 
 interface AudioControlsProps {
   onTogglePlayback: () => void;
@@ -30,6 +31,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
     toggleRepeat,
     isLoopRangeEnabled,
     toggleLoopRangeEnabled,
+    capabilities,
   } = useStudioStore(useShallow(state => ({
     isPlaying: state.isPlaying,
     songLoaded: state.songLoaded,
@@ -39,11 +41,17 @@ const AudioControls: React.FC<AudioControlsProps> = ({
     toggleRepeat: state.toggleRepeat,
     isLoopRangeEnabled: state.isLoopRangeEnabled,
     toggleLoopRangeEnabled: state.toggleLoopRangeEnabled,
+    capabilities: capabilitiesForLoadedItem(
+      state.currentMusicItemId === null ? null : state.libraryItems[state.currentMusicItemId] ?? null,
+      state.songLoaded && state.currentAudioUri !== null,
+    ),
   })));
-  const canToggleLoop = useStudioStore(state => state.songLoaded && isValidLoopRange(state, state.songDuration));
+  const hasValidLoop = useStudioStore(state => state.songLoaded && isValidLoopRange(state, state.songDuration));
+  const canToggleLoop = hasValidLoop && capabilities.exactSeeking && capabilities.waveformAccess;
 
-  const canSkipBack = songLoaded && currentTime > 0;
-  const canSkipForward = songLoaded && currentTime < songDuration;
+  const canSkipBack = songLoaded && capabilities.exactSeeking && currentTime > 0;
+  const canSkipForward = songLoaded && capabilities.exactSeeking && currentTime < songDuration;
+  const canRepeat = songLoaded && capabilities.repeat;
   const currentSeconds = Math.floor(Math.max(0, currentTime) / 1000);
   const currentLabel = `Current: ${Math.floor(currentSeconds / 60)}:${String(currentSeconds % 60).padStart(2, '0')}`;
 
@@ -74,11 +82,12 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipBack)}
         onPress={canSkipBack && songLoaded ? onSkipBack : undefined}
-        disabled={!songLoaded}
+        disabled={!songLoaded || !capabilities.exactSeeking}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
         testID="skip-back"
+        accessibilityHint={!capabilities.exactSeeking ? 'Exact seeking is unavailable for this audio source' : undefined}
       >
         <BeatNoteIcon name="previous" size={compact ? 20 : isMobile ? 24 : 32} color={canSkipBack ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
@@ -104,25 +113,27 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressIn={0}
         delayPressOut={0}
         testID="skip-forward"
+        accessibilityHint={!capabilities.exactSeeking ? 'Exact seeking is unavailable for this audio source' : undefined}
       >
         <BeatNoteIcon name="next" size={compact ? 20 : isMobile ? 24 : 32} color={canSkipForward ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getRepeatButtonStyle(songLoaded, isRepeatActive)}
-        onPress={songLoaded ? toggleRepeat : undefined}
-        disabled={!songLoaded}
+        style={getRepeatButtonStyle(canRepeat, isRepeatActive)}
+        onPress={canRepeat ? toggleRepeat : undefined}
+        disabled={!canRepeat}
         testID="repeat-toggle"
         accessibilityRole="button"
         accessibilityLabel="Repeat song"
-        accessibilityState={{ checked: isRepeatActive, disabled: !songLoaded }}
+        accessibilityState={{ checked: isRepeatActive, disabled: !canRepeat }}
+        accessibilityHint={!capabilities.repeat ? 'Repeat is unavailable for this audio source' : undefined}
         aria-pressed={isRepeatActive}
-        aria-disabled={!songLoaded}
+        aria-disabled={!canRepeat}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
       >
-        <BeatNoteIcon name="repeat" size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name="repeat" size={compact ? 20 : isMobile ? 24 : 32} color={canRepeat ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       <TouchableOpacity
         style={getRepeatButtonStyle(canToggleLoop, isLoopRangeEnabled)}
@@ -141,6 +152,12 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         <BeatNoteIcon name="range-loop" size={compact ? 20 : isMobile ? 24 : 32} color={canToggleLoop ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       </View>
+      {songLoaded && !capabilities.exactSeeking && (
+        <Text style={styles.capabilityDescription}>Not available for this source: exact seeking</Text>
+      )}
+      {songLoaded && !capabilities.repeat && (
+        <Text style={styles.capabilityDescription}>Not available for this source: repeat</Text>
+      )}
       {songLoaded && <Text testID="playback-current-time" style={styles.currentTime}>{currentLabel}</Text>}
     </View>
   );

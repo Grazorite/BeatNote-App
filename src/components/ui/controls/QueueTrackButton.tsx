@@ -84,9 +84,9 @@ const QueueTrackButton: React.FC<QueueTrackButtonProps> = ({ action, compact = f
 
   const currentItem = currentMusicItemId === null ? null : libraryItems[currentMusicItemId] ?? null;
   const capabilities = capabilitiesFor(currentItem);
-  const capabilityAvailable = action === 'shuffle'
+  const capabilityAvailable = currentItem === null || (action === 'shuffle'
     ? capabilities.shuffle
-    : capabilities.queueControl;
+    : capabilities.queueControl);
   const locked = switchPhase === 'guard' || switchGuard !== null || saveInProgress;
   const targetId = pendingSwitchTargetId ?? loadingMusicItemId;
   const targetIndex = targetId === null || queue === null ? -1 : queue.order.indexOf(targetId);
@@ -119,9 +119,10 @@ const QueueTrackButton: React.FC<QueueTrackButtonProps> = ({ action, compact = f
     void invoke().then(reportResult);
   }, [action, firstTrack, nextTrack, previousTrack, toggleShuffle]);
 
-  const hint = !capabilityAvailable
-    ? `${action === 'shuffle' ? 'Shuffle' : 'Queue control'} is unavailable for this audio source`
-    : locked ? 'Finish the current save or song switch first' : disabledReason ?? undefined;
+  const hint = disabledReason
+    ?? (!capabilityAvailable
+      ? `${action === 'shuffle' ? 'Shuffle' : 'Queue control'} is unavailable for this audio source`
+      : locked ? 'Finish the current save or song switch first' : undefined);
 
   return (
     <DockButton
@@ -131,6 +132,9 @@ const QueueTrackButton: React.FC<QueueTrackButtonProps> = ({ action, compact = f
       state={unavailable ? 'unavailable' : checked ? 'active' : 'inactive'}
       checked={checked}
       hint={hint}
+      description={!capabilityAvailable
+        ? `Not available for this source: ${action === 'shuffle' ? 'shuffle' : 'queue control'}`
+        : undefined}
       onPress={press}
     >
       <View style={styles.icon}>
