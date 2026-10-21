@@ -59,20 +59,22 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
+1. Continue `local-music-library-queue` Phase 8 with the shared icon additions, then the bottom-sheet
+   primitive and Music Library list surfaces; queue navigation and provider capability gates are complete.
+2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
-2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-3. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
+4. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-4. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-5. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
+6. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
    stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
@@ -100,8 +102,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      foundations through the Phase 7 track-switch checkpoint are complete, with the queue store
-      actions and dock controls next
+      foundations through the Phase 7 track-switch checkpoint and Phase 8 queue-control checkpoint
+      are complete, with the shared icon family and Music Library UI primitives next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -116,6 +118,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Replace the reserved dock cells with queue navigation and Shuffle, then gate dependent
+      playback surfaces against provider capabilities without regressing the direct-file transition
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/features/library/sourceResolver.ts`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/dockButton.ts`, `src/styles/layout/mainContent.ts`</sub>
 
 - [x] Add all-or-nothing track switching, the dirty-project switch guard, rapid destination
       coalescing, directional failure skipping, launch restoration, and project/import routing
@@ -232,6 +238,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-21 — Complete queue controls and capability gates
+
+**Agent:** orchestrator (Codex) + DSH-Qwen audit pending · **Commit(s):** `83c1660`, `0dab428`
+**Kanban moved:** local library queue controls → In Progress (Phase 8 checkpoint complete)
+
+**Changed:**
+
+- Replaced all four reserved dock cells with First, Previous, Next, and Shuffle controls backed by
+  serialized queue actions, pending-switch-aware navigation, accessible states, and failure recovery.
+- Applied provider capability gates to exact-seek navigation, waveform/overview interaction,
+  playback speed, queue controls, Repeat, and Shuffle, with visible and accessibility explanations.
+- Preserved local capabilities for the transitional direct-file loader, basic Play for sources
+  without exact seeking, and the normal choose-music explanations when no source is loaded.
+
+**Verified:**
+
+- Temporary queue-action checks → 5/5 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 simulator transport journey → 1/1 passed; result bundle
+  `ios/build/BeatNoteUITests-1792554646546.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device queue switching, provider-gated presentation, and VoiceOver remain unverified.
+- DSH-Qwen's read-only capability-gate audit was still running at handover with no report yet.
+- Concurrent uncommitted waveform/playhead edits remain outside both queue commits.
+
+**Next agent should:**
+
+- Implement Task 31.1's shared icon glyphs, then Task 32's bottom-sheet primitive.
 
 ### 2026-10-21 — Complete track-switch transactions
 
@@ -374,35 +413,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 22, beginning with strict singleton reads and the project-index I/O-failure guard,
   then add and mount the injectable boot lifecycle.
-
-### 2026-10-19 — Harmonise waveform and playheads
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Overview waveform colour standardisation → Done
-
-**Changed:**
-
-- Replaced the overview's bright success-green waveform with the wrapped timeline's muted grey base
-  and an active-layer-colour overlay clipped to elapsed playback.
-- Kept semantic purple markers and teal loop state, then standardised both overview and active-row
-  playheads on an amber core with a dark underlay and triangular top cap so they remain visible
-  across every layer colour and cannot be mistaken for plain marker lines.
-- Updated the waveform requirements and implementation plan, plus retained browser assertions for
-  the muted waveform, elapsed colour, and both playheads' halo/core/cap treatment.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → clean for the scoped change.
-- Focused retained waveform and dock journeys → 2/2 passed.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-
-**Not verified / known gaps:**
-
-- Physical-device contrast and visibility under different display brightness and accessibility
-  settings remain part of loop-overview acceptance.
-- Concurrent local-library repository/spec edits remain present and outside this task.
-
-**Next agent should:**
-
-- Check the overview palette and capped playhead on a physical iPhone, then continue loop-range
-  VoiceOver, drag-performance, and audible-boundary acceptance.

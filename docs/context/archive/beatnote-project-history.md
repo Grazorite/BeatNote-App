@@ -2631,3 +2631,35 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Run real-device waveform acceptance with short and long MP3/M4A files, then continue the physical
   playback-speed and control-dock checks.
+
+### 2026-10-19 — Harmonise waveform and playheads
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Overview waveform colour standardisation → Done
+
+**Changed:**
+
+- Replaced the overview's bright success-green waveform with the wrapped timeline's muted grey base
+  and an active-layer-colour overlay clipped to elapsed playback.
+- Kept semantic purple markers and teal loop state, then standardised both overview and active-row
+  playheads on an amber core with a dark underlay and triangular top cap so they remain visible
+  across every layer colour and cannot be mistaken for plain marker lines.
+- Updated the waveform requirements and implementation plan, plus retained browser assertions for
+  the muted waveform, elapsed colour, and both playheads' halo/core/cap treatment.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → clean for the scoped change.
+- Focused retained waveform and dock journeys → 2/2 passed.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Physical-device contrast and visibility under different display brightness and accessibility
+  settings remain part of loop-overview acceptance.
+- Concurrent local-library repository/spec edits remain present and outside this task.
+
+**Next agent should:**
+
+- Check the overview palette and capped playhead on a physical iPhone, then continue loop-range
+  VoiceOver, drag-performance, and audible-boundary acceptance.
