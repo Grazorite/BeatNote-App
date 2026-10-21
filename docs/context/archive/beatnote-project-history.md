@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Implement pitch-preserved playback speed from 0.5×–2× in 0.05× increments, with an adjustable
+      popup slider, common presets, reset, project persistence, and responsive accessibility
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/ios-testflight.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/types/project.ts`, `src/utils/playbackSpeed.ts`, `src/utils/projectManager.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Replace the Settings sliders glyph with a simple rounded gear in the shared icon family
       <sub>**Key Artifacts:** `src/components/icons/BeatNoteIcon.tsx`</sub>
 
@@ -150,6 +154,87 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-18 — Build project and draft persistence foundations
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `0c0e0f0`, `1e0fa29`
+**Kanban moved:** local library project/draft foundations → In Progress
+
+**Changed:**
+
+- Added the V1.2 saved-project, persisted-content, and per-song draft contracts while keeping the
+  legacy `BeatNoteProject` shape and load path intact; moved `LayerId` to the shared project domain
+  and re-exported it from the store for compatibility.
+- Added pure extraction/application and project-envelope mapping that preserve unknown top-level,
+  settings, and layer fields, plus canonical serialisation and versioned 106-bit content fingerprints.
+- Added invalid-record isolation for every library storage family, the six-rule song-load resolver,
+  dirty/switch/save planning helpers, and project-name/export/grouping decisions.
+- Preserved a concurrent installed `expo-dev-client` addition as the separate dependency commit
+  `1e0fa29`; DSH-Qwen review and validator delegations were cancelled after they stalled without
+  output or file changes.
+
+**Verified:**
+
+- Temporary focused unit checks → 17/17 passed across fingerprint, persisted-content round trip,
+  draft resolution, validation isolation, and name/grouping behavior; files were then removed per
+  the temporary-test policy.
+- `npx tsc --noEmit`, `git diff --check`, Markdown lint for the updated task list, and the empty
+  permanent unit command → clean.
+- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- The new pure utilities are not wired to repositories, autosave, track switching, or UI yet.
+- Physical-device Open-in delivery and all existing hardware acceptance items remain pending.
+- Native prebuild/autolinking was not rerun specifically for the concurrent `expo-dev-client` addition.
+
+**Next agent should:**
+
+- Implement Task 9.1 CSV preview/replace transforms, then continue into the persistence pipeline and
+  repositories that consume these validated records.
+
+### 2026-10-18 — Start local music library foundations
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `d7e9e2a`
+**Kanban moved:** `local-music-library-queue` Phase 0 and non-overlapping Phase 1 work → In Progress
+
+**Changed:**
+
+- Reconciled the new spec with the shipped playback-speed ADR: provider/library decisions now use
+  ADR-012 through ADR-016, local pitch-preserving speed remains supported, and `ImportJobView` is
+  defined instead of referenced implicitly.
+- Added the library, queue, migration, CSV-import, and shared-constant type foundations, plus pure
+  queue/sort/search/shuffle/navigation and import/duplicate/relink/orphan decision utilities.
+- Ran the OQ-4 spike in an isolated app ID and recorded a provisional
+  `LSSupportsOpeningDocumentsInPlace = false` decision in the design. The disposable app and build
+  directory were removed afterwards.
+- DSH-Qwen audited the Open-in surface successfully. Its isolated queue implementation failed twice
+  without producing a file; Codex cancelled it and implemented/reviewed the utility directly.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and Markdown lint for the changed spec files → clean.
+- Elevated full retained Playwright gate on port 8082 → 6/6 critical journeys passed after the
+  playback and library foundation commits were reconciled.
+- Temporary queue and import-decision checks → 7/7 passed, then removed per project policy.
+- Prebuild preserved the `.beatnote` declaration under both in-place settings and added the scratch
+  MP3/M4A declaration without editing the repository's native project.
+- On iPhone 17 Pro / iOS 26.2 Simulator, warm and cold M4A delivery reached React Native Linking
+  under both settings as `Documents/Inbox` copies; MP3 also reached both paths with the key `true`.
+
+**Not verified / known gaps:**
+
+- Physical Files and third-party-app delivery remains blocked on a signed device build, so the key
+  decision is provisional. Simulator `openurl` cannot prove security-scoped in-place behaviour.
+- A `.beatnote` host URL opened Files UI instead of Linking; its declaration was preserved, but its
+  delivery path still needs physical-device validation.
+- The dependency alignment and playback-speed work were reconciled separately in `738c3ae`; the
+  installed dependency tree now matches the committed manifests.
+- Task 3.2 and the dependent project/draft utilities remain the next implementation slice.
+
+**Next agent should:**
+
+- Implement Task 3.2 and the dependent persisted-content/fingerprint utilities.
 
 ### 2026-10-18 — Refine speed-popup interaction and annotation guidance
 
@@ -2431,3 +2516,118 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
   share-sheet readability on real hardware.
+### 2026-10-18 — Add CSV migration transforms and version parity
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1149eb5`
+**Kanban moved:** local library CSV/migration decisions → In Progress
+
+**Changed:**
+
+- Added a shared CSV parser path that keeps legacy import errors while allowing a zero-row preview,
+  reports existing/imported/skipped/beyond-duration counts, replaces all layer marker data, and
+  captures/restores the actual prior draft state.
+- Added deterministic legacy URI classification, missing-item matching, non-destructive V1.2
+  project conversion, and resumable journal-step selection.
+- Made `1.0.0` consistent across package and Expo configuration, generated iOS marketing/bundle
+  metadata, the installed simulator app, and the running localhost Expo manifest. Added preflight
+  checks before Metro and native run commands plus a prebuild plugin to prevent drift.
+- DSH-Qwen produced the initial CSV transform, then stalled on the corrective follow-up. Codex
+  removed its duplicated parser and guessed draft state before verification.
+
+**Verified:**
+
+- Temporary focused CSV and migration checks → 10/10 passed, including parser compatibility,
+  zero-row preview, counts, replace/undo, URI classes, matching, preservation, and journal order;
+  the temporary tests were then removed per policy.
+- `npm run check:version`, `npx tsc --noEmit`, `git diff --check`, and the empty permanent unit gate
+  → clean; `npx expo prebuild --platform ios --no-install` reapplied native configuration.
+- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+- The running Expo localhost manifest reports version `1.0.0` and iOS build `1`; the installed
+  iPhone 17 Pro simulator app reports `CFBundleShortVersionString` `1.0.0` and build `1`.
+
+**Not verified / known gaps:**
+
+- CSV transforms and migration decisions are not wired to repositories, store actions, or UI yet.
+- The physical iPhone development client was not inspected directly; its localhost manifest is
+  aligned, but a native binary version change would still require rebuilding that client.
+- Concurrent playback-dock edits remain uncommitted and outside `1149eb5`.
+
+**Next agent should:**
+
+- Implement Task 11's serialised persistence pipeline, then the typed repositories that consume it.
+### 2026-10-18 — Fix speed-popup reopening and transport stacking
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `02aef09`
+**Kanban moved:** Playback-speed post-dismissal and stacking regression → Done
+
+**Changed:**
+
+- Added an explicit closing-state ref so a Speed press during the final dismissal frame reverses the
+  close and restores the chooser instead of restarting an invisible close animation.
+- Raised both the speed cell and its containing dock row above the central Play control; empty centre
+  cells remain touch-through, so Play stays operable whenever the chooser is absent.
+- Extended the retained browser journey to reopen during the near-transparent close interval, prove
+  the chooser remains open, and hit-test the chooser above Play at their overlap point.
+- Updated the speed contract and design to require first-press reopening and topmost dock stacking.
+
+**Verified:**
+
+- Focused retained dock journey → 1/1 passed, including close reversal and popup-over-Play hit testing.
+- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate on port 8082 → clean;
+  6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Two focused iOS attempts built successfully but stopped in shared test setup before reaching the
+  popup assertions because the newly added Expo development client did not expose BeatNote's toolbar
+  within the existing 10-second launch wait. Result bundles:
+  `ios/build/BeatNoteUITests-1792281624743.xcresult` and
+  `ios/build/BeatNoteUITests-1792281686987.xcresult`.
+- The user's physical-phone screenshot was the Expo web build in Safari; the refreshed phone surface
+  and native development client still need direct visual confirmation of the corrected stacking.
+
+**Next agent should:**
+
+- Align the iOS UI harness with the Expo development-client launch path, then rerun the focused speed
+  case; continue the physical-device pitch and interaction checklist afterward.
+
+### 2026-10-18 — Standardise native waveform extraction
+
+**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `02aef09`
+**Kanban moved:** Web/native waveform parity → Done
+
+**Changed:**
+
+- Replaced the native random waveform fallback with a local Expo module that streams decoded PCM
+  through AVAssetReader, reduces it to normalized peak/RMS buckets, and supplies both the wrapped
+  gutter rows and loop overview strip with real audio-derived peaks.
+- Introduced platform extraction providers, explicit `basic`/`detailed` resolution, shared in-memory
+  and in-flight caches, and an honest timing-bar fallback on unsupported platforms.
+- Kept entitlement logic out of extraction and documented a future V2 split: Lite can retain a
+  basic real waveform while Pro can add detailed, persistent, zoomable waveform capability.
+- Added retained iOS identifiers for decoded row and overview peaks and updated the waveform spec,
+  architecture decision, roadmap, module count, and active simulator coverage.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, Expo autolinking resolution, CocoaPods installation, and a
+  full unsigned iOS simulator build → passed; `BeatNoteWaveformModule` was discovered and compiled.
+- Device Hub on iPhone 17 Pro / iOS 26.2 loaded `Dionela_Marilag.mp3` and visibly rendered matching
+  real waveform structure in all wrapped rows and the green overview strip.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused native journey found both new waveform identifiers after loading audio; the journey later
+  failed after annotation save because the app hit a React Native Yoga assertion, outside extraction.
+  Result bundle: `ios/build/BeatNoteUITests-1792328753084.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device extraction performance, thermal/memory behavior, VoiceOver, and very long or
+  unusual audio formats still require acceptance.
+- Android intentionally retains the timing-bar fallback until a native decoder provider is added.
+- The downstream Yoga crash in the broader annotation journey needs separate diagnosis; waveform
+  assertions completed successfully before it occurred.
+
+**Next agent should:**
+
+- Run real-device waveform acceptance with short and long MP3/M4A files, then continue the physical
+  playback-speed and control-dock checks.

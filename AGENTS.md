@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-21
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -100,8 +100,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      Phase 1 foundations through CSV replace and migration planning are complete, with the
-      persistence pipeline next
+      foundations through the Phase 7 track-switch checkpoint are complete, with the queue store
+      actions and dock controls next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -116,6 +116,30 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Add all-or-nothing track switching, the dirty-project switch guard, rapid destination
+      coalescing, directional failure skipping, launch restoration, and project/import routing
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/trackSwitch.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/projectService.ts`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Add safe Save, Save as New, revision/name conflict handling, project rename/delete/open/revert,
+      stored/current CSV export, accessible save prompts, and the V1.2 Project Manager cutover
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Add per-song draft autosave with bounded latency, background flushing, foreground retry,
+      persistent read/write/storage failure recovery, and cross-service dock notices
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/draftAutosave.ts`, `src/features/library/repositories.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/components/ui/common/PersistenceBanner.tsx`, `src/components/layout/MainContent.tsx`</sub>
+
+- [x] Add the serialized local-library boot lifecycle, resumable migration hydration, missing-file
+      reconciliation, queue restoration, Retry locking, and protected orphan sweep
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Add the local music library, draft/project, queue, and switch slices; atomically apply track
+      state; and move the active audio URI and transitional filename into the store
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/repositories.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Standardise the loop overview with the wrapped timeline palette and distinguish overview and
+      canvas playheads using a shared amber core, dark underlay, and triangular cap
+      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/requirements.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
 
 - [x] Standardise real waveform extraction between the web build and native iOS, replacing native
       synthetic peaks with an AVAssetReader Expo module and keeping resolution behind a
@@ -134,10 +158,6 @@ potentially adding a hybrid path later.
       collapse/fade, remove redundant speed feedback, and keep loaded-song Annotation actionable
       with marker-prerequisite guidance
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Implement pitch-preserved playback speed from 0.5×–2× in 0.05× increments, with an adjustable
-      popup slider, common presets, reset, project persistence, and responsive accessibility
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/ios-testflight.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/types/project.ts`, `src/utils/playbackSpeed.ts`, `src/utils/projectManager.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -213,200 +233,176 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-10-18 — Standardise native waveform extraction
+### 2026-10-21 — Complete track-switch transactions
 
-**Agent:** orchestrator (Codex) + context-gatherer · **Commit(s):** `02aef09`
-**Kanban moved:** Web/native waveform parity → Done
+**Agent:** orchestrator (Codex) + DSH-Qwen attempted audit · **Commit(s):** `ed00dac`
+**Kanban moved:** local library track switching → In Progress (Phase 7 complete)
 
 **Changed:**
 
-- Replaced the native random waveform fallback with a local Expo module that streams decoded PCM
-  through AVAssetReader, reduces it to normalized peak/RMS buckets, and supplies both the wrapped
-  gutter rows and loop overview strip with real audio-derived peaks.
-- Introduced platform extraction providers, explicit `basic`/`detailed` resolution, shared in-memory
-  and in-flight caches, and an honest timing-bar fallback on unsupported platforms.
-- Kept entitlement logic out of extraction and documented a future V2 split: Lite can retain a
-  basic real waveform while Pro can add detailed, persistent, zoomable waveform capability.
-- Added retained iOS identifiers for decoded row and overview peaks and updated the waveform spec,
-  architecture decision, roadmap, module count, and active simulator coverage.
+- Added the single track-switch coordinator with preflight draft flushing, source resolution,
+  duration probing, one-state audio/content/queue commit, player readiness, post-load persistence,
+  rollback, directional Skip, and last-request coalescing.
+- Added the exact dirty-project guard with Save & Switch, Keep Draft & Switch, Cancel, nested
+  naming/revision handling, and accessibility title focus.
+- Restored the persisted launch item through the transaction and routed explicit project opens and
+  user-facing duplicate imports through the same guarded path; removed the cross-song audio shim.
 
 **Verified:**
 
-- `npx tsc --noEmit`, `git diff --check`, Expo autolinking resolution, CocoaPods installation, and a
-  full unsigned iOS simulator build → passed; `BeatNoteWaveformModule` was discovered and compiled.
-- Device Hub on iPhone 17 Pro / iOS 26.2 loaded `Dionela_Marilag.mp3` and visibly rendered matching
-  real waveform structure in all wrapped rows and the green overview strip.
+- Temporary transaction/launch checks → 20/20 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
 - Full retained Playwright gate → 6/6 critical journeys passed.
-- Focused native journey found both new waveform identifiers after loading audio; the journey later
-  failed after annotation save because the app hit a React Native Yoga assertion, outside extraction.
-  Result bundle: `ios/build/BeatNoteUITests-1792328753084.xcresult`.
 
 **Not verified / known gaps:**
 
-- Physical-device extraction performance, thermal/memory behavior, VoiceOver, and very long or
-  unusual audio formats still require acceptance.
-- Android intentionally retains the timing-bar fallback until a native decoder provider is added.
-- The downstream Yoga crash in the broader annotation journey needs separate diagnosis; waveform
-  assertions completed successfully before it occurred.
+- Native/physical-device switching, VoiceOver dialog traversal, interruption handling, and
+  Open-in delivery remain unverified.
+- DSH-Qwen exhausted its token window without returning an audit; the additional internal reviewer
+  also hit its usage limit without findings.
+- Concurrent uncommitted waveform/playhead and lifecycle-log edits remain outside `ed00dac`.
 
 **Next agent should:**
 
-- Run real-device waveform acceptance with short and long MP3/M4A files, then continue the physical
-  playback-speed and control-dock checks.
+- Implement Task 29.1 queue actions using `navigationBaseIndex`, then replace the reserved dock
+  controls in Task 29.2.
 
-### 2026-10-18 — Fix speed-popup reopening and transport stacking
+### 2026-10-21 — Complete safe project semantics
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `02aef09`
-**Kanban moved:** Playback-speed post-dismissal and stacking regression → Done
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `b5a4883`, `1a567bf`, `0cc511b`
+**Kanban moved:** local library safe Save/project semantics → In Progress (Phase 6 complete)
 
 **Changed:**
 
-- Added an explicit closing-state ref so a Speed press during the final dismissal frame reverses the
-  close and restores the chooser instead of restarting an invisible close animation.
-- Raised both the speed cell and its containing dock row above the central Play control; empty centre
-  cells remain touch-through, so Play stays operable whenever the chooser is absent.
-- Extended the retained browser journey to reopen during the near-transparent close interval, prove
-  the chooser remains open, and hit-test the chooser above Play at their overlap point.
-- Updated the speed contract and design to require first-press reopening and topmost dock stacking.
+- Added serialized Save/Save as New with revision, name, read-only, partial-write, collision, and
+  in-flight edit/switch handling, plus project rename, deletion, same-song open/revert, and CSV
+  export for live or stored content.
+- Replaced the legacy Save modal with an accessible validated prompt and shared confirmation dialog;
+  successful saves now use the dock toast and revision conflicts offer Overwrite or Save as New.
+- Removed the store's legacy project save/load actions. The existing manager now uses V1.2 project
+  summaries and services, with an isolated cross-song audio bridge until Task 28.6.
 
 **Verified:**
 
-- Focused retained dock journey → 1/1 passed, including close reversal and popup-over-Play hit testing.
-- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate on port 8082 → clean;
-  6/6 critical journeys passed.
+- Temporary focused save/project checks → 28/28 passed across save, autosave races, rename/delete,
+  open/revert, CSV export, recovery, and unknown-field preservation; suites removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Focused save-prompt journey → 1/1 passed; full retained Playwright gate → 6/6 passed.
 
 **Not verified / known gaps:**
 
-- Two focused iOS attempts built successfully but stopped in shared test setup before reaching the
-  popup assertions because the newly added Expo development client did not expose BeatNote's toolbar
-  within the existing 10-second launch wait. Result bundles:
-  `ios/build/BeatNoteUITests-1792281624743.xcresult` and
-  `ios/build/BeatNoteUITests-1792281686987.xcresult`.
-- The user's physical-phone screenshot was the Expo web build in Safari; the refreshed phone surface
-  and native development client still need direct visual confirmation of the corrected stacking.
+- The retained browser fixture still uses the Task 21.5 direct-audio shim, so it validates the
+  prompt but cannot complete a library-backed save until the Phase 9 import surface replaces it.
+- Same-song destructive open/revert confirmations remain Task 36.4; physical-device focus,
+  VoiceOver, and save/open persistence acceptance remain outstanding.
+- DSH-Qwen's Task 26.4 review identified ignored draft-write failures, which were surfaced before
+  commit; its discarded-edit and stale-state concerns did not apply to the specified synchronous
+  replacement path.
 
 **Next agent should:**
 
-- Align the iOS UI harness with the Expo development-client launch path, then rerun the focused speed
-  case; continue the physical-device pitch and interaction checklist afterward.
+- Implement Task 28.1's track-switch transaction core, then the pending-destination and rollback
+  semantics before wiring queue controls.
 
-### 2026-10-18 — Add CSV migration transforms and version parity
+### 2026-10-20 — Complete boot and draft autosave checkpoints
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1149eb5`
-**Kanban moved:** local library CSV/migration decisions → In Progress
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `c6f8c7a`, `009fa5c`
+**Kanban moved:** local library boot + autosave → In Progress (Phase 5 complete)
 
 **Changed:**
 
-- Added a shared CSV parser path that keeps legacy import errors while allowing a zero-row preview,
-  reports existing/imported/skipped/beyond-duration counts, replaces all layer marker data, and
-  captures/restores the actual prior draft state.
-- Added deterministic legacy URI classification, missing-item matching, non-destructive V1.2
-  project conversion, and resumable journal-step selection.
-- Made `1.0.0` consistent across package and Expo configuration, generated iOS marketing/bundle
-  metadata, the installed simulator app, and the running localhost Expo manifest. Added preflight
-  checks before Metro and native run commands plus a prebuild plugin to prevent drift.
-- DSH-Qwen produced the initial CSV transform, then stalled on the corrective follow-up. Codex
-  removed its duplicated parser and guessed draft state before verification.
+- Added strict, retryable launch hydration with migration locking, repaired derived project indexes,
+  missing-file reconciliation, queue restoration, and a protected post-boot orphan sweep.
+- Added per-song draft autosave with a 500 ms debounce, 2 s maximum latency, execution-time content
+  snapshots, fingerprint skips, coalesced serialized writes, background flush, and foreground retry.
+- Centralized persistence failures in an accessible glass banner and forwarded monotonic library
+  notices into mobile and desktop dock toasts.
 
 **Verified:**
 
-- Temporary focused CSV and migration checks → 10/10 passed, including parser compatibility,
-  zero-row preview, counts, replace/undo, URI classes, matching, preservation, and journal order;
-  the temporary tests were then removed per policy.
-- `npm run check:version`, `npx tsc --noEmit`, `git diff --check`, and the empty permanent unit gate
-  → clean; `npx expo prebuild --platform ios --no-install` reapplied native configuration.
-- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
-- The running Expo localhost manifest reports version `1.0.0` and iOS build `1`; the installed
-  iPhone 17 Pro simulator app reports `CFBundleShortVersionString` `1.0.0` and build `1`.
+- Boot temporary checks → 7/7 passed; autosave temporary checks → 6/6 passed; both suites were
+  removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
 
 **Not verified / known gaps:**
 
-- CSV transforms and migration decisions are not wired to repositories, store actions, or UI yet.
-- The physical iPhone development client was not inspected directly; its localhost manifest is
-  aligned, but a native binary version change would still require rebuilding that client.
-- Concurrent playback-dock edits remain uncommitted and outside `1149eb5`.
+- Background/force-quit draft restoration still requires the retained native journey after track
+  switching and launch restoration are wired in Phase 7, plus physical-device acceptance.
+- DSH-Qwen's Task 24 audit failed without output; an independent reviewer found four edge cases,
+  all corrected before the final gates.
+- Concurrent uncommitted waveform/playhead work remains present and outside the autosave commit.
 
 **Next agent should:**
 
-- Implement Task 11's serialised persistence pipeline, then the typed repositories that consume it.
+- Implement Task 26 safe Save/Save as New semantics, beginning with the single pipeline operation
+  and revision/name conflict results before replacing the legacy Save prompt.
 
-### 2026-10-18 — Build project and draft persistence foundations
+### 2026-10-19 — Complete library store checkpoint
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `0c0e0f0`, `1e0fa29`
-**Kanban moved:** local library project/draft foundations → In Progress
+**Agent:** orchestrator (Codex) + reviewers · **Commit(s):** `03bbe4a`
+**Kanban moved:** local library store/audio ownership → In Progress (Phase 4 complete)
 
 **Changed:**
 
-- Added the V1.2 saved-project, persisted-content, and per-song draft contracts while keeping the
-  legacy `BeatNoteProject` shape and load path intact; moved `LayerId` to the shared project domain
-  and re-exported it from the store for compatibility.
-- Added pure extraction/application and project-envelope mapping that preserve unknown top-level,
-  settings, and layer fields, plus canonical serialisation and versioned 106-bit content fingerprints.
-- Added invalid-record isolation for every library storage family, the six-rule song-load resolver,
-  dirty/switch/save planning helpers, and project-name/export/grouping decisions.
-- Preserved a concurrent installed `expo-dev-client` addition as the separate dependency commit
-  `1e0fa29`; DSH-Qwen review and validator delegations were cancelled after they stalled without
-  output or file changes.
+- Added the library, draft/project, queue, and switch slices, plus Import_Pipeline job mirroring and
+  serialized queue persistence including queue removal.
+- Added atomic track-state application for audio identity, normalized authored content, draft
+  baseline, queue index, and session reset while preserving Repeat.
+- Moved the playing URI and transitional filename into the store so queue switches cannot pair a
+  new track with the prior song's save/export filename; notice IDs now remain monotonic across
+  track commits.
 
 **Verified:**
 
-- Temporary focused unit checks → 17/17 passed across fingerprint, persisted-content round trip,
-  draft resolution, validation isolation, and name/grouping behavior; files were then removed per
-  the temporary-test policy.
-- `npx tsc --noEmit`, `git diff --check`, Markdown lint for the updated task list, and the empty
-  permanent unit command → clean.
-- Elevated retained Playwright gate on port 8082 → 6/6 critical journeys passed.
+- Temporary focused store checks → 4/4 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
 
 **Not verified / known gaps:**
 
-- The new pure utilities are not wired to repositories, autosave, track switching, or UI yet.
-- Physical-device Open-in delivery and all existing hardware acceptance items remain pending.
-- Native prebuild/autolinking was not rerun specifically for the concurrent `expo-dev-client` addition.
+- Task 22 boot hydration, migration, missing-file reconciliation, and orphan sweeping are not wired.
+- A DSH-Qwen read-only review task remained running without a completed report; independent focused
+  review found and resolved the notice-ID and transitional-filename hazards.
+- Physical-device Open-in delivery and existing hardware acceptance items remain pending.
 
 **Next agent should:**
 
-- Implement Task 9.1 CSV preview/replace transforms, then continue into the persistence pipeline and
-  repositories that consume these validated records.
+- Implement Task 22, beginning with strict singleton reads and the project-index I/O-failure guard,
+  then add and mount the injectable boot lifecycle.
 
-### 2026-10-18 — Start local music library foundations
+### 2026-10-19 — Harmonise waveform and playheads
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `d7e9e2a`
-**Kanban moved:** `local-music-library-queue` Phase 0 and non-overlapping Phase 1 work → In Progress
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Overview waveform colour standardisation → Done
 
 **Changed:**
 
-- Reconciled the new spec with the shipped playback-speed ADR: provider/library decisions now use
-  ADR-012 through ADR-016, local pitch-preserving speed remains supported, and `ImportJobView` is
-  defined instead of referenced implicitly.
-- Added the library, queue, migration, CSV-import, and shared-constant type foundations, plus pure
-  queue/sort/search/shuffle/navigation and import/duplicate/relink/orphan decision utilities.
-- Ran the OQ-4 spike in an isolated app ID and recorded a provisional
-  `LSSupportsOpeningDocumentsInPlace = false` decision in the design. The disposable app and build
-  directory were removed afterwards.
-- DSH-Qwen audited the Open-in surface successfully. Its isolated queue implementation failed twice
-  without producing a file; Codex cancelled it and implemented/reviewed the utility directly.
+- Replaced the overview's bright success-green waveform with the wrapped timeline's muted grey base
+  and an active-layer-colour overlay clipped to elapsed playback.
+- Kept semantic purple markers and teal loop state, then standardised both overview and active-row
+  playheads on an amber core with a dark underlay and triangular top cap so they remain visible
+  across every layer colour and cannot be mistaken for plain marker lines.
+- Updated the waveform requirements and implementation plan, plus retained browser assertions for
+  the muted waveform, elapsed colour, and both playheads' halo/core/cap treatment.
 
 **Verified:**
 
-- `npx tsc --noEmit`, `git diff --check`, and Markdown lint for the changed spec files → clean.
-- Elevated full retained Playwright gate on port 8082 → 6/6 critical journeys passed after the
-  playback and library foundation commits were reconciled.
-- Temporary queue and import-decision checks → 7/7 passed, then removed per project policy.
-- Prebuild preserved the `.beatnote` declaration under both in-place settings and added the scratch
-  MP3/M4A declaration without editing the repository's native project.
-- On iPhone 17 Pro / iOS 26.2 Simulator, warm and cold M4A delivery reached React Native Linking
-  under both settings as `Documents/Inbox` copies; MP3 also reached both paths with the key `true`.
+- `npx tsc --noEmit` and `git diff --check` → clean for the scoped change.
+- Focused retained waveform and dock journeys → 2/2 passed.
+- Full retained Playwright gate → 6/6 critical journeys passed.
 
 **Not verified / known gaps:**
 
-- Physical Files and third-party-app delivery remains blocked on a signed device build, so the key
-  decision is provisional. Simulator `openurl` cannot prove security-scoped in-place behaviour.
-- A `.beatnote` host URL opened Files UI instead of Linking; its declaration was preserved, but its
-  delivery path still needs physical-device validation.
-- The dependency alignment and playback-speed work were reconciled separately in `738c3ae`; the
-  installed dependency tree now matches the committed manifests.
-- Task 3.2 and the dependent project/draft utilities remain the next implementation slice.
+- Physical-device contrast and visibility under different display brightness and accessibility
+  settings remain part of loop-overview acceptance.
+- Concurrent local-library repository/spec edits remain present and outside this task.
 
 **Next agent should:**
 
-- Implement Task 3.2 and the dependent persisted-content/fingerprint utilities.
+- Check the overview palette and capped playhead on a physical iPhone, then continue loop-range
+  VoiceOver, drag-performance, and audible-boundary acceptance.
