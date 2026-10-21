@@ -982,14 +982,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 8 — Library, toolbar, Project_Manager, and CSV UI
 
-- [ ] 31. Extend the shared icon family
-  - [ ] 31.1 Add the new `BeatNoteIcon` glyphs
+- [x] 31. Extend the shared icon family
+  - [x] 31.1 Add the new `BeatNoteIcon` glyphs
     - Add `chevron-down`, `music-library`, `warning`, `more`, `current`, `missing-audio`, `close`,
       `search`, and `sort` in `src/components/icons/BeatNoteIcon.tsx`. Use the 24×24 view box, the
       1.75-point rounded stroke, and the ~4…20 live area; each must stay distinguishable at 18 px
       without colour.
     - Verification evidence: `npx tsc --noEmit` clean; a simulator or browser visual check at
       18 px.
+    - Added the seven missing glyphs; `chevron-down` and `warning` already existed. A local Chromium
+      grid confirmed all nine remain distinct at exactly 18 px without colour, including the dense
+      library frame/note and the missing-audio note-plus-X treatment.
     - _Requirements: 29.3, 29.7_
 
 - [ ] 32. Build the `BottomSheet` primitive

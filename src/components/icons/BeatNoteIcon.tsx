@@ -7,7 +7,8 @@ export type BeatNoteIconName =
   | 'play' | 'pause' | 'first' | 'previous' | 'next' | 'repeat' | 'shuffle' | 'range-loop'
   | 'marker' | 'marker-add' | 'marker-remove' | 'marker-previous' | 'marker-next'
   | 'marker-remove-previous' | 'marker-loop' | 'annotation' | 'clear' | 'restore'
-  | 'chevron-left' | 'chevron-up' | 'chevron-down' | 'warning'
+  | 'chevron-left' | 'chevron-up' | 'chevron-down' | 'warning' | 'music-library'
+  | 'more' | 'current' | 'missing-audio' | 'close' | 'search' | 'sort'
   | 'unified' | 'multitrack' | 'stems-2' | 'stems-4' | 'stems-6'
   | 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -117,6 +118,20 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <Path d="m6 8.5 6 6 6-6" {...common} />;
       case 'warning':
         return <><Path d="M12 3.5 21 20H3Z" {...common} /><Path d="M12 9v5M12 17.2h.01" {...common} /></>;
+      case 'music-library':
+        return <><Rect x="4" y="4" width="16" height="16" rx="2.5" {...common} /><Path d="M9 16.5V8.5l7-1.5v7.5M9 16.5a2 2 0 1 1-2-2 2 2 0 0 1 2 2Zm7-2a2 2 0 1 1-2-2 2 2 0 0 1 2 2Z" {...common} /></>;
+      case 'more':
+        return <><Circle cx="6" cy="12" r="1.5" fill={color} /><Circle cx="12" cy="12" r="1.5" fill={color} /><Circle cx="18" cy="12" r="1.5" fill={color} /></>;
+      case 'current':
+        return <><Circle cx="12" cy="12" r="8" {...common} /><Path d="m8.5 12 2.25 2.25 4.75-5" {...common} /></>;
+      case 'missing-audio':
+        return <><Path d="M8 16V7.5L15 6v7" {...common} /><Circle cx="6" cy="16" r="2" fill={color} /><Circle cx="13" cy="13" r="2" fill={color} /><Path d="m16 15 4 4m0-4-4 4" {...common} /></>;
+      case 'close':
+        return <Path d="m6 6 12 12M18 6 6 18" {...common} />;
+      case 'search':
+        return <><Circle cx="10.5" cy="10.5" r="6.5" {...common} /><Path d="m15.5 15.5 4.5 4.5" {...common} /></>;
+      case 'sort':
+        return <><Path d="M8 5v14m-3-3 3 3 3-3" {...common} /><Path d="M14 7h6M14 12h4.5M14 17h3" {...common} /></>;
       case 'unified':
         return <><Path d="m4 9 8-4 8 4-8 4Z" {...common} /><Path d="m5 13 7 3.5 7-3.5M5 17l7 3.5 7-3.5" {...common} /></>;
       case 'multitrack':
