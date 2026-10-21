@@ -32,6 +32,15 @@ const ALL_LAYER_IDS: PersistedLayer['id'][] = [
   'other',
 ];
 
+const DEFAULT_LAYERS: PersistedLayer[] = [
+  { id: 'vocals', name: 'Vocals', color: '#ff6666', markers: [], annotations: [], isVisible: true },
+  { id: 'drums', name: 'Drums', color: '#00ccff', markers: [], annotations: [], isVisible: true },
+  { id: 'bass', name: 'Bass', color: '#bb66ff', markers: [], annotations: [], isVisible: true },
+  { id: 'piano', name: 'Piano', color: '#ffcc00', markers: [], annotations: [], isVisible: true },
+  { id: 'guitar', name: 'Guitar', color: '#d2b48c', markers: [], annotations: [], isVisible: true },
+  { id: 'other', name: 'Other', color: '#ff69b4', markers: [], annotations: [], isVisible: true },
+];
+
 export type PersistedContentSource = Pick<StudioStore,
   | 'allLayersData'
   | 'bpm'
@@ -94,6 +103,28 @@ const getTopLevelExtras = (project: BeatNoteProject | null): Record<string, unkn
     Object.entries(project).filter(([key]) => !PROJECT_TOP_LEVEL_KEYS.has(key)),
   );
 };
+
+/** Create the authored defaults for a song that has no draft or saved project yet. */
+export function createEmptyPersistedContent(): PersistedContent {
+  return {
+    layers: cloneLayers(DEFAULT_LAYERS),
+    bpm: 120,
+    stemCount: 4,
+    settings: {
+      viewMode: 'unified',
+      showGridLines: true,
+      layerSpecificNavigation: false,
+      primaryView: 'wrapped',
+      countSize: 8,
+      rowDensity: { mode: 'phrase' },
+      followPlayhead: true,
+      playbackSpeed: 1,
+      loopRange: null,
+      loopEnabled: false,
+    },
+    extras: {},
+  };
+}
 
 /** Extract only authored, persistable content from the live studio state. */
 export function extractPersistedContent(state: PersistedContentSource): PersistedContent {

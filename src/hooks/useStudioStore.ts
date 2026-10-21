@@ -101,6 +101,7 @@ export interface TrackCommitPayload {
   lastWrittenFingerprint: string | null;
   draftUiState: DraftUiState;
   queueIndex?: number;
+  queue?: PlaybackQueue | null;
   isPlaying: boolean;
   loadedProjectSource?: BeatNoteProject | null;
 }
@@ -440,9 +441,11 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     const activeLayerId = content.layers.some(layer => layer.id === state.activeLayerId)
       ? state.activeLayerId
       : content.layers[0]?.id ?? state.activeLayerId;
-    const nextQueue = payload.queueIndex === undefined || state.queue === null
-      ? state.queue
-      : { ...state.queue, currentIndex: payload.queueIndex };
+    const nextQueue = payload.queue !== undefined
+      ? payload.queue
+      : payload.queueIndex === undefined || state.queue === null
+        ? state.queue
+        : { ...state.queue, currentIndex: payload.queueIndex };
 
     return {
       ...content,

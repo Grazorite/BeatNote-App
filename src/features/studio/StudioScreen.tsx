@@ -11,6 +11,7 @@ import HelpScreen from '../../components/ui/screens/HelpScreen';
 import { ErrorModal, PersistenceBanner } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
 import { useLibraryLifecycle } from '../library/useLibraryLifecycle';
+import SwitchGuardDialog from '../../components/ui/modals/SwitchGuardDialog';
 
 export default function StudioScreen() {
   useLibraryLifecycle();
@@ -107,6 +108,7 @@ export default function StudioScreen() {
         message={error.message}
         onClose={hideError}
       />
+      <SwitchGuardDialog />
     </View>
   );
 }

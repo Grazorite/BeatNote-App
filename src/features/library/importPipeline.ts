@@ -18,6 +18,7 @@ import {
 import audioStore from './audioStore';
 import type { AudioStoreAdapter, StagedAudio } from './audioStoreTypes';
 import { ImportError } from './audioStoreTypes';
+import { useStudioStore } from '../../hooks/useStudioStore';
 import {
   mutateLibrary,
   readLibraryStrict,
@@ -699,7 +700,34 @@ const pipeline = createImportPipeline({
   mutateLibrary,
 });
 
-export const enqueueImport = pipeline.enqueueImport;
+const enqueueImportRaw = pipeline.enqueueImport;
+
+/** Import for user-facing flows, refresh the mirror, then open the committed library item. */
+export const enqueueImport = async (request: ImportRequest): Promise<ImportOutcome> => {
+  const outcome = await enqueueImportRaw(request);
+  if (request.origin === 'migration'
+    || (outcome.kind !== 'created'
+      && outcome.kind !== 'duplicate'
+      && outcome.kind !== 'reattached')) return outcome;
+
+  const library = await readLibraryStrict();
+  if (library !== null) useStudioStore.setState({ libraryItems: library.items });
+  const item = library?.items[outcome.musicItemId];
+  const { requestTrackSwitch } = await import('./trackSwitch');
+  await requestTrackSwitch({
+    musicItemId: outcome.musicItemId,
+    origin: outcome.kind === 'duplicate'
+      ? 'duplicate'
+      : request.origin === 'openIn' ? 'openIn' : 'library',
+    rebuildQueue: request.origin === 'picker' || request.origin === 'openIn',
+  });
+  if (outcome.kind === 'duplicate') {
+    useStudioStore.getState().notify(
+      `“${item?.displayTitle ?? request.originalFilename}” is already in your library`,
+    );
+  }
+  return outcome;
+};
 export const cancelImport = pipeline.cancelImport;
 export const subscribeImportJobs = pipeline.subscribeImportJobs;
 export const getImportJobs = pipeline.importJobs;

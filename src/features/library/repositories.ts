@@ -235,6 +235,52 @@ export const writeQueue = (
     ? AsyncStorage.removeItem(queueDefinition.key)
     : AsyncStorage.setItem(queueDefinition.key, JSON.stringify(value)),
 });
+
+export interface TrackSwitchCommitResult {
+  library: LibraryRecord;
+  queue: PlaybackQueue | null;
+}
+
+/** Persist a completed player switch as one retryable queue/library pipeline operation. */
+export async function commitTrackSwitch(
+  musicItemId: string,
+  queue: PlaybackQueue | null,
+  lastPlayedAt: string,
+  options: RepositoryOptions = {},
+): Promise<TrackSwitchCommitResult> {
+  let result: TrackSwitchCommitResult | null = null;
+  await enqueueWrite({
+    label: `track-switch:${musicItemId}`,
+    family: 'library',
+    targetKeys: [LIBRARY_KEY, QUEUE_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const library = await readRecord(libraryDefinition, options, true);
+      if (library === null || library.items[musicItemId] === undefined) {
+        throw new Error('Track switch destination is missing from the library');
+      }
+      const nextLibrary: LibraryRecord = {
+        ...library,
+        items: {
+          ...library.items,
+          [musicItemId]: { ...library.items[musicItemId], lastPlayedAt },
+        },
+      };
+      if (queue === null) {
+        await AsyncStorage.setItem(LIBRARY_KEY, JSON.stringify(nextLibrary));
+      } else {
+        await AsyncStorage.multiSet([
+          [QUEUE_KEY, JSON.stringify(queue)],
+          [LIBRARY_KEY, JSON.stringify(nextLibrary)],
+        ]);
+      }
+      result = { library: nextLibrary, queue };
+    },
+  });
+  if (result === null) throw new Error('Track switch persistence did not complete');
+  return result;
+}
 export const readMigrationJournal = (options?: RepositoryOptions) => (
   readRecord(journalDefinition, options)
 );

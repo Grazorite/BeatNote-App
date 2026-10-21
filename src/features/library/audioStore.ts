@@ -23,6 +23,22 @@ const stagingDirectory = (): Directory => new Directory(musicDirectory(), '.stag
 const managedFile = (relativePath: string): File => new File(musicDirectory(), relativePath);
 const stagedFile = (staged: StagedAudio): File => managedFile(staged.stagingRef);
 
+const probePlayableDuration = async (uri: string, timeoutMs: number): Promise<number> => {
+  const player = createAudioPlayer({ uri });
+  const deadline = Date.now() + timeoutMs;
+  try {
+    while (Date.now() < deadline) {
+      if (player.isLoaded && Number.isFinite(player.duration) && player.duration > 0) {
+        return player.duration * 1_000;
+      }
+      await delay(POLL_INTERVAL_MS);
+    }
+    throw new ImportError('decodeTimeout', 'Timed out while reading the audio duration');
+  } finally {
+    player.release();
+  }
+};
+
 const removeIfPresent = (file: File): void => {
   if (!file.exists) return;
   try {
@@ -130,20 +146,10 @@ export const audioStore: AudioStoreAdapter = {
   },
 
   async probeDuration(staged: StagedAudio, timeoutMs: number): Promise<number> {
-    const player = createAudioPlayer({ uri: stagedFile(staged).uri });
-    const deadline = Date.now() + timeoutMs;
-    try {
-      while (Date.now() < deadline) {
-        if (player.isLoaded && Number.isFinite(player.duration) && player.duration > 0) {
-          return player.duration * 1_000;
-        }
-        await delay(POLL_INTERVAL_MS);
-      }
-      throw new ImportError('decodeTimeout', 'Timed out while reading the audio duration');
-    } finally {
-      player.release();
-    }
+    return probePlayableDuration(stagedFile(staged).uri, timeoutMs);
   },
+
+  probePlayableDuration,
 
   async commit(staged: StagedAudio, physicalName: string): Promise<string> {
     stagedFile(staged).move(managedFile(physicalName));

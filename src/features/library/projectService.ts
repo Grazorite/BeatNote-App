@@ -29,6 +29,7 @@ import { compareProjectVersion } from '../../utils/projectManager';
 import audioStore from './audioStore';
 import { flushDraft } from './draftAutosave';
 import { cancelQueued, type PersistenceIssue } from './persistencePipeline';
+import type { SwitchResult } from './trackSwitch';
 import {
   deleteProjectWithDependencies,
   mutateProject,
@@ -59,7 +60,6 @@ export type RenameResult =
 export type OpenResult =
   | { kind: 'opened'; project: SavedProject }
   | { kind: 'needsGuard'; projectId: string }
-  | { kind: 'needsSwitch'; projectId: string; musicItemId: string }
   | { kind: 'notFound'; projectId: string }
   | { kind: 'superseded' }
   | { kind: 'failed'; reason: string; retry: () => Promise<OpenResult> };
@@ -99,6 +99,11 @@ interface ProjectServiceDependencies {
   exportToCSV: (options: ExportOptions) => Promise<EngineExportResult>;
   flushDraft: typeof flushDraft;
   cancelQueued: typeof cancelQueued;
+  requestTrackSwitch: (request: {
+    musicItemId: string;
+    origin: 'projectOpen';
+    explicitProjectId: string;
+  }) => Promise<SwitchResult>;
 }
 
 const defaultDependencies: ProjectServiceDependencies = {
@@ -116,6 +121,9 @@ const defaultDependencies: ProjectServiceDependencies = {
   ).ExportEngine.exportToCSV(options),
   flushDraft,
   cancelQueued,
+  requestTrackSwitch: async request => (
+    await import('./trackSwitch')
+  ).requestTrackSwitch(request),
 };
 
 const sameBaseline = (
@@ -754,35 +762,6 @@ async function applyProjectToCurrentSong(
   return flushResult === 'failed' ? 'persistenceFailed' : 'applied';
 }
 
-async function runOpenProjectWithAudioShim(
-  dependencies: ProjectServiceDependencies,
-  projectId: string,
-  audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
-): Promise<OpenResult> {
-  const currentFlush = await dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
-  if (currentFlush === 'failed') {
-    return {
-      kind: 'failed',
-      reason: 'Current draft could not be saved before opening the project',
-      retry: () => runOpenProjectWithAudioShim(dependencies, projectId, audio),
-    };
-  }
-
-  const project = await dependencies.readProject(projectId, { now: dependencies.now });
-  if (project === null) return { kind: 'notFound', projectId };
-  if (project.musicItemId !== audio.musicItemId) return { kind: 'superseded' };
-  const applyResult = await applyProjectToCurrentSong(dependencies, project, audio);
-  if (applyResult === 'superseded') return { kind: 'superseded' };
-  if (applyResult === 'persistenceFailed') {
-    return {
-      kind: 'failed',
-      reason: 'Project opened, but its draft could not be saved',
-      retry: () => runOpenProjectWithAudioShim(dependencies, projectId, audio),
-    };
-  }
-  return { kind: 'opened', project };
-}
-
 async function runOpenProject(
   dependencies: ProjectServiceDependencies,
   projectId: string,
@@ -807,10 +786,23 @@ async function runOpenProject(
   }
 
   const state = dependencies.getState();
-  if (state.currentMusicItemId !== project.musicItemId) {
-    return { kind: 'needsSwitch', projectId, musicItemId: project.musicItemId };
+  if (state.currentMusicItemId !== project.musicItemId || state.draftUiState === 'dirty') {
+    const switchResult = await dependencies.requestTrackSwitch({
+      musicItemId: project.musicItemId,
+      origin: 'projectOpen',
+      explicitProjectId: projectId,
+    });
+    if (switchResult.kind === 'committed') return { kind: 'opened', project };
+    if (switchResult.kind === 'failed') {
+      return {
+        kind: 'failed',
+        reason: switchResult.reason.message,
+        retry: () => runOpenProject(dependencies, projectId),
+      };
+    }
+    if (dependencies.getState().switchGuard !== null) return { kind: 'needsGuard', projectId };
+    return { kind: 'superseded' };
   }
-  if (state.draftUiState === 'dirty') return { kind: 'needsGuard', projectId };
   const applyResult = await applyProjectToCurrentSong(dependencies, project);
   if (applyResult === 'superseded') return { kind: 'superseded' };
   if (applyResult === 'persistenceFailed') {
@@ -937,12 +929,6 @@ export const openProject = (projectId: string): Promise<OpenResult> => (
   runOpenProject(defaultDependencies, projectId)
 );
 
-/** Transitional cross-song bridge; Task 28.6 replaces this with requestTrackSwitch. */
-export const openProjectWithAudioShim = (
-  projectId: string,
-  audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
-): Promise<OpenResult> => runOpenProjectWithAudioShim(defaultDependencies, projectId, audio);
-
 export const revertToSaved = (): Promise<RevertResult> => (
   runRevertToSaved(defaultDependencies)
 );
@@ -958,10 +944,6 @@ export const createProjectService = (dependencies: ProjectServiceDependencies) =
   renameProject: (projectId: string, name: string) => runRename(dependencies, projectId, name),
   deleteProject: (projectId: string) => runDelete(dependencies, projectId),
   openProject: (projectId: string) => runOpenProject(dependencies, projectId),
-  openProjectWithAudioShim: (
-    projectId: string,
-    audio: { musicItemId: string; uri: string; filename: string; durationMs: number },
-  ) => runOpenProjectWithAudioShim(dependencies, projectId, audio),
   revertToSaved: () => runRevertToSaved(dependencies),
   exportProjectCsv: (projectId: string | 'current') => runExportProjectCsv(dependencies, projectId),
 });

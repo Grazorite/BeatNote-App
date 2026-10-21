@@ -6,13 +6,11 @@ import { projectControlsStyles as styles } from '../../../styles/components/cont
 import { BeatNoteIcon } from '../../icons';
 import {
   openProject,
-  openProjectWithAudioShim,
   saveAsNew,
   saveCurrent,
   type OpenResult,
   type SaveResult,
 } from '../../../features/library/projectService';
-import { resolveSource } from '../../../features/library/sourceResolver';
 import type { ImportResult } from '../../../utils/importTypes';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import ConfirmDialog from '../modals/ConfirmDialog';
@@ -119,10 +117,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
 
   const reportOpenResult = useCallback((result: OpenResult): boolean => {
     if (result.kind === 'opened') return true;
-    if (result.kind === 'needsGuard') {
-      Alert.alert('Save changes before opening?', 'Use Save Project or discard your edits before opening another project.');
-      return false;
-    }
+    if (result.kind === 'needsGuard') return false;
     if (result.kind === 'failed') {
       Alert.alert('Project Not Opened', result.reason);
       return false;
@@ -142,21 +137,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     if (libraryStatus !== 'ready') return false;
     try {
       const result = await openProject(projectId);
-      if (result.kind !== 'needsSwitch') return reportOpenResult(result);
-
-      const item = useStudioStore.getState().libraryItems[result.musicItemId];
-      if (!item || item.removed || item.availability !== 'available') {
-        Alert.alert('Audio Unavailable', 'Reconnect this project’s audio before opening it.');
-        return false;
-      }
-      const source = await resolveSource(item);
-      const switched = await openProjectWithAudioShim(projectId, {
-        musicItemId: item.id,
-        uri: source.uri,
-        filename: item.originalFilename,
-        durationMs: item.durationMs ?? 0,
-      });
-      return reportOpenResult(switched);
+      return reportOpenResult(result);
     } catch (error) {
       Alert.alert('Error', 'Failed to load project');
       return false;

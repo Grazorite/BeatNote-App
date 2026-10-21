@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
+import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
 
 interface ErrorState {
   visible: boolean;
@@ -79,6 +80,17 @@ export const useCustomAudioPlayer = () => {
   useEffect(() => {
     playerStatusRef.current = playerStatus;
   }, [playerStatus]);
+
+  useEffect(() => {
+    updateTrackSwitchPlayer({
+      uri: currentAudioUri,
+      isLoaded: playerStatus.isLoaded,
+      pause: () => player.pause(),
+      play: () => player.play(),
+      seekTo: milliseconds => player.seekTo(milliseconds / 1000),
+    });
+    return () => updateTrackSwitchPlayer(null);
+  }, [currentAudioUri, player, playerStatus.isLoaded]);
 
   useEffect(() => {
     if (!player) return;

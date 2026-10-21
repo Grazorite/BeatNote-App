@@ -36,6 +36,7 @@ import {
   writeQueue,
   type RepositoryOptions,
 } from './repositories';
+import { requestTrackSwitch, type SwitchResult } from './trackSwitch';
 
 const terminalMigrationStatuses = new Set(['migrated', 'missing', 'skippedNewer']);
 
@@ -312,6 +313,53 @@ export async function runOrphanSweep(
   return true;
 }
 
+export interface LaunchRestorationDependencies {
+  getState: StoreGetState;
+  setState: StoreSetState;
+  requestTrackSwitch: (destination: {
+    musicItemId: string;
+    origin: 'launch';
+    queueIndex: number;
+    rebuildQueue?: boolean;
+  }) => Promise<SwitchResult>;
+}
+
+const defaultLaunchRestorationDependencies: LaunchRestorationDependencies = {
+  getState: useStudioStore.getState,
+  setState: useStudioStore.setState,
+  requestTrackSwitch,
+};
+
+/** Restore the queue's current playable item after boot, always paused at the start. */
+export async function restoreLaunchTrack(
+  dependencies: LaunchRestorationDependencies = defaultLaunchRestorationDependencies,
+): Promise<SwitchResult | null> {
+  const state = dependencies.getState();
+  const queue = state.queue;
+  if (state.libraryStatus !== 'ready' || queue === null || queue.currentIndex === null) return null;
+  const musicItemId = queue.order[queue.currentIndex];
+  const item = musicItemId === undefined ? undefined : state.libraryItems[musicItemId];
+  if (!item || item.removed || item.availability !== 'available') {
+    dependencies.setState({
+      currentMusicItemId: null,
+      currentAudioUri: null,
+      currentAudioFilename: null,
+      songLoaded: false,
+      isPlaying: false,
+      currentTime: 0,
+    });
+    return null;
+  }
+
+  const needsRebuild = !queue.snapshot.includes(musicItemId);
+  return dependencies.requestTrackSwitch({
+    musicItemId,
+    origin: 'launch',
+    queueIndex: queue.currentIndex,
+    rebuildQueue: needsRebuild,
+  });
+}
+
 /** Mount once at the studio root. Later lifecycle tasks extend this hook with AppState and Open_In. */
 export function useLibraryLifecycle(): void {
   const libraryStatus = useStudioStore(state => state.libraryStatus);
@@ -323,7 +371,7 @@ export function useLibraryLifecycle(): void {
   useEffect(() => {
     if (bootStarted.current) return;
     bootStarted.current = true;
-    void runLibraryBoot();
+    void runLibraryBoot().then(() => restoreLaunchTrack());
   }, []);
 
   useEffect(() => {

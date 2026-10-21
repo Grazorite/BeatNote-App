@@ -862,8 +862,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 7 — Track_Switch_Transaction, guard, and queue controls
 
-- [ ] 28. Implement `src/features/library/trackSwitch.ts`
-  - [ ] 28.1 Implement the transaction core
+- [x] 28. Implement `src/features/library/trackSwitch.ts`
+  - [x] 28.1 Implement the transaction core
     - Run `decideSwitchGuard`, sample `wasPlaying` and pause, then `flushDraft(2000)`. Resolve the
       destination (`checkAvailable`, `sourceResolver.resolve`, draft and summaries,
       `resolveSongLoad`, `probeDuration`). Commit with one `applyTrackState`, then await the player
@@ -874,7 +874,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 12.6, 13.8, 15.1, 15.2, 15.10, 15.11, 15.12, 15.13, 15.14_
 
-  - [ ] 28.2 Add the single pending-destination slot and the navigation base index
+  - [x] 28.2 Add the single pending-destination slot and the navigation base index
     - Ignore requests while `switchPhase === 'guard'`. During the Load_Phase, replace
       `pendingSwitchTargetId` so replaced destinations never load or get `lastPlayedAt`. Compute
       Next and Previous from the pending index, else the in-flight index. Start the pending
@@ -882,7 +882,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 14.10, 15.6, 15.7, 15.8, 15.9_
 
-  - [ ] 28.3 Add failure handling, rollback, and Skip
+  - [x] 28.3 Add failure handling, rollback, and Skip
     - A pre-commit failure marks the item missing when the file check failed, keeps the source
       untouched, and shows an error naming the destination with Relink, Skip (queue only), and
       Close. A player failure after commit rolls back to the source snapshot and reloads it paused
@@ -893,7 +893,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 5.3, 5.4, 12.14, 15.3, 15.4, 15.5, 20.6, 25.5_
 
-  - [ ] 28.4 Create `SwitchGuardDialog` and `resolveSwitchGuard`
+  - [x] 28.4 Create `SwitchGuardDialog` and `resolveSwitchGuard`
     - `src/components/ui/modals/SwitchGuardDialog.tsx` with
       `src/styles/components/modals/switchGuardDialog.ts`, driven only by `switchGuard`, using the
       exact title and message. It offers Save & Switch (accent), Keep Draft & Switch (quiet glass),
@@ -905,7 +905,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 14.4, 14.5, 14.6, 14.7, 14.8, 14.9, 14.11, 16.11, 29.1, 29.8_
 
-  - [ ] 28.5 Complete launch restoration (boot step 5)
+  - [x] 28.5 Complete launch restoration (boot step 5)
     - In `useLibraryLifecycle`, load the restored current item with
       `requestTrackSwitch({ origin: 'launch' })`, paused at 0 ms. A missing or deleted item starts
       with no song and keeps the queue. Rebuild the queue when the launch item is not in the
@@ -913,23 +913,26 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 15.14, 18.4, 18.8, 18.9_
 
-  - [ ] 28.6 Route cross-song opens and duplicate imports through the transaction
+  - [x] 28.6 Route cross-song opens and duplicate imports through the transaction
     - `projectService.openProject` `needsSwitch` calls `requestTrackSwitch({ explicitProjectId })`.
       A duplicate import shows "“<title>” is already in your library" and switches, and a cancelled
       guard still shows the toast. Remove the shim's project path from Task 26.7.
     - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes.
     - _Requirements: 4.1, 4.2, 4.3, 17.7, 21.7, 21.8_
 
-  - [ ]* 28.7 Write property test for all-or-nothing switching
+  - [x]* 28.7 Write property test for all-or-nothing switching
     - **Property 16: Track switch is all-or-nothing**
     - **Validates: Requirements 15.1, 15.2, 15.3, 15.4, 15.10, 15.11, 15.12, 15.13**
     - Temporary: `tests/unit/trackSwitch.test.ts` with a fake resolver, player, and failure
       injection at every step.
 
-  - [ ]* 28.8 Write property test for rapid-request coalescing
+  - [x]* 28.8 Write property test for rapid-request coalescing
     - **Property 17: Rapid requests coalesce to the last destination**
     - **Validates: Requirements 15.6, 15.7, 15.8, 15.9**
     - Temporary: `tests/unit/trackSwitch.test.ts`.
+    - Verification evidence: the temporary transaction suite passed 20/20 checks across commit,
+      rollback, guard continuation/cancel, directional Skip, queue rebuild, launch restoration, and
+      pending-request coalescing; the temporary file was then removed per the test strategy.
 
 - [ ] 29. Replace the reserved dock controls with queue controls
   - [ ] 29.1 Add the queue store actions

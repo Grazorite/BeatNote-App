@@ -17,6 +17,7 @@ export interface AudioStoreAdapter {
   ): Promise<StagedAudio>;
   hash(staged: StagedAudio): Promise<string>;
   probeDuration(staged: StagedAudio, timeoutMs: number): Promise<number>;
+  probePlayableDuration(uri: string, timeoutMs: number): Promise<number>;
   commit(staged: StagedAudio, physicalName: string): Promise<string>;
   discard(staged: StagedAudio): Promise<void>;
   resolvePlayableUri(relativePath: string): Promise<string>;

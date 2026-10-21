@@ -135,6 +135,41 @@ const requestPersistentStorage = async (): Promise<void> => {
   }
 };
 
+const probePlayableDuration = (uri: string, timeoutMs: number): Promise<number> => (
+  new Promise<number>((resolve, reject) => {
+    const audio = new Audio();
+    let settled = false;
+    const finish = (result: { durationMs: number } | { error: Error }): void => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      audio.onloadedmetadata = null;
+      audio.onerror = null;
+      audio.removeAttribute('src');
+      audio.load();
+      if ('error' in result) reject(result.error);
+      else resolve(result.durationMs);
+    };
+    const timeout = window.setTimeout(() => {
+      finish({
+        error: new ImportError('decodeTimeout', 'Timed out while reading the audio duration'),
+      });
+    }, timeoutMs);
+    audio.onloadedmetadata = () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        finish({ durationMs: audio.duration * 1_000 });
+      } else {
+        finish({ error: new Error('Audio duration is not available') });
+      }
+    };
+    audio.onerror = () => {
+      finish({ error: new Error('The selected file could not be decoded as audio') });
+    };
+    audio.preload = 'metadata';
+    audio.src = uri;
+  })
+);
+
 export const audioStore: AudioStoreAdapter = {
   async ensureDirectories(): Promise<void> {
     const database = await openDatabase();
@@ -193,45 +228,13 @@ export const audioStore: AudioStoreAdapter = {
   async probeDuration(staged: StagedAudio, timeoutMs: number): Promise<number> {
     const objectUrl = URL.createObjectURL(stagedValue(staged).blob);
     try {
-      return await new Promise<number>((resolve, reject) => {
-        const audio = new Audio();
-        let settled = false;
-        const finish = (result: { durationMs: number } | { error: Error }): void => {
-          if (settled) return;
-          settled = true;
-          window.clearTimeout(timeout);
-          audio.onloadedmetadata = null;
-          audio.onerror = null;
-          audio.removeAttribute('src');
-          audio.load();
-          if ('error' in result) reject(result.error);
-          else resolve(result.durationMs);
-        };
-        const timeout = window.setTimeout(() => {
-          finish({
-            error: new ImportError(
-              'decodeTimeout',
-              'Timed out while reading the audio duration',
-            ),
-          });
-        }, timeoutMs);
-        audio.onloadedmetadata = () => {
-          if (Number.isFinite(audio.duration) && audio.duration > 0) {
-            finish({ durationMs: audio.duration * 1_000 });
-          } else {
-            finish({ error: new Error('Audio duration is not available') });
-          }
-        };
-        audio.onerror = () => {
-          finish({ error: new Error('The selected file could not be decoded as audio') });
-        };
-        audio.preload = 'metadata';
-        audio.src = objectUrl;
-      });
+      return await probePlayableDuration(objectUrl, timeoutMs);
     } finally {
       URL.revokeObjectURL(objectUrl);
     }
   },
+
+  probePlayableDuration,
 
   async commit(staged: StagedAudio, physicalName: string): Promise<string> {
     const value = stagedValue(staged);
