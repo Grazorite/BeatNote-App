@@ -1,18 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
-import { BeatNoteIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { colors } from '../../../styles/common';
 import { controlDockStyles as styles } from '../../../styles/components/controls/controlDock';
 import type { DockToastAction } from '../../../hooks/useDockToast';
 import AnnotationDockButton from './AnnotationDockButton';
-import DockButton from './DockButton';
 import InnerLoopControl from './InnerLoopControl';
 import MarkerDockButton from './MarkerDockButton';
 import PlaybackSpeedControl from './PlaybackSpeedControl';
 import PlaybackTimeProbe from './PlaybackTimeProbe';
 import PlayPauseControl from './PlayPauseControl';
 import RepeatControl from './RepeatControl';
+import QueueTrackButton from './QueueTrackButton';
 
 interface ControlDockProps {
   isLandscape: boolean;
@@ -43,18 +41,8 @@ const ControlDock: React.FC<ControlDockProps> = ({
 }) => {
   const songLoaded = useStudioStore(state => state.songLoaded);
   const cellStyle = isLandscape ? [styles.cell, styles.landscapeCell] : styles.cell;
-  const reserved = (testID: string, label: string, message: string, icon: React.ReactNode) => (
-    <View style={cellStyle}>
-      <DockButton
-        compact={isLandscape}
-        testID={testID}
-        label={`${label}, coming soon`}
-        state={songLoaded ? 'reserved' : 'unavailable'}
-        onPress={() => onToast(message)}
-      >
-        {icon}
-      </DockButton>
-    </View>
+  const queueControl = (action: 'first' | 'previous' | 'next' | 'shuffle') => (
+    <View style={cellStyle}><QueueTrackButton compact={isLandscape} action={action} /></View>
   );
   const marker = (action: 'previous' | 'add' | 'next' | 'removePrevious') => (
     <View style={cellStyle}>
@@ -80,10 +68,10 @@ const ControlDock: React.FC<ControlDockProps> = ({
       <PlaybackSpeedControl compact={isLandscape} value={playbackSpeed} onSelect={onPlaybackSpeedChange} />
     </View>
   );
-  const firstTrack = reserved('first-track-control', 'First track', 'First track is in development', <BeatNoteIcon name="first" size={20} color={colors.textSecondary} />);
-  const previousTrack = reserved('previous-track-control', 'Previous track', 'Previous track is in development', <BeatNoteIcon testID="previous-track-icon" name="previous" size={20} color={colors.textSecondary} />);
-  const nextTrack = reserved('next-track-control', 'Next track', 'Next track is in development', <BeatNoteIcon testID="next-track-icon" name="next" size={20} color={colors.textSecondary} />);
-  const shuffle = reserved('shuffle-control', 'Shuffle', 'Shuffle is in development', <BeatNoteIcon name="shuffle" size={20} color={colors.textSecondary} />);
+  const firstTrack = queueControl('first');
+  const previousTrack = queueControl('previous');
+  const nextTrack = queueControl('next');
+  const shuffle = queueControl('shuffle');
 
   if (isLandscape) {
     return (

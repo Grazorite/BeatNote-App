@@ -33,8 +33,14 @@ import type { ReadOnlyLegacyProjectSummary } from '../features/library/migration
 import { writeQueue } from '../features/library/repositories';
 import { subscribeImportJobs } from '../features/library/importPipeline';
 import { applyPersistedContent } from '../utils/persistedContent';
+import { queueTarget, setShuffle as setQueueShuffle, type QueueAction } from '../utils/queueOrder';
+import type { SwitchResult } from '../features/library/trackSwitch';
 
 export type { LayerId } from '../types/project';
+
+export type QueueControlResult = SwitchResult
+  | { kind: 'seeked' }
+  | { kind: 'disabled'; reason: 'Choose music to start a queue' | 'End of queue' };
 
 export interface MarkerAnnotation {
   timestamp: number;
@@ -191,6 +197,10 @@ export interface StudioStore {
   openLibrarySheet: () => void;
   closeLibrarySheet: () => void;
   applyTrackState: (payload: TrackCommitPayload) => void;
+  firstTrack: () => Promise<QueueControlResult>;
+  previousTrack: () => Promise<QueueControlResult>;
+  nextTrack: () => Promise<QueueControlResult>;
+  toggleShuffle: () => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
@@ -258,6 +268,41 @@ export interface StudioStore {
   setStemSeparationProgress: (progress: number) => void;
   setSeparatedStemUris: (uris: Partial<Record<LayerId, string>>) => void;
 }
+
+const runQueueAction = async (
+  action: QueueAction,
+  getState: () => StudioStore,
+): Promise<QueueControlResult> => {
+  const state = getState();
+  if (state.switchPhase === 'guard' || state.saveInProgress) return { kind: 'cancelled' };
+  if (state.queue === null) {
+    return { kind: 'disabled', reason: 'Choose music to start a queue' };
+  }
+  const { navigationBaseIndex, requestTrackSwitch, seekCurrentTrack } = await import(
+    '../features/library/trackSwitch'
+  );
+  const queue = { ...state.queue, currentIndex: navigationBaseIndex(state) };
+  const target = queueTarget(
+    queue,
+    action,
+    state.currentTime,
+    state.songLoaded && state.currentMusicItemId !== null,
+  );
+  if (target.kind === 'disabled') return target;
+  if (target.kind === 'seekZero') {
+    await seekCurrentTrack(0);
+    return { kind: 'seeked' };
+  }
+  const musicItemId = queue.order[target.index];
+  if (musicItemId === undefined) return { kind: 'disabled', reason: 'End of queue' };
+  return requestTrackSwitch({
+    musicItemId,
+    queueIndex: target.index,
+    origin: action === 'first'
+      ? 'queueFirst'
+      : action === 'previous' ? 'queuePrevious' : 'queueNext',
+  });
+};
 
 const allLayers: Layer[] = [
   { id: 'vocals', name: 'Vocals', color: '#ff6666', markers: [], annotations: [], isVisible: true },
@@ -492,6 +537,16 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       isTextInputFocused: false,
     };
   }),
+  firstTrack: () => runQueueAction('first', get),
+  previousTrack: () => runQueueAction('previous', get),
+  nextTrack: () => runQueueAction('next', get),
+  toggleShuffle: () => {
+    const state = get();
+    if (state.queue === null || state.switchPhase === 'guard' || state.saveInProgress) return;
+    const queue = setQueueShuffle(state.queue, !state.queue.shuffle);
+    get().setQueue(queue);
+    get().notify(queue.shuffle ? 'Shuffle on' : 'Shuffle off');
+  },
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),

@@ -935,7 +935,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       pending-request coalescing; the temporary file was then removed per the test strategy.
 
 - [ ] 29. Replace the reserved dock controls with queue controls
-  - [ ] 29.1 Add the queue store actions
+  - [x] 29.1 Add the queue store actions
     - `firstTrack`, `previousTrack`, `nextTrack`, and `toggleShuffle` call `queueTarget` and
       `setShuffle`, then `requestTrackSwitch`, or seek to 0 keeping play state. Toggling shuffle
       persists the queue and raises "Shuffle on" or "Shuffle off". Successful navigation raises no
@@ -943,7 +943,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 19.2, 19.3, 19.4, 19.5, 19.6, 19.7, 19.8, 19.10, 19.11, 19.12, 19.13, 19.14, 19.15, 19.17_
 
-  - [ ] 29.2 Create `QueueTrackButton` and replace `reserved()` in `ControlDock`
+  - [x] 29.2 Create `QueueTrackButton` and replace `reserved()` in `ControlDock`
     - `src/components/ui/controls/QueueTrackButton.tsx` with
       `src/styles/components/controls/queueTrackButton.ts` keeps the testIDs
       `first-track-control`, `previous-track-control`, `next-track-control`, and `shuffle-control`
@@ -954,6 +954,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       exposes `checked` and `aria-pressed`. Remove the "… is in development" toasts.
     - Verification evidence: `npx tsc --noEmit` clean; the existing dock journey passes after
       replacing its reserved-toast assertions.
+    - Focused temporary queue-action checks passed 5/5 before removal; the retained dock journey
+      passed 1/1 with the queue buttons in both portrait and landscape geometry.
     - _Requirements: 14.10, 16.17, 19.1, 19.9, 19.15, 19.16, 29.1, 29.2, 29.3_
 
   - [ ] 29.3 Apply capability gates to dependent controls

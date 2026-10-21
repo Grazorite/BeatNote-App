@@ -164,8 +164,8 @@ test.describe('UI Components & Layout', () => {
     await expect(innerLoop).toHaveAttribute('aria-valuetext', 'off');
     await expect(page.getByTestId('inner-loop-marker-icon')).toBeVisible();
 
-    await page.getByTestId('shuffle-control').click();
-    await expect(page.getByTestId('dock-toast')).toHaveText('Shuffle is in development');
+    await expect(page.getByTestId('shuffle-control')).toBeDisabled();
+    await expect(page.getByTestId('shuffle-control')).toHaveAttribute('aria-disabled', 'true');
     await expect(page.getByTestId('remove-last-marker')).toBeDisabled();
     await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#3a8f5b');
     await page.getByTestId('add-marker').click();

@@ -668,3 +668,9 @@ export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult
 export const resolveSwitchGuard = (
   choice: SwitchGuardChoice,
 ): Promise<SwitchGuardResolution> => defaultTrackSwitch.resolveSwitchGuard(choice);
+
+/** Seek the currently published player without replacing its source or playback state. */
+export const seekCurrentTrack = async (milliseconds: number): Promise<void> => {
+  await defaultPlayer.seekTo(milliseconds);
+  useStudioStore.setState({ currentTime: milliseconds });
+};
