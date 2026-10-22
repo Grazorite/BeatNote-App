@@ -1028,14 +1028,14 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       and invalid geometry, then was removed per the test strategy.
 
 - [ ] 33. Build the Music_Library_Sheet
-  - [ ] 33.1 Create `OverflowMenu`
+  - [x] 33.1 Create `OverflowMenu`
     - `src/components/ui/common/OverflowMenu.tsx` with `src/styles/components/common/overflowMenu.ts`
       is a glass action menu. Its actions are also exposed as VoiceOver custom actions on the owning
       row, and the trigger is 44×44.
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 10.11, 10.12, 29.1, 29.2_
 
-  - [ ] 33.2 Create `MusicLibraryRow` and `ImportProgressRow`
+  - [x] 33.2 Create `MusicLibraryRow` and `ImportProgressRow`
     - The row shows the title (one line, or two at accessibility sizes), `m:ss` or `--:--`, and
       `<n> projects`. The current row shows the `current` glyph and `selected` state. A missing row
       shows the glyph and "Audio missing" text and includes it in the label. The overflow offers
