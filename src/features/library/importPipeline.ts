@@ -725,6 +725,10 @@ export const enqueueImport = async (request: ImportRequest): Promise<ImportOutco
     useStudioStore.getState().notify(
       `“${item?.displayTitle ?? request.originalFilename}” is already in your library`,
     );
+  } else {
+    useStudioStore.getState().notify(
+      `Imported “${item?.displayTitle ?? request.originalFilename}”`,
+    );
   }
   return outcome;
 };

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -10,6 +12,7 @@ import {
 import {
   cancelImport,
   dismissImportJob,
+  enqueueImport,
 } from '../../../features/library/importPipeline';
 import { runLibraryBoot } from '../../../features/library/useLibraryLifecycle';
 import { requestTrackSwitch } from '../../../features/library/trackSwitch';
@@ -18,11 +21,13 @@ import { musicLibrarySheetStyles as styles } from '../../../styles/components/li
 import { colors } from '../../../styles/common';
 import {
   IMPORTED_MUSIC_COLLECTION_ID,
-  type ImportJobView,
   type LibrarySortKey,
   type MusicItem,
 } from '../../../types/library';
-import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
+import {
+  MAX_TEXT_SCALE,
+  SUPPORTED_AUDIO_EXTENSIONS,
+} from '../../../utils/libraryConstants';
 import { filterLibraryItems, sortLibraryItems } from '../../../utils/queueOrder';
 import { BeatNoteIcon } from '../../icons';
 import { BottomSheet } from '../common';
@@ -31,7 +36,6 @@ import MusicLibraryRow from './MusicLibraryRow';
 
 export interface MusicLibrarySheetProps {
   returnFocusRef: React.RefObject<unknown>;
-  onImportAudio: (retryJob?: ImportJobView) => void;
   onRename: (item: MusicItem) => void;
   onShowProjects: (item: MusicItem) => void;
   onDelete: (item: MusicItem) => void;
@@ -45,9 +49,23 @@ const SORT_OPTIONS: ReadonlyArray<{ value: LibrarySortKey; label: string }> = [
   { value: 'duration', label: 'Duration' },
 ];
 
+const AUDIO_MIME_TYPES = [
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/aac',
+  'audio/ogg',
+  'audio/flac',
+  'audio/x-m4a',
+] as const;
+
+const AUDIO_PICKER_TYPES = Platform.OS === 'web'
+  ? [...AUDIO_MIME_TYPES, ...SUPPORTED_AUDIO_EXTENSIONS]
+  : [...AUDIO_MIME_TYPES];
+
 const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   returnFocusRef,
-  onImportAudio,
   onRename,
   onShowProjects,
   onDelete,
@@ -67,6 +85,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const saveInProgress = useStudioStore(state => state.saveInProgress);
   const closeLibrarySheet = useStudioStore(state => state.closeLibrarySheet);
   const setLibrarySort = useStudioStore(state => state.setLibrarySort);
+  const notify = useStudioStore(state => state.notify);
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
   const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
@@ -101,6 +120,29 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       && loadingMusicItemId === null
     ) setRequestedMusicItemId(null);
   }, [loadingMusicItemId, requestedMusicItemId, switchGuard, switchPhase]);
+
+  const pickAudio = useCallback(async (retryJobId?: string) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: AUDIO_PICKER_TYPES,
+        copyToCacheDirectory: true,
+        multiple: false,
+        base64: false,
+      });
+      if (result.canceled || result.assets.length === 0) return;
+      const asset = result.assets[0];
+      if (retryJobId !== undefined) dismissImportJob(retryJobId);
+      await enqueueImport({
+        origin: 'picker',
+        sourceUri: asset.uri,
+        originalFilename: asset.name,
+        reportedBytes: asset.size ?? null,
+      });
+    } catch (error) {
+      console.error('Unable to open the audio picker', error);
+      notify("BeatNote couldn't open the audio picker");
+    }
+  }, [notify]);
 
   const switchTo = useCallback(async (item: MusicItem) => {
     if (item.id === currentMusicItemId) {
@@ -210,7 +252,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                   focused === 'import' && styles.importButtonFocused,
                   libraryStatus !== 'ready' && styles.disabled,
                 ]}
-                onPress={() => onImportAudio()}
+                onPress={() => { void pickAudio(); }}
                 onFocus={() => setFocused('import')}
                 onBlur={() => setFocused(value => value === 'import' ? null : value)}
                 disabled={libraryStatus !== 'ready'}
@@ -227,7 +269,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                   key={job.id}
                   job={job}
                   onCancel={cancelImport}
-                  onRetry={onImportAudio}
+                  onRetry={job => { void pickAudio(job.id); }}
                   onDismiss={dismissImportJob}
                 />
               ))}

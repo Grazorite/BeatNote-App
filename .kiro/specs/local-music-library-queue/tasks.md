@@ -1027,7 +1027,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Temporary fast-check coverage passed 3/3 for the strict close boundary, nearest open detent,
       and invalid geometry, then was removed per the test strategy.
 
-- [ ] 33. Build the Music_Library_Sheet
+- [x] 33. Build the Music_Library_Sheet
   - [x] 33.1 Create `OverflowMenu`
     - `src/components/ui/common/OverflowMenu.tsx` with `src/styles/components/common/overflowMenu.ts`
       is a glass action menu. Its actions are also exposed as VoiceOver custom actions on the owning
@@ -1058,7 +1058,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 10.1, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.15, 10.16, 10.17, 10.19, 18.1, 18.2_
 
-  - [ ] 33.4 Wire Import Audio to the picker and Import_Pipeline
+  - [x] 33.4 Wire Import Audio to the picker and Import_Pipeline
     - Use `DocumentPicker.getDocumentAsync` restricted to the supported types (the web chooser
       filtered by MIME type and extension). Cancelling changes nothing and shows no error.
       Success shows a Dock_Toast and opens the item with a queue rebuild.
