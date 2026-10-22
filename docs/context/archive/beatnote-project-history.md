@@ -2663,3 +2663,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Check the overview palette and capped playhead on a physical iPhone, then continue loop-range
   VoiceOver, drag-performance, and audible-boundary acceptance.
+
+### 2026-10-19 — Complete library store checkpoint
+
+**Agent:** orchestrator (Codex) + reviewers · **Commit(s):** `03bbe4a`
+**Kanban moved:** local library store/audio ownership → In Progress (Phase 4 complete)
+
+**Changed:**
+
+- Added the library, draft/project, queue, and switch slices, plus Import_Pipeline job mirroring and
+  serialized queue persistence including queue removal.
+- Added atomic track-state application for audio identity, normalized authored content, draft
+  baseline, queue index, and session reset while preserving Repeat.
+- Moved the playing URI and transitional filename into the store so queue switches cannot pair a
+  new track with the prior song's save/export filename; notice IDs now remain monotonic across
+  track commits.
+
+**Verified:**
+
+- Temporary focused store checks → 4/4 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Task 22 boot hydration, migration, missing-file reconciliation, and orphan sweeping are not wired.
+- A DSH-Qwen read-only review task remained running without a completed report; independent focused
+  review found and resolved the notice-ID and transitional-filename hazards.
+- Physical-device Open-in delivery and existing hardware acceptance items remain pending.
+
+**Next agent should:**
+
+- Implement Task 22, beginning with strict singleton reads and the project-index I/O-failure guard,
+  then add and mount the injectable boot lifecycle.

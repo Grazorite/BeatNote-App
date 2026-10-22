@@ -59,8 +59,8 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 8 with the shared icon additions, then the bottom-sheet
-   primitive and Music Library list surfaces; queue navigation and provider capability gates are complete.
+1. Continue `local-music-library-queue` Phase 8 with the overflow menu and Music Library row/list
+   surfaces; the shared icon family and accessible bottom-sheet primitive are complete.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -103,7 +103,8 @@ potentially adding a hybrid path later.
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
       foundations through the Phase 7 track-switch checkpoint and Phase 8 queue-control checkpoint
-      are complete, with the shared icon family and Music Library UI primitives next
+      are complete; the icon family and bottom-sheet primitive are also complete, with the overflow
+      menu and Music Library list surfaces next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -118,6 +119,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Extend the shared icon family and add the accessible detented bottom-sheet primitive with
+      Reduce Motion, safe-area/keyboard/rotation handling, focus restoration, and web focus trapping
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/index.ts`, `src/styles/components/common/bottomSheet.ts`, `src/utils/sheetDetent.ts`</sub>
 
 - [x] Replace the reserved dock cells with queue navigation and Shuffle, then gate dependent
       playback surfaces against provider capabilities without regressing the direct-file transition
@@ -239,9 +244,43 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-22 — Add icons and accessible bottom sheet
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `721e004`, `4bf2c9b`
+**Kanban moved:** local library icons and bottom sheet → In Progress (Tasks 31–32 complete)
+
+**Changed:**
+
+- Added the seven missing shared glyphs and verified the complete nine-icon set remains distinct at
+  18 px without colour; existing chevron-down and warning glyphs were retained.
+- Added the pure sheet-detent resolver and a reusable liquid-glass BottomSheet with medium/large
+  detents, header-only pan, animated dismissal, safe areas, keyboard expansion, and rotation refits.
+- Added live Reduce Motion handling, accessible detent switching and Close, title/return focus,
+  web Tab/Shift-Tab trapping, Escape dismissal, and cancelled-pan recovery.
+
+**Verified:**
+
+- Temporary detent property checks → 3/3 passed, then removed per policy.
+- Chromium icon grid → all nine glyphs legible and distinguishable at exactly 18 px.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- The primitive is not mounted until the Music Library surface lands, so real sheet drag, keyboard,
+  focus, VoiceOver, and rotation behavior still require integrated simulator and physical checks.
+- The DSH bridge was unavailable in this Codex session; local Ollama and the configured Qwen model
+  were available, so implementation continued in Codex after the required preflight report.
+- Concurrent uncommitted waveform/playhead edits remain outside both commits.
+
+**Next agent should:**
+
+- Implement Task 33.1 OverflowMenu, then Task 33.2 MusicLibraryRow and ImportProgressRow.
+
 ### 2026-10-21 — Complete queue controls and capability gates
 
-**Agent:** orchestrator (Codex) + DSH-Qwen audit pending · **Commit(s):** `83c1660`, `0dab428`
+**Agent:** orchestrator (Codex) + DSH-Qwen partial audit · **Commit(s):** `83c1660`, `0dab428`
 **Kanban moved:** local library queue controls → In Progress (Phase 8 checkpoint complete)
 
 **Changed:**
@@ -265,7 +304,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Physical-device queue switching, provider-gated presentation, and VoiceOver remain unverified.
-- DSH-Qwen's read-only capability-gate audit was still running at handover with no report yet.
+- DSH-Qwen later returned a partial low-severity audit before exhausting its token window; the
+  actionable exact-seek and empty-state concerns had already been resolved before commit.
 - Concurrent uncommitted waveform/playhead edits remain outside both queue commits.
 
 **Next agent should:**
@@ -379,37 +419,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 26 safe Save/Save as New semantics, beginning with the single pipeline operation
   and revision/name conflict results before replacing the legacy Save prompt.
-
-### 2026-10-19 — Complete library store checkpoint
-
-**Agent:** orchestrator (Codex) + reviewers · **Commit(s):** `03bbe4a`
-**Kanban moved:** local library store/audio ownership → In Progress (Phase 4 complete)
-
-**Changed:**
-
-- Added the library, draft/project, queue, and switch slices, plus Import_Pipeline job mirroring and
-  serialized queue persistence including queue removal.
-- Added atomic track-state application for audio identity, normalized authored content, draft
-  baseline, queue index, and session reset while preserving Repeat.
-- Moved the playing URI and transitional filename into the store so queue switches cannot pair a
-  new track with the prior song's save/export filename; notice IDs now remain monotonic across
-  track commits.
-
-**Verified:**
-
-- Temporary focused store checks → 4/4 passed, then removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-
-**Not verified / known gaps:**
-
-- Task 22 boot hydration, migration, missing-file reconciliation, and orphan sweeping are not wired.
-- A DSH-Qwen read-only review task remained running without a completed report; independent focused
-  review found and resolved the notice-ID and transitional-filename hazards.
-- Physical-device Open-in delivery and existing hardware acceptance items remain pending.
-
-**Next agent should:**
-
-- Implement Task 22, beginning with strict singleton reads and the project-index I/O-failure guard,
-  then add and mount the injectable boot lifecycle.
