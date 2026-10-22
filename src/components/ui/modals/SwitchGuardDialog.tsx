@@ -37,6 +37,11 @@ const SwitchGuardDialog: React.FC = () => {
 
   const reportSwitchResult = useCallback((result: SwitchGuardResolution) => {
     if (result.kind !== 'failed') return;
+    const state = useStudioStore.getState();
+    if (
+      state.isLibrarySheetOpen
+      && state.librarySwitchFailure?.musicItemId === result.reason.musicItemId
+    ) return;
     Alert.alert(result.reason.title, result.reason.message, [
       { text: 'Stay', style: 'cancel' },
       { text: 'Retry', onPress: () => { void result.reason.retry(); } },

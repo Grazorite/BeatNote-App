@@ -1046,7 +1046,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 3.15, 3.16, 5.5, 9.9, 10.1, 10.2, 10.11, 10.18, 29.1, 29.3_
 
-  - [ ] 33.3 Create `MusicLibrarySheet` with states, sort, and search
+  - [x] 33.3 Create `MusicLibrarySheet` with states, sort, and search
     - From top to bottom: the title "Music" and Close, an Import Audio row that is always first,
       import rows, a search field (only for more than 8 items), the sort selector (persisted
       through prefs), and a `FlatList`. Empty, loading, no-match, and read-error states use the

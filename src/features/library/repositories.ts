@@ -218,6 +218,29 @@ export const readLibraryPrefsStrict = (options?: RepositoryOptions) => (
 export const writeLibraryPrefs = (value: LibraryPrefs, options?: RepositoryOptions) => (
   writeRecord(prefsDefinition, value, options)
 );
+export const updateLibrarySort = async (
+  sort: LibraryPrefs['sort'],
+  options: RepositoryOptions = {},
+): Promise<void> => {
+  await enqueueWrite({
+    label: prefsDefinition.label,
+    family: prefsDefinition.family,
+    targetKeys: [prefsDefinition.key],
+    coalesceKey: `${prefsDefinition.key}:sort`,
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const current = await readRecord(prefsDefinition, options, true);
+      const next: LibraryPrefs = {
+        schemaVersion: 1,
+        sort,
+        missingAudioNoticeShownForMigration:
+          current?.missingAudioNoticeShownForMigration ?? null,
+      };
+      await AsyncStorage.setItem(prefsDefinition.key, JSON.stringify(next));
+    },
+  });
+};
 export const readQueue = (options?: RepositoryOptions) => readRecord(queueDefinition, options);
 export const readQueueStrict = (options?: RepositoryOptions) => (
   readRecord(queueDefinition, options, true)

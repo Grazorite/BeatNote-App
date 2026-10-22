@@ -561,6 +561,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
       await dependencies.player.play();
       dependencies.setState({ isPlaying: true });
     }
+    if (request.origin === 'library') dependencies.setState({ isLibrarySheetOpen: false });
     return { kind: 'committed', musicItemId: destination.item.id };
   };
 
@@ -570,6 +571,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     guardWasShown = false,
     visited: ReadonlySet<string> = new Set(),
   ): Promise<SwitchResult> => {
+    if (request.origin === 'library') dependencies.setState({ librarySwitchFailure: null });
     active = true;
     let result: SwitchResult;
     try {
@@ -584,6 +586,14 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
       );
     } finally {
       active = false;
+    }
+    if (request.origin === 'library' && result.kind === 'failed') {
+      dependencies.setState({
+        librarySwitchFailure: {
+          musicItemId: request.musicItemId,
+          message: result.reason.message,
+        },
+      });
     }
     const next = pending;
     pending = null;

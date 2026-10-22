@@ -30,7 +30,7 @@ import type {
 import type { PlaybackQueue } from '../types/queue';
 import type { PersistenceIssue } from '../features/library/persistencePipeline';
 import type { ReadOnlyLegacyProjectSummary } from '../features/library/migration';
-import { writeQueue } from '../features/library/repositories';
+import { updateLibrarySort, writeQueue } from '../features/library/repositories';
 import { subscribeImportJobs } from '../features/library/importPipeline';
 import { applyPersistedContent } from '../utils/persistedContent';
 import { queueTarget, setShuffle as setQueueShuffle, type QueueAction } from '../utils/queueOrder';
@@ -95,6 +95,11 @@ export interface SwitchGuardPrompt {
   pendingDestination: SwitchDestination;
 }
 
+export interface LibrarySwitchFailure {
+  musicItemId: string;
+  message: string;
+}
+
 export interface TrackCommitPayload {
   musicItemId: string;
   audioUri: string;
@@ -138,6 +143,7 @@ export interface StudioStore {
   queue: PlaybackQueue | null;
   switchPhase: SwitchPhase;
   switchGuard: SwitchGuardPrompt | null;
+  librarySwitchFailure: LibrarySwitchFailure | null;
   pendingSwitchTargetId: string | null;
   loadingMusicItemId: string | null;
   isPlaying: boolean;
@@ -383,6 +389,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   queue: null,
   switchPhase: 'idle',
   switchGuard: null,
+  librarySwitchFailure: null,
   pendingSwitchTargetId: null,
   loadingMusicItemId: null,
   isPlaying: false,
@@ -432,7 +439,19 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   stemSeparationProgress: 0,
   separatedStemUris: {},
   setLibraryItems: (items) => set({ libraryItems: items }),
-  setLibrarySort: (sort) => set({ librarySort: sort }),
+  setLibrarySort: (sort) => {
+    set({ librarySort: sort });
+    void updateLibrarySort(sort, {
+      onIssue: issue => set((state) => ({
+        persistenceIssues: [
+          ...state.persistenceIssues.filter(existing => (
+            existing.kind !== issue.kind || existing.label !== issue.label
+          )),
+          issue,
+        ],
+      })),
+    }).catch(() => undefined);
+  },
   setCurrentAudioSource: (uri, filename) => set({
     currentAudioUri: uri,
     currentAudioFilename: filename,
@@ -528,7 +547,6 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       loopRestoreSnapshot: null,
       isLoopMarkerActive: false,
       libraryNotice: null,
-      isLibrarySheetOpen: false,
       showHelpScreen: false,
       showExportModal: false,
       showImportModal: false,

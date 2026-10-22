@@ -36,7 +36,7 @@ export interface BottomSheetProps {
   title: string;
   initialDetent: 'medium' | 'large';
   onClose: () => void;
-  returnFocusRef: React.RefObject<View | null>;
+  returnFocusRef: React.RefObject<unknown>;
   testID: string;
   children: React.ReactNode;
 }
