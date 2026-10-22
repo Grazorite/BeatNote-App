@@ -1125,7 +1125,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - _Requirements: 8.2, 30.6, 30.8_
 
 - [ ] 36. Restructure the Project_Manager around the current project
-  - [ ] 36.1 Create `CurrentProjectSection`
+  - [x] 36.1 Create `CurrentProjectSection`
     - `src/components/ui/projects/CurrentProjectSection.tsx` with styles shows the name or
       "Unsaved draft", the Display_Title, and the state text and icon ("Saved", "Edited — not
       saved", "Draft based on “<name>”"). It shows the newer-project note with Open, and 44×44
@@ -1135,7 +1135,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 13.5, 13.6, 17.8, 17.9, 21.4, 21.5, 21.9, 22.10, 29.3_
 
-  - [ ] 36.2 Create `ProjectRow`
+  - [x] 36.2 Create `ProjectRow`
     - `src/components/ui/projects/ProjectRow.tsx` with styles shows the name, marker count, modified
       time, the Display_Title in All Projects, "Audio missing", and "Read-only (newer version)". A
       44×44 overflow offers Open, Rename, Export CSV, and Delete. The testIDs are
