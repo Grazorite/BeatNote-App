@@ -258,7 +258,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-22 — Complete library actions and Song Title navigation
 
-**Agent:** orchestrator (Codex) + local review agent · **Commit(s):** `1094996`, `eed382f`, `ad064e2`, `ca2e56c`
+**Agent:** orchestrator (Codex) + local review agents · **Commit(s):** `1094996`, `eed382f`, `ad064e2`, `ca2e56c`, `7ef938d`
 **Kanban moved:** Music Library row actions and Song Title toolbar → In Progress (Tasks 34–35 complete)
 
 **Changed:**
@@ -270,6 +270,9 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   drafts.
 - Centralized queue-origin title announcements at successful transaction commit so Skip and rapid
   coalescing announce in commit order; added routed modal focus handling and race-safe native waits.
+- Began Task 36 with accessible, large-text-safe `CurrentProjectSection` and `ProjectRow` primitives,
+  including exact action identifiers, disabled/read-only/missing states, overflow actions, and named
+  destructive project deletion confirmation.
 - Preserved the toolbar CSV buttons until Task 37.4. This resolves the sequencing conflict between
   `.kiro/specs/local-music-library-queue/requirements.md` Requirement 8.1/8.9 (final four actions)
   and `.kiro/specs/local-music-library-queue/tasks.md` Task 37.4 (explicit removal owner) while the
@@ -284,6 +287,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   `ios/build/BeatNoteUITests-1792679367535.xcresult`.
 - Local reviewer found announcement, focus, and native-wait races; all were corrected and the
   resulting TypeScript/diff checks passed. The requested DSH bridge remained unavailable.
+- Task 36.1–36.2 component checkpoints → `npx tsc --noEmit`, version parity, and scoped diff checks
+  clean; the components are not mounted until Task 36.3.
 
 **Not verified / known gaps:**
 
@@ -296,8 +301,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 **Next agent should:**
 
-- Implement Task 36.1 `CurrentProjectSection`, then Task 36.2 `ProjectRow` before replacing the
-  current Project Manager with the sectioned surface.
+- Implement Task 36.3 by replacing the current Project Manager with the single sectioned surface,
+  then add the same-song open/revert guard in Task 36.4.
 
 ### 2026-10-22 — Complete the Music Library sheet
 
