@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-22
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -59,8 +59,8 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 8 with the overflow menu and Music Library row/list
-   surfaces; the shared icon family and accessible bottom-sheet primitive are complete.
+1. Continue `local-music-library-queue` Phase 8 with the Music Library row actions (rename, delete,
+   Relink, and Show Projects); the complete sheet, picker import, and reusable UI primitives are done.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -103,8 +103,8 @@ potentially adding a hybrid path later.
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
       foundations through the Phase 7 track-switch checkpoint and Phase 8 queue-control checkpoint
-      are complete; the icon family and bottom-sheet primitive are also complete, with the overflow
-      menu and Music Library list surfaces next
+      are complete; the icon, bottom-sheet, overflow, row, list, search/sort, and picker-import
+      surfaces are also complete, with Music Library row actions next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -119,6 +119,11 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Build the accessible Music Library sheet with reusable rows and overflow actions, scroll-safe
+      loading/empty/error/search/sort states, persisted sorting, guarded track switching, import
+      progress/cancellation/retry, and native/web audio-picker ingestion
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/OverflowMenu.tsx`, `src/components/ui/library/`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/common/overflowMenu.ts`, `src/styles/components/library/`</sub>
 
 - [x] Extend the shared icon family and add the accessible detented bottom-sheet primitive with
       Reduce Motion, safe-area/keyboard/rotation handling, focus restoration, and web focus trapping
@@ -243,6 +248,46 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-22 — Complete the Music Library sheet
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `af1ef7a`, `654f8ab`, `bef8830`
+**Kanban moved:** Music Library sheet and picker import → In Progress (Task 33 complete)
+
+**Changed:**
+
+- Added the accessible glass overflow menu, current/missing library rows, and cancellable or
+  retryable import-progress rows with stable identifiers and large-text-safe controls.
+- Added the scroll-safe Music Library sheet with exact loading, migration, empty, no-match, and
+  read-error states; Imported Music filtering; persisted sort; diacritic-insensitive search; project
+  counts; and guarded row switching with inline failure recovery.
+- Moved sheet dismissal to the fully committed library-switch path, including guarded continuation,
+  and added a session-only failure channel so provisional commits and rollbacks never dismiss the
+  sheet or lose the row-level Retry action.
+- Wired the native/web document picker to the shared durable Import Pipeline, including MIME and
+  web extension filters, no-base64 web ingestion, cancellation semantics, queue rebuild/open, and
+  dock confirmations.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean after each checkpoint.
+- Full retained Playwright gate → 6/6 critical journeys passed after Tasks 33.1–33.2, 33.3, and 33.4.
+- Installed Expo DocumentPicker source confirms the web `accept` attribute joins the supplied MIME
+  and extension filters; a read-only second review found no remaining P1/P2 issues in Task 33.3.
+
+**Not verified / known gaps:**
+
+- The sheet is not mounted until Task 35.2, so integrated native/web visual checks, VoiceOver,
+  keyboard/search, detent gestures, and real picker/import interaction remain pending.
+- The requested DSH bridge discovery was retried, but no `dsh_collab` or `dsh_task_*` tool was
+  exposed; a local Codex reviewer completed Task 33.3 review, while its later Task 33.4 pass hit an
+  account usage limit before reporting.
+- Concurrent uncommitted waveform/playhead edits remain outside all three commits.
+
+**Next agent should:**
+
+- Implement Task 34.1 music-item rename, then Task 34.2 deletion semantics.
 
 ### 2026-10-22 — Add icons and accessible bottom sheet
 
@@ -384,38 +429,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 28.1's track-switch transaction core, then the pending-destination and rollback
   semantics before wiring queue controls.
-
-### 2026-10-20 — Complete boot and draft autosave checkpoints
-
-**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `c6f8c7a`, `009fa5c`
-**Kanban moved:** local library boot + autosave → In Progress (Phase 5 complete)
-
-**Changed:**
-
-- Added strict, retryable launch hydration with migration locking, repaired derived project indexes,
-  missing-file reconciliation, queue restoration, and a protected post-boot orphan sweep.
-- Added per-song draft autosave with a 500 ms debounce, 2 s maximum latency, execution-time content
-  snapshots, fingerprint skips, coalesced serialized writes, background flush, and foreground retry.
-- Centralized persistence failures in an accessible glass banner and forwarded monotonic library
-  notices into mobile and desktop dock toasts.
-
-**Verified:**
-
-- Boot temporary checks → 7/7 passed; autosave temporary checks → 6/6 passed; both suites were
-  removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-
-**Not verified / known gaps:**
-
-- Background/force-quit draft restoration still requires the retained native journey after track
-  switching and launch restoration are wired in Phase 7, plus physical-device acceptance.
-- DSH-Qwen's Task 24 audit failed without output; an independent reviewer found four edge cases,
-  all corrected before the final gates.
-- Concurrent uncommitted waveform/playhead work remains present and outside the autosave commit.
-
-**Next agent should:**
-
-- Implement Task 26 safe Save/Save as New semantics, beginning with the single pipeline operation
-  and revision/name conflict results before replacing the legacy Save prompt.

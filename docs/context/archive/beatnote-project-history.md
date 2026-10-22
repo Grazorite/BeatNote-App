@@ -2697,3 +2697,38 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Implement Task 22, beginning with strict singleton reads and the project-index I/O-failure guard,
   then add and mount the injectable boot lifecycle.
+
+### 2026-10-20 — Complete boot and draft autosave checkpoints
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `c6f8c7a`, `009fa5c`
+**Kanban moved:** local library boot + autosave → In Progress (Phase 5 complete)
+
+**Changed:**
+
+- Added strict, retryable launch hydration with migration locking, repaired derived project indexes,
+  missing-file reconciliation, queue restoration, and a protected post-boot orphan sweep.
+- Added per-song draft autosave with a 500 ms debounce, 2 s maximum latency, execution-time content
+  snapshots, fingerprint skips, coalesced serialized writes, background flush, and foreground retry.
+- Centralized persistence failures in an accessible glass banner and forwarded monotonic library
+  notices into mobile and desktop dock toasts.
+
+**Verified:**
+
+- Boot temporary checks → 7/7 passed; autosave temporary checks → 6/6 passed; both suites were
+  removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Background/force-quit draft restoration still requires the retained native journey after track
+  switching and launch restoration are wired in Phase 7, plus physical-device acceptance.
+- DSH-Qwen's Task 24 audit failed without output; an independent reviewer found four edge cases,
+  all corrected before the final gates.
+- Concurrent uncommitted waveform/playhead work remains present and outside the autosave commit.
+
+**Next agent should:**
+
+- Implement Task 26 safe Save/Save as New semantics, beginning with the single pipeline operation
+  and revision/name conflict results before replacing the legacy Save prompt.
