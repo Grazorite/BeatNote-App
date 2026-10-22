@@ -995,15 +995,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       library frame/note and the missing-audio note-plus-X treatment.
     - _Requirements: 29.3, 29.7_
 
-- [ ] 32. Build the `BottomSheet` primitive
-  - [ ] 32.1 Implement the pure detent resolver
+- [x] 32. Build the `BottomSheet` primitive
+  - [x] 32.1 Implement the pure detent resolver
     - `src/utils/sheetDetent.ts`: `resolveSheetRelease(sheetHeight, releaseOffset)` returns
       `close` when the release is more than 0.25 × the medium height below the medium detent, else
       the nearest of medium (0.50 × height) and large.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - `resolveSheetRelease` uses top-edge offsets, a strict 0.625-height close threshold, and a
+      medium-winning nearest-detent tie while normalising invalid geometry defensively.
     - _Requirements: 9.2, 9.3, 9.4_
 
-  - [ ] 32.2 Implement `src/components/ui/common/BottomSheet.tsx`
+  - [x] 32.2 Implement `src/components/ui/common/BottomSheet.tsx`
     - Use a transparent `overFullScreen` `Modal` host, a visible grabber, and a pan gesture on the
       grabber and header only (gesture-handler `Gesture.Pan`, Reanimated `withTiming` 300 ms).
       Reduce Motion makes changes immediate. Landscape opens at large with leading, trailing, and
@@ -1013,12 +1015,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       close on Escape. Rotation keeps the sheet mounted. Styles go in
       `src/styles/components/common/bottomSheet.ts` with the liquid-glass surface.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - Added the transparent liquid-glass host, header-only pan gesture, live Reduce Motion support,
+      close-safe rotation/keyboard refits, safe-area sizing, focus handoff, web focus trap/Escape,
+      44-point Close, and accessible detent switching. The retained browser gate remains 6/6.
     - _Requirements: 9.1, 9.2, 9.3, 9.5, 9.6, 9.7, 9.8, 9.10, 9.11, 9.12, 29.6, 29.8_
 
-  - [ ]* 32.3 Write property test for detent resolution
+  - [x]* 32.3 Write property test for detent resolution
     - **Property 10: Sheet release resolves to a valid detent**
     - **Validates: Requirements 9.3, 9.4**
     - Temporary: `tests/unit/sheetDetent.test.ts`.
+    - Temporary fast-check coverage passed 3/3 for the strict close boundary, nearest open detent,
+      and invalid geometry, then was removed per the test strategy.
 
 - [ ] 33. Build the Music_Library_Sheet
   - [ ] 33.1 Create `OverflowMenu`
