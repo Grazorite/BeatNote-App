@@ -76,9 +76,13 @@ export const capabilitiesFor = (item: MusicItem | null): PlaybackCapabilities =>
 export const capabilitiesForLoadedItem = (
   item: MusicItem | null,
   hasDirectLocalAudio: boolean,
-): PlaybackCapabilities => item === null && hasDirectLocalAudio
-  ? LOCAL_CAPABILITIES
-  : capabilitiesFor(item);
+): PlaybackCapabilities => {
+  if (item === null) return hasDirectLocalAudio ? LOCAL_CAPABILITIES : NO_SOURCE_CAPABILITIES;
+  if (!hasDirectLocalAudio || item.availability !== 'available' || item.removed) {
+    return NO_SOURCE_CAPABILITIES;
+  }
+  return capabilitiesFor(item);
+};
 
 export const resolveSource = (item: MusicItem): Promise<{ uri: string }> => (
   getProvider(item.source.provider).resolve(item)

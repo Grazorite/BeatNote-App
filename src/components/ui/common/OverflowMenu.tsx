@@ -24,7 +24,7 @@ import GlassBackdrop from '../controls/GlassBackdrop';
 export interface OverflowMenuAction {
   name: string;
   label: string;
-  onPress: () => void;
+  onPress: (returnFocusRef?: React.RefObject<unknown>) => void;
   disabled?: boolean;
   destructive?: boolean;
   testID?: string;
@@ -105,7 +105,7 @@ const OverflowMenu: React.FC<OverflowMenuProps> = ({
   const invoke = useCallback((action: OverflowMenuAction) => {
     if (action.disabled) return;
     setVisible(false);
-    requestAnimationFrame(action.onPress);
+    requestAnimationFrame(() => action.onPress(triggerRef));
   }, []);
 
   const menuHeight = Math.min(

@@ -16,7 +16,12 @@ import {
 } from '../../../features/library/importPipeline';
 import { runLibraryBoot } from '../../../features/library/useLibraryLifecycle';
 import { requestTrackSwitch } from '../../../features/library/trackSwitch';
-import { renameMusicItem } from '../../../features/library/libraryActions';
+import {
+  deleteMusicItem,
+  getDeleteMusicItemSummary,
+  renameMusicItem,
+  type DeleteMusicItemSummary,
+} from '../../../features/library/libraryActions';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { musicLibrarySheetStyles as styles } from '../../../styles/components/library/musicLibrarySheet';
 import { colors } from '../../../styles/common';
@@ -32,6 +37,7 @@ import {
 import { filterLibraryItems, sortLibraryItems } from '../../../utils/queueOrder';
 import { BeatNoteIcon } from '../../icons';
 import { BottomSheet } from '../common';
+import ConfirmDialog from '../modals/ConfirmDialog';
 import RenameMusicPrompt from '../modals/RenameMusicPrompt';
 import ImportProgressRow from './ImportProgressRow';
 import MusicLibraryRow from './MusicLibraryRow';
@@ -39,8 +45,13 @@ import MusicLibraryRow from './MusicLibraryRow';
 export interface MusicLibrarySheetProps {
   returnFocusRef: React.RefObject<unknown>;
   onShowProjects: (item: MusicItem) => void;
-  onDelete: (item: MusicItem) => void;
   onRelink: (item: MusicItem) => void;
+}
+
+interface DeletePromptState {
+  item: MusicItem;
+  summary: DeleteMusicItemSummary;
+  returnFocusRef?: React.RefObject<unknown>;
 }
 
 const SORT_OPTIONS: ReadonlyArray<{ value: LibrarySortKey; label: string }> = [
@@ -68,7 +79,6 @@ const AUDIO_PICKER_TYPES = Platform.OS === 'web'
 const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   returnFocusRef,
   onShowProjects,
-  onDelete,
   onRelink,
 }) => {
   const visible = useStudioStore(state => state.isLibrarySheetOpen);
@@ -90,6 +100,8 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const [focused, setFocused] = useState<string | null>(null);
   const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
   const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
+  const [deletePrompt, setDeletePrompt] = useState<DeletePromptState | null>(null);
+  const [actionBusyId, setActionBusyId] = useState<string | null>(null);
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -111,7 +123,8 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     || switchPhase !== 'idle'
     || switchGuard !== null
     || saveInProgress
-    || activeLoadingId !== null;
+    || activeLoadingId !== null
+    || actionBusyId !== null;
 
   useEffect(() => {
     if (
@@ -163,6 +176,38 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     }
   }, [closeLibrarySheet, currentMusicItemId]);
 
+  const openDeletePrompt = useCallback(async (
+    item: MusicItem,
+    returnFocusRef?: React.RefObject<unknown>,
+  ) => {
+    setActionBusyId(item.id);
+    try {
+      const summary = await getDeleteMusicItemSummary(item.id);
+      setDeletePrompt({ item, summary, returnFocusRef });
+    } catch (error) {
+      console.error('Unable to prepare song deletion', error);
+      notify("BeatNote couldn't check this song's saved work");
+    } finally {
+      setActionBusyId(null);
+    }
+  }, [notify]);
+
+  const confirmDelete = useCallback(async () => {
+    if (deletePrompt === null) return;
+    const { item } = deletePrompt;
+    setDeletePrompt(null);
+    setActionBusyId(item.id);
+    try {
+      const result = await deleteMusicItem(item.id);
+      if (result.kind === 'deleted') notify(`Removed “${item.displayTitle}” from BeatNote`);
+      if (result.kind === 'failed') notify(result.error);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "BeatNote couldn't remove this song.");
+    } finally {
+      setActionBusyId(null);
+    }
+  }, [deletePrompt, notify]);
+
   const renderItem = useCallback(({ item }: { item: MusicItem }) => (
     <MusicLibraryRow
       item={item}
@@ -177,7 +222,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       onRetry={() => { void switchTo(item); }}
       onRename={() => setRenameItem(item)}
       onShowProjects={() => onShowProjects(item)}
-      onDelete={() => onDelete(item)}
+      onDelete={focusRef => { void openDeletePrompt(item, focusRef); }}
       onRelink={() => onRelink(item)}
     />
   ), [
@@ -185,9 +230,9 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     interactionsDisabled,
     librarySwitchFailure,
     activeLoadingId,
-    onDelete,
     onRelink,
     onShowProjects,
+    openDeletePrompt,
     projectCounts,
     switchTo,
   ]);
@@ -358,6 +403,25 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
           }
           return result.error;
         }}
+      />
+      <ConfirmDialog
+        visible={deletePrompt !== null}
+        title="Delete from BeatNote?"
+        message={deletePrompt === null ? '' : [
+          `“${deletePrompt.item.displayTitle}” has ${deletePrompt.summary.projectCount} saved ${deletePrompt.summary.projectCount === 1 ? 'project' : 'projects'}`,
+          deletePrompt.summary.hasDraft ? 'and a song draft.' : 'and no song draft.',
+          "This removes only BeatNote's copied audio. The original file in Files is not affected.",
+          'Saved projects and the draft are kept for relinking.',
+        ].join(' ')}
+        actions={[{
+          label: 'Delete from BeatNote',
+          destructive: true,
+          testID: 'confirm-delete-music-item',
+          onPress: () => { void confirmDelete(); },
+        }]}
+        onCancel={() => setDeletePrompt(null)}
+        returnFocusRef={deletePrompt?.returnFocusRef}
+        testID="delete-music-item-confirm"
       />
     </BottomSheet>
   );

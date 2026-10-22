@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Text,
@@ -29,7 +29,7 @@ export interface MusicLibraryRowProps {
   onRetry?: () => void;
   onRename: () => void;
   onShowProjects: () => void;
-  onDelete: () => void;
+  onDelete: (returnFocusRef?: React.RefObject<unknown>) => void;
   onRelink?: () => void;
 }
 
@@ -56,6 +56,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   onRelink,
 }) => {
   const { fontScale } = useWindowDimensions();
+  const mainRef = useRef<View>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const missing = item.availability === 'missing';
   const unavailable = disabled || loading;
@@ -68,7 +69,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       {
         name: 'delete',
         label: 'Delete from BeatNote',
-        onPress: onDelete,
+        onPress: returnFocusRef => onDelete(returnFocusRef ?? mainRef),
         destructive: true,
       },
     ];
@@ -94,6 +95,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       testID={`music-library-row-${item.id}`}
     >
       <TouchableOpacity
+        ref={mainRef}
         style={[styles.main, focused === 'main' && styles.mainFocused]}
         onPress={onPress}
         onFocus={() => setFocused('main')}

@@ -127,6 +127,16 @@ export function updateTrackSwitchPlayer(snapshot: PlayerSnapshot | null): void {
   playerListeners.forEach(listener => listener());
 }
 
+/** Stop the currently registered player before its managed source is removed. */
+export async function pauseTrackSwitchPlayer(): Promise<void> {
+  if (playerSnapshot !== null) await playerSnapshot.pause();
+}
+
+/** Resume a player paused only to attempt removal when that removal fails. */
+export async function resumeTrackSwitchPlayer(): Promise<void> {
+  if (playerSnapshot !== null) await playerSnapshot.play();
+}
+
 const currentPlayer = (): PlayerSnapshot => {
   if (playerSnapshot === null) throw new Error('Audio player is not ready');
   return playerSnapshot;
@@ -395,6 +405,7 @@ interface PendingRequest {
 export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
   let active = false;
   let pending: PendingRequest | null = null;
+  let guarded: PendingRequest | null = null;
 
   const failed = (
     request: SwitchRequest,
@@ -436,7 +447,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         switchPhase: 'guard',
         switchGuard: { pendingDestination: request },
       });
-      return { kind: 'cancelled' };
+      return new Promise<SwitchResult>(resolve => { guarded = { request, resolve }; });
     }
 
     const source = snapshotSource(initial);
@@ -644,6 +655,10 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     return new Promise(resolve => { pending = { request, resolve }; });
   };
 
+  const requestTrackSwitchWithoutGuard = (request: SwitchRequest): Promise<SwitchResult> => (
+    drain(request, true)
+  );
+
   const resolveSwitchGuard = async (
     choice: SwitchGuardChoice,
   ): Promise<SwitchGuardResolution> => {
@@ -651,22 +666,41 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     if (guard === null) return { kind: 'cancelled' };
     if (choice === 'cancel') {
       dependencies.setState({ switchGuard: null, switchPhase: 'idle' });
-      return { kind: 'cancelled' };
+      const result: SwitchResult = { kind: 'cancelled' };
+      guarded?.resolve(result);
+      guarded = null;
+      return result;
     }
     if (choice === 'save') {
       const result = await dependencies.saveCurrent();
       if (result.kind !== 'saved') {
         if (result.kind === 'failed' || result.kind === 'noSong') {
           dependencies.setState({ switchGuard: null, switchPhase: 'idle' });
+          guarded?.resolve({ kind: 'cancelled' });
+          guarded = null;
         }
         return { kind: 'saveResult', result };
       }
     }
     dependencies.setState({ switchGuard: null, switchPhase: 'idle' });
-    return drain(guard.pendingDestination, true, true);
+    let result: SwitchResult;
+    try {
+      result = await run(guard.pendingDestination, true, true);
+    } catch (error) {
+      dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
+      result = failed(
+        guard.pendingDestination,
+        'resolveFailed',
+        'Song Not Changed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+    guarded?.resolve(result);
+    guarded = null;
+    return result;
   };
 
-  return { requestTrackSwitch, resolveSwitchGuard };
+  return { requestTrackSwitch, requestTrackSwitchWithoutGuard, resolveSwitchGuard };
 }
 
 const defaultTrackSwitch = createTrackSwitch(defaultDependencies);
@@ -678,6 +712,11 @@ export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult
 export const resolveSwitchGuard = (
   choice: SwitchGuardChoice,
 ): Promise<SwitchGuardResolution> => defaultTrackSwitch.resolveSwitchGuard(choice);
+
+/** Restore a pre-delete source without prompting over the just-loaded destination draft. */
+export const restoreTrackAfterDeleteFailure = (request: SwitchRequest): Promise<SwitchResult> => (
+  defaultTrackSwitch.requestTrackSwitchWithoutGuard(request)
+);
 
 /** Seek the currently published player without replacing its source or playback state. */
 export const seekCurrentTrack = async (milliseconds: number): Promise<void> => {

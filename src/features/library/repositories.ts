@@ -10,6 +10,7 @@ import {
   type SongDraft,
 } from '../../types/project';
 import type { PlaybackQueue } from '../../types/queue';
+import { removeFromQueue } from '../../utils/queueOrder';
 import {
   validateLibraryPrefs,
   validateLibraryRecord,
@@ -264,6 +265,64 @@ export interface TrackSwitchCommitResult {
   queue: PlaybackQueue | null;
 }
 
+export interface MusicItemRemovalCommitResult {
+  library: LibraryRecord;
+  queue: PlaybackQueue | null;
+}
+
+/** Retain a hidden missing item while removing it from collections and the persisted queue. */
+export async function commitMusicItemRemoval(
+  musicItemId: string,
+  options: RepositoryOptions = {},
+  onCommitted?: (result: MusicItemRemovalCommitResult) => void,
+): Promise<MusicItemRemovalCommitResult> {
+  let result: MusicItemRemovalCommitResult | null = null;
+  await enqueueWrite({
+    label: `music-item-delete:${musicItemId}`,
+    family: 'library',
+    targetKeys: [LIBRARY_KEY, QUEUE_KEY],
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const [library, queue] = await Promise.all([
+        readRecord(libraryDefinition, options, true),
+        readRecord(queueDefinition, options, true),
+      ]);
+      const item = library?.items[musicItemId];
+      if (library === null || item === undefined) {
+        throw new Error('This song is no longer in your music library.');
+      }
+      const nextLibrary: LibraryRecord = item.removed
+        ? library
+        : {
+          ...library,
+          items: {
+            ...library.items,
+            [musicItemId]: {
+              ...item,
+              availability: 'missing',
+              removed: true,
+              collectionIds: [],
+            },
+          },
+        };
+      const nextQueue = queue === null ? null : removeFromQueue(queue, musicItemId);
+      if (nextQueue === null) {
+        await AsyncStorage.setItem(LIBRARY_KEY, JSON.stringify(nextLibrary));
+      } else {
+        await AsyncStorage.multiSet([
+          [LIBRARY_KEY, JSON.stringify(nextLibrary)],
+          [QUEUE_KEY, JSON.stringify(nextQueue)],
+        ]);
+      }
+      result = { library: nextLibrary, queue: nextQueue };
+      onCommitted?.(result);
+    },
+  });
+  if (result === null) throw new Error('Music item deletion did not complete');
+  return result;
+}
+
 /** Persist a completed player switch as one retryable queue/library pipeline operation. */
 export async function commitTrackSwitch(
   musicItemId: string,
@@ -330,6 +389,9 @@ const draftDefinition = (musicItemId: string): RecordDefinition<SongDraft> => ({
 
 export const readDraft = (musicItemId: string, options?: RepositoryOptions) => (
   readRecord(draftDefinition(musicItemId), options)
+);
+export const readDraftStrict = (musicItemId: string, options?: RepositoryOptions) => (
+  readRecord(draftDefinition(musicItemId), options, true)
 );
 export const writeDraft = (
   musicItemId: string,

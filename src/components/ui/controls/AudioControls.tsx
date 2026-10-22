@@ -32,6 +32,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
     isLoopRangeEnabled,
     toggleLoopRangeEnabled,
     capabilities,
+    hasPlayableAudio,
   } = useStudioStore(useShallow(state => ({
     isPlaying: state.isPlaying,
     songLoaded: state.songLoaded,
@@ -45,6 +46,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       state.currentMusicItemId === null ? null : state.libraryItems[state.currentMusicItemId] ?? null,
       state.songLoaded && state.currentAudioUri !== null,
     ),
+    hasPlayableAudio: state.songLoaded && state.currentAudioUri !== null,
   })));
   const hasValidLoop = useStudioStore(state => state.songLoaded && isValidLoopRange(state, state.songDuration));
   const canToggleLoop = hasValidLoop && capabilities.exactSeeking && capabilities.waveformAccess;
@@ -93,27 +95,30 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={getPlayPauseButtonStyle(songLoaded)}
-        onPress={songLoaded ? onTogglePlayback : undefined}
-        disabled={!songLoaded}
+        style={getPlayPauseButtonStyle(hasPlayableAudio)}
+        onPress={hasPlayableAudio ? onTogglePlayback : undefined}
+        disabled={!hasPlayableAudio}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
         testID="play-pause"
         accessibilityLabel={isPlaying ? 'Pause playback' : 'Play playback'}
+        accessibilityState={{ disabled: !hasPlayableAudio }}
+        accessibilityHint={songLoaded && !hasPlayableAudio ? 'Audio is missing for this song' : undefined}
       >
-        <BeatNoteIcon name={isPlaying ? 'pause' : 'play'} size={compact ? 20 : isMobile ? 24 : 32} color={songLoaded ? "#ffffff" : "#666666"} />
+        <BeatNoteIcon name={isPlaying ? 'pause' : 'play'} size={compact ? 20 : isMobile ? 24 : 32} color={hasPlayableAudio ? "#ffffff" : "#666666"} />
       </TouchableOpacity>
       
       <TouchableOpacity
         style={getSkipButtonStyle(canSkipForward)}
         onPress={canSkipForward && songLoaded ? onSkipForward : undefined}
-        disabled={!songLoaded}
+        disabled={!canSkipForward}
+        accessibilityState={{ disabled: !canSkipForward }}
+        accessibilityHint={!capabilities.exactSeeking ? 'Exact seeking is unavailable for this audio source' : undefined}
         activeOpacity={1}
         delayPressIn={0}
         delayPressOut={0}
         testID="skip-forward"
-        accessibilityHint={!capabilities.exactSeeking ? 'Exact seeking is unavailable for this audio source' : undefined}
       >
         <BeatNoteIcon name="next" size={compact ? 20 : isMobile ? 24 : 32} color={canSkipForward ? "#ffffff" : "#666666"} />
       </TouchableOpacity>

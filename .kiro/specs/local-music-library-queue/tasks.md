@@ -1073,7 +1073,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 2.2, 10.13, 10.14, 18.2_
 
-  - [ ] 34.2 Implement Delete from BeatNote
+  - [x] 34.2 Implement Delete from BeatNote
     - Show a destructive `ConfirmDialog` stating the project count, whether a draft exists, and
       that the original in Files is unaffected. For the current song, first switch to the next
       entry, else the previous, and delete nothing if that switch is cancelled or fails.
