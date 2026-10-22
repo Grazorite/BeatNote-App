@@ -1066,7 +1066,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - _Requirements: 3.13, 7.1, 7.2, 7.12, 18.3, 27.1_
 
 - [ ] 34. Implement library row actions
-  - [ ] 34.1 Implement rename
+  - [x] 34.1 Implement rename
     - Use `normalizeDisplayTitle`, show an inline error with Save disabled on an empty title, and
       update `SongTitleControl` immediately. Identity, path, and references are unchanged; the queue
       order is unchanged.

@@ -16,6 +16,7 @@ import {
 } from '../../../features/library/importPipeline';
 import { runLibraryBoot } from '../../../features/library/useLibraryLifecycle';
 import { requestTrackSwitch } from '../../../features/library/trackSwitch';
+import { renameMusicItem } from '../../../features/library/libraryActions';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { musicLibrarySheetStyles as styles } from '../../../styles/components/library/musicLibrarySheet';
 import { colors } from '../../../styles/common';
@@ -31,12 +32,12 @@ import {
 import { filterLibraryItems, sortLibraryItems } from '../../../utils/queueOrder';
 import { BeatNoteIcon } from '../../icons';
 import { BottomSheet } from '../common';
+import RenameMusicPrompt from '../modals/RenameMusicPrompt';
 import ImportProgressRow from './ImportProgressRow';
 import MusicLibraryRow from './MusicLibraryRow';
 
 export interface MusicLibrarySheetProps {
   returnFocusRef: React.RefObject<unknown>;
-  onRename: (item: MusicItem) => void;
   onShowProjects: (item: MusicItem) => void;
   onDelete: (item: MusicItem) => void;
   onRelink: (item: MusicItem) => void;
@@ -66,7 +67,6 @@ const AUDIO_PICKER_TYPES = Platform.OS === 'web'
 
 const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   returnFocusRef,
-  onRename,
   onShowProjects,
   onDelete,
   onRelink,
@@ -89,6 +89,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
   const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
+  const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -174,7 +175,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
         : null}
       onPress={() => { void switchTo(item); }}
       onRetry={() => { void switchTo(item); }}
-      onRename={() => onRename(item)}
+      onRename={() => setRenameItem(item)}
       onShowProjects={() => onShowProjects(item)}
       onDelete={() => onDelete(item)}
       onRelink={() => onRelink(item)}
@@ -186,7 +187,6 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     activeLoadingId,
     onDelete,
     onRelink,
-    onRename,
     onShowProjects,
     projectCounts,
     switchTo,
@@ -345,6 +345,20 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
           testID="music-library-list"
         />
       </View>
+      <RenameMusicPrompt
+        visible={renameItem !== null}
+        initialTitle={renameItem?.displayTitle ?? ''}
+        onClose={() => setRenameItem(null)}
+        onConfirm={async title => {
+          if (renameItem === null) return null;
+          const result = await renameMusicItem(renameItem.id, title);
+          if (result.kind === 'renamed') {
+            setRenameItem(null);
+            return null;
+          }
+          return result.error;
+        }}
+      />
     </BottomSheet>
   );
 };
