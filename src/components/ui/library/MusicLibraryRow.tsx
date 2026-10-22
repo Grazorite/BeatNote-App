@@ -30,7 +30,7 @@ export interface MusicLibraryRowProps {
   onRename: () => void;
   onShowProjects: () => void;
   onDelete: (returnFocusRef?: React.RefObject<unknown>) => void;
-  onRelink?: () => void;
+  onRelink?: (returnFocusRef?: React.RefObject<unknown>) => void;
 }
 
 const formatDuration = (durationMs: number | null): string => {
@@ -73,7 +73,13 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
         destructive: true,
       },
     ];
-    if (missing && onRelink) next.push({ name: 'relink', label: 'Relink', onPress: onRelink });
+    if (missing && onRelink) {
+      next.push({
+        name: 'relink',
+        label: 'Relink',
+        onPress: returnFocusRef => onRelink(returnFocusRef ?? mainRef),
+      });
+    }
     return next.map(action => ({
       ...action,
       disabled: unavailable,

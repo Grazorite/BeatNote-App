@@ -45,9 +45,9 @@ export interface RelinkConfirmation {
 }
 
 export type ImportOutcome =
-  | { kind: 'created'; musicItemId: string }
+  | { kind: 'created'; musicItemId: string; item: MusicItem }
   | { kind: 'duplicate'; musicItemId: string }
-  | { kind: 'reattached'; musicItemId: string }
+  | { kind: 'reattached'; musicItemId: string; item: MusicItem }
   | ({ kind: 'relinkNeedsConfirm' } & RelinkConfirmation)
   | { kind: 'cancelled' }
   | { kind: 'failed'; error: ImportError };
@@ -251,8 +251,9 @@ export function createImportPipeline(dependencies: ImportPipelineDependencies): 
         IMPORTED_MUSIC_COLLECTION_ID,
       ])),
     };
+    let persistedItem: MusicItem;
     try {
-      await dependencies.mutateLibrary(current => {
+      persistedItem = await dependencies.mutateLibrary(current => {
         const latest = current ?? emptyLibrary();
         const latestItem = latest.items[item.id];
         if (library.items[item.id] === undefined && latestItem !== undefined) {
@@ -278,7 +279,7 @@ export function createImportPipeline(dependencies: ImportPipelineDependencies): 
             ...latest,
             items: { ...latest.items, [item.id]: nextItem },
           }),
-          result: undefined,
+          result: nextItem,
         };
       }, dependencies.repositoryOptions);
     } catch (error) {
@@ -300,8 +301,8 @@ export function createImportPipeline(dependencies: ImportPipelineDependencies): 
     }
     await cleanupSource(job.request.sourceUri);
     return library.items[item.id] === undefined
-      ? { kind: 'created', musicItemId: item.id }
-      : { kind: 'reattached', musicItemId: item.id };
+      ? { kind: 'created', musicItemId: item.id, item: persistedItem }
+      : { kind: 'reattached', musicItemId: item.id, item: persistedItem };
   };
 
   const execute = async (job: ImportJob): Promise<ImportOutcome> => {
@@ -309,9 +310,19 @@ export function createImportPipeline(dependencies: ImportPipelineDependencies): 
     if (job.relinkContinuation) {
       const pending = job.relinkContinuation;
       if (!pending.useFile) {
-        await dependencies.audioStore.discard(pending.staged).catch(error => {
+        try {
+          await dependencies.audioStore.discard(pending.staged);
+        } catch (error) {
           (dependencies.logError ?? console.error)('Unable to discard cancelled relink', error);
-        });
+          return {
+            kind: 'failed',
+            error: new ImportError(
+              'copyFailed',
+              "BeatNote couldn't remove the selected relink copy.",
+              { cause: error },
+            ),
+          };
+        }
         await cleanupSource(pending.request.sourceUri);
         return { kind: 'cancelled' };
       }
@@ -702,9 +713,39 @@ const pipeline = createImportPipeline({
 
 const enqueueImportRaw = pipeline.enqueueImport;
 
+const refreshRelinkedItem = async (item: MusicItem): Promise<void> => {
+  useStudioStore.setState(state => ({
+    libraryItems: { ...state.libraryItems, [item.id]: item },
+  }));
+  const state = useStudioStore.getState();
+  if (state.currentMusicItemId === item.id) {
+    useStudioStore.setState({ isPlaying: false });
+    const { restoreTrackAfterDeleteFailure } = await import('./trackSwitch');
+    const result = await restoreTrackAfterDeleteFailure({
+      musicItemId: item.id,
+      origin: 'deleteCurrent',
+      ...(state.queue?.currentIndex === null || state.queue === null
+        ? {}
+        : { queueIndex: state.queue.currentIndex }),
+    }).catch(error => ({
+      kind: 'failed' as const,
+      reason: { message: error instanceof Error ? error.message : String(error) },
+    }));
+    if (result.kind !== 'committed') {
+      state.notify(`Relinked “${item.displayTitle}”, but couldn't load the audio`);
+      return;
+    }
+  }
+  useStudioStore.getState().notify(`Relinked “${item.displayTitle}”`);
+};
+
 /** Import for user-facing flows, refresh the mirror, then open the committed library item. */
 export const enqueueImport = async (request: ImportRequest): Promise<ImportOutcome> => {
   const outcome = await enqueueImportRaw(request);
+  if (request.origin === 'relink') {
+    if (outcome.kind === 'reattached') await refreshRelinkedItem(outcome.item);
+    return outcome;
+  }
   if (request.origin === 'migration'
     || (outcome.kind !== 'created'
       && outcome.kind !== 'duplicate'
@@ -736,7 +777,14 @@ export const cancelImport = pipeline.cancelImport;
 export const subscribeImportJobs = pipeline.subscribeImportJobs;
 export const getImportJobs = pipeline.importJobs;
 export const dismissImportJob = pipeline.dismissImportJob;
-export const resolveRelinkConfirmation = pipeline.resolveRelinkConfirmation;
+export const resolveRelinkConfirmation = async (
+  stagingRef: string,
+  useFile: boolean,
+): Promise<ImportOutcome> => {
+  const outcome = await pipeline.resolveRelinkConfirmation(stagingRef, useFile);
+  if (outcome.kind === 'reattached') await refreshRelinkedItem(outcome.item);
+  return outcome;
+};
 
 export const migrationImporter = async (
   request: ImportRequest & { origin: 'migration' },

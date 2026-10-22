@@ -13,6 +13,8 @@ import {
   cancelImport,
   dismissImportJob,
   enqueueImport,
+  resolveRelinkConfirmation,
+  type RelinkConfirmation,
 } from '../../../features/library/importPipeline';
 import { runLibraryBoot } from '../../../features/library/useLibraryLifecycle';
 import { requestTrackSwitch } from '../../../features/library/trackSwitch';
@@ -45,12 +47,15 @@ import MusicLibraryRow from './MusicLibraryRow';
 export interface MusicLibrarySheetProps {
   returnFocusRef: React.RefObject<unknown>;
   onShowProjects: (item: MusicItem) => void;
-  onRelink: (item: MusicItem) => void;
 }
 
 interface DeletePromptState {
   item: MusicItem;
   summary: DeleteMusicItemSummary;
+  returnFocusRef?: React.RefObject<unknown>;
+}
+
+interface RelinkPromptState extends RelinkConfirmation {
   returnFocusRef?: React.RefObject<unknown>;
 }
 
@@ -79,7 +84,6 @@ const AUDIO_PICKER_TYPES = Platform.OS === 'web'
 const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   returnFocusRef,
   onShowProjects,
-  onRelink,
 }) => {
   const visible = useStudioStore(state => state.isLibrarySheetOpen);
   const libraryItems = useStudioStore(state => state.libraryItems);
@@ -102,6 +106,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
   const [deletePrompt, setDeletePrompt] = useState<DeletePromptState | null>(null);
   const [actionBusyId, setActionBusyId] = useState<string | null>(null);
+  const [relinkConfirmation, setRelinkConfirmation] = useState<RelinkPromptState | null>(null);
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -192,6 +197,54 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     }
   }, [notify]);
 
+  const relinkItem = useCallback(async (
+    item: MusicItem,
+    returnFocusRef?: React.RefObject<unknown>,
+  ) => {
+    setActionBusyId(item.id);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: AUDIO_PICKER_TYPES,
+        copyToCacheDirectory: true,
+        multiple: false,
+        base64: false,
+      });
+      if (result.canceled || result.assets.length === 0) return;
+      const asset = result.assets[0];
+      const outcome = await enqueueImport({
+        origin: 'relink',
+        relinkTargetId: item.id,
+        sourceUri: asset.uri,
+        originalFilename: asset.name,
+        reportedBytes: asset.size ?? null,
+      });
+      if (outcome.kind === 'relinkNeedsConfirm') {
+        setRelinkConfirmation({ ...outcome, returnFocusRef });
+      }
+      if (outcome.kind === 'failed') notify(outcome.error.message);
+    } catch (error) {
+      console.error('Unable to relink audio', error);
+      notify("BeatNote couldn't relink this song");
+    } finally {
+      setActionBusyId(null);
+    }
+  }, [notify]);
+
+  const resolveRelink = useCallback(async (useFile: boolean) => {
+    if (relinkConfirmation === null) return;
+    const { staged } = relinkConfirmation;
+    setRelinkConfirmation(null);
+    setActionBusyId(relinkConfirmation.musicItemId);
+    try {
+      const outcome = await resolveRelinkConfirmation(staged.stagingRef, useFile);
+      if (outcome.kind === 'failed') notify(outcome.error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "BeatNote couldn't relink this song");
+    } finally {
+      setActionBusyId(null);
+    }
+  }, [notify, relinkConfirmation]);
+
   const confirmDelete = useCallback(async () => {
     if (deletePrompt === null) return;
     const { item } = deletePrompt;
@@ -223,17 +276,17 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       onRename={() => setRenameItem(item)}
       onShowProjects={() => onShowProjects(item)}
       onDelete={focusRef => { void openDeletePrompt(item, focusRef); }}
-      onRelink={() => onRelink(item)}
+      onRelink={focusRef => { void relinkItem(item, focusRef); }}
     />
   ), [
     currentMusicItemId,
     interactionsDisabled,
     librarySwitchFailure,
     activeLoadingId,
-    onRelink,
     onShowProjects,
     openDeletePrompt,
     projectCounts,
+    relinkItem,
     switchTo,
   ]);
 
@@ -422,6 +475,35 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
         onCancel={() => setDeletePrompt(null)}
         returnFocusRef={deletePrompt?.returnFocusRef}
         testID="delete-music-item-confirm"
+      />
+      <ConfirmDialog
+        visible={relinkConfirmation !== null}
+        title={relinkConfirmation?.decision === 'looksOriginal'
+          ? 'This looks like the original file'
+          : 'Use this audio file?'}
+        message={relinkConfirmation === null ? '' : (() => {
+          const stored = libraryItems[relinkConfirmation.musicItemId];
+          if (relinkConfirmation.decision === 'looksOriginal') {
+            return 'BeatNote found the same filename and duration. Use this file to restore the audio?';
+          }
+          const formatDuration = (milliseconds: number | null | undefined): string => {
+            if (milliseconds === null || milliseconds === undefined) return 'unknown duration';
+            const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+            return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+          };
+          return [
+            `Stored: “${stored?.displayTitle ?? 'Song'}” — ${formatDuration(stored?.durationMs)}.`,
+            `Chosen: “${relinkConfirmation.chosen.originalFilename}” — ${formatDuration(relinkConfirmation.chosen.durationMs)}.`,
+          ].join(' ');
+        })()}
+        actions={[{
+          label: 'Use This File',
+          testID: 'confirm-relink-use-file',
+          onPress: () => { void resolveRelink(true); },
+        }]}
+        onCancel={() => { void resolveRelink(false); }}
+        returnFocusRef={relinkConfirmation?.returnFocusRef}
+        testID="relink-confirm"
       />
     </BottomSheet>
   );

@@ -341,7 +341,7 @@ const restoreSource = async (
   dependencies: TrackSwitchDependencies,
   source: SourceSnapshot,
 ): Promise<void> => {
-  if (source.musicItemId === null || source.audioUri === null) {
+  if (source.musicItemId === null) {
     dependencies.setState({
       ...applyPersistedContent(source.content),
       currentMusicItemId: null,
@@ -350,6 +350,28 @@ const restoreSource = async (
       songLoaded: false,
       isPlaying: false,
       currentTime: source.currentTime,
+      switchPhase: 'idle',
+      loadingMusicItemId: null,
+      queue: source.queue,
+    });
+    return;
+  }
+  if (source.audioUri === null) {
+    dependencies.setState({
+      ...applyPersistedContent(source.content),
+      currentMusicItemId: source.musicItemId,
+      currentAudioUri: null,
+      currentAudioFilename: source.audioFilename,
+      songDuration: source.songDuration,
+      songLoaded: true,
+      isPlaying: false,
+      currentTime: source.currentTime,
+      draftBaseline: source.baseline,
+      draftBaselineFingerprint: source.baselineFingerprint,
+      draftBaselineName: source.baselineName,
+      lastWrittenFingerprint: source.lastWrittenFingerprint,
+      draftUiState: source.draftUiState,
+      loadedProjectSource: source.loadedProjectSource,
       switchPhase: 'idle',
       loadingMusicItemId: null,
       queue: source.queue,
