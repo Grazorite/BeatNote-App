@@ -46,6 +46,7 @@ import MusicLibraryRow from './MusicLibraryRow';
 
 export interface MusicLibrarySheetProps {
   returnFocusRef: React.RefObject<unknown>;
+  restoreFocusOnClose?: boolean;
   onShowProjects: (item: MusicItem) => void;
 }
 
@@ -83,6 +84,7 @@ const AUDIO_PICKER_TYPES = Platform.OS === 'web'
 
 const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   returnFocusRef,
+  restoreFocusOnClose = true,
   onShowProjects,
 }) => {
   const visible = useStudioStore(state => state.isLibrarySheetOpen);
@@ -331,6 +333,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       initialDetent="medium"
       onClose={closeLibrarySheet}
       returnFocusRef={returnFocusRef}
+      restoreFocusOnClose={restoreFocusOnClose}
       testID="music-library-sheet"
     >
       <View style={styles.content}>

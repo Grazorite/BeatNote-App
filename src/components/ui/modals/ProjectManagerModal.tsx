@@ -1,8 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  AccessibilityInfo,
   Alert,
+  findNodeHandle,
   FlatList,
   Modal,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -21,22 +24,28 @@ interface ProjectManagerModalProps {
   visible: boolean;
   onClose: () => void;
   onOpenProject: (projectId: string) => Promise<boolean>;
+  musicItemId?: string | null;
 }
 
 const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   visible,
   onClose,
   onOpenProject,
+  musicItemId = null,
 }) => {
   const insets = useSafeAreaInsets();
+  const titleRef = React.useRef<Text>(null);
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
+  const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
   const projectSummaries = useStudioStore(state => state.projectSummaries);
-  const projects = useMemo(() => Object.values(projectSummaries).sort((left, right) => (
-    right.modifiedAt.localeCompare(left.modifiedAt)
-      || right.revision - left.revision
-      || left.projectId.localeCompare(right.projectId)
-  )), [projectSummaries]);
+  const projects = useMemo(() => Object.values(projectSummaries)
+    .filter(project => musicItemId === null || project.musicItemId === musicItemId)
+    .sort((left, right) => (
+      right.modifiedAt.localeCompare(left.modifiedAt)
+        || right.revision - left.revision
+        || left.projectId.localeCompare(right.projectId)
+    )), [musicItemId, projectSummaries]);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
 
@@ -158,7 +167,17 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   ), [editingProject, formatDate, handleDelete, handleRename, newName, onClose, onOpenProject]);
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onShow={() => {
+        const handle = findNodeHandle(titleRef.current);
+        if (handle !== null) AccessibilityInfo.setAccessibilityFocus(handle);
+        titleRef.current?.focus?.();
+      }}
+      accessibilityViewIsModal
+    >
       <View style={styles.container}>
         <GlassBackdrop gradientId="projects-modal-glass" radius={0} testID="projects-modal-glass" />
         <View style={[
@@ -168,7 +187,14 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             paddingRight: Math.max(20, insets.right + 12),
           },
         ]}>
-          <Text style={styles.title}>Projects</Text>
+          <Text
+            ref={titleRef}
+            style={styles.title}
+            accessibilityRole="header"
+            {...webTitleProps}
+          >
+            Projects
+          </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>

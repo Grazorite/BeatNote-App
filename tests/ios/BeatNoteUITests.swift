@@ -18,7 +18,7 @@ final class BeatNoteUITests: XCTestCase {
   }
 
   func testStudioLaunchesAndDocumentPickerOpens() {
-    XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
+    XCTAssertTrue(element("song-title-control").waitForExistence(timeout: 20))
     XCTAssertFalse(element("loop-overview").exists, "The loop overview should stay hidden until audio is loaded.")
     let lowestDockButton = element("playback-speed")
     XCTAssertTrue(lowestDockButton.exists)
@@ -35,7 +35,7 @@ final class BeatNoteUITests: XCTestCase {
       "Settings should be the trailing action in the mobile project toolbar."
     )
     XCTAssertFalse(element("sidebar-toggle").exists, "Closed drawer must not overlap the project toolbar.")
-    XCTAssertEqual(element("load-song").label, "Choose Audio File")
+    XCTAssertEqual(element("song-title-control").label, "Music library, no song chosen")
     XCTAssertEqual(element("load-project").label, "Open Projects")
     XCTAssertEqual(element("import-data").label, "Import CSV")
     XCTAssertEqual(element("export-data").label, "Export CSV")
@@ -69,16 +69,19 @@ final class BeatNoteUITests: XCTestCase {
     }
     element("sidebar-toggle").tap()
     XCTAssertFalse(element("project-actions-scroll-cue").exists)
-    for action in ["load-song", "save-project", "load-project", "export-data", "import-data"] {
+    for action in ["song-title-control", "save-project", "load-project", "export-data", "import-data"] {
       XCTAssertTrue(element(action).exists, "All project actions must fit without horizontal scrolling.")
     }
 
-    let loadSong = element("load-song")
-    loadSong.tap()
+    let songTitle = element("song-title-control")
+    songTitle.tap()
+    let importAudio = element("music-library-import")
+    XCTAssertTrue(importAudio.waitForExistence(timeout: 5))
+    importAudio.tap()
     if !waitForPicker(timeout: 15) {
       app.activate()
-      XCTAssertTrue(loadSong.waitForExistence(timeout: 5) && loadSong.isHittable)
-      loadSong.tap()
+      XCTAssertTrue(importAudio.waitForExistence(timeout: 5) && importAudio.isHittable)
+      importAudio.tap()
     }
     XCTAssertTrue(waitForPicker(timeout: 10))
 
@@ -167,7 +170,7 @@ final class BeatNoteUITests: XCTestCase {
     savedProject.tap()
     dismissAlertIfPresent()
 
-    XCTAssertEqual(element("load-song").label, "Replace Audio File")
+    XCTAssertTrue(element("song-title-control").label.contains("current song"))
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     XCTAssertEqual(element("loop-overview-summary").label, savedLoopSummary)
     XCTAssertTrue(element("loop-overview-range").exists, "Saved loop range should restore after relaunch.")
@@ -338,7 +341,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(rail.waitForExistence(timeout: 10))
     XCTAssertGreaterThanOrEqual(element("add-marker").frame.minX, rail.frame.minX)
     XCTAssertLessThanOrEqual(element("shuffle-control").frame.maxX, rail.frame.maxX)
-    XCTAssertLessThanOrEqual(element("load-song").frame.height, 56)
+    XCTAssertLessThanOrEqual(element("song-title-control").frame.height, 56)
     XCTAssertLessThanOrEqual(rail.frame.width, 110)
     let landscapeButton = element("add-marker").frame
     XCTAssertGreaterThanOrEqual(landscapeButton.height, 38)
@@ -391,11 +394,24 @@ final class BeatNoteUITests: XCTestCase {
   }
 
   private func loadBundledSimulatorAudio(_ filename: String = "test-audio.wav") {
-    XCTAssertTrue(element("load-song").waitForExistence(timeout: 20))
-    element("load-song").tap()
+    XCTAssertTrue(element("song-title-control").waitForExistence(timeout: 20))
+    element("song-title-control").tap()
+    XCTAssertTrue(element("music-library-import").waitForExistence(timeout: 5))
+    element("music-library-import").tap()
     selectDocument(filename)
     dismissAlertIfPresent()
-    XCTAssertEqual(element("load-song").label, "Replace Audio File")
+    let title = element("song-title-control")
+    let expectedTitle = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent
+    let loadedTitle = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "current song \(expectedTitle)"),
+      object: title
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [loadedTitle], timeout: 20), .completed)
+    let sheetClosed = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "exists == false"),
+      object: element("music-library-sheet")
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [sheetClosed], timeout: 10), .completed)
   }
 
   private func element(_ identifier: String) -> XCUIElement {

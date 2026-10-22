@@ -51,8 +51,8 @@ export const projectControlsStyles = StyleSheet.create({
     minWidth: 0,
   },
   buttonMobile: {
-    flex: 1,
-    minWidth: 0,
+    width: 44,
+    minWidth: 44,
     minHeight: 44,
     justifyContent: 'center',
     paddingHorizontal: 0,
@@ -78,5 +78,8 @@ export const projectControlsStyles = StyleSheet.create({
   },
   buttonTextHidden: {
     display: 'none',
+  },
+  settingsButton: {
+    marginLeft: 'auto',
   },
 });

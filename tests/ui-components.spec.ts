@@ -7,7 +7,10 @@ test.describe('UI Components & Layout', () => {
 
     await expect(page.getByTestId('sidebar-toggle')).toHaveCount(0);
     await expect(page.getByTestId('settings-help')).toHaveCount(0);
-    await expect(page.getByTestId('load-song')).toHaveAttribute('aria-label', 'Choose Audio File');
+    await expect(page.getByTestId('song-title-control')).toHaveAttribute(
+      'aria-label',
+      'Music library, no song chosen',
+    );
     await expect(page.getByTestId('load-project')).toHaveAttribute('aria-label', 'Open Projects');
     await expect(page.getByTestId('import-data')).toHaveAttribute('aria-label', 'Import CSV');
     await expect(page.getByTestId('export-data')).toHaveAttribute('aria-label', 'Export CSV');
@@ -121,7 +124,7 @@ test.describe('UI Components & Layout', () => {
         });
       }
     });
-    await loadTestAudio(page, 'long-test-track.m4a');
+    await loadTestAudio(page);
 
     await expect(page.getByTestId('control-dock')).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
@@ -164,8 +167,8 @@ test.describe('UI Components & Layout', () => {
     await expect(innerLoop).toHaveAttribute('aria-valuetext', 'off');
     await expect(page.getByTestId('inner-loop-marker-icon')).toBeVisible();
 
-    await expect(page.getByTestId('shuffle-control')).toBeDisabled();
-    await expect(page.getByTestId('shuffle-control')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByTestId('shuffle-control')).toBeEnabled();
+    await expect(page.getByTestId('shuffle-control')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByTestId('remove-last-marker')).toBeDisabled();
     await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#3a8f5b');
     await page.getByTestId('add-marker').click();
@@ -377,7 +380,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('help-close').click();
     await page.getByTestId('sidebar-toggle').click();
 
-    await loadTestAudio(page, 'long-test-track.m4a');
+    await loadTestAudio(page);
     await page.getByTestId('save-project').click();
     await expect(page.getByTestId('save-project-modal-glass')).toBeVisible();
     const projectName = page.getByTestId('save-project-name');
@@ -411,7 +414,7 @@ test.describe('UI Components & Layout', () => {
 
   test('loop overview creates, toggles, clears, restores, and never seeks on tap', async ({ page }) => {
     await page.goto('/');
-    await loadTestAudio(page, 'long-test-track.m4a');
+    await loadTestAudio(page);
 
     const overview = page.getByTestId('loop-overview');
     await expect(overview).toBeVisible();

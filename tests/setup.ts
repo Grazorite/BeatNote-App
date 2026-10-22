@@ -17,12 +17,18 @@ export async function loadTestAudio(page: Page, fixtureName: string = 'test-audi
       return dispatchEvent.call(this, event);
     };
   });
-  await page.getByTestId('load-song').click();
+  await page.getByTestId('song-title-control').click();
+  await expect(page.getByTestId('music-library-sheet')).toBeVisible();
+  await page.getByTestId('music-library-import').click();
 
   const fileInput = page.locator('input[type="file"]').last();
   await expect(fileInput).toBeAttached({ timeout: 5000 });
   await fileInput.setInputFiles(path.resolve(`tests/fixtures/${fixtureName}`));
-  await expect(page.getByTestId('load-song')).toContainText('Replace Audio', { timeout: 10000 });
+  await expect(page.getByTestId('song-title-control')).toContainText(
+    path.parse(fixtureName).name,
+    { timeout: 10000 },
+  );
+  await expect(page.getByTestId('music-library-sheet')).toHaveCount(0);
 }
 
 // Re-export everything else

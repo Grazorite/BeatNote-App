@@ -1065,7 +1065,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 3.13, 7.1, 7.2, 7.12, 18.3, 27.1_
 
-- [ ] 34. Implement library row actions
+- [x] 34. Implement library row actions
   - [x] 34.1 Implement rename
     - Use `normalizeDisplayTitle`, show an inline error with Save disabled on an empty title, and
       update `SongTitleControl` immediately. Identity, path, and references are unchanged; the queue
@@ -1085,7 +1085,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 3.14, 10.20, 20.1, 20.2, 20.3, 20.4, 20.5, 24.3, 24.4, 24.7, 24.10, 24.11, 24.12_
 
-  - [ ] 34.3 Implement Relink and Show Projects
+  - [x] 34.3 Implement Relink and Show Projects
     - Relink opens the picker with `relinkTargetId` and shows `ConfirmDialog` for "This looks like
       the original file" or the stored/chosen title-and-duration mismatch, with Use This File and
       Cancel. Show Projects opens the Project_Manager on that song's rows. The queue position is
@@ -1093,8 +1093,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 5.5, 5.6, 5.8, 5.9, 20.6, 28.6_
 
-- [ ] 35. Replace the toolbar's load-song action with `SongTitleControl`
-  - [ ] 35.1 Create `SongTitleControl`
+- [x] 35. Replace the toolbar's load-song action with `SongTitleControl`
+  - [x] 35.1 Create `SongTitleControl`
     - `src/components/ui/controls/SongTitleControl.tsx` with
       `src/styles/components/controls/songTitleControl.ts` (`testID="song-title-control"`). It shows
       `Choose Music` or the Display_Title on one tail-truncated line, then `chevron-down`. A missing
@@ -1105,7 +1105,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 19.17, 29.1_
 
-  - [ ] 35.2 Restructure `ProjectControls` and remove the load-song path
+  - [x] 35.2 Restructure `ProjectControls` and remove the load-song path
     - On phone, the order is `song-title-control`, `save-project`, `load-project`, and
       `sidebar-open-toggle` within the safe-area insets. Tablet and desktop show the same four with
       text labels. Remove `load-song`, its "Replace Audio?" alert, the Task 21.5 shim, and
@@ -1114,7 +1114,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 8.1, 8.2, 8.10, 8.11, 9.10_
 
-  - [ ] 35.3 Update existing tests that referenced `load-song`
+  - [x] 35.3 Update existing tests that referenced `load-song`
     - Route `tests/test-helpers.ts` `clickLoadSongAndWait` and its peers through
       `song-title-control` → Import Audio, and update the `load-song` references in
       `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, and

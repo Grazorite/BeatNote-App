@@ -36,9 +36,6 @@ interface MainContentProps {
   layerSpecificNavigation: boolean;
   audioUri: string | null;
   audioFilename: string | null;
-  loadProjectAudio: (uri: string, filename: string) => void;
-  sound: any;
-  loadSong: () => void;
   togglePlayback: () => void;
   tapToBeat: () => void;
   seekToPosition: (position: number) => void;
@@ -57,9 +54,6 @@ const MainContent: React.FC<MainContentProps> = ({
   layerSpecificNavigation,
   audioUri,
   audioFilename,
-  loadProjectAudio,
-  sound,
-  loadSong,
   togglePlayback,
   tapToBeat,
   seekToPosition,
@@ -135,12 +129,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const isLandscapePhone = isMobile && screenData.width > screenData.height;
   const projectControls = (
     <ProjectControls
-      onLoadSong={loadSong}
-      onTogglePlayback={() => {}}
-      hasSound={!!sound}
-      audioUri={audioUri}
       audioFilename={audioFilename}
-      onLoadProjectAudio={loadProjectAudio}
       isMobile={isMobile}
     />
   );

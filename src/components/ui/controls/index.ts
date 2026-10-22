@@ -7,3 +7,4 @@ export { default as MarkerButton } from './MarkerButton';
 export { default as SidebarToggle } from './SidebarToggle';
 export { default as StemSelector } from './StemSelector';
 export { default as LoopRangeOverview } from './LoopRangeOverview';
+export { default as SongTitleControl } from './SongTitleControl';

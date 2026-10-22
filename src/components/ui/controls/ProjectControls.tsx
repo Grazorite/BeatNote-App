@@ -17,22 +17,15 @@ import ConfirmDialog from '../modals/ConfirmDialog';
 import SaveProjectPrompt from '../modals/SaveProjectPrompt';
 import ExportModal from '../modals/ExportModal';
 import ImportModal from '../modals/ImportModal';
+import { MusicLibrarySheet } from '../library';
+import SongTitleControl from './SongTitleControl';
 
 interface ProjectControlsProps {
-  onLoadSong: () => void;
-  onTogglePlayback: () => void;
-  hasSound: boolean;
-  audioUri: string | null;
   audioFilename: string | null;
-  onLoadProjectAudio: (uri: string, filename: string) => void;
   isMobile?: boolean;
 }
 
 const ProjectControls: React.FC<ProjectControlsProps> = ({
-  onLoadSong,
-  onTogglePlayback,
-  hasSound,
-  audioUri,
   audioFilename,
   isMobile = false,
 }) => {
@@ -46,6 +39,8 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     draftBaseline,
     draftBaselineName,
     saveInProgress,
+    openLibrarySheet,
+    closeLibrarySheet,
   } = useStudioStore(useShallow(state => ({
     songLoaded: state.songLoaded,
     allLayersData: state.allLayersData,
@@ -56,8 +51,12 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     draftBaseline: state.draftBaseline,
     draftBaselineName: state.draftBaselineName,
     saveInProgress: state.saveInProgress,
+    openLibrarySheet: state.openLibrarySheet,
+    closeLibrarySheet: state.closeLibrarySheet,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
+  const [projectManagerMusicItemId, setProjectManagerMusicItemId] = useState<string | null>(null);
+  const [routingLibraryToProjects, setRoutingLibraryToProjects] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [savePromptInitialName, setSavePromptInitialName] = useState('');
   const [duplicateSuggestion, setDuplicateSuggestion] = useState<string | null>(null);
@@ -65,6 +64,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const saveButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+  const titleButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
 
   const defaultProjectName = currentMusicItemId === null
     ? 'Untitled'
@@ -167,62 +167,42 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     setShowImportModal(false);
   }, [libraryLocked]);
 
-  const handleChooseAudio = useCallback(() => {
-    if (libraryStatus !== 'ready') return;
-    const hasAnnotations = allLayersData.some(layer =>
-      layer.markers.length > 0 || layer.annotations.length > 0,
-    );
-    if (!songLoaded || !hasAnnotations) {
-      onLoadSong();
-      return;
-    }
-    Alert.alert(
-      'Replace Audio?',
-      'Existing markers and annotations will stay at their current timestamps.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Choose Audio', onPress: onLoadSong },
-      ],
-    );
-  }, [allLayersData, libraryStatus, onLoadSong, songLoaded]);
+  const openProjects = useCallback((musicItemId: string | null = null) => {
+    if (musicItemId !== null) setRoutingLibraryToProjects(true);
+    closeLibrarySheet();
+    requestAnimationFrame(() => {
+      setProjectManagerMusicItemId(musicItemId);
+      setShowProjectManager(true);
+    });
+  }, [closeLibrarySheet]);
 
   const actions = (
     <>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          isMobile && styles.buttonMobile,
-          songLoaded && !libraryLocked && styles.buttonLoaded,
-          libraryLocked && styles.buttonDisabled,
-        ]}
-        onPress={libraryLocked ? undefined : handleChooseAudio}
-        disabled={libraryLocked}
-        accessibilityLabel={songLoaded ? 'Replace Audio File' : 'Choose Audio File'}
-        testID="load-song"
-      >
-        <BeatNoteIcon name="audio-file" size={20} style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>{songLoaded ? 'Replace Audio' : 'Choose Audio'}</Text>
-      </TouchableOpacity>
+      <SongTitleControl
+        ref={titleButtonRef}
+        isMobile={isMobile}
+        onOpen={openLibrarySheet}
+      />
 
       <TouchableOpacity
         ref={saveButtonRef}
-        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked || saveInProgress) && styles.buttonDisabled]}
-        onPress={songLoaded && !libraryLocked && !saveInProgress ? () => {
+        style={[styles.button, isMobile && styles.buttonMobile, (currentMusicItemId === null || libraryLocked || saveInProgress) && styles.buttonDisabled]}
+        onPress={currentMusicItemId !== null && !libraryLocked && !saveInProgress ? () => {
           Keyboard.dismiss();
           void handleSaveCurrent();
         } : undefined}
-        disabled={!songLoaded || libraryLocked || saveInProgress}
+        disabled={currentMusicItemId === null || libraryLocked || saveInProgress}
         accessibilityLabel="Save Project"
-        accessibilityState={{ disabled: !songLoaded || libraryLocked || saveInProgress }}
+        accessibilityState={{ disabled: currentMusicItemId === null || libraryLocked || saveInProgress }}
         testID="save-project"
       >
-        <BeatNoteIcon name="save" size={20} color={songLoaded && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
+        <BeatNoteIcon name="save" size={20} color={currentMusicItemId !== null && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Save Project</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isMobile && styles.buttonMobile, libraryLocked && styles.buttonDisabled]}
-        onPress={libraryLocked ? undefined : () => setShowProjectManager(true)}
+        onPress={libraryLocked ? undefined : () => openProjects()}
         disabled={libraryLocked}
         accessibilityLabel="Open Projects"
         testID="load-project"
@@ -253,16 +233,20 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export CSV</Text>
       </TouchableOpacity>
 
-      {isMobile && (
-        <TouchableOpacity
-          style={[styles.button, styles.buttonMobile, styles.sidebarToggleMobile]}
-          onPress={toggleSidebar}
-          accessibilityLabel="Open settings"
-          testID="sidebar-open-toggle"
-        >
-          <BeatNoteIcon name="settings" size={18} />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={[
+          styles.button,
+          isMobile && styles.buttonMobile,
+          isMobile && styles.sidebarToggleMobile,
+          !isMobile && styles.settingsButton,
+        ]}
+        onPress={toggleSidebar}
+        accessibilityLabel="Open settings"
+        testID="sidebar-open-toggle"
+      >
+        <BeatNoteIcon name="settings" size={18} style={isMobile ? undefined : { marginRight: 8 }} />
+        {!isMobile && <Text style={styles.buttonText}>Settings</Text>}
+      </TouchableOpacity>
     </>
   );
 
@@ -314,8 +298,20 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
 
       <ProjectManagerModal
         visible={showProjectManager}
-        onClose={() => setShowProjectManager(false)}
+        onClose={() => {
+          setShowProjectManager(false);
+          setProjectManagerMusicItemId(null);
+          setRoutingLibraryToProjects(false);
+          requestAnimationFrame(() => titleButtonRef.current?.focus?.());
+        }}
         onOpenProject={handleLoadProject}
+        musicItemId={projectManagerMusicItemId}
+      />
+
+      <MusicLibrarySheet
+        returnFocusRef={titleButtonRef}
+        restoreFocusOnClose={!routingLibraryToProjects}
+        onShowProjects={item => openProjects(item.id)}
       />
       
       <ExportModal

@@ -37,6 +37,7 @@ export interface BottomSheetProps {
   initialDetent: 'medium' | 'large';
   onClose: () => void;
   returnFocusRef: React.RefObject<unknown>;
+  restoreFocusOnClose?: boolean;
   testID: string;
   children: React.ReactNode;
 }
@@ -61,6 +62,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   initialDetent,
   onClose,
   returnFocusRef,
+  restoreFocusOnClose = true,
   testID,
   children,
 }) => {
@@ -105,8 +107,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   }, [animateTo, offsetFor]);
 
   const restoreFocus = useCallback(() => {
+    if (!restoreFocusOnClose) return;
     requestAnimationFrame(() => focusNode(returnFocusRef.current));
-  }, [returnFocusRef]);
+  }, [restoreFocusOnClose, returnFocusRef]);
 
   const finishClose = useCallback(() => {
     if (!closingRef.current) return;

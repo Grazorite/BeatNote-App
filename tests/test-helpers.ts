@@ -155,7 +155,7 @@ export async function waitForWaveformLoad(page: Page): Promise<void> {
     await page.waitForSelector('[data-testid="waveform-container"]', { timeout: 5000 });
   } catch {
     // If no waveform container, wait for song loaded indicator
-    await page.waitForSelector('text="Replace Audio"', { timeout: 5000 });
+    await page.waitForSelector('[data-testid="song-title-control"]', { timeout: 5000 });
   }
   
   // Wait for rendering
@@ -163,13 +163,6 @@ export async function waitForWaveformLoad(page: Page): Promise<void> {
 }
 
 export async function clickLoadSongAndWait(page: Page): Promise<void> {
-  // Mock the file picker before clicking
   await loadTestAudio(page);
-  
-  // Click load song button
-  const loadButton = page.getByText('Choose Audio');
-  await loadButton.click();
-  
-  // Wait for song to load
-  await page.waitForSelector('text="Replace Audio"', { timeout: 5000 });
+  await page.waitForSelector('[data-testid="song-title-control"]', { timeout: 5000 });
 }

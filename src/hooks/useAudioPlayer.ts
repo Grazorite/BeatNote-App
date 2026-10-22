@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAudioPlayer, useAudioPlayerStatus, AudioSource, setAudioModeAsync } from 'expo-audio';
-import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
@@ -48,11 +47,8 @@ export const useCustomAudioPlayer = () => {
     setIsPlaying,
     addMarker,
     removeMarker,
-    setSongLoaded,
     setSongDuration,
     setCurrentTime,
-    setCurrentAudioSource,
-    resetLoopForNewAudio,
     playbackSpeed,
   } = useStudioStore(useShallow(state => ({
     isPlaying: state.isPlaying,
@@ -61,11 +57,8 @@ export const useCustomAudioPlayer = () => {
     setIsPlaying: state.setIsPlaying,
     addMarker: state.addMarker,
     removeMarker: state.removeMarker,
-    setSongLoaded: state.setSongLoaded,
     setSongDuration: state.setSongDuration,
     setCurrentTime: state.setCurrentTime,
-    setCurrentAudioSource: state.setCurrentAudioSource,
-    resetLoopForNewAudio: state.resetLoopForNewAudio,
     playbackSpeed: state.playbackSpeed,
   })));
 
@@ -115,70 +108,6 @@ export const useCustomAudioPlayer = () => {
       showError('Audio Setup Error', 'BeatNote could not configure audio playback. Please restart the app and try again.');
     });
   }, [showError]);
-
-  const loadSong = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          'audio/mpeg',
-          'audio/mp4',
-          'audio/wav',
-          'audio/x-wav',
-          'audio/aac',
-          'audio/ogg',
-          'audio/flac',
-          'audio/x-m4a'
-        ],
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-      
-      if (!result.canceled && result.assets[0]) {
-        const file = result.assets[0];
-        
-        // Additional validation for audio file types
-        const audioExtensions = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
-        const hasValidExtension = audioExtensions.some(ext => 
-          file.name.toLowerCase().endsWith(ext)
-        );
-        
-        if (!hasValidExtension) {
-          showError(
-            'Invalid File Type',
-            `"${file.name}" is not a supported audio file.\n\nSupported formats: MP3, WAV, M4A, AAC, OGG, FLAC`
-          );
-          throw new Error(`Invalid file type: ${file.name}. Only audio files are allowed.`);
-        }
-        
-        try {
-          resetLoopForNewAudio();
-          setCurrentAudioSource(file.uri, file.name);
-          setSongLoaded(true);
-          Alert.alert('Success', `Audio file "${file.name}" loaded successfully!`);
-        } catch (audioError) {
-          console.error('Audio loading error:', audioError);
-          Alert.alert('Error', 'Failed to load audio file. Please try a different format.');
-          throw audioError;
-        }
-      }
-    } catch (error) {
-      // Only catch DocumentPicker errors, not validation errors
-      if (error instanceof Error && error.message.includes('Invalid file type')) {
-        throw error; // Re-throw validation errors
-      }
-      console.error('File picker error:', error);
-      Alert.alert('Error', 'Failed to open file picker');
-    }
-  };
-
-  const loadProjectAudio = useCallback((uri: string, filename: string) => {
-    if (!uri) {
-      showError('Audio Unavailable', 'This project does not contain a saved audio file reference.');
-      return;
-    }
-    setCurrentAudioSource(uri, filename);
-    setSongLoaded(true);
-  }, [setCurrentAudioSource, setSongLoaded, showError]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;
@@ -436,8 +365,6 @@ export const useCustomAudioPlayer = () => {
     sound: player,
     audioUri: currentAudioUri,
     audioFilename: currentAudioFilename,
-    loadProjectAudio,
-    loadSong,
     togglePlayback,
     tapToBeat,
     seekToPosition,

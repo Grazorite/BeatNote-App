@@ -1,3 +1,4 @@
+import { AccessibilityInfo } from 'react-native';
 import { useStudioStore, type StudioStore, type SwitchDestination } from '../../hooks/useStudioStore';
 import {
   IMPORTED_MUSIC_COLLECTION_ID,
@@ -108,6 +109,7 @@ export interface TrackSwitchDependencies {
   saveCurrent: () => Promise<SaveResult>;
   player: TrackSwitchPlayer;
   now: () => Date;
+  announceQueueTitle: (title: string) => void;
 }
 
 type PlayerSnapshot = {
@@ -193,6 +195,7 @@ const defaultDependencies: TrackSwitchDependencies = {
   saveCurrent: async () => (await import('./projectService')).saveCurrent(),
   player: defaultPlayer,
   now: () => new Date(),
+  announceQueueTitle: title => AccessibilityInfo.announceForAccessibility(title),
 };
 
 const queueOrigin = (origin: SwitchRequest['origin']): boolean => (
@@ -595,6 +598,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
       dependencies.setState({ isPlaying: true });
     }
     if (request.origin === 'library') dependencies.setState({ isLibrarySheetOpen: false });
+    if (queueOrigin(request.origin)) dependencies.announceQueueTitle(destination.item.displayTitle);
     return { kind: 'committed', musicItemId: destination.item.id };
   };
 

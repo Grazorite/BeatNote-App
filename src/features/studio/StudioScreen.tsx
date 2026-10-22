@@ -39,7 +39,7 @@ export default function StudioScreen() {
     setShowHelpScreen: state.setShowHelpScreen,
     isSidebarCollapsed: state.isSidebarCollapsed,
   })));
-  const { sound, loadSong, loadProjectAudio, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
+  const { sound, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
   let focusTextInput = () => {};
   
@@ -85,9 +85,6 @@ export default function StudioScreen() {
         layerSpecificNavigation={layerSpecificNavigation}
         audioUri={audioUri}
         audioFilename={audioFilename}
-        loadProjectAudio={loadProjectAudio}
-        sound={sound}
-        loadSong={loadSong}
         togglePlayback={togglePlayback}
         tapToBeat={tapToBeat}
         seekToPosition={seekToPosition}

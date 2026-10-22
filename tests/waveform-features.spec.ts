@@ -50,12 +50,12 @@ test.describe('Critical annotation workflow', () => {
   test('preserves loaded marker data through portrait and landscape reflow', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
-    await loadTestAudio(page, 'long-test-track.m4a');
+    await loadTestAudio(page);
     await page.getByTestId('add-marker').click();
 
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
-    await expect(page.getByTestId('load-song')).toContainText('Replace Audio');
+    await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
 
     await page.setViewportSize({ width: 393, height: 852 });
