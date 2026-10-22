@@ -59,8 +59,9 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 8 with the Music Library row actions (rename, delete,
-   Relink, and Show Projects); the complete sheet, picker import, and reusable UI primitives are done.
+1. Continue `local-music-library-queue` Phase 8 by restructuring the Project Manager (Task 36),
+   followed by moving confirmed/reversible CSV import and export into it (Task 37); Music Library
+   row actions and the Song Title toolbar integration are complete.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -104,7 +105,8 @@ potentially adding a hybrid path later.
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
       foundations through the Phase 7 track-switch checkpoint and Phase 8 queue-control checkpoint
       are complete; the icon, bottom-sheet, overflow, row, list, search/sort, and picker-import
-      surfaces are also complete, with Music Library row actions next
+      surfaces, Music Library row actions, and Song Title toolbar integration are also complete,
+      with the Project Manager restructure next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -119,6 +121,11 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Add rename/delete/relink/Show Projects library actions and replace the legacy load-song path
+      with the accessible Song Title control, filtered project routing, ordered queue announcements,
+      and updated browser/native journeys
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/libraryActions.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/controls/songTitleControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/setup.ts`, `tests/test-helpers.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
 - [x] Build the accessible Music Library sheet with reusable rows and overflow actions, scroll-safe
       loading/empty/error/search/sort states, persisted sorting, guarded track switching, import
@@ -248,6 +255,49 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-22 — Complete library actions and Song Title navigation
+
+**Agent:** orchestrator (Codex) + local review agent · **Commit(s):** `1094996`, `eed382f`, `ad064e2`, `ca2e56c`
+**Kanban moved:** Music Library row actions and Song Title toolbar → In Progress (Tasks 34–35 complete)
+
+**Changed:**
+
+- Added identity-preserving rename, file-first safe deletion, retained missing-audio drafts and
+  projects, confirmed relink, and per-song Show Projects routing without changing queue position.
+- Replaced the direct load-song shim with a one-line accessible Song Title control that hosts the
+  mounted library sheet, shows missing state, and keeps Save available for editable missing-audio
+  drafts.
+- Centralized queue-origin title announcements at successful transaction commit so Skip and rapid
+  coalescing announce in commit order; added routed modal focus handling and race-safe native waits.
+- Preserved the toolbar CSV buttons until Task 37.4. This resolves the sequencing conflict between
+  `.kiro/specs/local-music-library-queue/requirements.md` Requirement 8.1/8.9 (final four actions)
+  and `.kiro/specs/local-music-library-queue/tasks.md` Task 37.4 (explicit removal owner) while the
+  retained CSV journeys still target those buttons.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, legacy-loader
+  search, and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed with durable WAV import.
+- Focused iPhone 17 Pro / iOS 26.2 simulator launch/picker journey → 1/1 passed; result bundle
+  `ios/build/BeatNoteUITests-1792679367535.xcresult`.
+- Local reviewer found announcement, focus, and native-wait races; all were corrected and the
+  resulting TypeScript/diff checks passed. The requested DSH bridge remained unavailable.
+
+**Not verified / known gaps:**
+
+- The focused XCTest passed before its final filename-specific wait was hardened; that test-only
+  change was not rebuilt after review. Physical-device picker/import, VoiceOver, sheet gestures,
+  keyboard/search, row-action failure paths, and relink remain unverified.
+- Toolbar CSV actions intentionally remain until Task 37.4; therefore the final Requirement 8.1
+  four-action layout is not yet complete.
+- Concurrent uncommitted waveform/playhead edits remain outside all four commits.
+
+**Next agent should:**
+
+- Implement Task 36.1 `CurrentProjectSection`, then Task 36.2 `ProjectRow` before replacing the
+  current Project Manager with the sectioned surface.
 
 ### 2026-10-22 — Complete the Music Library sheet
 
@@ -391,41 +441,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 29.1 queue actions using `navigationBaseIndex`, then replace the reserved dock
   controls in Task 29.2.
-
-### 2026-10-21 — Complete safe project semantics
-
-**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `b5a4883`, `1a567bf`, `0cc511b`
-**Kanban moved:** local library safe Save/project semantics → In Progress (Phase 6 complete)
-
-**Changed:**
-
-- Added serialized Save/Save as New with revision, name, read-only, partial-write, collision, and
-  in-flight edit/switch handling, plus project rename, deletion, same-song open/revert, and CSV
-  export for live or stored content.
-- Replaced the legacy Save modal with an accessible validated prompt and shared confirmation dialog;
-  successful saves now use the dock toast and revision conflicts offer Overwrite or Save as New.
-- Removed the store's legacy project save/load actions. The existing manager now uses V1.2 project
-  summaries and services, with an isolated cross-song audio bridge until Task 28.6.
-
-**Verified:**
-
-- Temporary focused save/project checks → 28/28 passed across save, autosave races, rename/delete,
-  open/revert, CSV export, recovery, and unknown-field preservation; suites removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Focused save-prompt journey → 1/1 passed; full retained Playwright gate → 6/6 passed.
-
-**Not verified / known gaps:**
-
-- The retained browser fixture still uses the Task 21.5 direct-audio shim, so it validates the
-  prompt but cannot complete a library-backed save until the Phase 9 import surface replaces it.
-- Same-song destructive open/revert confirmations remain Task 36.4; physical-device focus,
-  VoiceOver, and save/open persistence acceptance remain outstanding.
-- DSH-Qwen's Task 26.4 review identified ignored draft-write failures, which were surfaced before
-  commit; its discarded-edit and stale-state concerns did not apply to the specified synchronous
-  replacement path.
-
-**Next agent should:**
-
-- Implement Task 28.1's track-switch transaction core, then the pending-destination and rollback
-  semantics before wiring queue controls.

@@ -2732,3 +2732,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Implement Task 26 safe Save/Save as New semantics, beginning with the single pipeline operation
   and revision/name conflict results before replacing the legacy Save prompt.
+
+### 2026-10-21 — Complete safe project semantics
+
+**Agent:** orchestrator (Codex) + DSH-Qwen review · **Commit(s):** `b5a4883`, `1a567bf`, `0cc511b`
+**Kanban moved:** local library safe Save/project semantics → In Progress (Phase 6 complete)
+
+**Changed:**
+
+- Added serialized Save/Save as New with revision, name, read-only, partial-write, collision, and
+  in-flight edit/switch handling, plus project rename, deletion, same-song open/revert, and CSV
+  export for live or stored content.
+- Replaced the legacy Save modal with an accessible validated prompt and shared confirmation dialog;
+  successful saves now use the dock toast and revision conflicts offer Overwrite or Save as New.
+- Removed the store's legacy project save/load actions. The existing manager now uses V1.2 project
+  summaries and services, with an isolated cross-song audio bridge until Task 28.6.
+
+**Verified:**
+
+- Temporary focused save/project checks → 28/28 passed across save, autosave races, rename/delete,
+  open/revert, CSV export, recovery, and unknown-field preservation; suites removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Focused save-prompt journey → 1/1 passed; full retained Playwright gate → 6/6 passed.
+
+**Not verified / known gaps:**
+
+- The retained browser fixture still uses the Task 21.5 direct-audio shim, so it validates the
+  prompt but cannot complete a library-backed save until the Phase 9 import surface replaces it.
+- Same-song destructive open/revert confirmations remain Task 36.4; physical-device focus,
+  VoiceOver, and save/open persistence acceptance remain outstanding.
+- DSH-Qwen's Task 26.4 review identified ignored draft-write failures, which were surfaced before
+  commit; its discarded-edit and stale-state concerns did not apply to the specified synchronous
+  replacement path.
+
+**Next agent should:**
+
+- Implement Task 28.1's track-switch transaction core, then the pending-destination and rollback
+  semantics before wiring queue controls.
