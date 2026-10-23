@@ -262,8 +262,10 @@ MP3/M4A audio types under both key values. `simctl openurl` delivered M4A into
 `Linking.addEventListener('url', …)` while running and `Linking.getInitialURL()` on cold launch for
 both `true` and `false`; every delivered URL was an app-container `Documents/Inbox/` copy. MP3 also
 reached both Linking paths with the key `true`. This proves simulator delivery is suitable for the
-planned native Open-in case and that no `AppDelegateSubscriber` fallback is needed on the tested
-Expo/iOS combination. It does **not** distinguish true in-place access from Inbox delivery, because
+planned native Open-in case. The disposable spike suggested no fallback was needed, but the
+integrated application test later showed that the generated Expo app delegate consumed the file URL
+before React Native `Linking` surfaced it, so the library-storage subscriber described below is used.
+The simulator result does **not** distinguish true in-place access from Inbox delivery, because
 `simctl openurl` itself stages the host file. A `.beatnote` host URL opened the Files document UI
 rather than the app under both launch states, so its delivery path was not validated; prebuild did
 preserve its declaration byte-for-byte apart from normal plist serialisation.
@@ -278,16 +280,17 @@ but the individual `super` return value was not separately instrumented.
 
 ### Incoming URL handling
 
-`useLibraryLifecycle` calls React Native `Linking.getInitialURL()` once at boot and subscribes to
-`Linking.addEventListener('url', …)`. A `file://` URL whose extension is a supported audio extension
-becomes an `ImportJob` with `origin: 'openIn'`; any other extension is rejected with the
-Requirement 3.2 message (Requirement 7.8). `.beatnote` URLs are ignored (no project-file import
-exists). Cold-launch URLs are queued until the boot sequence (migration, library load) completes.
+`library-storage` registers `LibraryStorageAppDelegateSubscriber` through Expo module autolinking.
+The subscriber retains file URLs that arrive before JavaScript observes the module and emits
+`onOpenURL` for running-app delivery. `useLibraryLifecycle` subscribes once, consumes retained URLs,
+and queues them until the boot sequence (migration, library load) completes. A supported audio
+`file://` URL becomes an `ImportJob` with `origin: 'openIn'`; any other extension is rejected with
+the Requirement 3.2 message (Requirement 7.8). `.beatnote` URLs are ignored because project-file
+import does not yet exist.
 
-Verification item for implementation: confirm that `super.application(app, open:…)` in the Expo
-AppDelegate returns `false` for file URLs so the `||` reaches `RCTLinkingManager`. If an Expo
-subscriber consumes the URL, add a 10-line `AppDelegateSubscriber` to `library-storage` that emits
-an `onOpenURL` event; `useLibraryLifecycle` then listens to that instead of `Linking`.
+The integrated iPhone 17 Pro / iOS 26.2 simulator case proved the subscriber path end to end: the
+system placed an M4A in `Documents/Inbox`, the app imported and loaded it, the dock toast confirmed
+the import, and the item remained in the Music Library. Physical-device delivery remains provisional.
 
 **Why no Share Extension (Requirement 7.10):** Open_In through document types already places
 BeatNote in the share sheet's app row and "Open in…" for every supported audio type. A Share

@@ -19,7 +19,6 @@
       "requireFullScreen": false,
       "infoPlist": {
         "UIFileSharingEnabled": true,
-        "LSSupportsOpeningDocumentsInPlace": true,
         "UIBackgroundModes": ["audio"],
         "CFBundleDocumentTypes": [
           {
@@ -64,6 +63,7 @@
       ],
       "./plugins/withIosPodDeploymentTarget",
       "./plugins/withVersionConsistency",
+      "./plugins/withAudioDocumentTypes",
       "./plugins/withIosUiTests"
     ],
     "extra": {

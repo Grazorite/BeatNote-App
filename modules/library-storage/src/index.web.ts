@@ -1,3 +1,4 @@
+import type { EventSubscription } from 'expo-modules-core';
 import type { LibraryStorageModule } from './index';
 
 const unsupported = (operation: string): never => {
@@ -10,6 +11,8 @@ const LibraryStorageWeb: LibraryStorageModule = {
   isExcludedFromBackup: async () => unsupported('isExcludedFromBackup'),
   md5File: async () => unsupported('md5File'),
   randomUUID: () => crypto.randomUUID().toLocaleLowerCase('en-US'),
+  consumePendingOpenURLs: () => [],
+  addListener: () => ({ remove: () => undefined }) as EventSubscription,
 };
 
 export default LibraryStorageWeb;

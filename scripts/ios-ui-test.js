@@ -1,6 +1,8 @@
 const { spawn, spawnSync } = require('node:child_process');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
 const iosDirectory = path.join(root, 'ios');
@@ -23,6 +25,31 @@ function capture(command, args) {
   const result = spawnSync(command, args, { cwd: root, env: environment, encoding: 'utf8' });
   if (result.status !== 0) throw new Error(result.stderr || `${command} failed`);
   return result.stdout.trim();
+}
+
+async function runWithOpenUrl(command, args, simulatorId, url) {
+  const child = spawn(command, args, {
+    cwd: root,
+    env: environment,
+    stdio: 'inherit',
+  });
+  let delivered = false;
+  const delivery = setTimeout(() => {
+    try {
+      run('xcrun', ['simctl', 'openurl', simulatorId, url]);
+      delivered = true;
+    } catch (error) {
+      child.kill('SIGTERM');
+      console.error('Unable to deliver the Open In fixture', error);
+    }
+  }, 12000);
+  const status = await new Promise((resolve, reject) => {
+    child.once('error', reject);
+    child.once('close', resolve);
+  });
+  clearTimeout(delivery);
+  if (status !== 0) throw new Error(`${command} failed with exit code ${status}`);
+  if (!delivered) throw new Error('Open In test ended before the fixture could be delivered');
 }
 
 function selectSimulator() {
@@ -88,6 +115,16 @@ function stagePickerFixtures(simulatorId) {
   }
 }
 
+function stageOpenInFixture() {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beatnote-open-in-'));
+  const destination = path.join(directory, 'open-in-audio.m4a');
+  fs.copyFileSync(path.join(root, 'tests', 'fixtures', 'background-audio.m4a'), destination);
+  // Keep repeated simulator runs deterministic: the import pipeline deduplicates by content hash,
+  // while AVFoundation safely ignores trailing metadata bytes after the M4A container.
+  fs.appendFileSync(destination, `beatnote-open-in-${Date.now()}`);
+  return { directory, url: pathToFileURL(destination).href };
+}
+
 async function main() {
   let metroPid;
   try {
@@ -115,7 +152,16 @@ async function main() {
     if (process.env.IOS_TEST_ONLY) {
       testArgs.push('-only-testing:BeatNoteUITests/BeatNoteUITests/' + process.env.IOS_TEST_ONLY);
     }
-    run('xcodebuild', testArgs);
+    if (process.env.IOS_TEST_ONLY === 'testOpenInAudioImportsIntoLibrary') {
+      const fixture = stageOpenInFixture();
+      try {
+        await runWithOpenUrl('xcodebuild', testArgs, simulatorId, fixture.url);
+      } finally {
+        fs.rmSync(fixture.directory, { recursive: true, force: true });
+      }
+    } else {
+      run('xcodebuild', testArgs);
+    }
     console.log(`UI test result bundle: ${resultBundle}`);
   } finally {
     if (metroPid) {

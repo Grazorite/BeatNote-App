@@ -1,4 +1,4 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { requireNativeModule, type EventSubscription } from 'expo-modules-core';
 
 export interface LibraryStorageModule {
   /** Return the absolute file URI of the app-owned music directory, creating it if absent. */
@@ -11,6 +11,10 @@ export interface LibraryStorageModule {
   md5File(uri: string): Promise<string>;
   /** Return a lowercase random UUID without relying on Hermes Web Crypto support. */
   randomUUID(): string;
+  /** Consume file URLs delivered before JavaScript subscribed. */
+  consumePendingOpenURLs(): string[];
+  /** Subscribe to file URLs delivered while the app is running. */
+  addListener(eventName: 'onOpenURL', listener: (event: { url: string }) => void): EventSubscription;
 }
 
 export default requireNativeModule<LibraryStorageModule>('LibraryStorage');

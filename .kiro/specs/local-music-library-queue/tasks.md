@@ -1205,8 +1205,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 9 — Native Open_In configuration and delivery
 
-- [ ] 39. Declare audio document types and handle incoming URLs
-  - [ ] 39.1 Create `plugins/withAudioDocumentTypes.js`
+- [x] 39. Declare audio document types and handle incoming URLs
+  - [x] 39.1 Create `plugins/withAudioDocumentTypes.js`
     - Using `withInfoPlist`, append one `Audio` `CFBundleDocumentTypes` entry (`Viewer`,
       `LSHandlerRank = Alternate`, the seven `LSItemContentTypes`). Add
       `UTImportedTypeDeclarations` for `org.xiph.ogg-audio` and `org.xiph.flac` conforming to
@@ -1214,44 +1214,60 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `LSSupportsOpeningDocumentsInPlace` per the Task 1.3 decision.
     - Verification evidence: `npx expo prebuild -p ios` followed by `plutil -p ios/BeatNote/Info.plist`
       shows both document types and the chosen key value.
+    - Verified the preserved BeatNote Project declaration, seven-type Audio declaration, imported
+      OGG/FLAC declarations, and `LSSupportsOpeningDocumentsInPlace = false` in generated Info.plist.
     - _Requirements: 7.3, 7.10, 7.11_
 
-  - [ ] 39.2 Register the plugin in `app.json`
+  - [x] 39.2 Register the plugin in `app.json`
     - Add the plugin and remove the direct `LSSupportsOpeningDocumentsInPlace` key so the plugin
       owns it. Keep `UIFileSharingEnabled` for exports.
     - Verification evidence: a clean `npx expo prebuild -p ios --clean` reproduces the Task 39.1
       `Info.plist`.
+    - Registered the plugin and removed the direct key; repeated prebuilds reproduce the plist.
     - _Requirements: 7.3, 7.11_
 
-  - [ ] 39.3 Wire `Linking` in `useLibraryLifecycle`
-    - Call `Linking.getInitialURL()` once and subscribe to `url` (cleaned up on unmount). Queue
-      cold-launch URLs until boot completes. Supported audio `file://` URLs become `openIn` jobs,
-      other extensions are rejected with the unsupported-file message, and `.beatnote` is ignored.
-      After the import, run the transaction with its guard. A cancelled guard keeps the item in the
-      library. Inbox copies are deleted; in-place originals never are. Open_In is hidden on web.
+  - [x] 39.3 Wire incoming URLs in `useLibraryLifecycle`
+    - Subscribe once to the integrated delivery surface and consume its retained cold-launch URLs,
+      cleaning the listener up on unmount. Queue URLs until boot completes. Supported audio
+      `file://` URLs become `openIn` jobs, other extensions are rejected with the unsupported-file
+      message, and `.beatnote` is ignored. After the import, run the transaction with its guard. A
+      cancelled guard keeps the item in the library. Inbox copies are deleted; in-place originals
+      never are. Open_In is hidden on web.
     - Verification evidence: `npx tsc --noEmit` clean.
+    - The integrated app uses the Task 39.4 native event instead of React Native `Linking`; URLs are
+      retained until the library is ready and then serialized through the shared Import Pipeline.
     - _Requirements: 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 18.4, 27.3_
 
-  - [ ] 39.4 Add the `AppDelegateSubscriber` fallback only if Task 1.1 required it
+  - [x] 39.4 Add the `AppDelegateSubscriber` fallback after integrated delivery required it
     - Add a minimal subscriber to `modules/library-storage` that emits `onOpenURL`, and have
       `useLibraryLifecycle` listen to it instead of `Linking`. Skip this sub-task when the spike
       confirmed `RCTLinkingManager` receives file URLs, and record the skip.
     - Verification evidence: a focused native build passes, or the skip is recorded.
+    - The disposable spike's Linking result did not reproduce in the integrated app. Native tracing
+      proved Expo received the file URL but React Native Linking did not surface it; the autolinked
+      `LibraryStorageAppDelegateSubscriber` now retains and emits file URLs without generated edits.
     - _Requirements: 7.4_
 
-  - [ ] 39.5 Add `testOpenInAudioImportsIntoLibrary` if the spike showed it is feasible
+  - [x] 39.5 Add `testOpenInAudioImportsIntoLibrary` because simulator delivery is feasible
     - In `scripts/ios-ui-test.js`, stage an audio fixture and deliver it with `simctl openurl` or
       `XCUIApplication.open(_:)`. In `tests/ios/BeatNoteUITests.swift`, assert the Dock_Toast, the
       library row, and the loaded title. If the spike showed neither mechanism delivers a
       document-type URL, add no case and keep Open_In on the physical-device list.
     - Verification evidence: `IOS_TEST_ONLY=testOpenInAudioImportsIntoLibrary npm run test:ios:ui`
       passes, or the omission is recorded.
+    - Passed on iPhone 17 Pro / iOS 26.2 with a distinct M4A fixture, asserting the loaded title,
+      import toast, and retained accessible library row; result bundle
+      `ios/build/BeatNoteUITests-1792742454091.xcresult`.
     - _Requirements: 30.7, 7.4_
 
-- [ ] 40. Checkpoint — Open_In
+- [x] 40. Checkpoint — Open_In
   - Run `npx tsc --noEmit`, `npx expo prebuild -p ios`, the focused native cases touched, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verification evidence: version parity is `1.0.0`; TypeScript, the empty retained unit gate,
+    generated Info.plist inspection, diff hygiene, and all 6 retained Playwright journeys pass.
+    Focused Open_In delivery passes in `ios/build/BeatNoteUITests-1792742454091.xcresult`, and the
+    retained launch/document-picker case passes in `ios/build/BeatNoteUITests-1792742530993.xcresult`.
 
 ### Phase 10 — Retained journeys and focused failure-path verification
 

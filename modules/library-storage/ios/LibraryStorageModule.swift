@@ -1,6 +1,39 @@
 import CryptoKit
 import ExpoModulesCore
 import Foundation
+import UIKit
+
+private enum LibraryStorageOpenURLBus {
+  static var pendingURLs: [String] = []
+  static var listener: ((String) -> Void)?
+
+  static func receive(_ url: URL) {
+    guard url.isFileURL else { return }
+    if let listener {
+      listener(url.absoluteString)
+    } else {
+      pendingURLs.append(url.absoluteString)
+    }
+  }
+
+  static func consumePendingURLs() -> [String] {
+    let urls = pendingURLs
+    pendingURLs.removeAll()
+    return urls
+  }
+}
+
+public final class LibraryStorageAppDelegateSubscriber: ExpoAppDelegateSubscriber {
+  public func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    guard url.isFileURL else { return false }
+    LibraryStorageOpenURLBus.receive(url)
+    return true
+  }
+}
 
 private enum LibraryStorageError: Error {
   case applicationSupportUnavailable
@@ -12,6 +45,21 @@ public final class LibraryStorageModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("LibraryStorage")
+    Events("onOpenURL")
+
+    OnStartObserving("onOpenURL") { [weak self] in
+      LibraryStorageOpenURLBus.listener = { [weak self] url in
+        self?.sendEvent("onOpenURL", ["url": url])
+      }
+    }
+
+    OnStopObserving("onOpenURL") {
+      LibraryStorageOpenURLBus.listener = nil
+    }
+
+    Function("consumePendingOpenURLs") {
+      LibraryStorageOpenURLBus.consumePendingURLs()
+    }
 
     Function("getMusicDirectoryUri") {
       try Self.musicDirectory().absoluteString

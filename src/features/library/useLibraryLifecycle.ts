@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 
+import LibraryStorage from '../../../modules/library-storage/src';
 import { useStudioStore, type StudioStore } from '../../hooks/useStudioStore';
 import {
   IMPORTED_MUSIC_COLLECTION_ID,
@@ -10,12 +11,16 @@ import {
 import type { MigrationJournal } from '../../types/migration';
 import type { LegacyStoredProject, ProjectIndexRecord } from '../../types/project';
 import type { PlaybackQueue } from '../../types/queue';
-import { DRAFT_FLUSH_TIMEOUT_MS, ORPHAN_FILE_MIN_AGE_MS } from '../../utils/libraryConstants';
+import {
+  DRAFT_FLUSH_TIMEOUT_MS,
+  ORPHAN_FILE_MIN_AGE_MS,
+  SUPPORTED_AUDIO_EXTENSIONS,
+} from '../../utils/libraryConstants';
 import { restoreQueue } from '../../utils/queueOrder';
 import audioStore from './audioStore';
 import type { AudioStoreAdapter } from './audioStoreTypes';
 import { flushDraft, retryFailedDraft, startDraftAutosave } from './draftAutosave';
-import { getImportJobs, migrationImporter } from './importPipeline';
+import { enqueueImport, getImportJobs, migrationImporter } from './importPipeline';
 import {
   migrationNoticeCount,
   readOnlyLegacyProjectSummaries,
@@ -39,6 +44,40 @@ import {
 import { requestTrackSwitch, type SwitchResult } from './trackSwitch';
 
 const terminalMigrationStatuses = new Set(['migrated', 'missing', 'skippedNewer']);
+
+const filenameFromFileUrl = (url: string): string => {
+  const path = url.split(/[?#]/, 1)[0];
+  const encodedName = path.slice(path.lastIndexOf('/') + 1);
+  try {
+    return decodeURIComponent(encodedName) || 'Untitled audio';
+  } catch {
+    return encodedName || 'Untitled audio';
+  }
+};
+
+export type OpenInUrlDecision =
+  | { kind: 'audio'; filename: string }
+  | { kind: 'ignore' }
+  | { kind: 'unsupported'; filename: string; message: string };
+
+/** Classify native incoming URLs without performing I/O. */
+export const classifyOpenInUrl = (url: string): OpenInUrlDecision => {
+  if (!url.toLocaleLowerCase('en-US').startsWith('file://')) return { kind: 'ignore' };
+  const filename = filenameFromFileUrl(url);
+  const dot = filename.lastIndexOf('.');
+  const extension = dot < 0 ? '' : filename.slice(dot).toLocaleLowerCase('en-US');
+  if (extension === '.beatnote') return { kind: 'ignore' };
+  if (!SUPPORTED_AUDIO_EXTENSIONS.includes(
+    extension as typeof SUPPORTED_AUDIO_EXTENSIONS[number],
+  )) {
+    return {
+      kind: 'unsupported',
+      filename,
+      message: `“${filename}” isn't a supported audio file. Supported formats: MP3, WAV, M4A, AAC, OGG, FLAC.`,
+    };
+  }
+  return { kind: 'audio', filename };
+};
 
 const emptyLibrary = (): LibraryRecord => ({
   schemaVersion: 1,
@@ -367,12 +406,59 @@ export function useLibraryLifecycle(): void {
   const bootStarted = useRef(false);
   const orphanSweepStarted = useRef(false);
   const orphanSweepInFlight = useRef(false);
+  const openInProcessing = useRef(false);
+  const pendingOpenInUrls = useRef<string[]>([]);
+
+  const processPendingOpenIn = useCallback(async () => {
+    if (Platform.OS !== 'ios'
+      || openInProcessing.current
+      || useStudioStore.getState().libraryStatus !== 'ready') return;
+    openInProcessing.current = true;
+    try {
+      while (pendingOpenInUrls.current.length > 0) {
+        const url = pendingOpenInUrls.current.shift();
+        if (url === undefined) continue;
+        const decision = classifyOpenInUrl(url);
+        if (decision.kind === 'ignore') continue;
+        if (decision.kind === 'unsupported') {
+          useStudioStore.getState().notify(decision.message);
+          continue;
+        }
+        const outcome = await enqueueImport({
+          origin: 'openIn',
+          sourceUri: url,
+          originalFilename: decision.filename,
+          reportedBytes: null,
+        });
+        if (outcome.kind === 'failed') useStudioStore.getState().notify(outcome.error.message);
+      }
+    } finally {
+      openInProcessing.current = false;
+      if (pendingOpenInUrls.current.length > 0) void processPendingOpenIn();
+    }
+  }, []);
 
   useEffect(() => {
     if (bootStarted.current) return;
     bootStarted.current = true;
     void runLibraryBoot().then(() => restoreLaunchTrack());
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return undefined;
+    const receive = (url: string | null) => {
+      if (url === null) return;
+      pendingOpenInUrls.current.push(url);
+      void processPendingOpenIn();
+    };
+    const subscription = LibraryStorage.addListener('onOpenURL', event => receive(event.url));
+    LibraryStorage.consumePendingOpenURLs().forEach(receive);
+    return () => subscription.remove();
+  }, [processPendingOpenIn]);
+
+  useEffect(() => {
+    if (libraryStatus === 'ready') void processPendingOpenIn();
+  }, [libraryStatus, processPendingOpenIn]);
 
   useEffect(() => {
     if (libraryStatus !== 'ready' || orphanSweepStarted.current || orphanSweepInFlight.current) return;
