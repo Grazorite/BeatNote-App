@@ -1,4 +1,5 @@
-import { test, expect, loadTestAudio } from './setup';
+import { test, expect, loadTestAudio, prepareFilePicker } from './setup';
+import path from 'node:path';
 
 test.describe('UI Components & Layout', () => {
   test('V1 settings open as a full mobile page with only relevant support content', async ({ page }) => {
@@ -12,13 +13,19 @@ test.describe('UI Components & Layout', () => {
       'Music library, no song chosen',
     );
     await expect(page.getByTestId('load-project')).toHaveAttribute('aria-label', 'Open Projects');
-    const settingsButton = await page.getByTestId('sidebar-open-toggle').boundingBox();
-    const projectsButton = await page.getByTestId('load-project').boundingBox();
-    expect(settingsButton).not.toBeNull();
-    expect(projectsButton).not.toBeNull();
-    if (settingsButton && projectsButton) {
-      expect(settingsButton.x).toBeGreaterThan(projectsButton.x);
-    }
+    const assertToolbarOrder = async () => {
+      const positions = await page.evaluate(() => [
+        'song-title-control',
+        'save-project',
+        'load-project',
+        'sidebar-open-toggle',
+      ].map(id => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().x ?? -1));
+      expect(positions.every(position => position >= 0)).toBe(true);
+      for (let index = 1; index < positions.length; index += 1) {
+        expect(positions[index - 1]).toBeLessThan(positions[index]);
+      }
+    };
+    await assertToolbarOrder();
     const emptyWaveform = await page.getByTestId('waveform-container').boundingBox();
     const emptyMessage = await page.getByText('Load a song', { exact: true }).boundingBox();
     expect(emptyWaveform).not.toBeNull();
@@ -56,6 +63,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('settings-page')).toHaveCount(0);
     await page.setViewportSize({ width: 740, height: 390 });
+    await assertToolbarOrder();
     await page.getByTestId('sidebar-open-toggle').click();
     await expect.poll(async () => {
       const box = await page.getByTestId('settings-page').boundingBox();
@@ -123,6 +131,51 @@ test.describe('UI Components & Layout', () => {
       }
     });
     await loadTestAudio(page);
+    await loadTestAudio(page, 'background-audio.wav', 'test-audio.wav');
+    await loadTestAudio(page, 'long-test-track.wav', 'test-audio.wav');
+
+    const title = page.getByTestId('song-title-control');
+    const nextTrack = page.getByTestId('next-track-control');
+    const previousTrack = page.getByTestId('previous-track-control');
+    const firstTrack = page.getByTestId('first-track-control');
+    await expect(title).toContainText('long-test-track');
+
+    await nextTrack.click();
+    await expect(title).toContainText('background-audio');
+
+    const seekArea = page.getByTestId('wrapped-row-gesture-area-9');
+    const seekBox = await seekArea.boundingBox();
+    expect(seekBox).not.toBeNull();
+    if (seekBox) {
+      await seekArea.click({ position: { x: seekBox.width * 0.8, y: 12 } });
+    }
+    await expect(page.getByTestId('playback-current-time')).toHaveText(/^Current: 0:0[3-9]$/);
+    await previousTrack.click();
+    await expect(title).toContainText('background-audio');
+    await expect(page.getByTestId('playback-current-time')).toHaveText('Current: 0:00');
+    await previousTrack.click();
+    await expect(title).toContainText('long-test-track');
+
+    await nextTrack.click();
+    await expect(title).toContainText('background-audio');
+    await nextTrack.click();
+    await expect(title).toContainText('test-audio');
+    await expect(nextTrack).toBeDisabled();
+    await expect(nextTrack).toHaveAccessibleName('Next track, End of queue');
+    await firstTrack.click();
+    await expect(title).toContainText('long-test-track');
+
+    const shuffle = page.getByTestId('shuffle-control');
+    await shuffle.click();
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('dock-toast')).toHaveText('Shuffle on');
+    await shuffle.click();
+    await expect(shuffle).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByTestId('dock-toast')).toHaveText('Shuffle off');
+
+    await nextTrack.click();
+    await nextTrack.click();
+    await expect(title).toContainText('test-audio', { timeout: 10000 });
 
     await expect(page.getByTestId('control-dock')).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
@@ -392,7 +445,33 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('confirm-save-project')).toHaveAttribute('aria-disabled', 'true');
     await projectName.fill('Glass Surface Project');
     await expect(page.getByTestId('confirm-save-project')).not.toHaveAttribute('aria-disabled', 'true');
-    await page.getByText('Cancel', { exact: true }).click();
+    await page.getByTestId('confirm-save-project').click();
+    await expect(page.getByTestId('dock-toast')).toHaveText('Saved “Glass Surface Project”');
+
+    await page.getByTestId('load-project').click();
+    await page.getByTestId('current-project-save-as-new').click();
+    await page.getByTestId('save-project-name').fill('Glass Surface Project 2');
+    await page.getByTestId('confirm-save-project').click();
+    await expect(page.getByTestId('dock-toast')).toHaveText('Saved “Glass Surface Project 2”');
+
+    await loadTestAudio(page, 'second-song.wav', 'test-audio.wav');
+    await page.getByTestId('song-title-control').click();
+    await page.getByRole('button', { name: /^test-audio,/ }).click();
+    await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
+    await page.getByTestId('load-project').click();
+    await expect(page.getByTestId('current-project-name')).toHaveText('Glass Surface Project 2');
+    await page.getByText('Close', { exact: true }).click();
+
+    await page.getByTestId('wrapped-row-gesture-area-9').click({ position: { x: 50, y: 12 } });
+    await page.getByTestId('add-marker').click();
+    await page.getByTestId('song-title-control').click();
+    await page.getByRole('button', { name: /^second-song,/ }).click();
+    await expect(page.getByTestId('switch-guard-dialog')).toBeVisible();
+    await page.getByTestId('switch-keep-draft').click();
+    await expect(page.getByTestId('song-title-control')).toContainText('second-song');
+    await page.getByTestId('song-title-control').click();
+    await page.getByRole('button', { name: /^test-audio,/ }).click();
+    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
     await page.getByTestId('load-project').click();
     await page.getByTestId('current-project-import-csv').click();
@@ -409,10 +488,13 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('csv-replace-confirm-glass')).toBeVisible();
     await expect(page.getByText(/Replace markers in/)).toBeVisible();
     await expect(page.getByTestId('csv-imported-counts')).toContainText('1 marker');
-    await page.getByTestId('csv-replace-cancel').click();
-    await page.getByText('Close', { exact: true }).click();
+    await expect(page.getByTestId('csv-skipped-count')).toContainText('Skipped: 0 rows');
+    await page.getByTestId('csv-replace-apply').click();
+    await expect(page.getByTestId('dock-toast')).toContainText('CSV imported');
+    await expect(page.getByTestId('dock-toast-action')).toHaveText('Undo');
+    await page.getByTestId('dock-toast-action').click();
+    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
-    await page.getByTestId('add-marker').click();
     await page.getByTestId('load-project').click();
     await page.getByTestId('current-project-export-csv').click();
     await expect(page.getByTestId('export-modal-glass')).toBeVisible();
@@ -420,6 +502,59 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true }))
       .toHaveCSS('color', 'rgb(0, 0, 0)');
     await page.getByText('Cancel', { exact: true }).last().click();
+    await page.getByText('Close', { exact: true }).click();
+
+    await page.addInitScript(() => {
+      localStorage.clear();
+      const layer = (id: string, name: string, color: string) => ({
+        id,
+        name,
+        color,
+        markers: [],
+        annotations: [],
+        isVisible: true,
+      });
+      localStorage.setItem('beatnote_projects', JSON.stringify({
+        legacyMissing: {
+          version: '1.0.0',
+          metadata: {
+            name: 'Legacy Missing Project',
+            bpm: 120,
+            duration: 5000,
+            stemCount: 6,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            modifiedAt: '2026-01-02T00:00:00.000Z',
+          },
+          audio: { uri: 'blob:expired-audio', filename: 'test-audio.wav' },
+          layers: [
+            layer('vocals', 'Vocals', '#ef4444'),
+            layer('drums', 'Drums', '#f97316'),
+            layer('bass', 'Bass', '#eab308'),
+            layer('piano', 'Piano', '#22c55e'),
+            layer('guitar', 'Guitar', '#3b82f6'),
+            layer('other', 'Other', '#a855f7'),
+          ],
+          settings: {
+            viewMode: 'unified',
+            showGridLines: true,
+            layerSpecificNavigation: false,
+          },
+        },
+      }));
+    });
+    await page.reload();
+    await prepareFilePicker(page);
+    await page.getByTestId('load-project').click();
+    const legacyRow = page.locator('[data-testid^="project-row-"]')
+      .filter({ hasText: 'Legacy Missing Project' });
+    await expect(legacyRow).toContainText('Audio missing');
+    await legacyRow.getByRole('button', { name: /More actions for Legacy Missing Project/ }).click();
+    await page.getByText('Relink', { exact: true }).click();
+    const relinkInput = page.locator('input[type="file"]').last();
+    await relinkInput.setInputFiles(path.resolve('tests/fixtures/test-audio.wav'));
+    await expect(page.getByTestId('project-relink-confirm')).toBeVisible();
+    await page.getByTestId('confirm-relink-use-file').click();
+    await expect(legacyRow).not.toContainText('Audio missing');
   });
 
   test('loop overview creates, toggles, clears, restores, and never seeks on tap', async ({ page }) => {

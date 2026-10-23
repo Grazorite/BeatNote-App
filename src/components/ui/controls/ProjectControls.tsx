@@ -109,6 +109,20 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     handleSaveResult(await saveAsNew(projectName));
   }, [handleSaveResult, libraryStatus, saveInProgress]);
 
+  const handleManagerSave = useCallback(async () => {
+    if (draftBaseline !== null) {
+      await handleSaveCurrent();
+      return;
+    }
+    setShowProjectManager(false);
+    requestAnimationFrame(() => openSavePrompt(defaultProjectName));
+  }, [defaultProjectName, draftBaseline, handleSaveCurrent, openSavePrompt]);
+
+  const handleManagerSaveAsNew = useCallback(() => {
+    setShowProjectManager(false);
+    requestAnimationFrame(() => openSavePrompt(defaultProjectName));
+  }, [defaultProjectName, openSavePrompt]);
+
   const libraryLocked = libraryStatus !== 'ready';
 
   useEffect(() => {
@@ -267,8 +281,8 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         }}
         musicItemId={projectManagerMusicItemId}
         onChooseMusic={openLibrarySheet}
-        onSave={handleSaveCurrent}
-        onSaveAsNewProject={() => openSavePrompt(defaultProjectName)}
+        onSave={handleManagerSave}
+        onSaveAsNewProject={handleManagerSaveAsNew}
       />
 
       <MusicLibrarySheet

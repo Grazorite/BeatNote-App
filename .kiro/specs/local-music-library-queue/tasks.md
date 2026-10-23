@@ -1273,8 +1273,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 10 — Retained journeys and focused failure-path verification
 
-- [ ] 41. Extend the retained Playwright journeys (no new spec file)
-  - [ ] 41.1 Extend the project/import/export surfaces journey
+- [x] 41. Extend the retained Playwright journeys (no new spec file)
+  - [x] 41.1 Extend the project/import/export surfaces journey
     - In `tests/ui-components.spec.ts` ("custom menus and submenus share the liquid-glass
       surface"), cover the following. Open the sheet from `song-title-control`; import audio with
       `page.setInputFiles`; Save with the name prompt; Save as New Project. Switch to a second song
@@ -1283,25 +1283,32 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Finally, reload with an `addInitScript`-seeded legacy `beatnote_projects` entry whose
       `audio.uri` is a `blob:` URL. Assert "Audio missing", Relink, and available.
     - Verification evidence: `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - The retained journey now saves and duplicates projects, restores the newest project per song,
+      preserves a dirty draft through the switch guard, replaces and undoes CSV data, and migrates
+      then relinks a seeded legacy `blob:` project.
     - _Requirements: 30.2, 4.3, 5.6, 13.2, 14.7, 16.1, 16.3, 22.4, 22.9, 27.6, 28.3_
 
-  - [ ] 41.2 Extend the responsive control-dock journey
+  - [x] 41.2 Extend the responsive control-dock journey
     - With two imported items in portrait and landscape: Next, Previous (restart above 3 s and
       switch below), First, Shuffle on and off with `aria-pressed`, and the disabled "End of queue"
       state. Add a rapid-Next burst that asserts only the final title is loaded.
     - Verification evidence: `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - Three durable WAV identities make the queue order deterministic enough to cover restart versus
+      switch, First/Previous/Next, end-of-queue accessibility, Shuffle, and rapid Next coalescing.
     - _Requirements: 30.3, 15.6, 19.2, 19.5, 19.6, 19.8, 19.9, 19.15, 29.6_
 
-  - [ ] 41.3 Update the V1 Settings journey toolbar order
+  - [x] 41.3 Update the V1 Settings journey toolbar order
     - Assert `song-title-control`, `save-project`, `load-project`, and `sidebar-open-toggle` in
       portrait and landscape.
     - Verification evidence: `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - Portrait and landscape both assert Song Title, Save, Projects, then Settings by measured order.
     - _Requirements: 8.1, 8.11_
 
-  - [ ] 41.4 Confirm the `waveform-features.spec.ts` journeys pass through the new helpers
+  - [x] 41.4 Confirm the `waveform-features.spec.ts` journeys pass through the new helpers
     - Assertions are otherwise unchanged. Remove any superseded step rather than skipping it.
     - Verification evidence: `PLAYWRIGHT_PORT=8082 npm test` passes; a project-wide search finds no
       `test.only` or `test.skip`.
+    - All six retained Playwright journeys pass and the project-wide disabled-test search is empty.
     - _Requirements: 30.6, 30.8_
 
 - [ ] 42. Extend the retained native XCTest cases

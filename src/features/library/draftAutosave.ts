@@ -261,6 +261,9 @@ export function createDraftAutosave(
         if (state.libraryStatus !== 'ready' || !state.songLoaded
           || state.currentMusicItemId === null) return;
         changeSequence += 1;
+        // The switch guard must reflect authored changes immediately; only the
+        // durable write is debounced.
+        recomputeDraftState(state.currentMusicItemId);
         armTimer();
       });
       return controller.stop;

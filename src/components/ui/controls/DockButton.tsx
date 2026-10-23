@@ -55,7 +55,7 @@ const DockButton: React.FC<DockButtonProps> = ({
       delayLongPress={450}
       disabled={unavailable}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={unavailable && hint ? `${label}, ${hint}` : label}
       accessibilityHint={hint ?? (state === 'reserved' ? 'Coming soon' : undefined)}
       accessibilityState={{ disabled: unavailable, checked }}
       accessibilityValue={valueText ? { text: valueText } : undefined}
