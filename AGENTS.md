@@ -59,9 +59,9 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 8 by restructuring the Project Manager (Task 36),
-   followed by moving confirmed/reversible CSV import and export into it (Task 37); Music Library
-   row actions and the Song Title toolbar integration are complete.
+1. Continue `local-music-library-queue` Phase 9 with the native Open_In document-type plugin and
+   incoming-URL delivery path (Task 39); the Project Manager restructure and confirmed/reversible
+   CSV relocation are complete.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -103,10 +103,9 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      foundations through the Phase 7 track-switch checkpoint and Phase 8 queue-control checkpoint
-      are complete; the icon, bottom-sheet, overflow, row, list, search/sort, and picker-import
-      surfaces, Music Library row actions, and Song Title toolbar integration are also complete,
-      with the Project Manager restructure next
+      foundations through the Phase 8 UI-surface checkpoint are complete, including the local
+      library, queue, Song Title toolbar, sectioned Project Manager, same-song guards, and
+      confirmed/reversible CSV replacement; native Open_In delivery is next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -121,6 +120,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Restructure the Project Manager around the current song and move CSV import/export out of the
+      toolbar into confirmed, reversible project actions
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/modals/csvReplaceConfirm.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/utils/projectNames.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
       storm that delayed waveform and control interactions
@@ -259,6 +262,42 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-23 — Complete Project Manager and CSV relocation
+
+**Agent:** orchestrator (Codex) + implementation agents + DSH audit dispatched · **Commit(s):** `c30d294`
+**Kanban moved:** local library Project Manager and CSV relocation → Done (Phase 8 complete)
+
+**Changed:**
+
+- Rebuilt Projects as one safe-area-aware sectioned surface with the current draft, current-song
+  projects, all projects, audio-removed grouping, row overflow actions, relink, rename, and delete.
+- Added same-song Save & Open and two-step destructive discard/revert guards, while preserving the
+  existing cross-song switch guard as the sole owner of cross-song decisions.
+- Replaced append-style CSV import with previewed replacement, explicit counts and confirmation,
+  single-level Undo, current/stored project export, and removed the two toolbar CSV actions plus
+  their dead legacy state and modal.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty retained unit gate, and
+  `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 critical journeys passed, including Project Manager CSV
+  preview/cancel and current-project export.
+- Focused iPhone 17 Pro / iOS 26.2 launch and document-picker journey → passed; result bundle
+  `ios/build/BeatNoteUITests-1792741064585.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device CSV picker/share, VoiceOver traversal, destructive-guard wording, row overflow,
+  and Project Manager rotation remain unverified.
+- The DSH read-only audit was successfully dispatched but had not returned by this checkpoint.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `c30d294`.
+
+**Next agent should:**
+
+- Implement Task 39.1's audio document-type config plugin and preserve `.beatnote` ownership while
+  applying the provisional Open_In in-place decision.
 
 ### 2026-10-23 — Fix landscape library presentation and interaction latency
 
@@ -419,37 +458,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement Task 33.1 OverflowMenu, then Task 33.2 MusicLibraryRow and ImportProgressRow.
-
-### 2026-10-21 — Complete queue controls and capability gates
-
-**Agent:** orchestrator (Codex) + DSH-Qwen partial audit · **Commit(s):** `83c1660`, `0dab428`
-**Kanban moved:** local library queue controls → In Progress (Phase 8 checkpoint complete)
-
-**Changed:**
-
-- Replaced all four reserved dock cells with First, Previous, Next, and Shuffle controls backed by
-  serialized queue actions, pending-switch-aware navigation, accessible states, and failure recovery.
-- Applied provider capability gates to exact-seek navigation, waveform/overview interaction,
-  playback speed, queue controls, Repeat, and Shuffle, with visible and accessibility explanations.
-- Preserved local capabilities for the transitional direct-file loader, basic Play for sources
-  without exact seeking, and the normal choose-music explanations when no source is loaded.
-
-**Verified:**
-
-- Temporary queue-action checks → 5/5 passed, then removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-- Focused iPhone 17 Pro / iOS 26.2 simulator transport journey → 1/1 passed; result bundle
-  `ios/build/BeatNoteUITests-1792554646546.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical-device queue switching, provider-gated presentation, and VoiceOver remain unverified.
-- DSH-Qwen later returned a partial low-severity audit before exhausting its token window; the
-  actionable exact-seek and empty-state concerns had already been resolved before commit.
-- Concurrent uncommitted waveform/playhead edits remain outside both queue commits.
-
-**Next agent should:**
-
-- Implement Task 31.1's shared icon glyphs, then Task 32's bottom-sheet primitive.

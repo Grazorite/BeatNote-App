@@ -2805,3 +2805,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Implement Task 29.1 queue actions using `navigationBaseIndex`, then replace the reserved dock
   controls in Task 29.2.
+
+### 2026-10-21 — Complete queue controls and capability gates
+
+**Agent:** orchestrator (Codex) + DSH-Qwen partial audit · **Commit(s):** `83c1660`, `0dab428`
+**Kanban moved:** local library queue controls → In Progress (Phase 8 checkpoint complete)
+
+**Changed:**
+
+- Replaced all four reserved dock cells with First, Previous, Next, and Shuffle controls backed by
+  serialized queue actions, pending-switch-aware navigation, accessible states, and failure recovery.
+- Applied provider capability gates to exact-seek navigation, waveform/overview interaction,
+  playback speed, queue controls, Repeat, and Shuffle, with visible and accessibility explanations.
+- Preserved local capabilities for the transitional direct-file loader, basic Play for sources
+  without exact seeking, and the normal choose-music explanations when no source is loaded.
+
+**Verified:**
+
+- Temporary queue-action checks → 5/5 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 simulator transport journey → 1/1 passed; result bundle
+  `ios/build/BeatNoteUITests-1792554646546.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device queue switching, provider-gated presentation, and VoiceOver remain unverified.
+- DSH-Qwen later returned a partial low-severity audit before exhausting its token window; the
+  actionable exact-seek and empty-state concerns had already been resolved before commit.
+- Concurrent uncommitted waveform/playhead edits remain outside both queue commits.
+
+**Next agent should:**
+
+- Implement Task 31.1's shared icon glyphs, then Task 32's bottom-sheet primitive.
