@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-22
+**Last updated:** 2026-10-24
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -53,15 +53,15 @@ potentially adding a hybrid path later.
 | Stem separation | Deferred; types, store fields, and cache preserved |
 | Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
-| iOS UI tests | 6 critical native integrations retained; focused V1 launch/settings check passes |
+| iOS UI tests | 7 critical native integrations retained; focused V1 launch/settings and Open_In checks pass |
 | E2E spec files | 2 (Playwright, 6 critical journeys) |
-| Native Expo modules | 1 (`BeatNoteWaveform`, iOS AVAssetReader extraction) |
+| Native Expo modules | 2 (`BeatNoteWaveform` extraction and `LibraryStorage` persistence/Open_In) |
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 9 with the native Open_In document-type plugin and
-   incoming-URL delivery path (Task 39); the Project Manager restructure and confirmed/reversible
-   CSV relocation are complete.
+1. Continue `local-music-library-queue` Phase 10 by extending the retained project/import/export
+   and responsive control-dock journeys (Task 41); native Open_In configuration, delivery, and
+   focused simulator acceptance are complete.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -103,9 +103,9 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      foundations through the Phase 8 UI-surface checkpoint are complete, including the local
-      library, queue, Song Title toolbar, sectioned Project Manager, same-song guards, and
-      confirmed/reversible CSV replacement; native Open_In delivery is next
+      foundations through the Phase 9 Open_In checkpoint are complete, including the local library,
+      queue, Song Title toolbar, sectioned Project Manager, confirmed/reversible CSV replacement,
+      native document declarations, and running-app Open_In delivery; retained journey expansion is next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -120,6 +120,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
+      retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/design.md`, `.kiro/specs/local-music-library-queue/tasks.md`, `app.json`, `plugins/withAudioDocumentTypes.js`, `modules/library-storage/expo-module.config.json`, `modules/library-storage/ios/LibraryStorageModule.swift`, `modules/library-storage/src/index.ts`, `modules/library-storage/src/index.web.ts`, `scripts/ios-ui-test.js`, `src/features/library/useLibraryLifecycle.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 - [x] Restructure the Project Manager around the current song and move CSV import/export out of the
       toolbar into confirmed, reversible project actions
@@ -262,6 +266,45 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-24 — Complete native audio Open_In delivery
+
+**Agent:** orchestrator (Codex) + DSH-Qwen/local review · **Commit(s):** `af6bfe0`, `79e477e`
+**Kanban moved:** local-music-library-queue Phase 9 (Tasks 39–40) → Done
+
+**Changed:**
+
+- Added an idempotent Expo config plugin that preserves the BeatNote Project declaration, declares
+  seven audio document types plus OGG/FLAC UTIs, and provisionally disables in-place opening.
+- Added an autolinked LibraryStorage app-delegate subscriber with retained pre-observer URLs,
+  owner-safe listener transitions, and a web-safe module contract; lifecycle handling now queues
+  supported file URLs until library boot completes and routes them through the shared import path.
+- Added deterministic `simctl openurl` delivery and focused XCTest assertions for title, toast, and
+  retained library row; the unfiltered runner now schedules Open_In separately from ordinary cases.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty unit gate, JavaScript syntax, generated
+  Info.plist inspection, and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 Open_In journey → passed after final observer hardening; result
+  bundle `ios/build/BeatNoteOpenInUITest-1792777502768.xcresult`.
+- Retained launch/document-picker journey → passed; result bundle
+  `ios/build/BeatNoteUITests-1792742530993.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical Files/third-party delivery, `.beatnote` presentation, security-scoped behavior, and the
+  final `LSSupportsOpeningDocumentsInPlace = false` decision remain blocked on device/signing access.
+- An unfiltered native-suite attempt reached the split runner but five older picker-driven cases
+  failed to find staged Files fixtures in the accumulated simulator state; focused affected cases
+  pass, and full-suite isolation/Files state remains a Phase 10 harness concern.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside both commits.
+
+**Next agent should:**
+
+- Implement Task 41.1 by extending the retained project/import/export Playwright journey, then
+  Task 41.2's responsive queue/control coverage.
 
 ### 2026-10-23 — Complete Project Manager and CSV relocation
 
@@ -424,37 +467,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement Task 34.1 music-item rename, then Task 34.2 deletion semantics.
-
-### 2026-10-22 — Add icons and accessible bottom sheet
-
-**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `721e004`, `4bf2c9b`
-**Kanban moved:** local library icons and bottom sheet → In Progress (Tasks 31–32 complete)
-
-**Changed:**
-
-- Added the seven missing shared glyphs and verified the complete nine-icon set remains distinct at
-  18 px without colour; existing chevron-down and warning glyphs were retained.
-- Added the pure sheet-detent resolver and a reusable liquid-glass BottomSheet with medium/large
-  detents, header-only pan, animated dismissal, safe areas, keyboard expansion, and rotation refits.
-- Added live Reduce Motion handling, accessible detent switching and Close, title/return focus,
-  web Tab/Shift-Tab trapping, Escape dismissal, and cancelled-pan recovery.
-
-**Verified:**
-
-- Temporary detent property checks → 3/3 passed, then removed per policy.
-- Chromium icon grid → all nine glyphs legible and distinguishable at exactly 18 px.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-
-**Not verified / known gaps:**
-
-- The primitive is not mounted until the Music Library surface lands, so real sheet drag, keyboard,
-  focus, VoiceOver, and rotation behavior still require integrated simulator and physical checks.
-- The DSH bridge was unavailable in this Codex session; local Ollama and the configured Qwen model
-  were available, so implementation continued in Codex after the required preflight report.
-- Concurrent uncommitted waveform/playhead edits remain outside both commits.
-
-**Next agent should:**
-
-- Implement Task 33.1 OverflowMenu, then Task 33.2 MusicLibraryRow and ImportProgressRow.

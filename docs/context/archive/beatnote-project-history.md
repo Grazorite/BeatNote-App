@@ -155,6 +155,40 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-22 — Add icons and accessible bottom sheet
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `721e004`, `4bf2c9b`
+**Kanban moved:** local library icons and bottom sheet → In Progress (Tasks 31–32 complete)
+
+**Changed:**
+
+- Added the seven missing shared glyphs and verified the complete nine-icon set remains distinct at
+  18 px without colour; existing chevron-down and warning glyphs were retained.
+- Added the pure sheet-detent resolver and a reusable liquid-glass BottomSheet with medium/large
+  detents, header-only pan, animated dismissal, safe areas, keyboard expansion, and rotation refits.
+- Added live Reduce Motion handling, accessible detent switching and Close, title/return focus,
+  web Tab/Shift-Tab trapping, Escape dismissal, and cancelled-pan recovery.
+
+**Verified:**
+
+- Temporary detent property checks → 3/3 passed, then removed per policy.
+- Chromium icon grid → all nine glyphs legible and distinguishable at exactly 18 px.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- The primitive is not mounted until the Music Library surface lands, so real sheet drag, keyboard,
+  focus, VoiceOver, and rotation behavior still require integrated simulator and physical checks.
+- The DSH bridge was unavailable in this Codex session; local Ollama and the configured Qwen model
+  were available, so implementation continued in Codex after the required preflight report.
+- Concurrent uncommitted waveform/playhead edits remain outside both commits.
+
+**Next agent should:**
+
+- Implement Task 33.1 OverflowMenu, then Task 33.2 MusicLibraryRow and ImportProgressRow.
+
 ### 2026-10-18 — Build project and draft persistence foundations
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `0c0e0f0`, `1e0fa29`
