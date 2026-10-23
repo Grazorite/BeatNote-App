@@ -1,7 +1,5 @@
 import { create, type StateCreator } from 'zustand';
 import type { BeatNoteProject, LayerId } from '../types/project';
-import { ImportEngine } from '../utils/importEngine';
-import type { ImportResult } from '../utils/importTypes';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
 import type { RowDensity } from '../utils/rowLayout';
 import { canEnterRangeState, deriveInnerLoopState, type InnerLoopState } from '../utils/innerLoop';
@@ -35,6 +33,11 @@ import { subscribeImportJobs } from '../features/library/importPipeline';
 import { applyPersistedContent } from '../utils/persistedContent';
 import { queueTarget, setShuffle as setQueueShuffle, type QueueAction } from '../utils/queueOrder';
 import type { SwitchResult } from '../features/library/trackSwitch';
+import {
+  applyCsvReplace as replaceLayersFromCsv,
+  parseCsvForPreview,
+  restoreCsvUndo,
+} from '../utils/csvReplace';
 
 export type { LayerId } from '../types/project';
 
@@ -181,8 +184,6 @@ export interface StudioStore {
   showGridLines: boolean;
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
-  showExportModal: boolean;
-  showImportModal: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
   markerDeletionHistory: MarkerDeletionBatch[];
   isRepeatActive: boolean;
@@ -242,8 +243,10 @@ export interface StudioStore {
   setShowGridLines: (show: boolean) => void;
   toggleSidebar: () => void;
   setShowHelpScreen: (show: boolean) => void;
-  setShowExportModal: (show: boolean) => void;
-  setShowImportModal: (show: boolean) => void;
+  previewCsvImport: (csvContent: string, sourceName: string) => CsvImportPreview;
+  discardCsvPreview: () => void;
+  applyCsvReplace: () => boolean;
+  undoCsvReplace: () => boolean;
   toggleRepeat: () => void;
   setMagneticSnapping: (enabled: boolean) => void;
   setShowAnnotations: (show: boolean) => void;
@@ -262,7 +265,6 @@ export interface StudioStore {
   zoomTimeline: (direction: 'in' | 'out') => void;
   skipPlayhead: (direction: 'left' | 'right') => void;
   setSongLoaded: (loaded: boolean) => void;
-  importFromCSV: (csvContent: string) => Promise<ImportResult>;
   setActiveLayer: (layerId: LayerId) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
@@ -427,8 +429,6 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   showGridLines: true,
   isSidebarCollapsed: true,
   showHelpScreen: false,
-  showExportModal: false,
-  showImportModal: false,
   lastRemovedMarker: null,
   markerDeletionHistory: [],
   isRepeatActive: false,
@@ -548,8 +548,6 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       isLoopMarkerActive: false,
       libraryNotice: null,
       showHelpScreen: false,
-      showExportModal: false,
-      showImportModal: false,
       csvPreview: null,
       csvUndo: null,
       isTextInputFocused: false,
@@ -864,8 +862,62 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setShowGridLines: (show) => set({ showGridLines: show }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
-  setShowExportModal: (show) => set({ showExportModal: show }),
-  setShowImportModal: (show) => set({ showImportModal: show }),
+  previewCsvImport: (csvContent, sourceName) => {
+    const state = get();
+    const preview = {
+      ...parseCsvForPreview(csvContent, state.allLayersData, state.songDuration),
+      sourceName,
+    };
+    set({ csvPreview: preview, csvUndo: null });
+    return preview;
+  },
+  discardCsvPreview: () => set({ csvPreview: null }),
+  applyCsvReplace: () => {
+    const state = get();
+    if (state.csvPreview === null || state.csvPreview.importedMarkerCount === 0) return false;
+
+    // The pure replace helper intentionally mutates its input, so give it an
+    // independently cloned layer set. Keeping the store's previous references
+    // untouched ensures Zustand subscribers and draft autosave observe the edit.
+    const replacementLayers = state.allLayersData.map(layer => ({
+      ...layer,
+      markers: [...layer.markers],
+      annotations: layer.annotations.map(annotation => ({ ...annotation })),
+    }));
+    const csvUndo = replaceLayersFromCsv(
+      replacementLayers,
+      state.csvPreview,
+      state.draftUiState,
+    );
+
+    set({
+      allLayersData: replacementLayers,
+      layers: getLayersForDisplay(replacementLayers, state.stemCount),
+      draftUiState: state.draftBaseline === null ? 'unsaved' : 'dirty',
+      csvPreview: null,
+      csvUndo,
+      selectedMarker: null,
+      markerDeletionHistory: [],
+      lastRemovedMarker: null,
+    });
+    return true;
+  },
+  undoCsvReplace: () => {
+    const state = get();
+    if (state.csvUndo === null) return false;
+
+    const restoredLayers = restoreCsvUndo(state.allLayersData, state.csvUndo);
+    set({
+      allLayersData: restoredLayers,
+      layers: getLayersForDisplay(restoredLayers, state.stemCount),
+      draftUiState: state.csvUndo.priorDraftState,
+      csvUndo: null,
+      selectedMarker: null,
+      markerDeletionHistory: [],
+      lastRemovedMarker: null,
+    });
+    return true;
+  },
   toggleRepeat: () => set((state) => ({ isRepeatActive: !state.isRepeatActive })),
   setMagneticSnapping: (enabled) => set({ magneticSnapping: enabled }),
   setShowAnnotations: (show) => set({ showAnnotations: show }),
@@ -1166,28 +1218,6 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       activeLayerId: activeExists ? state.activeLayerId : newVisibleLayers[0].id
     };
   }),
-  importFromCSV: async (csvContent: string) => {
-    const importData = await ImportEngine.importFromCSV(csvContent);
-    const state = get();
-    
-    const updatedAllLayers = state.allLayersData.map(layer => {
-      const importedLayer = importData.layers[layer.id];
-      if (importedLayer) {
-        return {
-          ...layer,
-          markers: [...layer.markers, ...importedLayer.markers],
-          annotations: [...layer.annotations, ...importedLayer.annotations]
-        };
-      }
-      return layer;
-    });
-    
-    set({
-      allLayersData: updatedAllLayers,
-      layers: getLayersForDisplay(updatedAllLayers, state.stemCount)
-    });
-    return importData;
-  },
 });
 
 export const useStudioStore = create<StudioStore>(studioStoreCreator);

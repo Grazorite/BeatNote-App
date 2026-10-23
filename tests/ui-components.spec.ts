@@ -12,14 +12,12 @@ test.describe('UI Components & Layout', () => {
       'Music library, no song chosen',
     );
     await expect(page.getByTestId('load-project')).toHaveAttribute('aria-label', 'Open Projects');
-    await expect(page.getByTestId('import-data')).toHaveAttribute('aria-label', 'Import CSV');
-    await expect(page.getByTestId('export-data')).toHaveAttribute('aria-label', 'Export CSV');
     const settingsButton = await page.getByTestId('sidebar-open-toggle').boundingBox();
-    const exportButton = await page.getByTestId('export-data').boundingBox();
+    const projectsButton = await page.getByTestId('load-project').boundingBox();
     expect(settingsButton).not.toBeNull();
-    expect(exportButton).not.toBeNull();
-    if (settingsButton && exportButton) {
-      expect(settingsButton.x).toBeGreaterThan(exportButton.x);
+    expect(projectsButton).not.toBeNull();
+    if (settingsButton && projectsButton) {
+      expect(settingsButton.x).toBeGreaterThan(projectsButton.x);
     }
     const emptyWaveform = await page.getByTestId('waveform-container').boundingBox();
     const emptyMessage = await page.getByText('Load a song', { exact: true }).boundingBox();
@@ -396,15 +394,27 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('confirm-save-project')).not.toHaveAttribute('aria-disabled', 'true');
     await page.getByText('Cancel', { exact: true }).click();
 
-    await page.getByTestId('import-data').click();
-    await expect(page.getByTestId('import-modal-glass')).toBeVisible();
-    await expect(page.getByText('Choose CSV', { exact: true })).toHaveCSS('color', 'rgb(0, 0, 0)');
-    await expect(page.getByText('Importing the same file again may create duplicate markers', { exact: true }))
-      .toHaveCSS('color', 'rgb(0, 0, 0)');
-    await page.getByText('Cancel', { exact: true }).last().click();
+    await page.getByTestId('load-project').click();
+    await page.getByTestId('current-project-import-csv').click();
+    const csvInput = page.locator('input[type="file"]').last();
+    await expect(csvInput).toHaveAttribute('accept', /text\/csv/);
+    await csvInput.setInputFiles({
+      name: 'replace.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from([
+        'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Annotation',
+        'Vocals,250,0.250,1:1,"Entrance"',
+      ].join('\n')),
+    });
+    await expect(page.getByTestId('csv-replace-confirm-glass')).toBeVisible();
+    await expect(page.getByText(/Replace markers in/)).toBeVisible();
+    await expect(page.getByTestId('csv-imported-counts')).toContainText('1 marker');
+    await page.getByTestId('csv-replace-cancel').click();
+    await page.getByText('Close', { exact: true }).click();
 
     await page.getByTestId('add-marker').click();
-    await page.getByTestId('export-data').click();
+    await page.getByTestId('load-project').click();
+    await page.getByTestId('current-project-export-csv').click();
     await expect(page.getByTestId('export-modal-glass')).toBeVisible();
     await expect(page.getByText('Export CSV', { exact: true }).last()).toHaveCSS('color', 'rgb(0, 0, 0)');
     await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true }))

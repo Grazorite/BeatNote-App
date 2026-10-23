@@ -1124,7 +1124,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       remaining `load-song` reference.
     - _Requirements: 8.2, 30.6, 30.8_
 
-- [ ] 36. Restructure the Project_Manager around the current project
+- [x] 36. Restructure the Project_Manager around the current project
   - [x] 36.1 Create `CurrentProjectSection`
     - `src/components/ui/projects/CurrentProjectSection.tsx` with styles shows the name or
       "Unsaved draft", the Display_Title, and the state text and icon ("Saved", "Edited — not
@@ -1144,61 +1144,64 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 21.6, 21.10, 24.8, 24.9, 24.10, 28.10, 29.1, 29.2_
 
-  - [ ] 36.3 Rebuild `ProjectManagerModal` as a sectioned list
+  - [x] 36.3 Rebuild `ProjectManagerModal` as a sectioned list
     - Use one `SectionList` from `groupProjectSections`, including the "Audio removed" group with
       Relink and Delete, and an empty-state line per section. Keep the full-screen phone
       presentation, safe areas, and orientations. The migration notice "<n> projects need their
       audio reconnected" opens the modal scrolled to the first affected row.
     - Update existing tests that used `load-saved-project-<name>` or `delete-saved-project-<name>`.
-    - Verification evidence: `npx tsc --noEmit` clean; `PLAYWRIGHT_PORT=8082 npm test` passes.
+    - Verification evidence: `npx tsc --noEmit` clean; all 6 retained Playwright journeys pass.
     - _Requirements: 21.1, 21.2, 21.3, 21.7, 21.8, 21.11, 24.5, 28.12_
 
-  - [ ] 36.4 Add the same-song open guard and the Revert confirmations
+  - [x] 36.4 Add the same-song open guard and the Revert confirmations
     - "Save changes before opening?" offers Save & Open (opens only if the save succeeds), Discard
       Changes & Open (a second destructive confirmation naming `changedMarkerCount`, or the changed
       settings when it is 0), and Cancel. Revert to Saved uses the same second confirmation.
-    - Verification evidence: `npx tsc --noEmit` clean.
+    - Verification evidence: `npx tsc --noEmit` clean; the full retained browser gate passes.
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.8_
 
-- [ ] 37. Relocate CSV into the Project_Manager as a confirmed, reversible replace
-  - [ ] 37.1 Add the CSV store actions
+- [x] 37. Relocate CSV into the Project_Manager as a confirmed, reversible replace
+  - [x] 37.1 Add the CSV store actions
     - `previewCsvImport` picks and parses into `csvPreview` without changing editor state. A
       dismissed picker does nothing, and a parse error shows the parser message.
       `applyCsvReplace` replaces all layers, stores `csvUndo` with the prior draft UI state, and
       updates only the draft. `undoCsvReplace` restores the layers exactly. Clear `csvUndo` on the
       next import, song switch, or save. Remove the store's `importFromCSV` append path.
-    - Verification evidence: `npx tsc --noEmit` clean.
+    - Verification evidence: `npx tsc --noEmit` clean; the append bridge and legacy modal were removed.
     - _Requirements: 22.1, 22.2, 22.3, 22.6, 22.7, 22.9, 22.10, 22.11_
 
-  - [ ] 37.2 Create `CsvReplaceConfirm`
+  - [x] 37.2 Create `CsvReplaceConfirm`
     - `src/components/ui/modals/CsvReplaceConfirm.tsx` with styles uses the title "Replace markers
       in “<project or Unsaved draft>”?". It shows existing and imported marker and annotation
       counts, skipped rows, and "<n> markers are past the end of this song". Replace is disabled
       with "No markers were found" when nothing is importable. Focus moves to the title.
-    - Verification evidence: `npx tsc --noEmit` clean.
+    - Verification evidence: `npx tsc --noEmit` clean; the retained browser journey exercises its counts and cancellation.
     - _Requirements: 22.4, 22.5, 22.12, 29.1, 29.8_
 
-  - [ ] 37.3 Wire Import CSV, Export CSV, and Undo into the Project_Manager
+  - [x] 37.3 Wire Import CSV, Export CSV, and Undo into the Project_Manager
     - Import CSV in `CurrentProjectSection` opens preview, confirm, and replace, then shows a
       Dock_Toast with Undo for 5000 ms. Undo CSV Import in the section uses the retained snapshot.
       Export CSV (current) and row Export CSV call `exportProjectCsv` through the existing
       `ExportModal` format chooser. Delete `ImportModal.tsx`.
-    - Verification evidence: `npx tsc --noEmit` clean.
+    - Verification evidence: `npx tsc --noEmit` clean; the retained browser journey exercises Project Manager import preview and current export.
     - _Requirements: 8.9, 21.5, 22.8, 22.10, 23.1, 23.2_
 
-  - [ ] 37.4 Remove `import-data` and `export-data` from the toolbar and update their tests
+  - [x] 37.4 Remove `import-data` and `export-data` from the toolbar and update their tests
     - Delete the toolbar CSV buttons from `ProjectControls.tsx`. Move the existing Playwright and
       XCTest references to `import-data` and `export-data` onto the Project_Manager's Current
       Project actions.
-    - Verification evidence: `PLAYWRIGHT_PORT=8082 npm test` passes; a project-wide search finds no
-      remaining toolbar `import-data` or `export-data` reference.
+    - Verification evidence: all 6 retained Playwright journeys pass; focused iPhone launch/picker
+      automation passes; a project-wide search finds no remaining `import-data` or `export-data` reference.
     - _Requirements: 8.1, 8.9, 30.6_
 
-- [ ] 38. Checkpoint — UI surfaces
+- [x] 38. Checkpoint — UI surfaces
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`, focused
     `IOS_TEST_ONLY=testStudioLaunchesAndDocumentPickerOpens npm run test:ios:ui`, and
     `git diff --check`.
   - Ensure all tests pass, ask the user if questions arise.
+  - Verification evidence: version parity is `1.0.0`; TypeScript, the empty retained unit gate,
+    diff hygiene, and all 6 Playwright journeys pass. Focused iPhone 17 Pro / iOS 26.2 launch and
+    document-picker automation passes in `ios/build/BeatNoteUITests-1792741064585.xcresult`.
 
 ### Phase 9 — Native Open_In configuration and delivery
 

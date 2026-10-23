@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, Alert, Platform } from 'react-native';
-import { ExportEngine } from '../../../utils/exportEngine';
-import { useStudioStore } from '../../../hooks/useStudioStore';
+import { exportProjectCsv } from '../../../features/library/projectService';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import GlassBackdrop from '../controls/GlassBackdrop';
 
@@ -9,26 +8,32 @@ interface ExportModalProps {
   visible: boolean;
   onClose: () => void;
   projectName: string;
+  projectId: string | 'current';
+  markerCount: number;
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({
   visible,
   onClose,
   projectName,
+  projectId,
+  markerCount,
 }) => {
-  const { allLayersData, bpm, songDuration } = useStudioStore();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const result = await ExportEngine.exportToCSV({
-        format: 'csv',
-        layers: allLayersData,
-        bpm,
-        songDuration,
-        projectName,
-      });
+      const outcome = await exportProjectCsv(projectId);
+      if (outcome.kind !== 'exported') {
+        const message = outcome.kind === 'failed'
+          ? outcome.reason
+          : outcome.kind === 'notFound'
+            ? 'This project is no longer available.'
+            : 'Choose music before exporting the current draft.';
+        throw new Error(message);
+      }
+      const result = outcome.result;
 
       const title = 'Export Successful';
       const message = Platform.OS === 'ios'
@@ -53,9 +58,6 @@ const ExportModal: React.FC<ExportModalProps> = ({
     }
   };
 
-  const visibleLayers = allLayersData.filter(layer => layer.isVisible);
-  const totalMarkers = visibleLayers.reduce((sum, layer) => sum + layer.markers.length, 0);
-
   return (
     <Modal
       visible={visible}
@@ -71,7 +73,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
           </Text>
           
           <Text style={styles.subtitle}>
-            {totalMarkers} marker{totalMarkers === 1 ? '' : 's'} ready to export
+            {markerCount} marker{markerCount === 1 ? '' : 's'} ready to export
           </Text>
           
           <TouchableOpacity

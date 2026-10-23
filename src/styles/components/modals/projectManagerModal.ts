@@ -35,7 +35,29 @@ export const projectManagerModalStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 16,
+    gap: 8,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 17,
+    lineHeight: 23,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  groupTitle: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: colors.surfaceGlass,
+    borderRadius: dimensions.borderRadius,
   },
   loadingText: {
     color: colors.textSecondary,
@@ -43,7 +65,8 @@ export const projectManagerModalStyles = StyleSheet.create({
   },
   emptyText: {
     color: colors.textSecondary,
-    textAlign: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 14,
   },
   projectItem: {
     backgroundColor: colors.surfaceGlass,

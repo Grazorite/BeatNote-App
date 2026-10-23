@@ -81,6 +81,10 @@ interface SaveOptions {
   overwriteConflict?: boolean;
 }
 
+export interface OpenProjectOptions {
+  discardChanges?: boolean;
+}
+
 interface InternalSaveOptions extends SaveOptions {
   recoveryProject?: SavedProject;
   recoveryAuthoredFingerprint?: string;
@@ -765,6 +769,7 @@ async function applyProjectToCurrentSong(
 async function runOpenProject(
   dependencies: ProjectServiceDependencies,
   projectId: string,
+  options: OpenProjectOptions = {},
 ): Promise<OpenResult> {
   let reportedIssue: PersistenceIssue | null = null;
   const project = await dependencies.readProject(projectId, {
@@ -779,14 +784,14 @@ async function runOpenProject(
       return {
         kind: 'failed',
         reason,
-        retry: () => runOpenProject(dependencies, projectId),
+        retry: () => runOpenProject(dependencies, projectId, options),
       };
     }
     return { kind: 'notFound', projectId };
   }
 
   const state = dependencies.getState();
-  if (state.currentMusicItemId !== project.musicItemId || state.draftUiState === 'dirty') {
+  if (state.currentMusicItemId !== project.musicItemId) {
     const switchResult = await dependencies.requestTrackSwitch({
       musicItemId: project.musicItemId,
       origin: 'projectOpen',
@@ -797,11 +802,14 @@ async function runOpenProject(
       return {
         kind: 'failed',
         reason: switchResult.reason.message,
-        retry: () => runOpenProject(dependencies, projectId),
+        retry: () => runOpenProject(dependencies, projectId, options),
       };
     }
     if (dependencies.getState().switchGuard !== null) return { kind: 'needsGuard', projectId };
     return { kind: 'superseded' };
+  }
+  if (state.draftUiState === 'dirty' && options.discardChanges !== true) {
+    return { kind: 'needsGuard', projectId };
   }
   const applyResult = await applyProjectToCurrentSong(dependencies, project);
   if (applyResult === 'superseded') return { kind: 'superseded' };
@@ -809,7 +817,7 @@ async function runOpenProject(
     return {
       kind: 'failed',
       reason: 'Project opened, but its draft could not be saved',
-      retry: () => runOpenProject(dependencies, projectId),
+      retry: () => runOpenProject(dependencies, projectId, options),
     };
   }
   return { kind: 'opened', project };
@@ -869,7 +877,9 @@ async function runExportProjectCsv(
     const state = dependencies.getState();
     if (state.currentMusicItemId === null || !state.songLoaded) return { kind: 'noSong' };
     content = extractPersistedContent(state);
-    projectName = state.draftBaselineName ?? 'Unnamed_Draft';
+    projectName = state.draftBaselineName
+      ?? state.libraryItems[state.currentMusicItemId]?.displayTitle
+      ?? 'Unnamed_Draft';
     songDuration = state.songDuration;
   } else {
     let reportedIssue: PersistenceIssue | null = null;
@@ -925,8 +935,11 @@ export const deleteProject = (projectId: string): Promise<void> => (
   runDelete(defaultDependencies, projectId)
 );
 
-export const openProject = (projectId: string): Promise<OpenResult> => (
-  runOpenProject(defaultDependencies, projectId)
+export const openProject = (
+  projectId: string,
+  options?: OpenProjectOptions,
+): Promise<OpenResult> => (
+  runOpenProject(defaultDependencies, projectId, options)
 );
 
 export const revertToSaved = (): Promise<RevertResult> => (
@@ -943,7 +956,9 @@ export const createProjectService = (dependencies: ProjectServiceDependencies) =
   saveAsNew: (name: string) => runSave(dependencies, 'new', name),
   renameProject: (projectId: string, name: string) => runRename(dependencies, projectId, name),
   deleteProject: (projectId: string) => runDelete(dependencies, projectId),
-  openProject: (projectId: string) => runOpenProject(dependencies, projectId),
+  openProject: (projectId: string, options?: OpenProjectOptions) => (
+    runOpenProject(dependencies, projectId, options)
+  ),
   revertToSaved: () => runRevertToSaved(dependencies),
   exportProjectCsv: (projectId: string | 'current') => runExportProjectCsv(dependencies, projectId),
 });

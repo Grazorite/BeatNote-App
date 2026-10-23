@@ -123,7 +123,8 @@ export function groupProjectSections(
         && summary.projectId !== currentProjectId)
       .sort(compareModifiedNewest);
   const audioRemoved = summaries
-    .filter(summary => items[summary.musicItemId]?.removed === true)
+    .filter(summary => summary.musicItemId !== currentMusicItemId
+      && items[summary.musicItemId]?.removed === true)
     .sort(compareModifiedNewest);
   const grouped = new Map<string, SavedProjectSummary[]>();
 

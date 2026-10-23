@@ -4,19 +4,12 @@ import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';
 import { BeatNoteIcon } from '../../icons';
-import {
-  openProject,
-  saveAsNew,
-  saveCurrent,
-  type OpenResult,
-  type SaveResult,
-} from '../../../features/library/projectService';
-import type { ImportResult } from '../../../utils/importTypes';
+import { saveAsNew, saveCurrent, type SaveResult } from '../../../features/library/projectService';
+import { markMigrationNoticeShown } from '../../../features/library/migration';
+import { readLibraryPrefsStrict } from '../../../features/library/repositories';
 import ProjectManagerModal from '../modals/ProjectManagerModal';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import SaveProjectPrompt from '../modals/SaveProjectPrompt';
-import ExportModal from '../modals/ExportModal';
-import ImportModal from '../modals/ImportModal';
 import { MusicLibrarySheet } from '../library';
 import SongTitleControl from './SongTitleControl';
 
@@ -26,33 +19,35 @@ interface ProjectControlsProps {
 }
 
 const ProjectControls: React.FC<ProjectControlsProps> = ({
-  audioFilename,
+  audioFilename: _audioFilename,
   isMobile = false,
 }) => {
   const {
-    songLoaded,
-    allLayersData,
     toggleSidebar,
     libraryStatus,
     currentMusicItemId,
     libraryItems,
+    projectSummaries,
+    migrationNoticeCount,
     draftBaseline,
     draftBaselineName,
     saveInProgress,
     openLibrarySheet,
     closeLibrarySheet,
+    notify,
   } = useStudioStore(useShallow(state => ({
-    songLoaded: state.songLoaded,
-    allLayersData: state.allLayersData,
     toggleSidebar: state.toggleSidebar,
     libraryStatus: state.libraryStatus,
     currentMusicItemId: state.currentMusicItemId,
     libraryItems: state.libraryItems,
+    projectSummaries: state.projectSummaries,
+    migrationNoticeCount: state.migrationNoticeCount,
     draftBaseline: state.draftBaseline,
     draftBaselineName: state.draftBaselineName,
     saveInProgress: state.saveInProgress,
     openLibrarySheet: state.openLibrarySheet,
     closeLibrarySheet: state.closeLibrarySheet,
+    notify: state.notify,
   })));
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [projectManagerMusicItemId, setProjectManagerMusicItemId] = useState<string | null>(null);
@@ -61,10 +56,9 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   const [savePromptInitialName, setSavePromptInitialName] = useState('');
   const [duplicateSuggestion, setDuplicateSuggestion] = useState<string | null>(null);
   const [showRevisionConflict, setShowRevisionConflict] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
   const saveButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const titleButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+  const migrationNoticeRef = useRef<number | null>(null);
 
   const defaultProjectName = currentMusicItemId === null
     ? 'Untitled'
@@ -115,48 +109,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     handleSaveResult(await saveAsNew(projectName));
   }, [handleSaveResult, libraryStatus, saveInProgress]);
 
-  const reportOpenResult = useCallback((result: OpenResult): boolean => {
-    if (result.kind === 'opened') return true;
-    if (result.kind === 'needsGuard') return false;
-    if (result.kind === 'failed') {
-      Alert.alert('Project Not Opened', result.reason);
-      return false;
-    }
-    if (result.kind === 'notFound') {
-      Alert.alert('Project Not Found', 'This project is no longer available.');
-      return false;
-    }
-    if (result.kind === 'superseded') {
-      Alert.alert('Project Not Opened', 'The current song changed while the project was opening.');
-      return false;
-    }
-    return false;
-  }, []);
-
-  const handleLoadProject = useCallback(async (projectId: string): Promise<boolean> => {
-    if (libraryStatus !== 'ready') return false;
-    try {
-      const result = await openProject(projectId);
-      return reportOpenResult(result);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load project');
-      return false;
-    }
-  }, [libraryStatus, reportOpenResult]);
-
-  const handleImportSuccess = useCallback((result: ImportResult) => {
-    setShowImportModal(false);
-    const imported = `${result.importedMarkers} marker${result.importedMarkers === 1 ? '' : 's'} imported.`;
-    const skipped = result.skippedRows > 0
-      ? ` ${result.skippedRows} row${result.skippedRows === 1 ? '' : 's'} skipped.`
-      : '';
-    Alert.alert('CSV Imported', `${imported}${skipped}`);
-  }, []);
-
-  const visibleMarkerCount = allLayersData
-    .filter(layer => layer.isVisible)
-    .reduce((sum, layer) => sum + layer.markers.length, 0);
-  const hasExportableMarkers = songLoaded && visibleMarkerCount > 0;
   const libraryLocked = libraryStatus !== 'ready';
 
   useEffect(() => {
@@ -164,7 +116,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     setShowProjectManager(false);
     setShowSavePrompt(false);
     setShowRevisionConflict(false);
-    setShowImportModal(false);
   }, [libraryLocked]);
 
   const openProjects = useCallback((musicItemId: string | null = null) => {
@@ -175,6 +126,38 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       setShowProjectManager(true);
     });
   }, [closeLibrarySheet]);
+
+  useEffect(() => {
+    if (
+      libraryStatus !== 'ready'
+      || migrationNoticeCount === null
+      || migrationNoticeRef.current === migrationNoticeCount
+    ) return;
+    migrationNoticeRef.current = migrationNoticeCount;
+    const firstAffectedMusicItemId = Object.values(projectSummaries)
+      .sort((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+      .find(project => {
+        const item = libraryItems[project.musicItemId];
+        return item?.availability === 'missing' || item?.removed === true;
+      })?.musicItemId ?? null;
+    notify(`${migrationNoticeCount} projects need their audio reconnected`, {
+      label: 'Show Projects',
+      onPress: () => openProjects(firstAffectedMusicItemId),
+    });
+    void readLibraryPrefsStrict()
+      .then(preferences => markMigrationNoticeShown(preferences))
+      .then(() => useStudioStore.setState({ migrationNoticeCount: null }))
+      .catch(error => {
+        console.error('Unable to record the migration notice', error);
+      });
+  }, [
+    libraryItems,
+    libraryStatus,
+    migrationNoticeCount,
+    notify,
+    openProjects,
+    projectSummaries,
+  ]);
 
   const actions = (
     <>
@@ -209,28 +192,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
       >
         <BeatNoteIcon name="projects" size={20} style={isMobile ? undefined : { marginRight: 8 }} />
         <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Projects</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, (!songLoaded || libraryLocked) && styles.buttonDisabled]}
-        onPress={songLoaded && !libraryLocked ? () => setShowImportModal(true) : undefined}
-        disabled={!songLoaded || libraryLocked}
-        accessibilityLabel="Import CSV"
-        testID="import-data"
-      >
-        <BeatNoteIcon name="import" size={20} color={songLoaded && !libraryLocked ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Import CSV</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, isMobile && styles.buttonMobile, !hasExportableMarkers && styles.buttonDisabled]}
-        onPress={hasExportableMarkers ? () => setShowExportModal(true) : undefined}
-        disabled={!hasExportableMarkers}
-        accessibilityLabel="Export CSV"
-        testID="export-data"
-      >
-        <BeatNoteIcon name="export" size={20} color={hasExportableMarkers ? '#ffffff' : '#666666'} style={isMobile ? undefined : { marginRight: 8 }} />
-        <Text style={[styles.buttonText, isMobile && styles.buttonTextHidden]}>Export CSV</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -304,8 +265,10 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           setRoutingLibraryToProjects(false);
           requestAnimationFrame(() => titleButtonRef.current?.focus?.());
         }}
-        onOpenProject={handleLoadProject}
         musicItemId={projectManagerMusicItemId}
+        onChooseMusic={openLibrarySheet}
+        onSave={handleSaveCurrent}
+        onSaveAsNewProject={() => openSavePrompt(defaultProjectName)}
       />
 
       <MusicLibrarySheet
@@ -314,17 +277,6 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         onShowProjects={item => openProjects(item.id)}
       />
       
-      <ExportModal
-        visible={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        projectName={audioFilename || 'Untitled'}
-      />
-      
-      <ImportModal
-        visible={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        onSuccess={handleImportSuccess}
-      />
     </View>
   );
 };

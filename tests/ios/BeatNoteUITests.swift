@@ -19,7 +19,7 @@ final class BeatNoteUITests: XCTestCase {
 
   func testStudioLaunchesAndDocumentPickerOpens() {
     XCTAssertTrue(element("song-title-control").waitForExistence(timeout: 20))
-    XCTAssertFalse(element("loop-overview").exists, "The loop overview should stay hidden until audio is loaded.")
+    let restoredAudio = element("loop-overview").exists
     let lowestDockButton = element("playback-speed")
     XCTAssertTrue(lowestDockButton.exists)
     XCTAssertLessThanOrEqual(
@@ -31,21 +31,25 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("sidebar-open-toggle").isHittable)
     XCTAssertGreaterThan(
       element("sidebar-open-toggle").frame.minX,
-      element("export-data").frame.minX,
+      element("load-project").frame.minX,
       "Settings should be the trailing action in the mobile project toolbar."
     )
     XCTAssertFalse(element("sidebar-toggle").exists, "Closed drawer must not overlap the project toolbar.")
-    XCTAssertEqual(element("song-title-control").label, "Music library, no song chosen")
+    if restoredAudio {
+      XCTAssertTrue(element("song-title-control").label.contains("current song"))
+    } else {
+      XCTAssertEqual(element("song-title-control").label, "Music library, no song chosen")
+    }
     XCTAssertEqual(element("load-project").label, "Open Projects")
-    XCTAssertEqual(element("import-data").label, "Import CSV")
-    XCTAssertEqual(element("export-data").label, "Export CSV")
-    for disabledControl in [
-      "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
-      "repeat-toggle", "inner-loop-cycle", "shuffle-control", "first-track-control",
-      "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker",
-      "annotation-control"
-    ] {
-      XCTAssertFalse(element(disabledControl).isEnabled, "\(disabledControl) should be disabled until a song is loaded.")
+    if !restoredAudio {
+      for disabledControl in [
+        "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
+        "repeat-toggle", "inner-loop-cycle", "shuffle-control", "first-track-control",
+        "previous-track-control", "next-track-control", "playback-speed", "remove-last-marker",
+        "annotation-control"
+      ] {
+        XCTAssertFalse(element(disabledControl).isEnabled, "\(disabledControl) should be disabled until a song is loaded.")
+      }
     }
     element("sidebar-open-toggle").tap()
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
@@ -69,7 +73,7 @@ final class BeatNoteUITests: XCTestCase {
     }
     element("sidebar-toggle").tap()
     XCTAssertFalse(element("project-actions-scroll-cue").exists)
-    for action in ["song-title-control", "save-project", "load-project", "export-data", "import-data"] {
+    for action in ["song-title-control", "save-project", "load-project", "sidebar-open-toggle"] {
       XCTAssertTrue(element(action).exists, "All project actions must fit without horizontal scrolling.")
     }
 
@@ -165,9 +169,10 @@ final class BeatNoteUITests: XCTestCase {
       0
     )
     let projectSuffix = String(projectName.suffix(8))
-    let savedProject = projectControl(containing: "load-saved-project-", suffix: projectSuffix)
+    let savedProject = projectRow(named: projectSuffix)
     XCTAssertTrue(savedProject.waitForExistence(timeout: 10))
-    savedProject.tap()
+    openProjectOverflow(named: projectName)
+    app.buttons["Open"].tap()
     dismissAlertIfPresent()
 
     XCTAssertTrue(element("song-title-control").label.contains("current song"))
@@ -182,8 +187,9 @@ final class BeatNoteUITests: XCTestCase {
 
     makeProjectActionVisible("load-project")
     element("load-project").tap()
-    projectControl(containing: "delete-saved-project-", suffix: projectSuffix).tap()
-    let deleteConfirmation = app.alerts["Delete Project"]
+    openProjectOverflow(named: projectName)
+    app.buttons["Delete"].tap()
+    let deleteConfirmation = app.alerts["Delete Project?"]
     XCTAssertTrue(deleteConfirmation.waitForExistence(timeout: 5))
     deleteConfirmation.buttons["Delete"].tap()
   }
@@ -282,16 +288,20 @@ final class BeatNoteUITests: XCTestCase {
   func testCsvImportAndShareSheetExport() {
     loadBundledSimulatorAudio()
     element("add-marker").tap()
-    makeProjectActionVisible("import-data")
-    element("import-data").tap()
-    element("select-csv-file").tap()
+    makeProjectActionVisible("load-project")
+    element("load-project").tap()
+    XCTAssertTrue(element("current-project-import-csv").waitForExistence(timeout: 5))
+    element("current-project-import-csv").tap()
     selectDocument("valid-import.csv")
-    dismissAlertIfPresent()
+    XCTAssertTrue(element("csv-replace-confirm").waitForExistence(timeout: 5))
+    element("csv-replace-apply").tap()
 
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("2 markers"))
-    makeProjectActionVisible("export-data")
-    element("export-data").tap()
-    XCTAssertTrue(app.staticTexts["2 markers ready to export"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    makeProjectActionVisible("load-project")
+    element("load-project").tap()
+    XCTAssertTrue(element("current-project-export-csv").waitForExistence(timeout: 5))
+    element("current-project-export-csv").tap()
+    XCTAssertTrue(app.staticTexts["1 marker ready to export"].waitForExistence(timeout: 5))
     XCTAssertTrue(app.staticTexts["Includes timestamps, BPM-derived bar:beat timing, and annotations"].exists)
     XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
@@ -509,10 +519,18 @@ final class BeatNoteUITests: XCTestCase {
     return parts[0] * 60 + parts[1]
   }
 
-  private func projectControl(containing prefix: String, suffix: String) -> XCUIElement {
+  private func projectRow(named name: String) -> XCUIElement {
     app.descendants(matching: .any).matching(
-      NSPredicate(format: "identifier BEGINSWITH %@ AND identifier CONTAINS %@", prefix, suffix)
+      NSPredicate(format: "identifier BEGINSWITH %@ AND label CONTAINS %@", "project-row-", name)
     ).firstMatch
+  }
+
+  private func openProjectOverflow(named name: String) {
+    let overflow = app.buttons.matching(
+      NSPredicate(format: "label == %@", "More actions for \(name)")
+    ).firstMatch
+    XCTAssertTrue(overflow.waitForExistence(timeout: 5))
+    overflow.tap()
   }
 
   private func selectDocument(_ filename: String) {

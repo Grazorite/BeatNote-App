@@ -16,6 +16,8 @@ import GlassBackdrop from '../controls/GlassBackdrop';
 interface SaveProjectPromptProps {
   visible: boolean;
   initialName: string;
+  title?: string;
+  confirmLabel?: string;
   duplicateSuggestion?: string | null;
   onClose: () => void;
   onConfirm: (projectName: string) => void | Promise<void>;
@@ -33,6 +35,8 @@ const focusAccessibilityNode = (node: unknown): void => {
 const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
   visible,
   initialName,
+  title = 'Save as New Project',
+  confirmLabel = 'Save',
   duplicateSuggestion = null,
   onClose,
   onConfirm,
@@ -80,7 +84,7 @@ const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
             testID="save-project-modal-glass"
           />
           <Text ref={titleRef} style={styles.title} accessibilityRole="header">
-            Save as New Project
+            {title}
           </Text>
           <TextInput
             style={[styles.textInput, !validation.valid && styles.textInputError]}
@@ -126,7 +130,7 @@ const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
               testID="confirm-save-project"
             >
               <Text style={[styles.buttonText, styles.saveButtonText]}>
-                {submitting ? 'Saving…' : 'Save'}
+                {submitting ? 'Saving…' : confirmLabel}
               </Text>
             </TouchableOpacity>
           </View>

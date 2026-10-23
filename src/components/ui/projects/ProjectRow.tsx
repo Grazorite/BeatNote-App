@@ -35,6 +35,7 @@ export interface ProjectRowProps {
   onOpen: ProjectRowAction;
   onRename: ProjectRowAction;
   onExport: ProjectRowAction;
+  onRelink?: ProjectRowAction;
   onDelete: ProjectRowAction;
 }
 
@@ -61,6 +62,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
   onOpen,
   onRename,
   onExport,
+  onRelink,
   onDelete,
 }) => {
   const { fontScale } = useWindowDimensions();
@@ -92,6 +94,15 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
       disabled: disabled || exportDisabled,
       testID: `project-export-${project.projectId}`,
     },
+    ...(audioMissing && onRelink !== undefined ? [{
+      name: 'relink',
+      label: 'Relink',
+      onPress: (returnFocusRef?: React.RefObject<unknown>) => (
+        onRelink(returnFocusRef ?? copyRef)
+      ),
+      disabled,
+      testID: `project-relink-${project.projectId}`,
+    }] : []),
     {
       name: 'delete',
       label: 'Delete',
@@ -109,6 +120,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
     exportDisabled,
     onExport,
     onOpen,
+    onRelink,
     onRename,
     openDisabled,
     project.projectId,
