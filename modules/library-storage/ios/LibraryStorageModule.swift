@@ -5,6 +5,7 @@ import UIKit
 
 private enum LibraryStorageOpenURLBus {
   static var pendingURLs: [String] = []
+  static var listenerOwner: UUID?
   static var listener: ((String) -> Void)?
 
   static func receive(_ url: URL) {
@@ -20,6 +21,18 @@ private enum LibraryStorageOpenURLBus {
     let urls = pendingURLs
     pendingURLs.removeAll()
     return urls
+  }
+
+  static func startObserving(owner: UUID, _ nextListener: @escaping (String) -> Void) {
+    listenerOwner = owner
+    listener = nextListener
+    consumePendingURLs().forEach(nextListener)
+  }
+
+  static func stopObserving(owner: UUID) {
+    guard listenerOwner == owner else { return }
+    listenerOwner = nil
+    listener = nil
   }
 }
 
@@ -42,19 +55,22 @@ private enum LibraryStorageError: Error {
 
 public final class LibraryStorageModule: Module {
   private static let hashChunkSize = 1_048_576
+  private let openURLObserverID = UUID()
 
   public func definition() -> ModuleDefinition {
     Name("LibraryStorage")
     Events("onOpenURL")
 
     OnStartObserving("onOpenURL") { [weak self] in
-      LibraryStorageOpenURLBus.listener = { [weak self] url in
+      guard let self else { return }
+      LibraryStorageOpenURLBus.startObserving(owner: self.openURLObserverID) { [weak self] url in
         self?.sendEvent("onOpenURL", ["url": url])
       }
     }
 
-    OnStopObserving("onOpenURL") {
-      LibraryStorageOpenURLBus.listener = nil
+    OnStopObserving("onOpenURL") { [weak self] in
+      guard let self else { return }
+      LibraryStorageOpenURLBus.stopObserving(owner: self.openURLObserverID)
     }
 
     Function("consumePendingOpenURLs") {

@@ -146,23 +146,43 @@ async function main() {
     run('xcodebuild', xcodebuild);
     stagePickerFixtures(simulatorId);
 
-    const resultBundle = path.join(iosDirectory, 'build', `BeatNoteUITests-${Date.now()}.xcresult`);
-    const testArgs = xcodebuild.filter((arg) => arg !== 'build-for-testing');
-    testArgs.push('test-without-building', '-resultBundlePath', resultBundle);
-    if (process.env.IOS_TEST_ONLY) {
-      testArgs.push('-only-testing:BeatNoteUITests/BeatNoteUITests/' + process.env.IOS_TEST_ONLY);
-    }
-    if (process.env.IOS_TEST_ONLY === 'testOpenInAudioImportsIntoLibrary') {
+    const testBaseArgs = xcodebuild.filter((arg) => arg !== 'build-for-testing');
+    const openInTest = 'BeatNoteUITests/BeatNoteUITests/testOpenInAudioImportsIntoLibrary';
+    const runOpenInTest = async () => {
+      const resultBundle = path.join(
+        iosDirectory,
+        'build',
+        `BeatNoteOpenInUITest-${Date.now()}.xcresult`,
+      );
+      const testArgs = [
+        ...testBaseArgs,
+        'test-without-building',
+        '-resultBundlePath', resultBundle,
+        '-only-testing:' + openInTest,
+      ];
       const fixture = stageOpenInFixture();
       try {
         await runWithOpenUrl('xcodebuild', testArgs, simulatorId, fixture.url);
       } finally {
         fs.rmSync(fixture.directory, { recursive: true, force: true });
       }
+      console.log(`Open In UI test result bundle: ${resultBundle}`);
+    };
+
+    if (process.env.IOS_TEST_ONLY === 'testOpenInAudioImportsIntoLibrary') {
+      await runOpenInTest();
     } else {
+      const resultBundle = path.join(iosDirectory, 'build', `BeatNoteUITests-${Date.now()}.xcresult`);
+      const testArgs = [...testBaseArgs, 'test-without-building', '-resultBundlePath', resultBundle];
+      if (process.env.IOS_TEST_ONLY) {
+        testArgs.push('-only-testing:BeatNoteUITests/BeatNoteUITests/' + process.env.IOS_TEST_ONLY);
+      } else {
+        testArgs.push('-skip-testing:' + openInTest);
+      }
       run('xcodebuild', testArgs);
+      console.log(`UI test result bundle: ${resultBundle}`);
+      if (!process.env.IOS_TEST_ONLY) await runOpenInTest();
     }
-    console.log(`UI test result bundle: ${resultBundle}`);
   } finally {
     if (metroPid) {
       try { process.kill(-metroPid, 'SIGTERM'); } catch {}

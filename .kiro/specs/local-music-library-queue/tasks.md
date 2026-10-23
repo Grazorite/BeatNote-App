@@ -1257,7 +1257,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       passes, or the omission is recorded.
     - Passed on iPhone 17 Pro / iOS 26.2 with a distinct M4A fixture, asserting the loaded title,
       import toast, and retained accessible library row; result bundle
-      `ios/build/BeatNoteUITests-1792742454091.xcresult`.
+      `ios/build/BeatNoteOpenInUITest-1792777502768.xcresult` after the observer-race fix.
     - _Requirements: 30.7, 7.4_
 
 - [x] 40. Checkpoint — Open_In
@@ -1266,8 +1266,10 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
   - Ensure all tests pass, ask the user if questions arise.
   - Verification evidence: version parity is `1.0.0`; TypeScript, the empty retained unit gate,
     generated Info.plist inspection, diff hygiene, and all 6 retained Playwright journeys pass.
-    Focused Open_In delivery passes in `ios/build/BeatNoteUITests-1792742454091.xcresult`, and the
+    Focused Open_In delivery passes in `ios/build/BeatNoteOpenInUITest-1792777502768.xcresult`, and the
     retained launch/document-picker case passes in `ios/build/BeatNoteUITests-1792742530993.xcresult`.
+    The runner now excludes Open_In from its ordinary full-suite pass and executes it separately
+    with timed `simctl openurl` delivery, so an unfiltered invocation cannot omit the fixture.
 
 ### Phase 10 — Retained journeys and focused failure-path verification
 
