@@ -2770,3 +2770,38 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Implement Task 28.1's track-switch transaction core, then the pending-destination and rollback
   semantics before wiring queue controls.
+
+### 2026-10-21 — Complete track-switch transactions
+
+**Agent:** orchestrator (Codex) + DSH-Qwen attempted audit · **Commit(s):** `ed00dac`
+**Kanban moved:** local library track switching → In Progress (Phase 7 complete)
+
+**Changed:**
+
+- Added the single track-switch coordinator with preflight draft flushing, source resolution,
+  duration probing, one-state audio/content/queue commit, player readiness, post-load persistence,
+  rollback, directional Skip, and last-request coalescing.
+- Added the exact dirty-project guard with Save & Switch, Keep Draft & Switch, Cancel, nested
+  naming/revision handling, and accessibility title focus.
+- Restored the persisted launch item through the transaction and routed explicit project opens and
+  user-facing duplicate imports through the same guarded path; removed the cross-song audio shim.
+
+**Verified:**
+
+- Temporary transaction/launch checks → 20/20 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+
+**Not verified / known gaps:**
+
+- Native/physical-device switching, VoiceOver dialog traversal, interruption handling, and
+  Open-in delivery remain unverified.
+- DSH-Qwen exhausted its token window without returning an audit; the additional internal reviewer
+  also hit its usage limit without findings.
+- Concurrent uncommitted waveform/playhead and lifecycle-log edits remain outside `ed00dac`.
+
+**Next agent should:**
+
+- Implement Task 29.1 queue actions using `navigationBaseIndex`, then replace the reserved dock
+  controls in Task 29.2.

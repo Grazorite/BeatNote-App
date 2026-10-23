@@ -122,6 +122,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
+      storm that delayed waveform and control interactions
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
 - [x] Add rename/delete/relink/Show Projects library actions and replace the legacy load-song path
       with the accessible Song Title control, filtered project routing, ordered queue announcements,
       and updated browser/native journeys
@@ -255,6 +259,44 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-23 — Fix landscape library presentation and interaction latency
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `1c12777`
+**Kanban moved:** reported landscape/interaction regressions → Done
+
+**Changed:**
+
+- Declared every supported iPhone orientation on the shared bottom-sheet modal so the Music Library
+  can present after rotating to landscape, and extended the retained landscape journey to open it.
+- Prevented the 50 ms playback clock from rebuilding the full studio tree by selecting stable marker
+  keys, memoizing the main content, stabilizing audio/focus callbacks, and retaining one shared empty
+  marker collection for inactive waveform rows.
+- Replaced scrub play-state React state with a ref, eliminating an extra gesture-time render and a
+  fast-gesture stale-closure race without reducing the 50 ms loop-boundary sampling cadence.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, contract
+  validation, and `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 landscape journey → passed, including Music Library presentation;
+  result bundle `ios/build/BeatNoteUITests-1792722437057.xcresult`.
+- Metro served the updated 1.0.0 bundle on localhost:8081 and the app launched in the booted
+  iPhone 17 Pro simulator.
+
+**Not verified / known gaps:**
+
+- Physical-device responsiveness, memory profiling, and long-session soak behavior remain
+  unverified; the diagnosed issue was excessive render churn, with no evidence of a memory leak.
+- Toolbar CSV actions still await Task 37 relocation, so portrait title space remains constrained
+  until the Project Manager replacement is complete.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `1c12777`.
+
+**Next agent should:**
+
+- Implement Task 36.3's sectioned Project Manager, then Task 36.4 and Task 37 so CSV actions can be
+  removed from the toolbar without stranding import/export.
 
 ### 2026-10-22 — Complete library actions and Song Title navigation
 
@@ -411,38 +453,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement Task 31.1's shared icon glyphs, then Task 32's bottom-sheet primitive.
-
-### 2026-10-21 — Complete track-switch transactions
-
-**Agent:** orchestrator (Codex) + DSH-Qwen attempted audit · **Commit(s):** `ed00dac`
-**Kanban moved:** local library track switching → In Progress (Phase 7 complete)
-
-**Changed:**
-
-- Added the single track-switch coordinator with preflight draft flushing, source resolution,
-  duration probing, one-state audio/content/queue commit, player readiness, post-load persistence,
-  rollback, directional Skip, and last-request coalescing.
-- Added the exact dirty-project guard with Save & Switch, Keep Draft & Switch, Cancel, nested
-  naming/revision handling, and accessibility title focus.
-- Restored the persisted launch item through the transaction and routed explicit project opens and
-  user-facing duplicate imports through the same guarded path; removed the cross-song audio shim.
-
-**Verified:**
-
-- Temporary transaction/launch checks → 20/20 passed, then removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-
-**Not verified / known gaps:**
-
-- Native/physical-device switching, VoiceOver dialog traversal, interruption handling, and
-  Open-in delivery remain unverified.
-- DSH-Qwen exhausted its token window without returning an audit; the additional internal reviewer
-  also hit its usage limit without findings.
-- Concurrent uncommitted waveform/playhead and lifecycle-log edits remain outside `ed00dac`.
-
-**Next agent should:**
-
-- Implement Task 29.1 queue actions using `navigationBaseIndex`, then replace the reserved dock
-  controls in Task 29.2.
