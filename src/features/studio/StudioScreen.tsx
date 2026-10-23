@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { KeyboardAvoidingView, Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -41,13 +41,17 @@ export default function StudioScreen() {
   })));
   const { sound, audioFilename, togglePlayback, tapToBeat, seekToPosition, startWaveformScrub, endWaveformScrub, audioUri, error, hideError } = useCustomAudioPlayer();
   
-  let focusTextInput = () => {};
+  const focusTextInputRef = useRef<() => void>(() => {});
+  const focusTextInput = useCallback(() => focusTextInputRef.current(), []);
+  const registerFocusTextInput = useCallback((callback: () => void) => {
+    focusTextInputRef.current = callback;
+  }, []);
   
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onTogglePlayback: togglePlayback,
     onAddMarker: tapToBeat,
-    onFocusTextInput: () => focusTextInput(),
+    onFocusTextInput: focusTextInput,
     hasSound: !!sound,
   });
 
@@ -90,7 +94,7 @@ export default function StudioScreen() {
         seekToPosition={seekToPosition}
         startWaveformScrub={startWaveformScrub}
         endWaveformScrub={endWaveformScrub}
-        onFocusTextInput={(fn) => { focusTextInput = fn; }}
+        onFocusTextInput={registerFocusTextInput}
         safeAreaBottom={insets.bottom}
         />
       </KeyboardAvoidingView>

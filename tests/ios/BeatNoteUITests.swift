@@ -343,6 +343,18 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertLessThanOrEqual(element("shuffle-control").frame.maxX, rail.frame.maxX)
     XCTAssertLessThanOrEqual(element("song-title-control").frame.height, 56)
     XCTAssertLessThanOrEqual(rail.frame.width, 110)
+
+    let songTitle = element("song-title-control")
+    XCTAssertTrue(songTitle.isHittable, "The song title should remain tappable in landscape.")
+    songTitle.tap()
+    XCTAssertTrue(
+      element("music-library-sheet").waitForExistence(timeout: 5),
+      "The Music Library sheet should support landscape presentation."
+    )
+    XCTAssertTrue(element("music-library-import").isHittable)
+    element("music-library-sheet-close").tap()
+    XCTAssertTrue(rail.waitForExistence(timeout: 5))
+
     let landscapeButton = element("add-marker").frame
     XCTAssertGreaterThanOrEqual(landscapeButton.height, 38)
     XCTAssertLessThanOrEqual(landscapeButton.width / landscapeButton.height, 1.25)

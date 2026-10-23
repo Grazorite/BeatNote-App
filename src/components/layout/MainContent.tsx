@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Layer, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
+import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
 import {
   findMarkerNearTime,
@@ -45,6 +45,22 @@ interface MainContentProps {
   safeAreaBottom: number;
 }
 
+const markerKey = (marker: SelectedMarker | null): string => (
+  marker === null ? '' : `${marker.layerId}:${marker.timestamp}`
+);
+
+const markerFromKey = (key: string): SelectedMarker | null => {
+  if (key === '') return null;
+  const separator = key.lastIndexOf(':');
+  if (separator < 1) return null;
+  const timestamp = Number(key.slice(separator + 1));
+  if (!Number.isFinite(timestamp)) return null;
+  return {
+    layerId: key.slice(0, separator) as LayerId,
+    timestamp,
+  };
+};
+
 const MainContent: React.FC<MainContentProps> = ({
   viewMode,
   layers,
@@ -74,16 +90,24 @@ const MainContent: React.FC<MainContentProps> = ({
     state.songLoaded && state.currentAudioUri !== null,
   ));
   const lastForwardedNoticeId = useRef(0);
-  const currentTime = useStudioStore(state => state.currentTime);
   const playbackSpeed = useStudioStore(state => state.playbackSpeed);
   const setPlaybackSpeed = useStudioStore(state => state.setPlaybackSpeed);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
   const allLayersData = useStudioStore(state => state.allLayersData);
+  const currentMarkerKey = useStudioStore(state => markerKey(
+    findMarkerNearTime(state.allLayersData, state.currentTime, state.activeLayerId),
+  ));
+  const timedAnnotationMarkerKey = useStudioStore(state => markerKey(
+    findTimedAnnotationMarker(state.allLayersData, state.currentTime, state.activeLayerId),
+  ));
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const updateMarkerAnnotation = useStudioStore(state => state.updateMarkerAnnotation);
-  const currentMarker = findMarkerNearTime(allLayersData, currentTime, activeLayerId);
+  const currentMarker = useMemo(() => markerFromKey(currentMarkerKey), [currentMarkerKey]);
   const currentAnnotation = getMarkerAnnotation(allLayersData, currentMarker);
-  const timedAnnotationMarker = findTimedAnnotationMarker(allLayersData, currentTime, activeLayerId);
+  const timedAnnotationMarker = useMemo(
+    () => markerFromKey(timedAnnotationMarkerKey),
+    [timedAnnotationMarkerKey],
+  );
   const displayedAnnotation = getMarkerAnnotation(allLayersData, timedAnnotationMarker);
   const editingAnnotation = getMarkerAnnotation(allLayersData, editingMarker);
 
@@ -315,4 +339,4 @@ const MainContent: React.FC<MainContentProps> = ({
 
 
 
-export default MainContent;
+export default React.memo(MainContent);

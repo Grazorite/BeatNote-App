@@ -45,6 +45,7 @@ interface WrappedWaveformProps {
 
 const MOBILE_TARGET_ROW_HEIGHT = 56;
 const MOBILE_GUTTER_WIDTH = 52;
+const EMPTY_MARKERS: WrappedLayerMarkers[] = [];
 
 const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   audioUri,
@@ -252,7 +253,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       isActiveRow={row.index === activeRowIndex}
       progress={clipRowProgress(row, currentTime)}
       activeLayerColor={activeLayerColor}
-      markersByLayer={markersByRow.get(row.index) ?? []}
+      markersByLayer={markersByRow.get(row.index) ?? EMPTY_MARKERS}
       peaks={realPeaks}
       totalDuration={peakDuration}
       loopSegment={loopSegmentsByRow.get(row.index)}

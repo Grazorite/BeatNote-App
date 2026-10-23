@@ -25,8 +25,8 @@ const PLAYBACK_UPDATE_INTERVAL_MS = 50;
  * - Waveform scrubbing with play state preservation
  */
 export const useCustomAudioPlayer = () => {
-  const [wasPlayingBeforeScrub, setWasPlayingBeforeScrub] = useState(false);
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
+  const wasPlayingBeforeScrubRef = useRef(false);
   const previousSampleRef = useRef<number | null>(null);
   const loopDecisionSuspendedRef = useRef(false);
   const loopSeekInFlightRef = useRef(false);
@@ -173,25 +173,25 @@ export const useCustomAudioPlayer = () => {
     }
   }, [player, isPlaying, setIsPlaying, setCurrentTime]);
 
-  const startWaveformScrub = async () => {
+  const startWaveformScrub = useCallback(async () => {
     loopDecisionSuspendedRef.current = true;
     if (player && isPlaying) {
-      setWasPlayingBeforeScrub(true);
+      wasPlayingBeforeScrubRef.current = true;
       player.pause();
       setIsPlaying(false);
     } else {
-      setWasPlayingBeforeScrub(false);
+      wasPlayingBeforeScrubRef.current = false;
     }
-  };
+  }, [isPlaying, player, setIsPlaying]);
 
-  const endWaveformScrub = async () => {
+  const endWaveformScrub = useCallback(async () => {
     if (player) {
       const { currentTime } = useStudioStore.getState();
       try {
         await player.seekTo(currentTime / 1000); // Convert to seconds
         previousSampleRef.current = currentTime;
         failedLoopRangeKeyRef.current = null;
-        if (wasPlayingBeforeScrub) {
+        if (wasPlayingBeforeScrubRef.current) {
           player.play();
           setIsPlaying(true);
         }
@@ -202,11 +202,11 @@ export const useCustomAudioPlayer = () => {
         setCurrentTime(reportedPosition);
       }
     }
-    setWasPlayingBeforeScrub(false);
+    wasPlayingBeforeScrubRef.current = false;
     loopDecisionSuspendedRef.current = false;
-  };
+  }, [player, setCurrentTime, setIsPlaying]);
 
-  const tapToBeat = async () => {
+  const tapToBeat = useCallback(async () => {
     const { currentTime } = useStudioStore.getState();
     
     // Only sync audio position when paused to avoid interruption
@@ -222,7 +222,7 @@ export const useCustomAudioPlayer = () => {
     } else {
       addMarker(currentTime);
     }
-  };
+  }, [activeLayerId, addMarker, isPlaying, layers, player, removeMarker]);
 
   // Update song duration when audio loads
   useEffect(() => {

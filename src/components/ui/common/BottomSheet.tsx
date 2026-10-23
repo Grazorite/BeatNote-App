@@ -254,6 +254,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       transparent
       animationType="none"
       presentationStyle="overFullScreen"
+      supportedOrientations={[
+        'portrait',
+        'portrait-upside-down',
+        'landscape-left',
+        'landscape-right',
+      ]}
       onRequestClose={requestClose}
       onShow={() => requestAnimationFrame(() => focusNode(titleRef.current))}
       accessibilityViewIsModal

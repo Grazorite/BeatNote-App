@@ -566,7 +566,9 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     get().notify(queue.shuffle ? 'Shuffle on' : 'Shuffle off');
   },
   setIsPlaying: (playing) => set({ isPlaying: playing }),
-  setCurrentTime: (time) => set({ currentTime: time }),
+  setCurrentTime: (time) => set((state) => (
+    state.currentTime === time ? state : { currentTime: time }
+  )),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
   setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
   setShowTimeline: (show) => set({ showTimeline: show }),
