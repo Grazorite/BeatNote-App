@@ -59,9 +59,8 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 10 by extending the retained project/import/export
-   and responsive control-dock journeys (Task 41); native Open_In configuration, delivery, and
-   focused simulator acceptance are complete.
+1. Continue `local-music-library-queue` Phase 10 with the retained native XCTest extensions
+   (Task 42); all six expanded Playwright journeys and native Open_In delivery are complete.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -103,9 +102,10 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      foundations through the Phase 9 Open_In checkpoint are complete, including the local library,
+      foundations through the Phase 10 Playwright checkpoint are complete, including the local library,
       queue, Song Title toolbar, sectioned Project Manager, confirmed/reversible CSV replacement,
-      native document declarations, and running-app Open_In delivery; retained journey expansion is next
+      native document declarations, running-app Open_In delivery, and retained browser journeys;
+      native XCTest expansion is next
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -120,6 +120,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
+      draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
       retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
@@ -266,6 +270,38 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-24 — Complete retained library browser journeys
+
+**Agent:** orchestrator (Codex) + context/DSH reviewers · **Commit(s):** `701f239`
+**Kanban moved:** local-music-library-queue Task 41 → Done
+
+**Changed:**
+
+- Expanded the retained project journey through named Save, Save as New, newest-project restore,
+  dirty-draft Keep & Switch, confirmed CSV replacement with toast Undo, and seeded legacy relink.
+- Expanded the dock journey with three durable audio identities for restart/switch semantics,
+  First/Previous/Next, Shuffle, end-of-queue accessibility, and rapid Next coalescing.
+- Closed test-discovered product races: Project Manager now yields before showing a save prompt,
+  and authored changes update dirty state immediately while durable autosave remains debounced.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
+  search, and `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 journeys passed, including the concurrent waveform journeys.
+- Focused V1 toolbar, dock/queue, and project/CSV/legacy journeys each passed independently.
+
+**Not verified / known gaps:**
+
+- Task 42's expanded native XCTest journeys, physical-device queue/relink/VoiceOver behavior, and
+  long-session durability remain unverified.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `701f239`.
+
+**Next agent should:**
+
+- Implement Task 42.1 by updating the launch/picker XCTest, then extend the annotation/restore,
+  queue transport, settings, and CSV/share native journeys in Tasks 42.2–42.5.
 
 ### 2026-10-24 — Complete native audio Open_In delivery
 
@@ -427,43 +463,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 36.3 by replacing the current Project Manager with the single sectioned surface,
   then add the same-song open/revert guard in Task 36.4.
-
-### 2026-10-22 — Complete the Music Library sheet
-
-**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `af1ef7a`, `654f8ab`, `bef8830`
-**Kanban moved:** Music Library sheet and picker import → In Progress (Task 33 complete)
-
-**Changed:**
-
-- Added the accessible glass overflow menu, current/missing library rows, and cancellable or
-  retryable import-progress rows with stable identifiers and large-text-safe controls.
-- Added the scroll-safe Music Library sheet with exact loading, migration, empty, no-match, and
-  read-error states; Imported Music filtering; persisted sort; diacritic-insensitive search; project
-  counts; and guarded row switching with inline failure recovery.
-- Moved sheet dismissal to the fully committed library-switch path, including guarded continuation,
-  and added a session-only failure channel so provisional commits and rollbacks never dismiss the
-  sheet or lose the row-level Retry action.
-- Wired the native/web document picker to the shared durable Import Pipeline, including MIME and
-  web extension filters, no-base64 web ingestion, cancellation semantics, queue rebuild/open, and
-  dock confirmations.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
-  `git diff --check` → clean after each checkpoint.
-- Full retained Playwright gate → 6/6 critical journeys passed after Tasks 33.1–33.2, 33.3, and 33.4.
-- Installed Expo DocumentPicker source confirms the web `accept` attribute joins the supplied MIME
-  and extension filters; a read-only second review found no remaining P1/P2 issues in Task 33.3.
-
-**Not verified / known gaps:**
-
-- The sheet is not mounted until Task 35.2, so integrated native/web visual checks, VoiceOver,
-  keyboard/search, detent gestures, and real picker/import interaction remain pending.
-- The requested DSH bridge discovery was retried, but no `dsh_collab` or `dsh_task_*` tool was
-  exposed; a local Codex reviewer completed Task 33.3 review, while its later Task 33.4 pass hit an
-  account usage limit before reporting.
-- Concurrent uncommitted waveform/playhead edits remain outside all three commits.
-
-**Next agent should:**
-
-- Implement Task 34.1 music-item rename, then Task 34.2 deletion semantics.

@@ -2873,3 +2873,43 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Implement Task 31.1's shared icon glyphs, then Task 32's bottom-sheet primitive.
+
+### 2026-10-22 — Complete the Music Library sheet
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `af1ef7a`, `654f8ab`, `bef8830`
+**Kanban moved:** Music Library sheet and picker import → In Progress (Task 33 complete)
+
+**Changed:**
+
+- Added the accessible glass overflow menu, current/missing library rows, and cancellable or
+  retryable import-progress rows with stable identifiers and large-text-safe controls.
+- Added the scroll-safe Music Library sheet with exact loading, migration, empty, no-match, and
+  read-error states; Imported Music filtering; persisted sort; diacritic-insensitive search; project
+  counts; and guarded row switching with inline failure recovery.
+- Moved sheet dismissal to the fully committed library-switch path, including guarded continuation,
+  and added a session-only failure channel so provisional commits and rollbacks never dismiss the
+  sheet or lose the row-level Retry action.
+- Wired the native/web document picker to the shared durable Import Pipeline, including MIME and
+  web extension filters, no-base64 web ingestion, cancellation semantics, queue rebuild/open, and
+  dock confirmations.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, and
+  `git diff --check` → clean after each checkpoint.
+- Full retained Playwright gate → 6/6 critical journeys passed after Tasks 33.1–33.2, 33.3, and 33.4.
+- Installed Expo DocumentPicker source confirms the web `accept` attribute joins the supplied MIME
+  and extension filters; a read-only second review found no remaining P1/P2 issues in Task 33.3.
+
+**Not verified / known gaps:**
+
+- The sheet is not mounted until Task 35.2, so integrated native/web visual checks, VoiceOver,
+  keyboard/search, detent gestures, and real picker/import interaction remain pending.
+- The requested DSH bridge discovery was retried, but no `dsh_collab` or `dsh_task_*` tool was
+  exposed; a local Codex reviewer completed Task 33.3 review, while its later Task 33.4 pass hit an
+  account usage limit before reporting.
+- Concurrent uncommitted waveform/playhead edits remain outside all three commits.
+
+**Next agent should:**
+
+- Implement Task 34.1 music-item rename, then Task 34.2 deletion semantics.
