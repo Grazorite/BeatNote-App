@@ -66,7 +66,7 @@ function selectSimulator() {
     run('xcrun', ['simctl', 'boot', selected.udid]);
   }
   run('xcrun', ['simctl', 'bootstatus', selected.udid, '-b']);
-  return selected.udid;
+  return selected;
 }
 
 async function startMetroIfNeeded() {
@@ -95,13 +95,45 @@ async function startMetroIfNeeded() {
   throw new Error('Metro did not become ready on port 8081.');
 }
 
-function stagePickerFixtures(simulatorId) {
+function localFileProviderStorage(simulatorDataPath) {
+  const appGroups = path.join(simulatorDataPath, 'Containers', 'Shared', 'AppGroup');
+  for (const entry of fs.readdirSync(appGroups)) {
+    const group = path.join(appGroups, entry);
+    const metadata = path.join(group, '.com.apple.mobile_container_manager.metadata.plist');
+    const storage = path.join(group, 'File Provider Storage');
+    if (!fs.existsSync(metadata) || !fs.existsSync(storage)) continue;
+    try {
+      const identifier = capture('plutil', [
+        '-extract', 'MCMMetadataIdentifier', 'raw', '-o', '-', metadata,
+      ]);
+      if (identifier === 'group.com.apple.FileProvider.LocalStorage') return storage;
+    } catch {}
+  }
+  throw new Error('Unable to locate the simulator On My iPhone provider storage.');
+}
+
+function stagePickerFixtures(simulatorId, simulatorDataPath) {
   const appBundle = path.join(derivedData, 'Build', 'Products', 'Debug-iphonesimulator', 'BeatNote.app');
   if (!fs.existsSync(appBundle)) throw new Error(`Built app not found at ${appBundle}`);
+
+  // Keep native journeys independent and force Files to register the current app container. An
+  // in-place reinstall preserves both application data and Files' cached provider identity, which
+  // can leave the picker displaying documents from a previous BeatNote container.
+  spawnSync('xcrun', ['simctl', 'terminate', simulatorId, 'com.apple.DocumentsApp'], {
+    cwd: root,
+    env: environment,
+    stdio: 'ignore',
+  });
+  spawnSync('xcrun', ['simctl', 'uninstall', simulatorId, 'com.beatnote.app'], {
+    cwd: root,
+    env: environment,
+    stdio: 'ignore',
+  });
   run('xcrun', ['simctl', 'install', simulatorId, appBundle]);
 
   const container = capture('xcrun', ['simctl', 'get_app_container', simulatorId, 'com.beatnote.app', 'data']);
   const documents = path.join(container, 'Documents');
+  const pickerStorage = localFileProviderStorage(simulatorDataPath);
   fs.mkdirSync(documents, { recursive: true });
   const fixtureNames = [
     'test-audio.wav',
@@ -111,8 +143,16 @@ function stagePickerFixtures(simulatorId) {
     'invalid-import.csv',
   ];
   for (const filename of fixtureNames) {
-    fs.copyFileSync(path.join(root, 'tests', 'fixtures', filename), path.join(documents, filename));
+    const fixture = path.join(root, 'tests', 'fixtures', filename);
+    fs.copyFileSync(fixture, path.join(documents, filename));
+    fs.copyFileSync(fixture, path.join(pickerStorage, filename));
   }
+  // Restart Files once more after staging so the freshly populated BeatNote folder is discoverable.
+  spawnSync('xcrun', ['simctl', 'terminate', simulatorId, 'com.apple.DocumentsApp'], {
+    cwd: root,
+    env: environment,
+    stdio: 'ignore',
+  });
 }
 
 function stageOpenInFixture() {
@@ -131,7 +171,8 @@ async function main() {
     run('npx', ['expo', 'prebuild', '--platform', 'ios'], {
       env: { ...environment, CI: '1' },
     });
-    const simulatorId = selectSimulator();
+    const simulator = selectSimulator();
+    const simulatorId = simulator.udid;
     metroPid = await startMetroIfNeeded();
 
     const xcodebuild = [
@@ -144,7 +185,7 @@ async function main() {
       'build-for-testing',
     ];
     run('xcodebuild', xcodebuild);
-    stagePickerFixtures(simulatorId);
+    stagePickerFixtures(simulatorId, simulator.dataPath);
 
     const testBaseArgs = xcodebuild.filter((arg) => arg !== 'build-for-testing');
     const openInTest = 'BeatNoteUITests/BeatNoteUITests/testOpenInAudioImportsIntoLibrary';

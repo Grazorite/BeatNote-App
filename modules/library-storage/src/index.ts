@@ -13,6 +13,8 @@ export interface LibraryStorageModule {
   randomUUID(): string;
   /** Consume file URLs delivered before JavaScript subscribed. */
   consumePendingOpenURLs(): string[];
+  /** Return the cache-purge XCTest flag in development builds only. */
+  shouldPurgeTestCaches(): boolean;
   /** Subscribe to file URLs delivered while the app is running. */
   addListener(eventName: 'onOpenURL', listener: (event: { url: string }) => void): EventSubscription;
 }

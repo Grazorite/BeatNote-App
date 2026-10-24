@@ -12,6 +12,7 @@ const LibraryStorageWeb: LibraryStorageModule = {
   md5File: async () => unsupported('md5File'),
   randomUUID: () => crypto.randomUUID().toLocaleLowerCase('en-US'),
   consumePendingOpenURLs: () => [],
+  shouldPurgeTestCaches: () => false,
   addListener: () => ({ remove: () => undefined }) as EventSubscription,
 };
 

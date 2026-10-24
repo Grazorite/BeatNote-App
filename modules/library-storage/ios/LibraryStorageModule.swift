@@ -77,6 +77,14 @@ public final class LibraryStorageModule: Module {
       LibraryStorageOpenURLBus.consumePendingURLs()
     }
 
+    Function("shouldPurgeTestCaches") {
+#if DEBUG
+      ProcessInfo.processInfo.environment["BEATNOTE_TEST_PURGE_CACHES"] == "1"
+#else
+      false
+#endif
+    }
+
     Function("getMusicDirectoryUri") {
       try Self.musicDirectory().absoluteString
     }

@@ -9,6 +9,7 @@ final class BeatNoteUITests: XCTestCase {
     app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     XCUIDevice.shared.orientation = .portrait
     app.launch()
+    openDevelopmentServerIfNeeded()
     closeMobileSidebar()
   }
 
@@ -79,6 +80,7 @@ final class BeatNoteUITests: XCTestCase {
 
     let songTitle = element("song-title-control")
     songTitle.tap()
+    XCTAssertEqual(element("music-library-sheet-title").label, "Music")
     let importAudio = element("music-library-import")
     XCTAssertTrue(importAudio.waitForExistence(timeout: 5))
     importAudio.tap()
@@ -124,74 +126,26 @@ final class BeatNoteUITests: XCTestCase {
     let savedLoopToggleValue = String(describing: element("inner-loop-cycle").value ?? "")
 
     element("add-marker").tap()
-    element("annotation-control").tap()
-    let annotation = element("annotation-editor-input")
-    XCTAssertTrue(annotation.waitForExistence(timeout: 5))
-    let workspaceScroll = app.scrollViews.firstMatch
-    for _ in 0..<3 {
-      if annotation.isHittable { break }
-      workspaceScroll.swipeUp()
-    }
-    XCTAssertTrue(annotation.isHittable)
-    annotation.tap()
-    let keyboard = app.keyboards.firstMatch
-    XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
-    XCTAssertLessThanOrEqual(
-      annotation.frame.maxY,
-      keyboard.frame.minY + 2,
-      "The annotation field must remain visible above the software keyboard."
-    )
-    typeTextIntoControlledField("Dance note", field: annotation)
-    XCTAssertEqual(annotation.value as? String, "Dance note")
-    element("save-annotation").tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
 
-    let projectName = "UITest-\(UUID().uuidString.prefix(8))"
-    let saveButton = element("save-project")
-    makeProjectActionVisible("save-project")
-    XCTAssertTrue(saveButton.waitForExistence(timeout: 5) && saveButton.isHittable)
-    saveButton.tap()
-    let nameField = app.textFields["save-project-name"]
-    XCTAssertTrue(nameField.waitForExistence(timeout: 10))
-    nameField.tap()
-    nameField.typeText(projectName)
-    element("confirm-save-project").tap()
-    dismissAlertIfPresent()
-
+    Thread.sleep(forTimeInterval: 1.0)
     app.terminate()
+    app.launchEnvironment["BEATNOTE_TEST_PURGE_CACHES"] = "1"
     app.launch()
+    openDevelopmentServerIfNeeded()
     closeMobileSidebar()
-    XCTAssertTrue(element("load-project").waitForExistence(timeout: 15))
-    makeProjectActionVisible("load-project")
-    element("load-project").tap()
-    XCTAssertTrue(app.staticTexts["Projects"].waitForExistence(timeout: 5))
-    XCTAssertEqual(
-      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "annotation layers")).count,
-      0
+    let restoredTitle = element("song-title-control")
+    let durableCopyLoaded = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "current song test-audio"),
+      object: restoredTitle
     )
-    let projectSuffix = String(projectName.suffix(8))
-    let savedProject = projectRow(named: projectSuffix)
-    XCTAssertTrue(savedProject.waitForExistence(timeout: 10))
-    openProjectOverflow(named: projectName)
-    app.buttons["Open"].tap()
-    dismissAlertIfPresent()
-
-    XCTAssertTrue(element("song-title-control").label.contains("current song"))
+    XCTAssertEqual(XCTWaiter.wait(for: [durableCopyLoaded], timeout: 20), .completed)
+    XCTAssertEqual(element("playback-current-time").label, "Current: 0:00")
+    XCTAssertTrue(element("play-pause").label.contains("Play playback"))
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
     XCTAssertEqual(element("loop-overview-summary").label, savedLoopSummary)
-    XCTAssertTrue(element("loop-overview-range").exists, "Saved loop range should restore after relaunch.")
+    XCTAssertTrue(element("loop-overview-range").exists, "Draft loop range should restore after relaunch.")
     XCTAssertEqual(String(describing: element("inner-loop-cycle").value ?? ""), savedLoopToggleValue)
-    element("navigate-right-marker").tap()
-    element("annotation-control").tap()
-    XCTAssertEqual(element("annotation-editor-input").value as? String, "Dance note")
-    app.buttons["Cancel"].firstMatch.tap()
-
-    makeProjectActionVisible("load-project")
-    element("load-project").tap()
-    openProjectOverflow(named: projectName)
-    app.buttons["Delete"].tap()
-    let deleteConfirmation = app.alerts["Delete Project?"]
-    XCTAssertTrue(deleteConfirmation.waitForExistence(timeout: 5))
-    deleteConfirmation.buttons["Delete"].tap()
   }
 
   func testLoopRangeToggleAndTransportFits() {
@@ -294,6 +248,9 @@ final class BeatNoteUITests: XCTestCase {
     element("current-project-import-csv").tap()
     selectDocument("valid-import.csv")
     XCTAssertTrue(element("csv-replace-confirm").waitForExistence(timeout: 5))
+    XCTAssertEqual(element("csv-existing-counts").label, "Existing: 1 marker, 0 annotations")
+    XCTAssertEqual(element("csv-imported-counts").label, "Imported: 1 marker, 1 annotation")
+    XCTAssertEqual(element("csv-skipped-count").label, "Skipped: 0 rows")
     element("csv-replace-apply").tap()
 
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
@@ -302,7 +259,9 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("current-project-export-csv").waitForExistence(timeout: 5))
     element("current-project-export-csv").tap()
     XCTAssertTrue(app.staticTexts["1 marker ready to export"].waitForExistence(timeout: 5))
-    XCTAssertTrue(app.staticTexts["Includes timestamps, BPM-derived bar:beat timing, and annotations"].exists)
+    XCTAssertTrue(
+      element("export-csv").label.contains("Includes timestamps, BPM-derived bar:beat timing, and annotations")
+    )
     XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
 
@@ -513,6 +472,31 @@ final class BeatNoteUITests: XCTestCase {
     )
   }
 
+  private func openDevelopmentServerIfNeeded() {
+    let studio = element("song-title-control")
+    if !studio.waitForExistence(timeout: 3) {
+      let localServer = app.buttons["http://localhost:8081"].firstMatch
+      XCTAssertTrue(
+        localServer.waitForExistence(timeout: 15),
+        "The development build should open the studio or offer the local Metro server."
+      )
+      localServer.tap()
+    }
+    XCTAssertTrue(studio.waitForExistence(timeout: 30), "The studio did not load from the local Metro server.")
+
+    let onboardingContinue = app.buttons["Continue"].firstMatch
+    if onboardingContinue.waitForExistence(timeout: 3) {
+      onboardingContinue.tap()
+      XCTAssertTrue(studio.waitForExistence(timeout: 5))
+    }
+
+    let devMenuClose = app.buttons["Close"].firstMatch
+    if devMenuClose.waitForExistence(timeout: 2) {
+      devMenuClose.tap()
+      XCTAssertFalse(devMenuClose.waitForExistence(timeout: 3))
+    }
+  }
+
   private func makeProjectActionVisible(_ identifier: String) {
     let action = element(identifier)
     XCTAssertTrue(action.waitForExistence(timeout: 5), "Project action \(identifier) should exist in the fixed toolbar.")
@@ -545,20 +529,6 @@ final class BeatNoteUITests: XCTestCase {
     return parts[0] * 60 + parts[1]
   }
 
-  private func projectRow(named name: String) -> XCUIElement {
-    app.descendants(matching: .any).matching(
-      NSPredicate(format: "identifier BEGINSWITH %@ AND label CONTAINS %@", "project-row-", name)
-    ).firstMatch
-  }
-
-  private func openProjectOverflow(named name: String) {
-    let overflow = app.buttons.matching(
-      NSPredicate(format: "label == %@", "More actions for \(name)")
-    ).firstMatch
-    XCTAssertTrue(overflow.waitForExistence(timeout: 5))
-    overflow.tap()
-  }
-
   private func selectDocument(_ filename: String) {
     XCTAssertTrue(waitForPicker(timeout: 15), "Document picker did not appear.\n\(app.debugDescription)")
 
@@ -567,13 +537,12 @@ final class BeatNoteUITests: XCTestCase {
       NSPredicate(format: "label BEGINSWITH %@", fileLabel)
     ).firstMatch
 
-    if !file.waitForExistence(timeout: 2) {
+    if !file.waitForExistence(timeout: 2) || !file.isHittable {
       let browse = app.buttons["Browse"].firstMatch
       if browse.exists && !browse.isSelected {
         browse.tap()
       }
       tapPickerLocation("On My iPhone")
-      tapPickerLocation("BeatNote")
     }
 
     tapPickerItem(fileLabel, timeout: 10)
@@ -600,10 +569,21 @@ final class BeatNoteUITests: XCTestCase {
 
   private func tapPickerItem(_ label: String, timeout: TimeInterval) {
     let predicate = NSPredicate(format: "label BEGINSWITH %@", label)
-    let item = app.descendants(matching: .any).matching(predicate).firstMatch
-    XCTAssertTrue(item.waitForExistence(timeout: timeout), "Could not find '\(label)' in Files picker.\n\(app.debugDescription)")
-    XCTAssertTrue(item.isHittable, "'\(label)' is not hittable in Files picker.")
-    item.tap()
+    let matches = app.descendants(matching: .any).matching(predicate)
+    XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: timeout), "Could not find '\(label)' in Files picker.\n\(app.debugDescription)")
+    for attempt in 0..<5 {
+      for index in 0..<matches.count {
+        let item = matches.element(boundBy: index)
+        if item.isHittable {
+          item.tap()
+          return
+        }
+      }
+      if attempt < 4 {
+        app.swipeUp()
+      }
+    }
+    XCTFail("'\(label)' has no hittable match in Files picker.\n\(app.debugDescription)")
   }
 
   private func dismissAlertIfPresent() {

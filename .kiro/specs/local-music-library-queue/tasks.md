@@ -1311,30 +1311,30 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - All six retained Playwright journeys pass and the project-wide disabled-test search is empty.
     - _Requirements: 30.6, 30.8_
 
-- [ ] 42. Extend the retained native XCTest cases
-  - [ ] 42.1 Update `testStudioLaunchesAndDocumentPickerOpens`
+- [x] 42. Extend the retained native XCTest cases
+  - [x] 42.1 Update `testStudioLaunchesAndDocumentPickerOpens`
     - Tap `song-title-control`, assert the sheet title "Music", tap Import Audio, and assert the
       Files picker. Remove the `load-song` and toolbar-CSV assertions.
     - Verification evidence: `IOS_TEST_ONLY=testStudioLaunchesAndDocumentPickerOpens npm run test:ios:ui`
-      passes.
+      passes; result bundle `ios/build/BeatNoteUITests-1792810273697.xcresult`.
     - _Requirements: 8.2, 9.10, 30.6_
 
-  - [ ] 42.2 Extend `testAudioAnnotationAndProjectRestore` for the durable copy and draft restore
+  - [x] 42.2 Extend `testAudioAnnotationAndProjectRestore` for the durable copy and draft restore
     - Add a `__DEV__`-only boot hook in `useLibraryLifecycle` that empties `Paths.cache` when the
       launch environment sets `BEATNOTE_TEST_PURGE_CACHES=1`. The case imports a song, adds a
       marker without saving, terminates the app, and relaunches with the flag. It asserts that the
       song loads from the durable copy, paused at 0 ms, and that the marker is restored from the
       draft.
     - Verification evidence: `IOS_TEST_ONLY=testAudioAnnotationAndProjectRestore npm run test:ios:ui`
-      passes.
+      passes; result bundle `ios/build/BeatNoteUITests-1792810188831.xcresult`.
     - _Requirements: 30.4, 12.11, 18.8, 2.5_
 
-  - [ ] 42.3 Update `testCsvImportAndShareSheetExport` to confirmed replace
+  - [x] 42.3 Update `testCsvImportAndShareSheetExport` to confirmed replace
     - Import from the Project_Manager's Current Project section, assert the confirmation counts,
       choose Replace, and assert the marker count equals the CSV, not the sum. Export from the same
       section to the share sheet.
     - Verification evidence: `IOS_TEST_ONLY=testCsvImportAndShareSheetExport npm run test:ios:ui`
-      passes.
+      passes; result bundle `ios/build/BeatNoteUITests-1792810603439.xcresult`.
     - _Requirements: 30.5, 22.7, 23.1_
 
 - [ ] 43. Verify the failure paths, then remove every temporary test

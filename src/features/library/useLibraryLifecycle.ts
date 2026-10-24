@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { Paths } from 'expo-file-system';
 import { AppState, Platform } from 'react-native';
 
 import LibraryStorage from '../../../modules/library-storage/src';
@@ -44,6 +45,12 @@ import {
 import { requestTrackSwitch, type SwitchResult } from './trackSwitch';
 
 const terminalMigrationStatuses = new Set(['migrated', 'missing', 'skippedNewer']);
+
+const purgeNativeTestCaches = (): void => {
+  if (!__DEV__ || Platform.OS !== 'ios'
+    || !LibraryStorage.shouldPurgeTestCaches()) return;
+  Paths.cache.list().forEach(entry => entry.delete());
+};
 
 const filenameFromFileUrl = (url: string): string => {
   const path = url.split(/[?#]/, 1)[0];
@@ -441,6 +448,7 @@ export function useLibraryLifecycle(): void {
   useEffect(() => {
     if (bootStarted.current) return;
     bootStarted.current = true;
+    purgeNativeTestCaches();
     void runLibraryBoot().then(() => restoreLaunchTrack());
   }, []);
 

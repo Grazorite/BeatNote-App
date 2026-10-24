@@ -114,7 +114,7 @@ const CsvReplaceConfirm: React.FC<CsvReplaceConfirmProps> = ({
                 maxFontSizeMultiplier={MAX_TEXT_SCALE}
                 testID="csv-existing-counts"
               >
-                Existing: {countLabel(preview.existingMarkerCount, 'marker')}, {' '}
+                Existing: {countLabel(preview.existingMarkerCount, 'marker')},{' '}
                 {countLabel(preview.existingAnnotationCount, 'annotation')}
               </Text>
               <Text
@@ -122,7 +122,7 @@ const CsvReplaceConfirm: React.FC<CsvReplaceConfirmProps> = ({
                 maxFontSizeMultiplier={MAX_TEXT_SCALE}
                 testID="csv-imported-counts"
               >
-                Imported: {countLabel(preview.importedMarkerCount, 'marker')}, {' '}
+                Imported: {countLabel(preview.importedMarkerCount, 'marker')},{' '}
                 {countLabel(preview.importedAnnotationCount, 'annotation')}
               </Text>
               <Text
