@@ -5,6 +5,66 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add rename/delete/relink/Show Projects library actions and replace the legacy load-song path
+      with the accessible Song Title control, filtered project routing, ordered queue announcements,
+      and updated browser/native journeys
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/libraryActions.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/controls/songTitleControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/setup.ts`, `tests/test-helpers.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Build the accessible Music Library sheet with reusable rows and overflow actions, scroll-safe
+      loading/empty/error/search/sort states, persisted sorting, guarded track switching, import
+      progress/cancellation/retry, and native/web audio-picker ingestion
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/OverflowMenu.tsx`, `src/components/ui/library/`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/common/overflowMenu.ts`, `src/styles/components/library/`</sub>
+
+- [x] Extend the shared icon family and add the accessible detented bottom-sheet primitive with
+      Reduce Motion, safe-area/keyboard/rotation handling, focus restoration, and web focus trapping
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/index.ts`, `src/styles/components/common/bottomSheet.ts`, `src/utils/sheetDetent.ts`</sub>
+
+- [x] Replace the reserved dock cells with queue navigation and Shuffle, then gate dependent
+      playback surfaces against provider capabilities without regressing the direct-file transition
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/features/library/sourceResolver.ts`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/dockButton.ts`, `src/styles/layout/mainContent.ts`</sub>
+
+- [x] Add all-or-nothing track switching, the dirty-project switch guard, rapid destination
+      coalescing, directional failure skipping, launch restoration, and project/import routing
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/trackSwitch.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/projectService.ts`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Add safe Save, Save as New, revision/name conflict handling, project rename/delete/open/revert,
+      stored/current CSV export, accessible save prompts, and the V1.2 Project Manager cutover
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Add per-song draft autosave with bounded latency, background flushing, foreground retry,
+      persistent read/write/storage failure recovery, and cross-service dock notices
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/draftAutosave.ts`, `src/features/library/repositories.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/components/ui/common/PersistenceBanner.tsx`, `src/components/layout/MainContent.tsx`</sub>
+
+- [x] Add the serialized local-library boot lifecycle, resumable migration hydration, missing-file
+      reconciliation, queue restoration, Retry locking, and protected orphan sweep
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Add the local music library, draft/project, queue, and switch slices; atomically apply track
+      state; and move the active audio URI and transitional filename into the store
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/repositories.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
+
+- [x] Standardise the loop overview with the wrapped timeline palette and distinguish overview and
+      canvas playheads using a shared amber core, dark underlay, and triangular cap
+      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/requirements.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Standardise real waveform extraction between the web build and native iOS, replacing native
+      synthetic peaks with an AVAssetReader Expo module and keeping resolution behind a
+      capability-ready provider boundary for a future Lite/Pro distinction
+      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `modules/beatnote-waveform/`, `package.json`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction*`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+- [x] Keep the playback-speed popup above the central Play control and make the first Speed press
+      during or immediately after dismissal reopen it without a dead tap
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/controlDock.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Add reusable CSV preview/replace/undo and legacy migration planning transforms, and enforce
+      version 1.0.0 parity across package metadata, Expo/Metro, and generated iOS development builds
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `.kiro/steering/ios-testflight.md`, `app.json`, `package.json`, `plugins/withVersionConsistency.js`, `scripts/check-version-consistency.js`, `src/utils/csvReplace.ts`, `src/utils/importEngine.ts`, `src/utils/migrationPlan.ts`</sub>
+
+- [x] Stabilise direct playback-speed dragging, replace abrupt popup removal with an interruptible
+      collapse/fade, remove redundant speed feedback, and keep loaded-song Annotation actionable
+      with marker-prerequisite guidance
+      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Implement pitch-preserved playback speed from 0.5×–2× in 0.05× increments, with an adjustable
       popup slider, common presets, reset, project persistence, and responsive accessibility
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/ios-testflight.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/types/project.ts`, `src/utils/playbackSpeed.ts`, `src/utils/projectManager.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
@@ -42,7 +102,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       safe areas, and unify all feedback above the overview
       <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/`, `src/components/ui/waveform/`, `src/features/studio/StudioScreen.tsx`, `src/styles/`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
-#### Test & build harness
+### Test & build harness
 
 - [x] Align the active loop-range colour across overview/detail/wrapped canvases and rationalise the
       automated suite around critical behavior coverage
@@ -154,6 +214,54 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-22 — Complete library actions and Song Title navigation
+
+**Agent:** orchestrator (Codex) + local review agents · **Commit(s):** `1094996`, `eed382f`, `ad064e2`, `ca2e56c`, `7ef938d`
+**Kanban moved:** Music Library row actions and Song Title toolbar → In Progress (Tasks 34–35 complete)
+
+**Changed:**
+
+- Added identity-preserving rename, file-first safe deletion, retained missing-audio drafts and
+  projects, confirmed relink, and per-song Show Projects routing without changing queue position.
+- Replaced the direct load-song shim with a one-line accessible Song Title control that hosts the
+  mounted library sheet, shows missing state, and keeps Save available for editable missing-audio
+  drafts.
+- Centralized queue-origin title announcements at successful transaction commit so Skip and rapid
+  coalescing announce in commit order; added routed modal focus handling and race-safe native waits.
+- Began Task 36 with accessible, large-text-safe `CurrentProjectSection` and `ProjectRow` primitives,
+  including exact action identifiers, disabled/read-only/missing states, overflow actions, and named
+  destructive project deletion confirmation.
+- Preserved the toolbar CSV buttons until Task 37.4. This resolves the sequencing conflict between
+  `.kiro/specs/local-music-library-queue/requirements.md` Requirement 8.1/8.9 (final four actions)
+  and `.kiro/specs/local-music-library-queue/tasks.md` Task 37.4 (explicit removal owner) while the
+  retained CSV journeys still target those buttons.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, legacy-loader
+  search, and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed with durable WAV import.
+- Focused iPhone 17 Pro / iOS 26.2 simulator launch/picker journey → 1/1 passed; result bundle
+  `ios/build/BeatNoteUITests-1792679367535.xcresult`.
+- Local reviewer found announcement, focus, and native-wait races; all were corrected and the
+  resulting TypeScript/diff checks passed. The requested DSH bridge remained unavailable.
+- Task 36.1–36.2 component checkpoints → `npx tsc --noEmit`, version parity, and scoped diff checks
+  clean; the components are not mounted until Task 36.3.
+
+**Not verified / known gaps:**
+
+- The focused XCTest passed before its final filename-specific wait was hardened; that test-only
+  change was not rebuilt after review. Physical-device picker/import, VoiceOver, sheet gestures,
+  keyboard/search, row-action failure paths, and relink remain unverified.
+- Toolbar CSV actions intentionally remain until Task 37.4; therefore the final Requirement 8.1
+  four-action layout is not yet complete.
+- Concurrent uncommitted waveform/playhead edits remain outside all four commits.
+
+**Next agent should:**
+
+- Implement Task 36.3 by replacing the current Project Manager with the single sectioned surface,
+  then add the same-song open/revert guard in Task 36.4.
 
 ### 2026-10-22 — Add icons and accessible bottom sheet
 
@@ -1780,6 +1888,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Begin Phase 1 of `.kiro/specs/loop-range-overview/tasks.md` (pure `src/utils/loopRange.ts` +
   `compareProjectVersion` with unit/property tests), keeping gesture and audio-boundary work direct.
+
 ### 2026-10-10 — Restrict marker creation to controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `1c252e5`
@@ -1814,6 +1923,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Run physical-device acceptance, then address the top utility/store unit-test coverage item.
+
 ### 2026-10-13 — Smooth and separate the loop overview controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `9ff4bab`
@@ -1850,6 +1960,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Have the user retest range creation/move/resize in Device Hub, then complete task 25.2 on a
   physical iPhone before marking the loop-range feature fully Done.
+
 ### 2026-10-14 — Remove remaining loop-range drag jank and edge clipping
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `260585e`
@@ -2279,6 +2390,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Continue physical-device visual/VoiceOver acceptance for the completed icon family.
+
 #### Archived Done item — unloaded annotation spacing
 
 - [x] Add an 8-point gap above the phone dock and keep the annotation field blank and non-interactive
@@ -2313,6 +2425,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Resolve the concurrent dock/glass test instability, rerun the full automated aggregates, then
   continue the physical-device acceptance checklist.
+
 #### Archived Done item — full-surface liquid glass and annotation states
 
 - [x] Unify portrait/landscape media glass and every custom menu, then correct annotation dots,
@@ -2550,6 +2663,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Continue the physical-device acceptance checklist, beginning with Settings/Help rotation and CSV
   share-sheet readability on real hardware.
+
 ### 2026-10-18 — Add CSV migration transforms and version parity
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1149eb5`
@@ -2589,6 +2703,7 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Implement Task 11's serialised persistence pipeline, then the typed repositories that consume it.
+
 ### 2026-10-18 — Fix speed-popup reopening and transport stacking
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `02aef09`

@@ -12,7 +12,7 @@
 | Need | File |
 |------|------|
 | Product scope, users, workflow, domain glossary | [`.kiro/steering/project-overview.md`](./.kiro/steering/project-overview.md) |
-| Architecture decisions (ADR-001…010), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
+| Architecture decisions (ADR-001…016), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
 | Language, framework, and style conventions | [`.kiro/steering/coding-standards.md`](./.kiro/steering/coding-standards.md) |
 | Test strategy — what to unit-test vs E2E | [`.kiro/steering/testing-strategy.md`](./.kiro/steering/testing-strategy.md) |
 | Choreography feature designs (mostly planned) | [`.kiro/steering/choreography-features.md`](./.kiro/steering/choreography-features.md) |
@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-24
+**Last updated:** 2026-10-25
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -59,8 +59,9 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Continue `local-music-library-queue` Phase 10 with the retained native XCTest extensions
-   (Task 42); all six expanded Playwright journeys and native Open_In delivery are complete.
+1. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
+   third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
+   near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
 2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
@@ -101,11 +102,9 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Implement `local-music-library-queue` from its approved phased spec; Phase 0 and the pure
-      foundations through the Phase 10 Playwright checkpoint are complete, including the local library,
-      queue, Song Title toolbar, sectioned Project Manager, confirmed/reversible CSV replacement,
-      native document declarations, running-app Open_In delivery, and retained browser journeys;
-      native XCTest expansion is next
+- [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
+      temporary durability/property checks, all six browser journeys, the isolated seven-case native
+      suite, simulator rotation, and maximum Dynamic Type review are complete
 - [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
       review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
       comfort remain
@@ -120,6 +119,11 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Complete local implementation, retained automation, simulator accessibility review, and
+      durable documentation for `local-music-library-queue`, including consistent Project Manager
+      action alignment and deterministic per-case native fixture isolation
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/testing-strategy.md`, `scripts/ios-ui-test.js`, `src/components/ui/`, `tests/`</sub>
 
 - [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
       draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
@@ -136,66 +140,6 @@ potentially adding a hybrid path later.
 - [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
       storm that delayed waveform and control interactions
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Add rename/delete/relink/Show Projects library actions and replace the legacy load-song path
-      with the accessible Song Title control, filtered project routing, ordered queue announcements,
-      and updated browser/native journeys
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/libraryActions.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/controls/songTitleControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/setup.ts`, `tests/test-helpers.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Build the accessible Music Library sheet with reusable rows and overflow actions, scroll-safe
-      loading/empty/error/search/sort states, persisted sorting, guarded track switching, import
-      progress/cancellation/retry, and native/web audio-picker ingestion
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/OverflowMenu.tsx`, `src/components/ui/library/`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/common/overflowMenu.ts`, `src/styles/components/library/`</sub>
-
-- [x] Extend the shared icon family and add the accessible detented bottom-sheet primitive with
-      Reduce Motion, safe-area/keyboard/rotation handling, focus restoration, and web focus trapping
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/index.ts`, `src/styles/components/common/bottomSheet.ts`, `src/utils/sheetDetent.ts`</sub>
-
-- [x] Replace the reserved dock cells with queue navigation and Shuffle, then gate dependent
-      playback surfaces against provider capabilities without regressing the direct-file transition
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/features/library/sourceResolver.ts`, `src/styles/components/controls/audioControls.ts`, `src/styles/components/controls/dockButton.ts`, `src/styles/layout/mainContent.ts`</sub>
-
-- [x] Add all-or-nothing track switching, the dirty-project switch guard, rapid destination
-      coalescing, directional failure skipping, launch restoration, and project/import routing
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/trackSwitch.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/projectService.ts`, `src/features/library/importPipeline.ts`, `src/features/library/repositories.ts`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
-
-- [x] Add safe Save, Save as New, revision/name conflict handling, project rename/delete/open/revert,
-      stored/current CSV export, accessible save prompts, and the V1.2 Project Manager cutover
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add per-song draft autosave with bounded latency, background flushing, foreground retry,
-      persistent read/write/storage failure recovery, and cross-service dock notices
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/draftAutosave.ts`, `src/features/library/repositories.ts`, `src/features/library/useLibraryLifecycle.ts`, `src/components/ui/common/PersistenceBanner.tsx`, `src/components/layout/MainContent.tsx`</sub>
-
-- [x] Add the serialized local-library boot lifecycle, resumable migration hydration, missing-file
-      reconciliation, queue restoration, Retry locking, and protected orphan sweep
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/useLibraryLifecycle.ts`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`</sub>
-
-- [x] Add the local music library, draft/project, queue, and switch slices; atomically apply track
-      state; and move the active audio URI and transitional filename into the store
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/features/library/repositories.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`</sub>
-
-- [x] Standardise the loop overview with the wrapped timeline palette and distinguish overview and
-      canvas playheads using a shared amber core, dark underlay, and triangular cap
-      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/requirements.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Standardise real waveform extraction between the web build and native iOS, replacing native
-      synthetic peaks with an AVAssetReader Expo module and keeping resolution behind a
-      capability-ready provider boundary for a future Lite/Pro distinction
-      <sub>**Key Artifacts:** `.kiro/specs/wrapped-waveform-canvas/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `modules/beatnote-waveform/`, `package.json`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction*`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Keep the playback-speed popup above the central Play control and make the first Speed press
-      during or immediately after dismissal reopen it without a dead tap
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/controlDock.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add reusable CSV preview/replace/undo and legacy migration planning transforms, and enforce
-      version 1.0.0 parity across package metadata, Expo/Metro, and generated iOS development builds
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `.kiro/steering/ios-testflight.md`, `app.json`, `package.json`, `plugins/withVersionConsistency.js`, `scripts/check-version-consistency.js`, `src/utils/csvReplace.ts`, `src/utils/importEngine.ts`, `src/utils/migrationPlan.ts`</sub>
-
-- [x] Stabilise direct playback-speed dragging, replace abrupt popup removal with an interruptible
-      collapse/fade, remove redundant speed feedback, and keep loaded-song Annotation actionable
-      with marker-prerequisite guidance
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/`, `src/components/ui/controls/AnnotationDockButton.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
 ---
 
@@ -270,6 +214,44 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-25 — Finish local music library validation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen durability checks · **Commit(s):** `2754c36`
+**Kanban moved:** local-music-library-queue Tasks 42–43, 44.1–44.3, and 45 → Done; Task 44.4 → In Progress
+
+**Changed:**
+
+- Retained seven isolated iOS journeys for picker/import, restoration, loop transport, CSV/share,
+  background playback, landscape interaction, and Open_In without relying on a transient toast.
+- Exercised draft, switching, migration, quota, crash, and background invariants in 16 temporary
+  checks, then removed them in accordance with the repository's temporary-unit-test policy.
+- Fixed maximum-Dynamic-Type clipping and aligned Project Manager action icons consistently while
+  keeping labels centred; documented ADR-012…ADR-016 and the finished library workflow.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, JavaScript syntax,
+  disabled-test search, `git diff --check`, and Markdown lint → clean.
+- Full retained Playwright gate → 6/6 journeys passed, including library persistence and sheet focus.
+- Isolated iPhone 17 Pro / iOS 26.2 aggregate → all seven retained native cases passed; the final
+  portrait picker/layout rerun also passed after the Dynamic Type and action-alignment fixes.
+- Simulator review → portrait, landscape, Music Library, Project Manager, queue controls, and
+  maximum accessibility text fit without horizontal overflow after the clipping fixes.
+
+**Not verified / known gaps:**
+
+- Task 44.4 remains: physical Files/third-party Open_In, files over 100 MB, backup/restore, low disk,
+  interruptions/routes, force-quit durability, spoken VoiceOver, Reduce Motion touch comfort, and
+  rapid queue navigation.
+- A final focused landscape rerun stalled in Apple's test runner after returning to the home screen;
+  the identical retained landscape journey passed in the preceding isolated aggregate, before the
+  subsequent Project-Manager-only alignment change.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `2754c36`.
+
+**Next agent should:**
+
+- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
 
 ### 2026-10-24 — Complete retained library browser journeys
 
@@ -415,51 +397,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 36.3's sectioned Project Manager, then Task 36.4 and Task 37 so CSV actions can be
   removed from the toolbar without stranding import/export.
-
-### 2026-10-22 — Complete library actions and Song Title navigation
-
-**Agent:** orchestrator (Codex) + local review agents · **Commit(s):** `1094996`, `eed382f`, `ad064e2`, `ca2e56c`, `7ef938d`
-**Kanban moved:** Music Library row actions and Song Title toolbar → In Progress (Tasks 34–35 complete)
-
-**Changed:**
-
-- Added identity-preserving rename, file-first safe deletion, retained missing-audio drafts and
-  projects, confirmed relink, and per-song Show Projects routing without changing queue position.
-- Replaced the direct load-song shim with a one-line accessible Song Title control that hosts the
-  mounted library sheet, shows missing state, and keeps Save available for editable missing-audio
-  drafts.
-- Centralized queue-origin title announcements at successful transaction commit so Skip and rapid
-  coalescing announce in commit order; added routed modal focus handling and race-safe native waits.
-- Began Task 36 with accessible, large-text-safe `CurrentProjectSection` and `ProjectRow` primitives,
-  including exact action identifiers, disabled/read-only/missing states, overflow actions, and named
-  destructive project deletion confirmation.
-- Preserved the toolbar CSV buttons until Task 37.4. This resolves the sequencing conflict between
-  `.kiro/specs/local-music-library-queue/requirements.md` Requirement 8.1/8.9 (final four actions)
-  and `.kiro/specs/local-music-library-queue/tasks.md` Task 37.4 (explicit removal owner) while the
-  retained CSV journeys still target those buttons.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, legacy-loader
-  search, and `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed with durable WAV import.
-- Focused iPhone 17 Pro / iOS 26.2 simulator launch/picker journey → 1/1 passed; result bundle
-  `ios/build/BeatNoteUITests-1792679367535.xcresult`.
-- Local reviewer found announcement, focus, and native-wait races; all were corrected and the
-  resulting TypeScript/diff checks passed. The requested DSH bridge remained unavailable.
-- Task 36.1–36.2 component checkpoints → `npx tsc --noEmit`, version parity, and scoped diff checks
-  clean; the components are not mounted until Task 36.3.
-
-**Not verified / known gaps:**
-
-- The focused XCTest passed before its final filename-specific wait was hardened; that test-only
-  change was not rebuilt after review. Physical-device picker/import, VoiceOver, sheet gestures,
-  keyboard/search, row-action failure paths, and relink remain unverified.
-- Toolbar CSV actions intentionally remain until Task 37.4; therefore the final Requirement 8.1
-  four-action layout is not yet complete.
-- Concurrent uncommitted waveform/playhead edits remain outside all four commits.
-
-**Next agent should:**
-
-- Implement Task 36.3 by replacing the current Project Manager with the single sectioned surface,
-  then add the same-song open/revert guard in Task 36.4.

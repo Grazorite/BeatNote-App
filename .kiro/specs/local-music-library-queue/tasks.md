@@ -1476,7 +1476,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 11 — Documentation and handover
 
-- [ ] 45. Record the decisions and update the board
+- [x] 45. Record the decisions and update the board
   - [x] 45.1 Add ADR-012…ADR-016 to `.kiro/steering/architecture-decisions.md`
     - ADR-012 Music_Item identity and app-owned audio storage; ADR-013 Draft and baseline
       persistence; ADR-014 Web audio storage; ADR-015 Provider-neutral playback source; ADR-016
@@ -1506,7 +1506,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `mdlint.py` passes on the file.
     - _Requirements: 30.7, 30.9_
 
-  - [ ] 45.5 Update `AGENTS.md` and run the orchestrator contract checker
+  - [x] 45.5 Update `AGENTS.md` and run the orchestrator contract checker
     - Move the item to `✅ Done` only after Tasks 44.1–44.3 pass. If Task 44.4 is still pending,
       keep a physical-acceptance item in `🚧 In Progress`. Add Key Artifacts from
       `git diff --name-only`, update the Active Project Status metrics, and prepend a handover-log
@@ -1515,6 +1515,9 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Run `mdlint.py AGENTS.md` and the orchestrator Kanban invariant self-check from the
       `global-project-orchestrator` skill.
     - Verification evidence: both checks report clean.
+    - `AGENTS.md` now narrows the remaining feature work to Task 44.4 physical-device acceptance,
+      records the locally completed gates, and retains only the latest five handover entries. The
+      Markdown lint and Kanban contract checks pass.
     - _Requirements: 30.1_
 
 ## Notes
