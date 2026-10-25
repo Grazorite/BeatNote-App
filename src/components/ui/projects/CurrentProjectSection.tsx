@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { BeatNoteIcon, type BeatNoteIconName } from '../../icons';
 import { currentProjectSectionStyles as styles } from '../../../styles/components/projects/currentProjectSection';
 import { colors } from '../../../styles/common';
@@ -38,20 +38,20 @@ export interface CurrentProjectSectionProps {
 
 interface SectionActionProps {
   label: string;
-  icon: BeatNoteIconName;
   onPress: ActionCallback;
   disabled: boolean;
   testID: string;
   emphasis?: 'primary' | 'secondary';
+  fullWidth?: boolean;
 }
 
 const SectionAction: React.FC<SectionActionProps> = ({
   label,
-  icon,
   onPress,
   disabled,
   testID,
   emphasis = 'primary',
+  fullWidth = false,
 }) => {
   const [focused, setFocused] = useState(false);
 
@@ -59,6 +59,7 @@ const SectionAction: React.FC<SectionActionProps> = ({
     <TouchableOpacity
       style={[
         styles.action,
+        fullWidth && styles.actionFullWidth,
         emphasis === 'secondary' && styles.secondaryAction,
         focused && styles.actionFocused,
         disabled && styles.actionDisabled,
@@ -72,13 +73,6 @@ const SectionAction: React.FC<SectionActionProps> = ({
       accessibilityState={{ disabled }}
       testID={testID}
     >
-      <View style={styles.actionIcon} pointerEvents="none">
-        <BeatNoteIcon
-          name={icon}
-          size={20}
-          color={disabled ? colors.textSecondary : colors.text}
-        />
-      </View>
       <Text
         style={[styles.actionLabel, disabled && styles.actionLabelDisabled]}
         maxFontSizeMultiplier={MAX_TEXT_SCALE}
@@ -128,6 +122,8 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
   openNewerProjectDisabled = false,
 }) => {
   const [focusedControl, setFocusedControl] = useState<string | null>(null);
+  const { fontScale } = useWindowDimensions();
+  const useSingleColumnActions = fontScale > 1.4;
 
   if (!hasSong) {
     return (
@@ -160,10 +156,10 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
           </Text>
         </TouchableOpacity>
         <View style={styles.actionGrid}>
-          <SectionAction label="Save" icon="save" onPress={onSave} disabled testID="current-project-save" />
-          <SectionAction label="Save as New Project" icon="projects" onPress={onSaveAsNewProject} disabled testID="current-project-save-as-new" />
-          <SectionAction label="Import CSV" icon="import" onPress={onImportCsv} disabled testID="current-project-import-csv" />
-          <SectionAction label="Export CSV" icon="export" onPress={onExportCsv} disabled testID="current-project-export-csv" />
+          <SectionAction label="Save" onPress={onSave} disabled testID="current-project-save" fullWidth={useSingleColumnActions} />
+          <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
+          <SectionAction label="Import CSV" onPress={onImportCsv} disabled testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
+          <SectionAction label="Export CSV" onPress={onExportCsv} disabled testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
         </View>
       </View>
     );
@@ -226,29 +222,29 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
       )}
 
       <View style={styles.actionGrid}>
-        <SectionAction label="Save" icon="save" onPress={onSave} disabled={saveDisabled} testID="current-project-save" />
-        <SectionAction label="Save as New Project" icon="projects" onPress={onSaveAsNewProject} disabled={saveAsNewDisabled} testID="current-project-save-as-new" />
-        <SectionAction label="Import CSV" icon="import" onPress={onImportCsv} disabled={importCsvDisabled} testID="current-project-import-csv" />
-        <SectionAction label="Export CSV" icon="export" onPress={onExportCsv} disabled={exportCsvDisabled} testID="current-project-export-csv" />
+        <SectionAction label="Save" onPress={onSave} disabled={saveDisabled} testID="current-project-save" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled={saveAsNewDisabled} testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Import CSV" onPress={onImportCsv} disabled={importCsvDisabled} testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Export CSV" onPress={onExportCsv} disabled={exportCsvDisabled} testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
       </View>
 
       <View style={styles.contextActions}>
         <SectionAction
           label="Revert to Saved"
-          icon="restore"
           onPress={onRevertToSaved}
           disabled={revertDisabled}
           testID="current-project-revert"
           emphasis="secondary"
+          fullWidth={useSingleColumnActions}
         />
         {showUndoCsvImport && (
           <SectionAction
             label="Undo CSV Import"
-            icon="restore"
             onPress={onUndoCsvImport}
             disabled={undoCsvImportDisabled}
             testID="current-project-undo-csv"
             emphasis="secondary"
+            fullWidth={useSingleColumnActions}
           />
         )}
       </View>

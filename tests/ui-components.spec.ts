@@ -465,6 +465,20 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('dock-toast')).toHaveText('Saved “Glass Surface Project”');
 
     await page.getByTestId('load-project').click();
+    for (const [testId, label] of [
+      ['current-project-save', 'Save'],
+      ['current-project-save-as-new', 'Save as New Project'],
+      ['current-project-import-csv', 'Import CSV'],
+      ['current-project-export-csv', 'Export CSV'],
+    ] as const) {
+      const action = page.getByTestId(testId);
+      await expect(action.locator('svg')).toHaveCount(0);
+      const actionBounds = await action.boundingBox();
+      const labelBounds = await action.getByText(label, { exact: true }).boundingBox();
+      expect(labelBounds?.x).toBeGreaterThanOrEqual(actionBounds?.x ?? 0);
+      expect((labelBounds?.x ?? 0) + (labelBounds?.width ?? 0))
+        .toBeLessThanOrEqual((actionBounds?.x ?? 0) + (actionBounds?.width ?? 0));
+    }
     await page.getByTestId('current-project-save-as-new').click();
     await page.getByTestId('save-project-name').fill('Glass Surface Project 2');
     await page.getByTestId('confirm-save-project').click();
