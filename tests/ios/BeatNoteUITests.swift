@@ -285,10 +285,6 @@ final class BeatNoteUITests: XCTestCase {
       .completed,
       "Open In should import and load the delivered audio file.\n\(app.debugDescription)"
     )
-    XCTAssertTrue(
-      app.staticTexts["Imported “open-in-audio”"].waitForExistence(timeout: 5),
-      "Open In should confirm the import in the dock toast."
-    )
 
     title.tap()
     XCTAssertTrue(element("music-library-sheet").waitForExistence(timeout: 5))

@@ -185,10 +185,32 @@ async function main() {
       'build-for-testing',
     ];
     run('xcodebuild', xcodebuild);
-    stagePickerFixtures(simulatorId, simulator.dataPath);
 
     const testBaseArgs = xcodebuild.filter((arg) => arg !== 'build-for-testing');
     const openInTest = 'BeatNoteUITests/BeatNoteUITests/testOpenInAudioImportsIntoLibrary';
+    const pickerTests = [
+      'testStudioLaunchesAndDocumentPickerOpens',
+      'testAudioAnnotationAndProjectRestore',
+      'testLoopRangeToggleAndTransportFits',
+      'testCsvImportAndShareSheetExport',
+      'testAudioContinuesWhileAppIsInBackground',
+      'testLandscapeGesturesAndCompactControls',
+    ];
+    const runPickerTest = (testName) => {
+      stagePickerFixtures(simulatorId, simulator.dataPath);
+      const resultBundle = path.join(
+        iosDirectory,
+        'build',
+        `BeatNoteUITests-${testName}-${Date.now()}.xcresult`,
+      );
+      run('xcodebuild', [
+        ...testBaseArgs,
+        'test-without-building',
+        '-resultBundlePath', resultBundle,
+        '-only-testing:BeatNoteUITests/BeatNoteUITests/' + testName,
+      ]);
+      console.log(`${testName} UI test result bundle: ${resultBundle}`);
+    };
     const runOpenInTest = async () => {
       const resultBundle = path.join(
         iosDirectory,
@@ -212,17 +234,13 @@ async function main() {
 
     if (process.env.IOS_TEST_ONLY === 'testOpenInAudioImportsIntoLibrary') {
       await runOpenInTest();
+    } else if (process.env.IOS_TEST_ONLY) {
+      runPickerTest(process.env.IOS_TEST_ONLY);
     } else {
-      const resultBundle = path.join(iosDirectory, 'build', `BeatNoteUITests-${Date.now()}.xcresult`);
-      const testArgs = [...testBaseArgs, 'test-without-building', '-resultBundlePath', resultBundle];
-      if (process.env.IOS_TEST_ONLY) {
-        testArgs.push('-only-testing:BeatNoteUITests/BeatNoteUITests/' + process.env.IOS_TEST_ONLY);
-      } else {
-        testArgs.push('-skip-testing:' + openInTest);
-      }
-      run('xcodebuild', testArgs);
-      console.log(`UI test result bundle: ${resultBundle}`);
-      if (!process.env.IOS_TEST_ONLY) await runOpenInTest();
+      // XCTest and Files retain process/provider state between cases in one invocation. Reinstall
+      // and restage before each retained journey so the aggregate gate is deterministic.
+      for (const testName of pickerTests) runPickerTest(testName);
+      await runOpenInTest();
     }
   } finally {
     if (metroPid) {

@@ -47,6 +47,8 @@ const SongTitleControl = forwardRef<
     >
       <Text
         style={styles.title}
+        adjustsFontSizeToFit
+        minimumFontScale={0.65}
         numberOfLines={1}
         ellipsizeMode="tail"
         maxFontSizeMultiplier={MAX_TEXT_SCALE}
@@ -58,6 +60,8 @@ const SongTitleControl = forwardRef<
           <BeatNoteIcon name="warning" size={18} color={colors.iconDestructive} />
           <Text
             style={styles.missingText}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
             numberOfLines={1}
             maxFontSizeMultiplier={MAX_TEXT_SCALE}
           >

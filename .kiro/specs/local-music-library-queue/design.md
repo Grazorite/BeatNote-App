@@ -2076,9 +2076,11 @@ No retained case exercises delivery of a file URL from outside the app, and fold
 `testStudioLaunchesAndDocumentPickerOpens` would make the core launch check depend on a
 LaunchServices mechanism decided by the OQ-4 spike. `scripts/ios-ui-test.js` copies a fixture into
 the simulator, and the case opens it with `XCUIApplication.open(_:)` (or the script runs
-`xcrun simctl openurl` before the case), then asserts the Dock_Toast, the library row, and the
-loaded title (R30.7). If the spike shows neither mechanism delivers a document-type URL on the
-simulator, the case is not added and Open_In stays on the physical-device list.
+`xcrun simctl openurl` before the case), then asserts the loaded title and retained library row
+(R30.7). The 1.5-second Dock_Toast remains covered by the import-notice implementation and retained
+browser journey rather than by a timing-sensitive cold-launch assertion. If the spike shows neither
+mechanism delivers a document-type URL on the simulator, the case is not added and Open_In stays on
+the physical-device list.
 
 ### Temporary unit and property tests
 

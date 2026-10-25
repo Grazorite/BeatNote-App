@@ -51,14 +51,24 @@ simulator works without prior picker history.
 
 The suite covers app launch and document-picker presentation, settings drawer open/close,
 audio selection/playback, marker/annotation entry (including annotation while playback continues),
-project save/relaunch/restore, valid and invalid CSV imports, CSV export to the iOS share sheet,
-background/foreground playback, long-track overview tap/drag seeking, and landscape waveform,
-toolbar, import, and export interactions. The 150-second `long-test-track.m4a` fixture is copied to
-Files > On My iPhone > BeatNote by the test script for manual simulator checks.
+durable-copy and per-song draft restoration after a cache purge, confirmed CSV replacement, CSV
+export to the iOS share sheet, background/foreground playback, long-track overview tap/drag seeking,
+landscape waveform and controls, and Open In delivery into the retained Music Library. The
+150-second `long-test-track.m4a` fixture is copied to Files > On My iPhone > BeatNote for manual
+simulator checks.
+
+The aggregate command builds once, then reinstalls and restages the app before each retained picker
+journey. This isolates Files-provider and app-container state that XCTest otherwise retains between
+cases. Open In remains a separate `simctl openurl` invocation with its own result bundle.
 `IOS_TEST_ONLY=<test-name>` runs one XCTest case; `IOS_SIMULATOR_ID=<simulator-udid>` chooses a
 specific simulator. Otherwise the script uses the booted iPhone or prefers iPhone 17 Pro. These UI
 tests run headlessly from the command line and do not replace interactive Device Hub or physical
 device acceptance.
+
+`testAudioAnnotationAndProjectRestore` launches once with
+`BEATNOTE_TEST_PURGE_CACHES=1`. The `__DEV__`-only lifecycle hook removes `Paths.cache` before boot,
+proving that playback and the unsaved marker restore from the managed Music directory and draft
+rather than from the picker cache.
 
 Real audio-session interruptions (such as calls), physical-device audio behavior, touch/rotation
 visual quality, and completing a share to an external destination remain manual acceptance checks.
@@ -94,18 +104,27 @@ eas build --platform ios --profile preview
 eas submit --platform ios --profile preview
 ```
 
-## iOS-specific features planned
+## iOS-specific features
 
 ### Share sheet (import/export)
 
-- Register BeatNote as a handler for audio file types in `app.json` under `ios.infoPlist`
-- Use `expo-sharing` for outbound share (CSV, PDF, project file)
-- Use `expo-document-picker` (already installed) for inbound — it surfaces the share sheet automatically
+- `plugins/withAudioDocumentTypes.js` preserves the `.beatnote` editor declaration and appends MP3,
+  WAV, M4A/MPEG-4, AAC, OGG, and FLAC document types. It also supplies imported OGG/FLAC UTIs.
+- Open In URLs are retained by the `library-storage` app-delegate subscriber until JavaScript and
+  library boot are ready, then pass through the same serialized import/switch pipeline as the picker.
+- `LSSupportsOpeningDocumentsInPlace` is provisionally `false`. iPhone 17 Pro / iOS 26.2 simulator
+  testing delivered Inbox URLs and preserved the `.beatnote` declaration under both values; the
+  final choice still requires the physical-device Task 1.2 matrix.
+- CSV export uses the existing iOS activity sheet. Completing a share to an external app remains a
+  physical-device acceptance item.
 
 ### Files app integration
 
-- Use `expo-file-system` (already installed) to read/write to the app's Documents directory
-- Documents directory is accessible via the Files app when `UIFileSharingEnabled` is set in Info.plist
+- User-visible imports may originate in Documents/Files, but BeatNote copies audio to
+  `Library/Application Support/BeatNote/Music` and stores only relative managed paths.
+- `LibraryStorage` creates this Music directory, applies `NSURLIsExcludedFromBackupKey`, verifies the
+  flag, and supplies streaming MD5 and UUID primitives. Documents remains Files-visible for fixtures
+  and exports when `UIFileSharingEnabled` is set.
 
 ### iCloud sync
 
@@ -130,22 +149,12 @@ eas submit --platform ios --profile preview
 
 `com.beatnote.app` — set in `app.json`. Do not change without updating the Apple Developer portal.
 
-## Info.plist keys to add (app.json → ios.infoPlist)
+## Generated Info.plist ownership
 
-```json
-{
-  "UIFileSharingEnabled": true,
-  "LSSupportsOpeningDocumentsInPlace": true,
-  "UIBackgroundModes": ["audio"],
-  "CFBundleDocumentTypes": [
-    {
-      "CFBundleTypeName": "BeatNote Project",
-      "CFBundleTypeExtensions": ["beatnote"],
-      "CFBundleTypeRole": "Editor"
-    }
-  ]
-}
-```
+`app.json` owns `UIFileSharingEnabled`, `UIBackgroundModes`, and the BeatNote Project document
+declaration. `plugins/withAudioDocumentTypes.js` idempotently owns the audio declarations,
+OGG/FLAC imported UTIs, and provisional `LSSupportsOpeningDocumentsInPlace = false`. Never edit the
+generated `ios/BeatNote/Info.plist` directly.
 
 ## Native modules
 
@@ -155,7 +164,7 @@ The following features require native iOS modules (Swift bridging via Expo Modul
 | --- | --- | --- |
 | Demucs CoreML inference | `modules/stem-separation/` | Planned |
 | Waveform extraction (mobile) | `modules/beatnote-waveform/` | Implemented |
-| App-owned music storage primitives | `modules/library-storage/` | Implemented |
+| App-owned music storage, backup exclusion, hashing, UUIDs, and Open In URL delivery | `modules/library-storage/` | Implemented |
 
 Use `expo-modules-core` to write these as Expo Modules (Swift + TypeScript interface). Do not use bare `react-native` native modules.
 

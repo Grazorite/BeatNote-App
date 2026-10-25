@@ -432,6 +432,22 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
 
     await loadTestAudio(page);
+    await page.reload();
+    await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
+    const songTitleControl = page.getByTestId('song-title-control');
+    await songTitleControl.click();
+    await expect(page.getByTestId('music-library-sheet-title')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect.poll(() => page.evaluate(() => (
+      document.querySelector('[data-testid="music-library-sheet"]')?.contains(document.activeElement)
+    ))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(songTitleControl).toBeFocused();
+    await songTitleControl.click();
+    const restoredLibraryRow = page.getByRole('button', { name: /^test-audio,/ });
+    await expect(restoredLibraryRow).toBeVisible();
+    await expect(restoredLibraryRow).not.toContainText('Audio missing');
+    await restoredLibraryRow.click();
     await page.getByTestId('save-project').click();
     await expect(page.getByTestId('save-project-modal-glass')).toBeVisible();
     const projectName = page.getByTestId('save-project-name');

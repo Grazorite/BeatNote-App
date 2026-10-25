@@ -28,7 +28,14 @@ const RowGutter: React.FC<RowGutterProps> = ({
       accessibilityLabel={`Row starts at ${startTime}`}
       testID={testID}
     >
-      <Text style={styles.time}>{startTime}</Text>
+      <Text
+        style={styles.time}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+        numberOfLines={1}
+      >
+        {startTime}
+      </Text>
     </View>
   );
 };

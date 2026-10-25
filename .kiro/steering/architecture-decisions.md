@@ -79,6 +79,48 @@ Rationale: the installed cross-platform player already maps high-quality iOS cor
 spectral time-pitch algorithm, preserves pitch on web, and keeps rate state through its existing
 play, pause, seek, loop, source, and background-audio lifecycle.
 
+### ADR-012: Music item identity and app-owned audio storage
+
+Each imported song receives a random, stable Music Item UUID that is independent of its path and
+display title. Native audio is copied to `Library/Application Support/BeatNote/Music` as a relative
+`<uuid>.<extension>` reference, excluded from backup, and removed only when BeatNote deletes its own
+managed copy. The original external file is never treated as owned.
+Rationale: picker/cache URLs are purgeable, container paths change after restore, and title/path
+identity would make rename, relink, and multiple projects per song unsafe.
+
+### ADR-013: Per-song drafts and saved-project baselines
+
+BeatNote stores one autosaved draft per Music Item and any number of Saved Projects as independent
+per-key records with integer revisions. Dirty state compares a canonical content fingerprint with
+the selected project's baseline fingerprint. All writes share one serialized persistence pipeline;
+read failures block writes to the affected key.
+Rationale: per-key records avoid whole-library overwrite races, while explicit revisions and
+fingerprints make save/autosave recovery deterministic.
+
+### ADR-014: IndexedDB for durable web audio
+
+The web implementation stores imported audio bytes in IndexedDB behind `audioStore.web.ts` while
+AsyncStorage retains only metadata and relative identity. Quota failures abort atomically and are
+reported without replacing the prior durable state.
+Rationale: IndexedDB survives reload, supports binary files broadly, and needs no additional
+dependency.
+
+### ADR-015: Provider-neutral playback sources and capabilities
+
+Music Items carry a provider-specific `SourceIdentity`; resolution returns a playable URI and a
+`PlaybackCapabilities` contract. Playback, waveform, speed, repeat, queue, and shuffle surfaces
+gate themselves from those capabilities instead of branching on local-file assumptions.
+Rationale: Apple Music or Spotify providers can be added later without rewriting the annotation
+editor or weakening local-file behavior.
+
+### ADR-016: Custom detented bottom sheet without a navigation library
+
+The Music Library uses a shared custom `BottomSheet` hosted in a transparent modal and built with
+the installed gesture-handler and Reanimated stack. It owns safe areas, rotation, keyboard inset,
+detents, Reduce Motion, focus trapping, and focus restoration on native and web.
+Rationale: this preserves ADR-007, avoids another navigation dependency, and keeps one responsive
+surface across platforms while accepting approximate rather than UIKit-native sheet physics.
+
 ## Patterns to follow
 
 ### Platform branching

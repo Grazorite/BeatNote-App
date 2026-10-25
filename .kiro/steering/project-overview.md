@@ -12,11 +12,16 @@ The app is currently a personal tool with a clear path toward commercial release
 
 ## Core user workflow
 
-1. Load an audio file (MP3, WAV, M4A, AAC, OGG, FLAC)
-2. Tap to place beat markers during playback on the V1 annotation lane
-3. Add text annotations to markers (move names, choreography cues, 8-counts)
-4. Replay, seek, and rehearse the annotated music
-5. Export as CSV, MIDI, or PDF choreography sheet
+1. Import an audio file (MP3, WAV, M4A, AAC, OGG, FLAC) from the Music Library, Files picker, or
+   iOS Open In; BeatNote keeps its own durable local copy.
+2. Select songs with the Song Title control or queue controls. First, Previous, Next, and Shuffle
+   navigate music items, not project files.
+3. Tap to place beat markers during playback on the V1 annotation lane and add text annotations
+   such as move names, choreography cues, and 8-counts.
+4. Switch songs without losing work: every song has an autosaved draft, while explicitly saved
+   projects provide named baselines and multiple versions per song.
+5. Replay, seek, and rehearse the annotated music, then manage saved work and CSV replacement or
+   export from Project Manager.
 
 Post-core stem separation may later enhance this workflow, but it is not part of the core promise.
 
@@ -33,6 +38,18 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   annotation lane and hides layer-selection UI; existing multi-layer projects remain readable.
 - **Marker** — a timestamp placed on a layer, representing a beat, cue, or movement moment.
 - **Annotation** — a text note attached to a marker.
+- **Music Item** — a stable UUID and metadata record for one imported song. Native imports are
+  copied into BeatNote's backup-excluded Music directory; web audio bytes live in IndexedDB.
+- **Song draft** — the latest autosaved markers, annotations, and editor settings for one Music
+  Item. It survives song switches and app restarts.
+- **Saved Project** — a named, revisioned snapshot associated with one Music Item. A song may have
+  multiple Saved Projects; the newest is selected by default when no dirty draft takes precedence.
+- **Draft baseline** — the Saved Project revision and content fingerprint used to decide whether a
+  draft is saved or dirty and whether a song switch needs confirmation.
+- **Playback queue** — an ordered snapshot of Music Item IDs. First, Previous, Next, and Shuffle
+  operate on this queue independently of Saved Projects.
+- **Song Title control** — the leading toolbar control showing the current song. It opens the
+  detented Music Library for import, search, sorting, rename, removal, relink, and project routing.
 - **Stem count** — 2, 4, or 6 stems visible at once.
 - **Viewport** — the visible time window on the waveform canvas (start time + duration).
 - **Phone waveform canvas** — a fixed, non-scrolling full-song view. Its row count follows the
@@ -58,7 +75,10 @@ All global state lives in `src/hooks/useStudioStore.ts` (Zustand). Do not introd
 
 - Native export uses the iOS share sheet, but completing a share to a real external destination still
   needs physical-device acceptance.
-- `useWaveformData.ts` uses Web Audio API on web and a fallback sine wave on mobile. Real mobile waveform extraction is planned.
+- Native and web waveform extraction decode real audio through platform providers. Physical-device
+  performance and audible playback quality still need acceptance on representative files.
+- Open In and backup exclusion are implemented and simulator-tested; third-party delivery, files
+  over 100 MB, restore behavior, and near-full-disk handling remain physical-device checks.
 - Stem separation is deliberately deferred to V3. The existing foundation is preserved under
   `src/features/stemSeparation/`; release sequencing and resumption gates live in
   `release-roadmap.md`.

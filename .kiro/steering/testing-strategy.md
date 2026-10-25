@@ -26,6 +26,12 @@ Run `npm test`. The permanent browser suite is limited to these cohesive journey
 
 - Open mobile Settings and Help in portrait and landscape, with V1-only content.
 - Load audio, use the responsive control dock, and preserve the loaded edit through rotation.
+- Import durable web audio, reload it from IndexedDB, open the Music Library with keyboard focus,
+  trap focus inside it, and restore focus to the Song Title control on close.
+- Save and copy projects, restore the newest project or per-song draft, replace/undo CSV content,
+  relink legacy missing audio, and keep library/project actions out of the toolbar.
+- Navigate the Music Item queue with First, Previous, Next, and Shuffle, including rapid coalesced
+  Next requests and the accessible end-of-queue state.
 - Create a marker only through marker controls, add/reopen its annotation, and keep gestures isolated.
 - Exercise the loop-range workflow from creation through edit, mode change, clear, and restore.
 - Open the custom project/import/export surfaces and verify their primary actions remain readable.
@@ -35,15 +41,19 @@ the nearest existing journey when it protects that journey's outcome.
 
 ### 3. iOS XCTest — critical native integrations
 
-Run focused cases with `IOS_TEST_ONLY=<case> npm run test:ios:ui`, and use the full native suite only
-for release acceptance. Retain native coverage where the simulator or device is part of the behavior:
+Run focused cases with `IOS_TEST_ONLY=<case> npm run test:ios:ui`, and use the aggregate command only
+for release acceptance. The aggregate runner builds once, then reinstalls and restages before each
+case to isolate Files-provider and app-container state. Retain native coverage where the simulator
+or device is part of the behavior:
 
 - Files picker and V1 Settings launch path.
-- Audio playback, annotation input, project save/relaunch/restore.
+- Audio playback, annotation input, durable managed-audio restoration after a cache purge, and
+  per-song draft/project restoration.
 - Loop transport and compact controls.
-- CSV document import and iOS share-sheet export.
+- Confirmed CSV replacement from Project Manager and iOS share-sheet export.
 - Background audio continuity.
 - Landscape gestures, safe geometry, and portrait restoration.
+- Open In URL delivery, loading, and retention in the local Music Library.
 
 Physical-device checks remain necessary for touch comfort, VoiceOver, audio interruptions, and
 external sharing. Simulator success does not replace those checks.

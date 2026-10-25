@@ -90,6 +90,7 @@ export const currentProjectSectionStyles = StyleSheet.create({
     marginTop: dimensions.spacing.sm,
   },
   action: {
+    position: 'relative',
     minWidth: dimensions.touchTarget.minWidth,
     minHeight: dimensions.touchTarget.minHeight,
     flexGrow: 1,
@@ -97,7 +98,6 @@ export const currentProjectSectionStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: dimensions.spacing.sm,
     paddingHorizontal: dimensions.spacing.sm,
     paddingVertical: dimensions.spacing.sm,
     borderRadius: dimensions.borderRadius,
@@ -116,8 +116,16 @@ export const currentProjectSectionStyles = StyleSheet.create({
   actionDisabled: {
     opacity: 0.45,
   },
+  actionIcon: {
+    position: 'absolute',
+    left: dimensions.spacing.md,
+    width: 20,
+    alignItems: 'center',
+  },
   actionLabel: {
+    flex: 1,
     flexShrink: 1,
+    paddingHorizontal: 28,
     color: colors.text,
     fontSize: 14,
     lineHeight: 18,

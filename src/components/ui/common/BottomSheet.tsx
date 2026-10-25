@@ -27,6 +27,7 @@ import {
   bottomSheetKeyboardStyle,
   bottomSheetStyles as styles,
 } from '../../../styles/components/common/bottomSheet';
+import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { resolveSheetRelease, type SheetReleaseTarget } from '../../../utils/sheetDetent';
 import { BeatNoteIcon } from '../../icons';
 import GlassBackdrop from '../controls/GlassBackdrop';
@@ -305,6 +306,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     ref={titleRef}
                     style={styles.title}
                     accessibilityRole="header"
+                    maxFontSizeMultiplier={MAX_TEXT_SCALE}
                     numberOfLines={2}
                     ellipsizeMode="tail"
                     testID={`${testID}-title`}

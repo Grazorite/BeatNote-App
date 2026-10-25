@@ -72,14 +72,17 @@ const SectionAction: React.FC<SectionActionProps> = ({
       accessibilityState={{ disabled }}
       testID={testID}
     >
-      <BeatNoteIcon
-        name={icon}
-        size={20}
-        color={disabled ? colors.textSecondary : colors.text}
-      />
+      <View style={styles.actionIcon} pointerEvents="none">
+        <BeatNoteIcon
+          name={icon}
+          size={20}
+          color={disabled ? colors.textSecondary : colors.text}
+        />
+      </View>
       <Text
         style={[styles.actionLabel, disabled && styles.actionLabelDisabled]}
         maxFontSizeMultiplier={MAX_TEXT_SCALE}
+        numberOfLines={2}
       >
         {label}
       </Text>
