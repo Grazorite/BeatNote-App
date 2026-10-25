@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-25
+**Last updated:** 2026-10-26
 **Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -120,6 +120,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Replace Project Manager action icons with responsive text-only controls so labels remain
+      complete at narrow widths and reflow to single-column rows at large accessibility text sizes
+      <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Complete local implementation, retained automation, simulator accessibility review, and
       durable documentation for `local-music-library-queue`, including consistent Project Manager
       action alignment and deterministic per-case native fixture isolation
@@ -136,10 +140,6 @@ potentially adding a hybrid path later.
 - [x] Restructure the Project Manager around the current song and move CSV import/export out of the
       toolbar into confirmed, reversible project actions
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/modals/csvReplaceConfirm.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/utils/projectNames.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
-      storm that delayed waveform and control interactions
-      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -214,6 +214,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Fix Project Manager action overflow
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `9a5da26`
+**Kanban moved:** Project Manager action text/icon collision → Done
+
+**Changed:**
+
+- Removed decorative icons from Current Project actions so the labels own the full button width.
+- Kept the compact two-column layout at ordinary text sizes and switched to full-width action rows
+  above a 1.4 font scale so every label remains complete at accessibility sizes.
+- Added retained browser assertions that the actions contain no SVG icons and that each label's
+  horizontal bounds stay inside its button.
+
+**Verified:**
+
+- iPhone 17 Pro / iOS 26.2 Device Hub review → two clean columns at Extra Large and complete
+  full-width labels at the maximum accessibility text category; the simulator was restored to
+  Extra Large afterward.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test search,
+  and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 passed; the focused Project Manager journey with the new
+  no-icon/no-overflow assertions → 1/1 passed.
+- Focused native annotation/project restoration journey → passed; result bundle
+  `ios/build/BeatNoteUITests-testAudioAnnotationAndProjectRestore-1792959399279.xcresult`.
+
+**Not verified / known gaps:**
+
+- Task 44.4 physical-device acceptance remains unchanged, including spoken VoiceOver, touch comfort,
+  and large-text review on actual hardware.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `9a5da26`.
+
+**Next agent should:**
+
+- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
 
 ### 2026-10-25 — Finish local music library validation
 
@@ -359,41 +394,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 39.1's audio document-type config plugin and preserve `.beatnote` ownership while
   applying the provisional Open_In in-place decision.
-
-### 2026-10-23 — Fix landscape library presentation and interaction latency
-
-**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `1c12777`
-**Kanban moved:** reported landscape/interaction regressions → Done
-
-**Changed:**
-
-- Declared every supported iPhone orientation on the shared bottom-sheet modal so the Music Library
-  can present after rotating to landscape, and extended the retained landscape journey to open it.
-- Prevented the 50 ms playback clock from rebuilding the full studio tree by selecting stable marker
-  keys, memoizing the main content, stabilizing audio/focus callbacks, and retaining one shared empty
-  marker collection for inactive waveform rows.
-- Replaced scrub play-state React state with a ref, eliminating an extra gesture-time render and a
-  fast-gesture stale-closure race without reducing the 50 ms loop-boundary sampling cadence.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, contract
-  validation, and `git diff --check` → clean for the completed change.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-- Focused iPhone 17 Pro / iOS 26.2 landscape journey → passed, including Music Library presentation;
-  result bundle `ios/build/BeatNoteUITests-1792722437057.xcresult`.
-- Metro served the updated 1.0.0 bundle on localhost:8081 and the app launched in the booted
-  iPhone 17 Pro simulator.
-
-**Not verified / known gaps:**
-
-- Physical-device responsiveness, memory profiling, and long-session soak behavior remain
-  unverified; the diagnosed issue was excessive render churn, with no evidence of a memory leak.
-- Toolbar CSV actions still await Task 37 relocation, so portrait title space remains constrained
-  until the Project Manager replacement is complete.
-- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `1c12777`.
-
-**Next agent should:**
-
-- Implement Task 36.3's sectioned Project Manager, then Task 36.4 and Task 37 so CSV actions can be
-  removed from the toolbar without stranding import/export.

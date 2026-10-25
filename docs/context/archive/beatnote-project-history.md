@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
+      storm that delayed waveform and control interactions
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
 - [x] Add rename/delete/relink/Show Projects library actions and replace the legacy load-song path
       with the accessible Song Title control, filtered project routing, ordered queue announcements,
       and updated browser/native journeys
@@ -214,6 +218,44 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-23 — Fix landscape library presentation and interaction latency
+
+**Agent:** orchestrator (Codex) + context/review agents · **Commit(s):** `1c12777`
+**Kanban moved:** reported landscape/interaction regressions → Done
+
+**Changed:**
+
+- Declared every supported iPhone orientation on the shared bottom-sheet modal so the Music Library
+  can present after rotating to landscape, and extended the retained landscape journey to open it.
+- Prevented the 50 ms playback clock from rebuilding the full studio tree by selecting stable marker
+  keys, memoizing the main content, stabilizing audio/focus callbacks, and retaining one shared empty
+  marker collection for inactive waveform rows.
+- Replaced scrub play-state React state with a ref, eliminating an extra gesture-time render and a
+  fast-gesture stale-closure race without reducing the 50 ms loop-boundary sampling cadence.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty permanent unit gate, contract
+  validation, and `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 landscape journey → passed, including Music Library presentation;
+  result bundle `ios/build/BeatNoteUITests-1792722437057.xcresult`.
+- Metro served the updated 1.0.0 bundle on localhost:8081 and the app launched in the booted
+  iPhone 17 Pro simulator.
+
+**Not verified / known gaps:**
+
+- Physical-device responsiveness, memory profiling, and long-session soak behavior remain
+  unverified; the diagnosed issue was excessive render churn, with no evidence of a memory leak.
+- Toolbar CSV actions still await Task 37 relocation, so portrait title space remains constrained
+  until the Project Manager replacement is complete.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `1c12777`.
+
+**Next agent should:**
+
+- Implement Task 36.3's sectioned Project Manager, then Task 36.4 and Task 37 so CSV actions can be
+  removed from the toolbar without stranding import/export.
 
 ### 2026-10-22 — Complete library actions and Song Title navigation
 
