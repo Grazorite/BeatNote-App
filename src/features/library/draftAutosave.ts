@@ -56,6 +56,7 @@ const persistedTuple = (state: StudioStore): readonly unknown[] => [
   state.layerSpecificNavigation,
   state.primaryView,
   state.countSize,
+  state.showDanceCounts,
   state.rowDensity,
   state.followPlayhead,
   state.playbackSpeed,

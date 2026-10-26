@@ -55,6 +55,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
     await expect(page.getByTestId('settings-bpm')).toBeVisible();
     await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-dance-counts')).toBeVisible();
+    await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-count-size')).toBeVisible();
     await expect(page.getByTestId('count-size-8')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('count-size-6').click();
@@ -399,6 +401,7 @@ test.describe('UI Components & Layout', () => {
     expect((landscape.ordinary?.width ?? 0) / (landscape.ordinary?.height ?? 1)).toBeLessThanOrEqual(1.2);
     expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeLessThanOrEqual(2);
     expect(landscape.overview?.right).toBeLessThanOrEqual((landscape.rail?.left ?? 0) + 1);
+    expect(390 - (landscape.overview?.bottom ?? 390)).toBeGreaterThanOrEqual(18);
     expect(landscape.annotation?.left).toBeGreaterThanOrEqual((landscape.rail?.left ?? 0) - 1);
     expect(Math.abs((landscape.glass?.width ?? 0) - (landscape.rail?.width ?? 0))).toBeLessThanOrEqual(1);
 
@@ -455,10 +458,19 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
 
     await loadTestAudio(page);
+    await expect(page.getByTestId('dance-count-display')).toHaveCount(0);
+    await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveCount(0);
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.getByTestId('dance-counts-toggle').click();
+    await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('dance-count-display')).toHaveText('Phrase 1 | Count 1');
     await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveText('1');
+    await page.waitForTimeout(800);
     await page.reload();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
+    await expect(page.getByTestId('dance-count-display')).toHaveText('Phrase 1 | Count 1');
     const songTitleControl = page.getByTestId('song-title-control');
     await songTitleControl.click();
     await expect(page.getByTestId('music-library-sheet-title')).toBeFocused();

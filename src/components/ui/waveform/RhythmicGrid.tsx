@@ -19,6 +19,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
   const viewportDuration = useStudioStore(state => state.viewportDuration);
   const showGridLines = useStudioStore(state => state.showGridLines);
   const countSize = useStudioStore(state => state.countSize);
+  const showDanceCounts = useStudioStore(state => state.showDanceCounts);
   
   const { rulerLines, majorLines } = React.useMemo(() => {
     const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
@@ -34,8 +35,8 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
       const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * width;
       
       if (x >= 0 && x <= width) {
-        const isPhraseBoundary = beat % countSize === 0;
-        const isMiddleCount = countSize % 2 === 0
+        const isPhraseBoundary = showDanceCounts && beat % countSize === 0;
+        const isMiddleCount = showDanceCounts && countSize % 2 === 0
           && beat % countSize === countSize / 2;
         
         // Ruler lines (all beats)
@@ -81,7 +82,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
     }
     
     return { rulerLines, majorLines };
-  }, [width, pixelsPerSecond, bpm, countSize, viewportStartTime, viewportDuration]);
+  }, [width, pixelsPerSecond, bpm, countSize, showDanceCounts, viewportStartTime, viewportDuration]);
   
   return (
     <View>

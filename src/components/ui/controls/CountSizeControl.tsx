@@ -35,7 +35,9 @@ const CountSizeControl: React.FC = () => {
           );
         })}
       </View>
-      <Text style={styles.hint}>Controls phrase lines, snapping, and exported dance counts</Text>
+      <Text style={styles.hint}>
+        Controls snapping, exports, and visible phrase lines when dance counts are shown
+      </Text>
     </View>
   );
 };

@@ -258,7 +258,11 @@ const MainContent: React.FC<MainContentProps> = ({
     );
     const mobileCanvas = (
       <View
-        style={[styles.mobileCanvas, isLandscapePhone && styles.landscapeCanvas]}
+        style={[
+          styles.mobileCanvas,
+          isLandscapePhone && styles.landscapeCanvas,
+          isLandscapePhone && { paddingBottom: Math.max(safeAreaBottom + 6, 18) },
+        ]}
         testID="mobile-workspace-scroll"
       >
         {waveform}

@@ -20,10 +20,15 @@ Dance is structured in 8-beat phrases (8-counts). Some styles use 6-count phrase
 - Phrase boundaries render with higher opacity and a label (e.g. "1", "9", "17"...)
 - `generateSnapTargets` in `magneticSnapping.ts` must include phrase boundaries as snap targets
 - Add a count size selector to the sidebar (alongside BPM control)
+- Phrase/count guidance is controlled by the persisted `showDanceCounts` setting and is off by
+  default. The setting hides phrase emphasis, waveform count labels, and the live transport count;
+  it does not change phrase snapping or exported count semantics.
+- Counts are calculated from project BPM and song time zero. BeatNote does not infer musical phrase
+  starts or downbeats from the audio, so users should adjust BPM and phrase length to match the song.
 
 ### Beat counting display
 
-- Show the current beat number and phrase number in the transport bar
+- When `showDanceCounts` is enabled, show the current beat number and phrase number in the transport bar
 - Format: `Phrase 3 | Beat 5` or `Bar 3 | Count 5` (use "Count" for dance context)
 - Update in real time during playback
 

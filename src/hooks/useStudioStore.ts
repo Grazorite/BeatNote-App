@@ -171,6 +171,7 @@ export interface StudioStore {
   viewMode: 'unified' | 'multitrack';
   primaryView: 'wrapped' | 'detail';
   countSize: 4 | 6 | 8;
+  showDanceCounts: boolean;
   rowDensity: RowDensity;
   followPlayhead: boolean;
   playbackSpeed: number;
@@ -225,6 +226,7 @@ export interface StudioStore {
   setViewMode: (mode: 'unified' | 'multitrack') => void;
   setPrimaryView: (view: 'wrapped' | 'detail') => void;
   setCountSize: (size: 4 | 6 | 8) => void;
+  setShowDanceCounts: (show: boolean) => void;
   setRowDensity: (density: RowDensity) => void;
   setFollowPlayhead: (follow: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
@@ -417,6 +419,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   viewMode: 'unified',
   primaryView: 'wrapped',
   countSize: 8,
+  showDanceCounts: false,
   rowDensity: { mode: 'phrase' },
   followPlayhead: true,
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
@@ -656,6 +659,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
+  setShowDanceCounts: (show) => set({ showDanceCounts: show }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: normalizePlaybackSpeed(speed) }),

@@ -10,8 +10,9 @@ const DanceCountDisplay: React.FC = () => {
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const songLoaded = useStudioStore(state => state.songLoaded);
+  const showDanceCounts = useStudioStore(state => state.showDanceCounts);
 
-  if (!songLoaded) return null;
+  if (!songLoaded || !showDanceCounts) return null;
 
   const label = formatDanceCount(currentTime, bpm, countSize);
   return (

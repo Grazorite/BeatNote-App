@@ -25,12 +25,15 @@ const RowGutter: React.FC<RowGutterProps> = ({
   const startTime = formatTime(startMs);
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
+  const showDanceCounts = useStudioStore(state => state.showDanceCounts);
   const countLabel = danceCountAtTime(startMs, bpm, countSize).absoluteCount;
 
   return (
     <View
       style={[styles.container, { width }]}
-      accessibilityLabel={`Row starts at ${startTime}, dance count ${countLabel}`}
+      accessibilityLabel={showDanceCounts
+        ? `Row starts at ${startTime}, dance count ${countLabel}`
+        : `Row starts at ${startTime}`}
       testID={testID}
     >
       <Text
@@ -41,9 +44,11 @@ const RowGutter: React.FC<RowGutterProps> = ({
       >
         {startTime}
       </Text>
-      <Text style={styles.count} numberOfLines={1} testID={testID ? `${testID}-count` : undefined}>
-        {countLabel}
-      </Text>
+      {showDanceCounts && (
+        <Text style={styles.count} numberOfLines={1} testID={testID ? `${testID}-count` : undefined}>
+          {countLabel}
+        </Text>
+      )}
     </View>
   );
 };

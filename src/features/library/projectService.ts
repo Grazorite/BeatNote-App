@@ -157,6 +157,7 @@ const mergeStoredUnknownFields = (
       layerSpecificNavigation: current.settings.layerSpecificNavigation,
       primaryView: current.settings.primaryView,
       countSize: current.settings.countSize,
+      showDanceCounts: current.settings.showDanceCounts,
       rowDensity: current.settings.rowDensity,
       followPlayhead: current.settings.followPlayhead,
       playbackSpeed: current.settings.playbackSpeed,

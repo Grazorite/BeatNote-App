@@ -50,6 +50,7 @@ export type PersistedContentSource = Pick<StudioStore,
   | 'layerSpecificNavigation'
   | 'primaryView'
   | 'countSize'
+  | 'showDanceCounts'
   | 'rowDensity'
   | 'followPlayhead'
   | 'playbackSpeed'
@@ -69,6 +70,7 @@ export type PersistedContentPatch = Pick<StudioStore,
   | 'layerSpecificNavigation'
   | 'primaryView'
   | 'countSize'
+  | 'showDanceCounts'
   | 'rowDensity'
   | 'followPlayhead'
   | 'playbackSpeed'
@@ -116,6 +118,7 @@ export function createEmptyPersistedContent(): PersistedContent {
       layerSpecificNavigation: false,
       primaryView: 'wrapped',
       countSize: 8,
+      showDanceCounts: false,
       rowDensity: { mode: 'phrase' },
       followPlayhead: true,
       playbackSpeed: 1,
@@ -144,6 +147,7 @@ export function extractPersistedContent(state: PersistedContentSource): Persiste
       layerSpecificNavigation: state.layerSpecificNavigation,
       primaryView: state.primaryView,
       countSize: state.countSize,
+      showDanceCounts: state.showDanceCounts,
       rowDensity: state.rowDensity,
       followPlayhead: state.followPlayhead,
       playbackSpeed: state.playbackSpeed,
@@ -175,6 +179,7 @@ export function applyPersistedContent(content: PersistedContent): PersistedConte
     layerSpecificNavigation: content.settings.layerSpecificNavigation,
     primaryView: content.settings.primaryView ?? 'wrapped',
     countSize: content.settings.countSize ?? 8,
+    showDanceCounts: content.settings.showDanceCounts ?? false,
     rowDensity: content.settings.rowDensity ?? { mode: 'phrase' },
     followPlayhead: content.settings.followPlayhead ?? true,
     playbackSpeed: content.settings.playbackSpeed ?? 1,

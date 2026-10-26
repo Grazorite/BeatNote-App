@@ -35,6 +35,7 @@ export interface BeatNoteProject {
     layerSpecificNavigation: boolean;
     primaryView?: 'wrapped' | 'detail';
     countSize?: 4 | 6 | 8;
+    showDanceCounts?: boolean;
     rowDensity?: RowDensity;
     followPlayhead?: boolean;
     playbackSpeed?: number;

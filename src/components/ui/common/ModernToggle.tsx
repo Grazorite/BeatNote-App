@@ -9,20 +9,33 @@ interface ModernToggleProps {
   value: boolean;
   onToggle: () => void;
   marginBottom?: number;
+  accessibilityHint?: string;
+  testID?: string;
 }
 
 const ModernToggle: React.FC<ModernToggleProps> = ({ 
   label, 
   value, 
   onToggle, 
-  marginBottom = 0 
+  marginBottom = 0,
+  accessibilityHint,
+  testID,
 }) => {
-  const { trackStyle, thumbStyle, labelStyle } = useModernToggleAnimation(value);
+  const { trackStyle, thumbStyle } = useModernToggleAnimation(value);
 
   return (
     <View style={[styles.container, { marginBottom }]}>
       <Text style={styles.label}>{label}</Text>
-      <TouchableOpacity onPress={onToggle} activeOpacity={0.8}>
+      <TouchableOpacity
+        onPress={onToggle}
+        activeOpacity={0.8}
+        accessibilityRole="switch"
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ checked: value }}
+        aria-checked={value}
+        testID={testID}
+      >
         <Animated.View style={[styles.track, trackStyle]}>
           <Animated.View style={[styles.thumb, thumbStyle]} />
         </Animated.View>
