@@ -54,7 +54,7 @@ potentially adding a hybrid path later.
 | Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 7 critical native integrations retained; focused V1 launch/settings and Open_In checks pass |
-| E2E spec files | 2 (Playwright, 6 critical journeys) |
+| E2E spec files | 2 (Playwright, 7 critical journeys) |
 | Native Expo modules | 2 (`BeatNoteWaveform` extraction and `LibraryStorage` persistence/Open_In) |
 
 ### Current Focus
@@ -75,9 +75,9 @@ potentially adding a hybrid path later.
    VoiceOver adjustment, contrast, and audible boundary quality.
 5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-6. Finish the remaining local choreography work: provider-neutral entitlement groundwork, custom
-   layer names, PDF export, and annotation suggestions; do not resume stem separation until the
-   gates in `.kiro/steering/release-roadmap.md` are satisfied.
+6. Keep the completed local choreography workflow stable while physical-device acceptance and the
+   Apple Developer account remain outstanding; do not resume stem separation until the gates in
+   `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
 
@@ -93,7 +93,6 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
 
 ### 🚧 In Progress
@@ -116,6 +115,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Add the built-in choreography vocabulary as accessible suggestion chips in the desktop
+      annotation field and iPhone editor while preserving free-form annotation entry
+      <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/AnnotationSuggestionChips.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/utils/annotationSuggestions.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add configurable PDF choreography sheets with project header, timeline, marker list,
       phrase/count grid, optional notes, native iOS generation/sharing, and web print-to-PDF
       <sub>**Key Artifacts:** `package.json`, `src/components/ui/modals/ExportModal.tsx`, `src/features/library/projectService.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngine.web.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
@@ -131,10 +134,6 @@ potentially adding a hybrid path later.
 - [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
       transport count display, and include `Count (phrase:beat)` in choreography CSV exports
       <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Replace Project Manager action icons with responsive text-only controls so labels remain
-      complete at narrow widths and reflow to single-column rows at large accessibility text sizes
-      <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -209,6 +208,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Add annotation suggestion chips
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b89171c`
+**Kanban moved:** annotation vocabulary suggestions → Done
+
+**Changed:**
+
+- Added the approved Hit, 8-count, Formation, Freeze, Turn, Jump, and Accent vocabulary as one
+  reusable, horizontally scrollable chip row.
+- Shared the chips between the desktop inline field and iPhone annotation modal; taps append to the
+  current note within its length limit and never prevent arbitrary free-form text.
+- Converted the modal input to controlled state so chip updates and typed edits remain synchronized.
+
+**Verified:**
+
+- Temporary vocabulary/append/limit unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- New retained browser journey → passed, including all seven chips, multi-chip append, free-form
+  replacement, save, and reopen.
+- Full retained Playwright gate → 7/7 journeys passed; the permanent unit gate remains intentionally
+  empty and the disabled-test search is clean.
+- iPhone 17 Pro simulator build with Expo Print → succeeded, then the current 1.0.0 app was installed
+  and launched against the running Metro server on localhost:8081.
+
+**Not verified / known gaps:**
+
+- Spoken VoiceOver chip traversal and physical-device keyboard behavior remain part of hardware
+  acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `b89171c`.
+
+**Next agent should:**
+
+- Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
+  available; all currently listed local-only implementation work is complete.
 
 ### 2026-10-26 — Add choreography PDF export
 
@@ -329,38 +363,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Define the provider-neutral entitlement interface and validate the V1 Lite/Pro capability matrix.
-
-### 2026-10-26 — Fix Project Manager action overflow
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `9a5da26`
-**Kanban moved:** Project Manager action text/icon collision → Done
-
-**Changed:**
-
-- Removed decorative icons from Current Project actions so the labels own the full button width.
-- Kept the compact two-column layout at ordinary text sizes and switched to full-width action rows
-  above a 1.4 font scale so every label remains complete at accessibility sizes.
-- Added retained browser assertions that the actions contain no SVG icons and that each label's
-  horizontal bounds stay inside its button.
-
-**Verified:**
-
-- iPhone 17 Pro / iOS 26.2 Device Hub review → two clean columns at Extra Large and complete
-  full-width labels at the maximum accessibility text category; the simulator was restored to
-  Extra Large afterward.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test search,
-  and `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 passed; the focused Project Manager journey with the new
-  no-icon/no-overflow assertions → 1/1 passed.
-- Focused native annotation/project restoration journey → passed; result bundle
-  `ios/build/BeatNoteUITests-testAudioAnnotationAndProjectRestore-1792959399279.xcresult`.
-
-**Not verified / known gaps:**
-
-- Task 44.4 physical-device acceptance remains unchanged, including spoken VoiceOver, touch comfort,
-  and large-text review on actual hardware.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `9a5da26`.
-
-**Next agent should:**
-
-- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.

@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Replace Project Manager action icons with responsive text-only controls so labels remain
+      complete at narrow widths and reflow to single-column rows at large accessibility text sizes
+      <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Complete local implementation, retained automation, simulator accessibility review, and
       durable documentation for `local-music-library-queue`, including consistent Project Manager
       action alignment and deterministic per-case native fixture isolation
@@ -235,6 +239,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-26 — Fix Project Manager action overflow
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `9a5da26`
+**Kanban moved:** Project Manager action text/icon collision → Done
+
+**Changed:**
+
+- Removed decorative icons from Current Project actions so the labels own the full button width.
+- Kept the compact two-column layout at ordinary text sizes and switched to full-width action rows
+  above a 1.4 font scale so every label remains complete at accessibility sizes.
+- Added retained browser assertions that the actions contain no SVG icons and that each label's
+  horizontal bounds stay inside its button.
+
+**Verified:**
+
+- iPhone 17 Pro / iOS 26.2 Device Hub review → two clean columns at Extra Large and complete
+  full-width labels at the maximum accessibility text category; the simulator was restored to
+  Extra Large afterward.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test search,
+  and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 passed; the focused Project Manager journey with the new
+  no-icon/no-overflow assertions → 1/1 passed.
+- Focused native annotation/project restoration journey → passed; result bundle
+  `ios/build/BeatNoteUITests-testAudioAnnotationAndProjectRestore-1792959399279.xcresult`.
+
+**Not verified / known gaps:**
+
+- Task 44.4 physical-device acceptance remains unchanged, including spoken VoiceOver, touch comfort,
+  and large-text review on actual hardware.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `9a5da26`.
+
+**Next agent should:**
+
+- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
 
 ### 2026-10-25 — Finish local music library validation
 
