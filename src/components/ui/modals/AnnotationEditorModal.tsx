@@ -4,6 +4,7 @@ import type { SelectedMarker } from '../../../hooks/useStudioStore';
 import { annotationEditorModalStyles as styles } from '../../../styles/components/modals/annotationEditorModal';
 import { colors } from '../../../styles/common';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AnnotationSuggestionChips from '../controls/AnnotationSuggestionChips';
 
 interface AnnotationEditorModalProps {
   visible: boolean;
@@ -51,7 +52,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
             autoFocus
             multiline
             maxLength={500}
-            defaultValue={initialText}
+            value={draft}
             onChangeText={setDraft}
             placeholder="Enter movement cue or note"
             placeholderTextColor={colors.textSecondary}
@@ -60,6 +61,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
             blurOnSubmit={false}
             testID="annotation-editor-input"
           />
+          <AnnotationSuggestionChips value={draft} onChange={setDraft} maxLength={500} />
           <Text style={styles.count}>{draft.length}/500</Text>
           <View style={styles.actions}>
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel}>

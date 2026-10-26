@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { LayerId, SelectedMarker, useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
 import GlassBackdrop from './GlassBackdrop';
+import AnnotationSuggestionChips from './AnnotationSuggestionChips';
 
 interface AnnotationFieldProps {
   isMobile?: boolean;
@@ -173,6 +174,13 @@ const AnnotationField = forwardRef<AnnotationFieldRef, AnnotationFieldProps>(({ 
         onBlur={() => setTextInputFocused(false)}
         testID="marker-annotation"
       />
+      {!isMobile && canEdit && isTextInputFocused && (
+        <AnnotationSuggestionChips
+          value={annotation}
+          onChange={handleAnnotationChange}
+          maxLength={100}
+        />
+      )}
       {isMobile && annotation.length > 0 && !isTextInputFocused && (
         <Text
           numberOfLines={1}

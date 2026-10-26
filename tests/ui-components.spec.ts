@@ -412,6 +412,25 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
   });
 
+  test('annotation suggestions append cues without replacing free-form editing', async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.goto('/');
+    await loadTestAudio(page);
+    await page.getByTestId('add-marker').click();
+    await page.getByTestId('annotation-control').click();
+
+    await expect(page.getByTestId('annotation-suggestions')).toBeVisible();
+    await expect(page.locator('[data-testid^="annotation-suggestion-"]')).toHaveCount(7);
+    await page.getByTestId('annotation-suggestion-turn').click();
+    await page.getByTestId('annotation-suggestion-accent').click();
+    await expect(page.getByTestId('annotation-editor-input')).toHaveValue('Turn · Accent');
+
+    await page.getByTestId('annotation-editor-input').fill('Turn left into diagonal');
+    await page.getByTestId('save-annotation').click();
+    await page.getByTestId('annotation-control').click();
+    await expect(page.getByTestId('annotation-editor-input')).toHaveValue('Turn left into diagonal');
+  });
+
   test('custom menus and submenus share the liquid-glass surface', async ({ page }) => {
     await page.setViewportSize({ width: 740, height: 390 });
     await page.goto('/');
