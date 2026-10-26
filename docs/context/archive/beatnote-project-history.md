@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Restructure the Project Manager around the current song and move CSV import/export out of the
+      toolbar into confirmed, reversible project actions
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/modals/csvReplaceConfirm.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/utils/projectNames.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Restore Music Library presentation in iPhone landscape and remove the playback-time render
       storm that delayed waveform and control interactions
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
@@ -218,6 +222,42 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-23 — Complete Project Manager and CSV relocation
+
+**Agent:** orchestrator (Codex) + implementation agents + DSH audit dispatched · **Commit(s):** `c30d294`
+**Kanban moved:** local library Project Manager and CSV relocation → Done (Phase 8 complete)
+
+**Changed:**
+
+- Rebuilt Projects as one safe-area-aware sectioned surface with the current draft, current-song
+  projects, all projects, audio-removed grouping, row overflow actions, relink, rename, and delete.
+- Added same-song Save & Open and two-step destructive discard/revert guards, while preserving the
+  existing cross-song switch guard as the sole owner of cross-song decisions.
+- Replaced append-style CSV import with previewed replacement, explicit counts and confirmation,
+  single-level Undo, current/stored project export, and removed the two toolbar CSV actions plus
+  their dead legacy state and modal.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty retained unit gate, and
+  `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 critical journeys passed, including Project Manager CSV
+  preview/cancel and current-project export.
+- Focused iPhone 17 Pro / iOS 26.2 launch and document-picker journey → passed; result bundle
+  `ios/build/BeatNoteUITests-1792741064585.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical-device CSV picker/share, VoiceOver traversal, destructive-guard wording, row overflow,
+  and Project Manager rotation remain unverified.
+- The DSH read-only audit was successfully dispatched but had not returned by this checkpoint.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `c30d294`.
+
+**Next agent should:**
+
+- Implement Task 39.1's audio document-type config plugin and preserve `.beatnote` ownership while
+  applying the provisional Open_In in-place decision.
 
 ### 2026-10-23 — Fix landscape library presentation and interaction latency
 

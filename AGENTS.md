@@ -75,8 +75,9 @@ potentially adding a hybrid path later.
    VoiceOver adjustment, contrast, and audible boundary quality.
 5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-6. Advance 8-count/rehearsal features and provider-neutral monetisation groundwork; do not resume
-   stem separation until the gates in `.kiro/steering/release-roadmap.md` are satisfied.
+6. Finish the remaining local choreography work: provider-neutral entitlement groundwork, custom
+   layer names, PDF export, and annotation suggestions; do not resume stem separation until the
+   gates in `.kiro/steering/release-roadmap.md` are satisfied.
 
 ### Agent Assignments
 
@@ -92,11 +93,9 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Implement 8-count / phrase grid mode — `countSize` state, phrase snapping, transport count display
 - [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
-- [ ] Add `Count (phrase:beat)` column to CSV export using `countSize`
 - [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
 
@@ -120,6 +119,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
+      transport count display, and include `Count (phrase:beat)` in choreography CSV exports
+      <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Replace Project Manager action icons with responsive text-only controls so labels remain
       complete at narrow widths and reflow to single-column rows at large accessibility text sizes
       <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
@@ -136,10 +139,6 @@ potentially adding a hybrid path later.
 - [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
       retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/design.md`, `.kiro/specs/local-music-library-queue/tasks.md`, `app.json`, `plugins/withAudioDocumentTypes.js`, `modules/library-storage/expo-module.config.json`, `modules/library-storage/ios/LibraryStorageModule.swift`, `modules/library-storage/src/index.ts`, `modules/library-storage/src/index.web.ts`, `scripts/ios-ui-test.js`, `src/features/library/useLibraryLifecycle.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Restructure the Project Manager around the current song and move CSV import/export out of the
-      toolbar into confirmed, reversible project actions
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/modals/csvReplaceConfirm.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/utils/projectNames.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -214,6 +213,36 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Add dance-count rehearsal workflow
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `074228d`
+**Kanban moved:** 8-count / phrase grid and CSV count column → Done
+
+**Changed:**
+
+- Added a configurable 4/6/8-count phrase control, live phrase/count transport readout, and
+  phrase-aware waveform labels and snapping using the persisted project `countSize`.
+- Added shared dance-count calculations and exported `Count (phrase:beat)` for every CSV marker.
+- Kept count labels tied to actual row-start time so fitted mobile waveform rows remain accurate.
+
+**Verified:**
+
+- Temporary dance-count/CSV unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and the empty permanent unit gate → clean.
+- Full retained Playwright gate → 6/6 journeys passed; focused Settings and CSV journeys → 2/2.
+- iPhone 17 Pro / iOS 26.2 simulator review → count display, waveform labels, and 4/6/8 Settings
+  control render cleanly in portrait.
+
+**Not verified / known gaps:**
+
+- Physical-device touch, VoiceOver, and live-rehearsal comfort remain part of the existing hardware
+  acceptance backlog.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `074228d`.
+
+**Next agent should:**
+
+- Define the provider-neutral entitlement interface and validate the V1 Lite/Pro capability matrix.
 
 ### 2026-10-26 — Fix Project Manager action overflow
 
@@ -358,39 +387,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 41.1 by extending the retained project/import/export Playwright journey, then
   Task 41.2's responsive queue/control coverage.
-
-### 2026-10-23 — Complete Project Manager and CSV relocation
-
-**Agent:** orchestrator (Codex) + implementation agents + DSH audit dispatched · **Commit(s):** `c30d294`
-**Kanban moved:** local library Project Manager and CSV relocation → Done (Phase 8 complete)
-
-**Changed:**
-
-- Rebuilt Projects as one safe-area-aware sectioned surface with the current draft, current-song
-  projects, all projects, audio-removed grouping, row overflow actions, relink, rename, and delete.
-- Added same-song Save & Open and two-step destructive discard/revert guards, while preserving the
-  existing cross-song switch guard as the sole owner of cross-song decisions.
-- Replaced append-style CSV import with previewed replacement, explicit counts and confirmation,
-  single-level Undo, current/stored project export, and removed the two toolbar CSV actions plus
-  their dead legacy state and modal.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty retained unit gate, and
-  `git diff --check` → clean for the completed change.
-- Full retained Playwright gate → 6/6 critical journeys passed, including Project Manager CSV
-  preview/cancel and current-project export.
-- Focused iPhone 17 Pro / iOS 26.2 launch and document-picker journey → passed; result bundle
-  `ios/build/BeatNoteUITests-1792741064585.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical-device CSV picker/share, VoiceOver traversal, destructive-guard wording, row overflow,
-  and Project Manager rotation remain unverified.
-- The DSH read-only audit was successfully dispatched but had not returned by this checkpoint.
-- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `c30d294`.
-
-**Next agent should:**
-
-- Implement Task 39.1's audio document-type config plugin and preserve `.beatnote` ownership while
-  applying the provisional Open_In in-place decision.
