@@ -115,6 +115,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Raise the landscape loop overview above the home-indicator gesture zone and make dance-count
+      guidance a persisted, default-off Settings option
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add the built-in choreography vocabulary as accessible suggestion chips in the desktop
       annotation field and iPhone editor while preserving free-form annotation entry
       <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/AnnotationSuggestionChips.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/utils/annotationSuggestions.ts`, `tests/ui-components.spec.ts`</sub>
@@ -130,10 +134,6 @@ potentially adding a hybrid path later.
 - [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
       non-enforcing preview entitlement provider
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
-
-- [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
-      transport count display, and include `Count (phrase:beat)` in choreography CSV exports
-      <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -208,6 +208,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Improve landscape safety and dance-count controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `eb683b8`
+**Kanban moved:** landscape overview safety and default-off dance counts → Done
+
+**Changed:**
+
+- Raised the landscape canvas by the device bottom safe area plus additional spacing, with an
+  18-point minimum clearance in environments that do not report safe-area insets.
+- Added an accessible Settings switch for phrase/count guidance, defaulted it off, and persisted it
+  per song draft/project while keeping phrase snapping and exports independent of visibility.
+- Hid live transport counts, row-gutter counts, phrase labels, and phrase emphasis when disabled;
+  documented that counts derive from BPM and song time zero rather than audio analysis.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
+  search, and `git diff --check` → clean for the completed change.
+- Focused Settings, landscape dock, and restoration browser checks → 3/3 passed.
+- Full retained Playwright gate → 7/7 journeys passed, including default-off state, toggle-on
+  persistence after reload, and at least 18 points of landscape overview clearance.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone home-indicator swipe comfort and spoken VoiceOver behavior remain part of the
+  existing hardware acceptance backlog.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `eb683b8`.
+
+**Next agent should:**
+
+- Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
+  available; all currently listed local-only implementation work is complete.
 
 ### 2026-10-26 — Add annotation suggestion chips
 
@@ -333,33 +366,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement custom layer display names with inline editing and project persistence.
-
-### 2026-10-26 — Add dance-count rehearsal workflow
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `074228d`
-**Kanban moved:** 8-count / phrase grid and CSV count column → Done
-
-**Changed:**
-
-- Added a configurable 4/6/8-count phrase control, live phrase/count transport readout, and
-  phrase-aware waveform labels and snapping using the persisted project `countSize`.
-- Added shared dance-count calculations and exported `Count (phrase:beat)` for every CSV marker.
-- Kept count labels tied to actual row-start time so fitted mobile waveform rows remain accurate.
-
-**Verified:**
-
-- Temporary dance-count/CSV unit checks → 2/2 passed, then removed per repository policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit` and the empty permanent unit gate → clean.
-- Full retained Playwright gate → 6/6 journeys passed; focused Settings and CSV journeys → 2/2.
-- iPhone 17 Pro / iOS 26.2 simulator review → count display, waveform labels, and 4/6/8 Settings
-  control render cleanly in portrait.
-
-**Not verified / known gaps:**
-
-- Physical-device touch, VoiceOver, and live-rehearsal comfort remain part of the existing hardware
-  acceptance backlog.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `074228d`.
-
-**Next agent should:**
-
-- Define the provider-neutral entitlement interface and validate the V1 Lite/Pro capability matrix.

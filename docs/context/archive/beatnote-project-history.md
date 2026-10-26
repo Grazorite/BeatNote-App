@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
+      transport count display, and include `Count (phrase:beat)` in choreography CSV exports
+      <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Replace Project Manager action icons with responsive text-only controls so labels remain
       complete at narrow widths and reflow to single-column rows at large accessibility text sizes
       <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
@@ -239,6 +243,36 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-26 — Add dance-count rehearsal workflow
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `074228d`
+**Kanban moved:** 8-count / phrase grid and CSV count column → Done
+
+**Changed:**
+
+- Added a configurable 4/6/8-count phrase control, live phrase/count transport readout, and
+  phrase-aware waveform labels and snapping using the persisted project `countSize`.
+- Added shared dance-count calculations and exported `Count (phrase:beat)` for every CSV marker.
+- Kept count labels tied to actual row-start time so fitted mobile waveform rows remain accurate.
+
+**Verified:**
+
+- Temporary dance-count/CSV unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and the empty permanent unit gate → clean.
+- Full retained Playwright gate → 6/6 journeys passed; focused Settings and CSV journeys → 2/2.
+- iPhone 17 Pro / iOS 26.2 simulator review → count display, waveform labels, and 4/6/8 Settings
+  control render cleanly in portrait.
+
+**Not verified / known gaps:**
+
+- Physical-device touch, VoiceOver, and live-rehearsal comfort remain part of the existing hardware
+  acceptance backlog.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `074228d`.
+
+**Next agent should:**
+
+- Define the provider-neutral entitlement interface and validate the V1 Lite/Pro capability matrix.
 
 ### 2026-10-26 — Fix Project Manager action overflow
 
