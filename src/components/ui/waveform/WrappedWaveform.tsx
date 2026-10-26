@@ -32,6 +32,7 @@ import WrappedRow, { type WrappedLayerMarkers } from './WrappedRow';
 import RowDensityControls from './RowDensityControls';
 import { wrappedWaveformStyles as styles } from '../../../styles/components/waveform/wrappedWaveform';
 import { colors } from '../../../styles/common';
+import { getLayerDisplayName } from '../../../utils/layers';
 
 interface WrappedWaveformProps {
   audioUri?: string;
@@ -138,7 +139,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       .filter(layer => layer.isVisible)
       .map(layer => ({
         layerId: layer.id,
-        name: layer.name,
+        name: getLayerDisplayName(layer),
         color: layer.color,
         timestamps: layer.markers.filter(timestamp => timestampToRow(rows, timestamp) === row.index),
         annotatedTimestamps: layer.markers.filter(timestamp =>

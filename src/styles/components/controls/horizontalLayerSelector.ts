@@ -19,6 +19,10 @@ export const horizontalLayerSelectorStyles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
+  layerItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
   layerButton: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -34,6 +38,25 @@ export const horizontalLayerSelectorStyles = StyleSheet.create({
   },
   layerText: {
     fontSize: 16,
+  },
+  layerNameInput: {
+    fontSize: 16,
+    fontWeight: '700',
+    minWidth: 56,
+    maxWidth: 88,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    textAlign: 'center',
+  },
+  renameButton: {
+    minHeight: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  renameButtonText: {
+    color: '#aaaaaa',
+    fontSize: 11,
+    fontWeight: '600',
   },
   helpText: {
     textAlign: 'center',

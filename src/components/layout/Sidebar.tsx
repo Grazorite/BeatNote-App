@@ -18,6 +18,7 @@ import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featur
 import HelpButton from '../ui/controls/HelpButton';
 import BpmControl from '../ui/controls/BpmControl';
 import CountSizeControl from '../ui/controls/CountSizeControl';
+import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
@@ -132,6 +133,10 @@ const Sidebar: React.FC = () => {
                   <BpmControl />
                   <CountSizeControl />
                 </View>
+                <Text style={styles.sectionLabel}>Layer names</Text>
+                <View style={styles.sidebarSection}>
+                  <LayerNameSettings />
+                </View>
                 <Text style={styles.sectionLabel}>Support</Text>
                 <View style={styles.sidebarSection}>
                   <HelpButton />
@@ -181,6 +186,10 @@ const Sidebar: React.FC = () => {
           <View style={styles.sidebarSection}>
             <BpmControl />
             <CountSizeControl />
+          </View>
+          <Text style={styles.sectionLabel}>Layer names</Text>
+          <View style={styles.sidebarSection}>
+            <LayerNameSettings />
           </View>
           <Text style={styles.sectionLabel}>Support</Text>
           <View style={styles.sidebarSection}>

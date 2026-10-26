@@ -454,6 +454,11 @@ test.describe('UI Components & Layout', () => {
     await expect(restoredLibraryRow).toBeVisible();
     await expect(restoredLibraryRow).not.toContainText('Audio missing');
     await restoredLibraryRow.click();
+    await page.getByTestId('sidebar-open-toggle').click();
+    const layerNameInput = page.getByTestId('settings-layer-name-vocals');
+    await layerNameInput.fill('Lead movement');
+    await layerNameInput.press('Enter');
+    await page.getByTestId('sidebar-toggle').click();
     await page.getByTestId('save-project').click();
     await expect(page.getByTestId('save-project-modal-glass')).toBeVisible();
     const projectName = page.getByTestId('save-project-name');
@@ -497,6 +502,9 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('load-project').click();
     await expect(page.getByTestId('current-project-name')).toHaveText('Glass Surface Project 2');
     await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Lead movement');
+    await page.getByTestId('sidebar-toggle').click();
 
     await page.getByTestId('wrapped-row-gesture-area-9').click({ position: { x: 50, y: 12 } });
     await page.getByTestId('add-marker').click();

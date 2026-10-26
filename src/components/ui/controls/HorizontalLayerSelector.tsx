@@ -1,13 +1,34 @@
-import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, TouchableOpacity, Text, TextInput } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { useLayerSelectorAnimation } from '../../../hooks/useLayerSelectorAnimation';
 import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
 import { horizontalLayerSelectorStyles as styles } from '../../../styles/components/controls/horizontalLayerSelector';
+import { getLayerDisplayName, MAX_CUSTOM_LAYER_NAME_LENGTH } from '../../../utils/layers';
 
 const HorizontalLayerSelector: React.FC = () => {
-  const { layers, activeLayerId, setActiveLayer, toggleLayerVisibility, stemCount } = useStudioStore();
+  const {
+    layers,
+    activeLayerId,
+    setActiveLayer,
+    setLayerCustomName,
+    toggleLayerVisibility,
+    stemCount,
+  } = useStudioStore();
+  const [editingLayerId, setEditingLayerId] = useState<LayerId | null>(null);
+  const [draftName, setDraftName] = useState('');
+
+  const beginEditing = useCallback((layer: typeof layers[number]) => {
+    setActiveLayer(layer.id);
+    setDraftName(getLayerDisplayName(layer));
+    setEditingLayerId(layer.id);
+  }, [setActiveLayer]);
+
+  const finishEditing = useCallback(() => {
+    if (editingLayerId !== null) setLayerCustomName(editingLayerId, draftName);
+    setEditingLayerId(null);
+  }, [draftName, editingLayerId, setLayerCustomName]);
 
   const getLayerIcon = (layerId: LayerId, color: string) => {
     let name: BeatNoteIconName | null = null;
@@ -30,8 +51,11 @@ const HorizontalLayerSelector: React.FC = () => {
       stemCount
     );
 
+    const displayName = getLayerDisplayName(layer);
+    const isEditing = editingLayerId === layer.id;
+
     return (
-      <Animated.View style={animatedStyle}>
+      <Animated.View style={[styles.layerItem, animatedStyle]}>
         <TouchableOpacity
           style={[
             styles.layerButton,
@@ -49,16 +73,43 @@ const HorizontalLayerSelector: React.FC = () => {
           testID={`layer-${layer.id}`}
         >
           {getLayerIcon(layer.id, layer.isVisible ? layer.color : '#666666')}
-          <Text style={[
-            styles.layerText,
-            {
-              color: layer.isVisible ? layer.color : '#666666',
-              fontWeight: activeLayerId === layer.id ? 'bold' : '600',
-            }
-          ]}>
-            {layer.name}
-          </Text>
+          {isEditing ? (
+            <TextInput
+              autoFocus
+              selectTextOnFocus
+              value={draftName}
+              onChangeText={setDraftName}
+              onSubmitEditing={finishEditing}
+              onBlur={finishEditing}
+              maxLength={MAX_CUSTOM_LAYER_NAME_LENGTH}
+              returnKeyType="done"
+              style={[styles.layerNameInput, { color: layer.color }]}
+              accessibilityLabel={`${layer.name} layer name`}
+              testID={`layer-name-input-${layer.id}`}
+            />
+          ) : (
+            <Text style={[
+              styles.layerText,
+              {
+                color: layer.isVisible ? layer.color : '#666666',
+                fontWeight: activeLayerId === layer.id ? 'bold' : '600',
+              }
+            ]} numberOfLines={1}>
+              {displayName}
+            </Text>
+          )}
         </TouchableOpacity>
+        {!isEditing && (
+          <TouchableOpacity
+            onPress={() => beginEditing(layer)}
+            accessibilityRole="button"
+            accessibilityLabel={`Rename ${displayName} layer`}
+            style={styles.renameButton}
+            testID={`rename-layer-${layer.id}`}
+          >
+            <Text style={styles.renameButtonText}>Edit name</Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
     );
   };
@@ -72,7 +123,7 @@ const HorizontalLayerSelector: React.FC = () => {
         ))}
       </View>
       <Text style={styles.helpText}>
-        Tap to select • Long press to hide/show
+        Tap to select • Long press to hide/show • Edit name to customise
       </Text>
     </View>
   );

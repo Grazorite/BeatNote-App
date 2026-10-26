@@ -27,6 +27,7 @@ import StemsView from './StemsView';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 import { capabilitiesForLoadedItem } from '../../features/library/sourceResolver';
+import { getLayerDisplayName } from '../../utils/layers';
 
 interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
@@ -225,7 +226,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const status = (
     <View style={styles.statusContainer}>
       <Text style={styles.activeLayerText}>
-        Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer?.name}</Text>
+        Active Layer: <Text style={[styles.activeLayerName, { color: activeLayer?.color || '#ffffff' }]}>{activeLayer === undefined ? '' : getLayerDisplayName(activeLayer)}</Text>
       </Text>
       {layerSpecificNavigation && (
         <Text style={styles.totalMarkersText}>

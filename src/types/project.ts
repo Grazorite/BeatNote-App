@@ -22,6 +22,7 @@ export interface BeatNoteProject {
   layers: {
     id: string;
     name: string;
+    customName?: string;
     color: string;
     markers: number[];
     annotations: { timestamp: number; text: string; }[];
@@ -68,6 +69,7 @@ export interface PersistedLayer {
   [key: string]: unknown;
   id: LayerId;
   name: string;
+  customName?: string;
   color: string;
   markers: number[];
   annotations: { timestamp: number; text: string }[];

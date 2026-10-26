@@ -38,6 +38,7 @@ import {
   parseCsvForPreview,
   restoreCsvUndo,
 } from '../utils/csvReplace';
+import { normalizeCustomLayerName } from '../utils/layers';
 
 export type { LayerId } from '../types/project';
 
@@ -58,6 +59,7 @@ export interface SelectedMarker {
 export interface Layer {
   id: LayerId;
   name: string;
+  customName?: string;
   color: string;
   markers: number[];
   annotations: MarkerAnnotation[];
@@ -266,6 +268,7 @@ export interface StudioStore {
   skipPlayhead: (direction: 'left' | 'right') => void;
   setSongLoaded: (loaded: boolean) => void;
   setActiveLayer: (layerId: LayerId) => void;
+  setLayerCustomName: (layerId: LayerId, customName: string) => void;
   toggleLayerVisibility: (layerId: LayerId) => void;
   setStemCount: (count: 2 | 4 | 6) => void;
   // Stem separation state (Requirements 6.1, 6.2, 6.3, 6.4)
@@ -1197,6 +1200,19 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     };
   }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
+  setLayerCustomName: (layerId, customName) => set((state) => {
+    const defaultName = state.allLayersData.find(layer => layer.id === layerId)?.name;
+    if (defaultName === undefined) return state;
+    const normalized = normalizeCustomLayerName(customName, defaultName);
+    const updatedAllLayers = state.allLayersData.map(layer => (
+      layer.id === layerId ? { ...layer, customName: normalized } : layer
+    ));
+    return {
+      allLayersData: updatedAllLayers,
+      layers: getLayersForDisplay(updatedAllLayers, state.stemCount),
+      draftUiState: state.draftBaseline === null ? 'unsaved' : 'dirty',
+    };
+  }),
   toggleLayerVisibility: (layerId) => set((state) => {
     const updatedAllLayers = state.allLayersData.map(layer => 
       layer.id === layerId

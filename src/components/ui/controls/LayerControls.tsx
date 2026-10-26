@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
 import { layerControlsStyles as styles } from '../../../styles/components/controls/layerControls';
+import { getLayerDisplayName } from '../../../utils/layers';
 
 const LayerControls: React.FC = () => {
   const { layers, activeLayerId, setActiveLayer, toggleLayerVisibility } = useStudioStore();
@@ -47,7 +48,7 @@ const LayerControls: React.FC = () => {
                 { color: layer.color },
                 activeLayerId === layer.id && styles.activeLayerText
               ]}>
-                {layer.name}
+                {getLayerDisplayName(layer)}
               </Text>
             </View>
             <Text style={styles.markerCount}>

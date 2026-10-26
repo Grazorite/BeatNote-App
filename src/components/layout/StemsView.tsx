@@ -13,6 +13,7 @@ import { useScrollZoom } from '../../hooks/useScrollZoom';
 import { snapToNearestTarget, generateSnapTargets } from '../../utils/magneticSnapping';
 import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
 import { colors } from '../../styles/common';
+import { getLayerDisplayName } from '../../utils/layers';
 
 interface StemsViewProps {
   layers: Layer[];
@@ -34,15 +35,6 @@ const getStemIcon = (stemId: LayerId, color: string) => {
   }
   return name ? <BeatNoteIcon name={name} size={20} color={color} /> : null;
 };
-
-const STEM_CONFIGS = [
-  { name: 'Vocals', id: 'vocals', color: '#ff6666' },
-  { name: 'Drums', id: 'drums', color: '#00ccff' },
-  { name: 'Bass', id: 'bass', color: '#bb66ff' },
-  { name: 'Piano', id: 'piano', color: '#ffcc00' },
-  { name: 'Guitar', id: 'guitar', color: '#d2b48c' },
-  { name: 'Other', id: 'other', color: '#ff69b4' }
-];
 
 const StemsView: React.FC<StemsViewProps> = ({
   layers,
@@ -77,9 +69,11 @@ const StemsView: React.FC<StemsViewProps> = ({
   const stemsRef = useRef<View>(null);
   const { handleWheelZoom } = useScrollZoom(stemsRef);
   
-  const visibleStems = STEM_CONFIGS.filter(stem => 
-    layers.some(layer => layer.id === stem.id)
-  );
+  const visibleStems = layers.map(layer => ({
+    id: layer.id,
+    name: getLayerDisplayName(layer),
+    color: layer.color,
+  }));
   
   console.log('StemsView visibleStems:', visibleStems.map(s => s.id));
   
