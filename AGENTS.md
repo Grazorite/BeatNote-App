@@ -94,6 +94,8 @@ potentially adding a hybrid path later.
 ### 🔜 To Do
 
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
+- [ ] Implement `automatic-bpm-detection` from its approved phased spec after the physical-iPhone
+      V1 acceptance pass; begin with the disposable accuracy/performance/licensing spike
 
 ### 🚧 In Progress
 
@@ -115,6 +117,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Reconcile the completed waveform progress/playhead visuals and approve the requirements,
+      architecture, and phased plan for automatic BPM, beat-anchor, and phrase-start assistance
+      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/`, `.kiro/specs/wrapped-waveform-canvas/requirements.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Polish the V1 iPhone single-lane workflow by presenting the fixed `vocals` annotation lane
       honestly without exposing misleading multi-layer naming controls
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/utils/exportEngineCore.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
@@ -130,10 +136,6 @@ potentially adding a hybrid path later.
 - [x] Add configurable PDF choreography sheets with project header, timeline, marker list,
       phrase/count grid, optional notes, native iOS generation/sharing, and web print-to-PDF
       <sub>**Key Artifacts:** `package.json`, `src/components/ui/modals/ExportModal.tsx`, `src/features/library/projectService.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngine.web.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
-      persistence, restored display names, accessibility labels, and named exports
-      <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -208,6 +210,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Reconcile waveform visuals and automatic-BPM spec
+
+**Agent:** orchestrator (Codex) + Kiro specification author · **Commit(s):** `e4e74ab`, `e403811`
+**Kanban moved:** outstanding waveform visuals and automatic-BPM specification → Done
+
+**Changed:**
+
+- Committed the previously isolated overview/wrapped-row styling: muted full waveform, elapsed
+  active-layer progress, and a shared amber playhead with dark underlay and triangular cap.
+- Added the requirements-first `automatic-bpm-detection` specification separating tempo, beat
+  phase, downbeat/phrase start, and manual correction, with local-first provider architecture.
+- Sequenced implementation behind the physical-iPhone V1 acceptance pass, beginning with a
+  disposable accuracy, performance, memory, bundle-size, and licensing spike.
+
+**Verified:**
+
+- Waveform changes were present for the completed `npx tsc --noEmit` check and full retained
+  Playwright gate → 7/7 journeys passed, including the retained palette/playhead assertions.
+- Automatic-BPM documents contain requirements, design decisions, ten implementation phases,
+  measurable acceptance bands, rollback paths, and approved defaults; no implementation is claimed.
+- Version consistency → `1.0.0`; empty permanent unit gate, disabled-test search, and
+  `git diff --check` → clean before reconciliation.
+
+**Not verified / known gaps:**
+
+- Physical-device waveform contrast/comfort remains part of the imminent V1 acceptance pass.
+- Automatic-BPM algorithm accuracy and performance are deliberately unverified until its Phase 1
+  spike; all implementation tasks remain unchecked.
+
+**Next agent should:**
+
+- Guide the human through physical-iPhone signing, installation, and the ordered V1 acceptance pass.
 
 ### 2026-10-26 — Polish the V1 annotation lane
 
@@ -342,32 +377,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Add built-in annotation vocabulary suggestion chips without replacing free-form entry.
-
-### 2026-10-26 — Add custom layer names
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `8df8c71`
-**Kanban moved:** custom layer names → Done
-
-**Changed:**
-
-- Added optional `customName` content without changing the six immutable layer IDs or defaults.
-- Added inline desktop editing plus an iPhone-accessible Layer names Settings section with reset,
-  length normalization, keyboard focus handling, and immediate dirty-state tracking.
-- Routed custom display names through the active-layer label, multitrack/wrapped views, project
-  persistence, restoration, CSV export, and accessibility labels.
-
-**Verified:**
-
-- Temporary normalization/persistence unit checks → 2/2 passed, then removed per repository policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
-- Focused browser project journey → passed, including rename, save/copy, song switch, newest-project
-  restoration, and restored custom name in mobile Settings.
-
-**Not verified / known gaps:**
-
-- Spoken VoiceOver and physical-keyboard behavior remain part of hardware acceptance.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `8df8c71`.
-
-**Next agent should:**
-
-- Implement PDF choreography export and expose its options from the Project Manager export flow.

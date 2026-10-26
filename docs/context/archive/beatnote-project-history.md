@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
+      persistence, restored display names, accessibility labels, and named exports
+      <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
       non-enforcing preview entitlement provider
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
@@ -247,6 +251,35 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-26 — Add custom layer names
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `8df8c71`
+**Kanban moved:** custom layer names → Done
+
+**Changed:**
+
+- Added optional `customName` content without changing the six immutable layer IDs or defaults.
+- Added inline desktop editing plus an iPhone-accessible Layer names Settings section with reset,
+  length normalization, keyboard focus handling, and immediate dirty-state tracking.
+- Routed custom display names through the active-layer label, multitrack/wrapped views, project
+  persistence, restoration, CSV export, and accessibility labels.
+
+**Verified:**
+
+- Temporary normalization/persistence unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- Focused browser project journey → passed, including rename, save/copy, song switch, newest-project
+  restoration, and restored custom name in mobile Settings.
+
+**Not verified / known gaps:**
+
+- Spoken VoiceOver and physical-keyboard behavior remain part of hardware acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `8df8c71`.
+
+**Next agent should:**
+
+- Implement PDF choreography export and expose its options from the Project Manager export flow.
 
 ### 2026-10-26 — Add product capability boundary
 
