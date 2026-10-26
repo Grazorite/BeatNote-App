@@ -93,7 +93,6 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Define the provider-neutral capability/entitlement interface and validate the Lite/Pro matrix (V1 groundwork; no enforced paywalls yet)
 - [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
@@ -119,6 +118,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
+      non-enforcing preview entitlement provider
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
+
 - [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
       transport count display, and include `Count (phrase:beat)` in choreography CSV exports
       <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
@@ -135,10 +138,6 @@ potentially adding a hybrid path later.
 - [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
       draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
-      retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/design.md`, `.kiro/specs/local-music-library-queue/tasks.md`, `app.json`, `plugins/withAudioDocumentTypes.js`, `modules/library-storage/expo-module.config.json`, `modules/library-storage/ios/LibraryStorageModule.swift`, `modules/library-storage/src/index.ts`, `modules/library-storage/src/index.web.ts`, `scripts/ios-ui-test.js`, `src/features/library/useLibraryLifecycle.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -213,6 +212,34 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Add product capability boundary
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `0ad9621`
+**Kanban moved:** provider-neutral entitlement groundwork → Done
+
+**Changed:**
+
+- Added stable product capability and entitlement keys, a provider-neutral snapshot/restore/
+  subscription contract, and pure capability checks independent of purchase vendors.
+- Declared and documented the V1 Lite/Pro matrix while retaining the V1 preview provider so no
+  current feature is paywalled before purchase and expiry behavior is accepted.
+- Kept product entitlements separate from playback-source capabilities and future stem credits.
+
+**Verified:**
+
+- Temporary capability-matrix unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- Matrix validation confirms every stable key appears once and Pro is a superset of Lite.
+
+**Not verified / known gaps:**
+
+- V2 purchase/restore/refresh/offline-grace/expiry integration remains intentionally deferred.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `0ad9621`.
+
+**Next agent should:**
+
+- Implement custom layer display names with inline editing and project persistence.
 
 ### 2026-10-26 — Add dance-count rehearsal workflow
 
@@ -348,42 +375,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Implement Task 42.1 by updating the launch/picker XCTest, then extend the annotation/restore,
   queue transport, settings, and CSV/share native journeys in Tasks 42.2–42.5.
-
-### 2026-10-24 — Complete native audio Open_In delivery
-
-**Agent:** orchestrator (Codex) + DSH-Qwen/local review · **Commit(s):** `af6bfe0`, `79e477e`
-**Kanban moved:** local-music-library-queue Phase 9 (Tasks 39–40) → Done
-
-**Changed:**
-
-- Added an idempotent Expo config plugin that preserves the BeatNote Project declaration, declares
-  seven audio document types plus OGG/FLAC UTIs, and provisionally disables in-place opening.
-- Added an autolinked LibraryStorage app-delegate subscriber with retained pre-observer URLs,
-  owner-safe listener transitions, and a web-safe module contract; lifecycle handling now queues
-  supported file URLs until library boot completes and routes them through the shared import path.
-- Added deterministic `simctl openurl` delivery and focused XCTest assertions for title, toast, and
-  retained library row; the unfiltered runner now schedules Open_In separately from ordinary cases.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty unit gate, JavaScript syntax, generated
-  Info.plist inspection, and `git diff --check` → clean.
-- Full retained Playwright gate → 6/6 critical journeys passed.
-- Focused iPhone 17 Pro / iOS 26.2 Open_In journey → passed after final observer hardening; result
-  bundle `ios/build/BeatNoteOpenInUITest-1792777502768.xcresult`.
-- Retained launch/document-picker journey → passed; result bundle
-  `ios/build/BeatNoteUITests-1792742530993.xcresult`.
-
-**Not verified / known gaps:**
-
-- Physical Files/third-party delivery, `.beatnote` presentation, security-scoped behavior, and the
-  final `LSSupportsOpeningDocumentsInPlace = false` decision remain blocked on device/signing access.
-- An unfiltered native-suite attempt reached the split runner but five older picker-driven cases
-  failed to find staged Files fixtures in the accumulated simulator state; focused affected cases
-  pass, and full-suite isolation/Files state remains a Phase 10 harness concern.
-- Concurrent uncommitted wrapped-waveform/playhead edits remain outside both commits.
-
-**Next agent should:**
-
-- Implement Task 41.1 by extending the retained project/import/export Playwright journey, then
-  Task 41.2's responsive queue/control coverage.

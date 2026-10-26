@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
+      retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/design.md`, `.kiro/specs/local-music-library-queue/tasks.md`, `app.json`, `plugins/withAudioDocumentTypes.js`, `modules/library-storage/expo-module.config.json`, `modules/library-storage/ios/LibraryStorageModule.swift`, `modules/library-storage/src/index.ts`, `modules/library-storage/src/index.web.ts`, `scripts/ios-ui-test.js`, `src/features/library/useLibraryLifecycle.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
 - [x] Restructure the Project Manager around the current song and move CSV import/export out of the
       toolbar into confirmed, reversible project actions
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SaveProjectPrompt.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/modals/csvReplaceConfirm.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/utils/projectNames.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
@@ -222,6 +226,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-24 — Complete native audio Open_In delivery
+
+**Agent:** orchestrator (Codex) + DSH-Qwen/local review · **Commit(s):** `af6bfe0`, `79e477e`
+**Kanban moved:** local-music-library-queue Phase 9 (Tasks 39–40) → Done
+
+**Changed:**
+
+- Added an idempotent Expo config plugin that preserves the BeatNote Project declaration, declares
+  seven audio document types plus OGG/FLAC UTIs, and provisionally disables in-place opening.
+- Added an autolinked LibraryStorage app-delegate subscriber with retained pre-observer URLs,
+  owner-safe listener transitions, and a web-safe module contract; lifecycle handling now queues
+  supported file URLs until library boot completes and routes them through the shared import path.
+- Added deterministic `simctl openurl` delivery and focused XCTest assertions for title, toast, and
+  retained library row; the unfiltered runner now schedules Open_In separately from ordinary cases.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, the empty unit gate, JavaScript syntax, generated
+  Info.plist inspection, and `git diff --check` → clean.
+- Full retained Playwright gate → 6/6 critical journeys passed.
+- Focused iPhone 17 Pro / iOS 26.2 Open_In journey → passed after final observer hardening; result
+  bundle `ios/build/BeatNoteOpenInUITest-1792777502768.xcresult`.
+- Retained launch/document-picker journey → passed; result bundle
+  `ios/build/BeatNoteUITests-1792742530993.xcresult`.
+
+**Not verified / known gaps:**
+
+- Physical Files/third-party delivery, `.beatnote` presentation, security-scoped behavior, and the
+  final `LSSupportsOpeningDocumentsInPlace = false` decision remain blocked on device/signing access.
+- An unfiltered native-suite attempt reached the split runner but five older picker-driven cases
+  failed to find staged Files fixtures in the accumulated simulator state; focused affected cases
+  pass, and full-suite isolation/Files state remains a Phase 10 harness concern.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside both commits.
+
+**Next agent should:**
+
+- Implement Task 41.1 by extending the retained project/import/export Playwright journey, then
+  Task 41.2's responsive queue/control coverage.
 
 ### 2026-10-23 — Complete Project Manager and CSV relocation
 
