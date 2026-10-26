@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
+      non-enforcing preview entitlement provider
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
+
 - [x] Add the configurable 4/6/8-count rehearsal workflow with phrase-aware grid/snapping and live
       transport count display, and include `Count (phrase:beat)` in choreography CSV exports
       <sub>**Key Artifacts:** `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/utils/danceCount.ts`, `src/utils/exportEngineCore.ts`, `src/utils/magneticSnapping.ts`, `tests/ui-components.spec.ts`</sub>
@@ -243,6 +247,34 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-26 — Add product capability boundary
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `0ad9621`
+**Kanban moved:** provider-neutral entitlement groundwork → Done
+
+**Changed:**
+
+- Added stable product capability and entitlement keys, a provider-neutral snapshot/restore/
+  subscription contract, and pure capability checks independent of purchase vendors.
+- Declared and documented the V1 Lite/Pro matrix while retaining the V1 preview provider so no
+  current feature is paywalled before purchase and expiry behavior is accepted.
+- Kept product entitlements separate from playback-source capabilities and future stem credits.
+
+**Verified:**
+
+- Temporary capability-matrix unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- Matrix validation confirms every stable key appears once and Pro is a superset of Lite.
+
+**Not verified / known gaps:**
+
+- V2 purchase/restore/refresh/offline-grace/expiry integration remains intentionally deferred.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `0ad9621`.
+
+**Next agent should:**
+
+- Implement custom layer display names with inline editing and project persistence.
 
 ### 2026-10-26 — Add dance-count rehearsal workflow
 

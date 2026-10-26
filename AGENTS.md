@@ -115,6 +115,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Polish the V1 iPhone single-lane workflow by presenting the fixed `vocals` annotation lane
+      honestly without exposing misleading multi-layer naming controls
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/utils/exportEngineCore.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Raise the landscape loop overview above the home-indicator gesture zone and make dance-count
       guidance a persisted, default-off Settings option
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `tests/ui-components.spec.ts`</sub>
@@ -130,10 +134,6 @@ potentially adding a hybrid path later.
 - [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
       persistence, restored display names, accessibility labels, and named exports
       <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
-      non-enforcing preview entitlement provider
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
 
 ---
 
@@ -208,6 +208,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Polish the V1 annotation lane
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `6b66a21`
+**Kanban moved:** truthful V1 iPhone annotation-lane naming → Done
+
+**Changed:**
+
+- Replaced the misleading mobile Layer names section with one Annotation lane field backed by the
+  existing stable `vocals` ID; untouched lanes present as Annotations without rewriting stored IDs.
+- Kept desktop multi-layer naming intact and preserved every explicit custom name through draft and
+  saved-project restoration.
+- Applied the annotation-facing fallback to CSV, PDF, and MIDI labels while retaining legacy
+  `Vocals` as a valid CSV import label.
+
+**Verified:**
+
+- Temporary annotation fallback/export logic checks → 2/2 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
+  search, and `git diff --check` → clean for the completed change.
+- Focused mobile Settings and project-restoration journeys → 2/2 passed.
+- Full retained Playwright gate → 7/7 journeys passed.
+
+**Not verified / known gaps:**
+
+- Spoken VoiceOver, physical-iPhone keyboard behavior, and the final export share destination remain
+  part of the existing hardware acceptance backlog.
+- Concurrent wrapped-waveform/playhead edits and the untracked automatic-BPM spec remain outside
+  `6b66a21`.
+
+**Next agent should:**
+
+- Begin the physical-iPhone acceptance pass from the current `1.0.0` development build.
 
 ### 2026-10-26 — Improve landscape safety and dance-count controls
 
@@ -338,31 +371,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Implement PDF choreography export and expose its options from the Project Manager export flow.
-
-### 2026-10-26 — Add product capability boundary
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `0ad9621`
-**Kanban moved:** provider-neutral entitlement groundwork → Done
-
-**Changed:**
-
-- Added stable product capability and entitlement keys, a provider-neutral snapshot/restore/
-  subscription contract, and pure capability checks independent of purchase vendors.
-- Declared and documented the V1 Lite/Pro matrix while retaining the V1 preview provider so no
-  current feature is paywalled before purchase and expiry behavior is accepted.
-- Kept product entitlements separate from playback-source capabilities and future stem credits.
-
-**Verified:**
-
-- Temporary capability-matrix unit checks → 2/2 passed, then removed per repository policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
-- Matrix validation confirms every stable key appears once and Pro is a superset of Lite.
-
-**Not verified / known gaps:**
-
-- V2 purchase/restore/refresh/offline-grace/expiry integration remains intentionally deferred.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `0ad9621`.
-
-**Next agent should:**
-
-- Implement custom layer display names with inline editing and project persistence.
