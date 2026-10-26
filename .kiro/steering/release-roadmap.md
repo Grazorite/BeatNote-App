@@ -104,6 +104,28 @@ The Lite tier must complete a real project:
 The initial saved-project hypothesis is three projects. Validate that limit with users before
 hard-coding it; do not expose additional phone annotation lanes during V1 validation.
 
+### Lite/Pro capability matrix
+
+The stable Pro entitlement key is `beatnote.pro`. Product UI asks the capability service about the
+keys below and never imports a purchase SDK or store-product identifier. V1 uses the preview
+provider, which grants implemented preview features without enforcing a paywall.
+
+| Capability key | Lite | Pro |
+|---|---:|---:|
+| `projects.unlimited` | No (three-project hypothesis) | Yes |
+| `layers.multiple` | No (one phone lane) | Yes |
+| `layers.customNames` | No | Yes |
+| `waveform.detailed` | No (basic waveform remains) | Yes |
+| `playback.pitchPreservingSpeed` | No (1× remains) | Yes |
+| `export.pdf` | No (CSV remains) | Yes |
+| `export.midi` | No (CSV remains) | Yes |
+| `snapping.advanced` | No (basic beat/count guidance remains) | Yes |
+| `projects.templates` | No | Yes |
+| `annotations.customVocabulary` | No (built-in suggestions remain) | Yes |
+
+This matrix does not gate project readability, existing annotations, basic CSV export, or access to
+previously saved data. Stem-processing credits remain a separate metered product capability.
+
 ## Monetisation implementation timing
 
 Start the architecture during V1, then activate charging in V2:

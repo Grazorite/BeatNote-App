@@ -121,6 +121,15 @@ detents, Reduce Motion, focus trapping, and focus restoration on native and web.
 Rationale: this preserves ADR-007, avoids another navigation dependency, and keeps one responsive
 surface across platforms while accepting approximate rather than UIKit-native sheet physics.
 
+### ADR-017: Provider-neutral product capabilities
+
+Product access is expressed as stable capability keys behind one `EntitlementProvider` interface.
+UI components do not import purchase SDKs, store product identifiers, or subscription-vendor state.
+V1 uses a preview provider with no enforced paywalls; V2 may replace only that provider after
+purchase, restore, refresh, offline-grace, and expiry behavior pass acceptance.
+Rationale: separating product entitlement from playback-source capability keeps Apple Music/Spotify
+integration independent of monetisation and prevents vendor details from spreading through the UI.
+
 ## Patterns to follow
 
 ### Platform branching
