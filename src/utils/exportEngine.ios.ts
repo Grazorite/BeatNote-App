@@ -1,7 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { Share } from 'react-native';
-import { ExportOptions, ExportResult } from './exportTypes';
-import { buildCsvContent, buildMidiData } from './exportEngineCore';
+import * as Print from 'expo-print';
+import { ExportOptions, ExportResult, PDFExportOptions } from './exportTypes';
+import { buildCsvContent, buildMidiData, buildPdfHtml } from './exportEngineCore';
 
 const EXPORT_DIR = 'beatnote_exports';
 
@@ -72,6 +73,18 @@ export class ExportEngine {
       encoding: FileSystem.EncodingType.Base64,
     });
 
+    const shared = await writeAndShare(uri);
+    return { filename, uri, shared };
+  }
+
+  static async exportToPDF(options: PDFExportOptions): Promise<ExportResult> {
+    const { filename, html } = buildPdfHtml(options);
+    const generated = await Print.printToFileAsync({ html, base64: false });
+    const exportDirectory = await ensureExportDirectory();
+    const uri = `${exportDirectory}/${filename}`;
+    const existing = await FileSystem.getInfoAsync(uri);
+    if (existing.exists) await FileSystem.deleteAsync(uri, { idempotent: true });
+    await FileSystem.copyAsync({ from: generated.uri, to: uri });
     const shared = await writeAndShare(uri);
     return { filename, uri, shared };
   }

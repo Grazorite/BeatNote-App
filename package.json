@@ -52,6 +52,7 @@
     "expo-dev-client": "~6.0.21",
     "expo-document-picker": "~14.0.8",
     "expo-file-system": "~19.0.24",
+    "expo-print": "~15.0.8",
     "expo-screen-orientation": "~9.0.9",
     "expo-status-bar": "~3.0.9",
     "lucide-react-native": "^0.554.0",

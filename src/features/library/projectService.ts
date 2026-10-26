@@ -11,6 +11,7 @@ import { planSave } from '../../utils/draftResolution';
 import { DRAFT_FLUSH_TIMEOUT_MS } from '../../utils/libraryConstants';
 import type {
   ExportOptions,
+  PDFExportOptions,
   ExportResult as EngineExportResult,
 } from '../../utils/exportTypes';
 import {
@@ -101,6 +102,7 @@ interface ProjectServiceDependencies {
   deleteProjectWithDependencies: typeof deleteProjectWithDependencies;
   readProject: typeof readProject;
   exportToCSV: (options: ExportOptions) => Promise<EngineExportResult>;
+  exportToPDF?: (options: PDFExportOptions) => Promise<EngineExportResult>;
   flushDraft: typeof flushDraft;
   cancelQueued: typeof cancelQueued;
   requestTrackSwitch: (request: {
@@ -123,6 +125,9 @@ const defaultDependencies: ProjectServiceDependencies = {
   exportToCSV: async options => (
     await import('../../utils/exportEngine')
   ).ExportEngine.exportToCSV(options),
+  exportToPDF: async options => (
+    await import('../../utils/exportEngine')
+  ).ExportEngine.exportToPDF(options),
   flushDraft,
   cancelQueued,
   requestTrackSwitch: async request => (
@@ -920,6 +925,67 @@ async function runExportProjectCsv(
   }
 }
 
+async function runExportProjectPdf(
+  dependencies: ProjectServiceDependencies,
+  projectId: string | 'current',
+  preferences: Pick<PDFExportOptions,
+    'includeHeader' | 'includeTimeline' | 'includeMarkerList' | 'includeCountGrid' | 'includeNotes'>,
+): Promise<ProjectExportResult> {
+  let content: PersistedContent;
+  let projectName: string;
+  let songDuration: number;
+
+  if (projectId === 'current') {
+    const state = dependencies.getState();
+    if (state.currentMusicItemId === null || !state.songLoaded) return { kind: 'noSong' };
+    content = extractPersistedContent(state);
+    projectName = state.draftBaselineName
+      ?? state.libraryItems[state.currentMusicItemId]?.displayTitle
+      ?? 'Unnamed_Draft';
+    songDuration = state.songDuration;
+  } else {
+    let reportedIssue: PersistenceIssue | null = null;
+    const project = await dependencies.readProject(projectId, {
+      now: dependencies.now,
+      onIssue: issue => { reportedIssue = issue; },
+    });
+    if (project === null) {
+      if (reportedIssue !== null) {
+        const issue = reportedIssue as PersistenceIssue;
+        upsertIssue(dependencies, issue);
+        return { kind: 'failed', message: 'Export failed', reason: persistenceReason(issue) };
+      }
+      return { kind: 'notFound', projectId };
+    }
+    content = splitProjectEnvelope(project).content;
+    projectName = project.metadata.name;
+    songDuration = project.metadata.duration;
+  }
+
+  try {
+    const exportToPDF = dependencies.exportToPDF ?? (async options => (
+      await import('../../utils/exportEngine')
+    ).ExportEngine.exportToPDF(options));
+    const result = await exportToPDF({
+      format: 'pdf',
+      filename: sanitizeExportFilename(projectName).replace(/\.csv$/i, '.pdf'),
+      layers: content.layers,
+      bpm: content.bpm,
+      countSize: content.settings.countSize ?? 8,
+      songDuration,
+      projectName,
+      ...preferences,
+    });
+    return { kind: 'exported', result };
+  } catch (error) {
+    return {
+      kind: 'failed',
+      message: 'Export failed',
+      reason: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 export const saveCurrent = (options?: SaveOptions): Promise<SaveResult> => (
   runSave(defaultDependencies, 'current', null, options)
 );
@@ -951,6 +1017,12 @@ export const exportProjectCsv = (
   projectId: string | 'current',
 ): Promise<ProjectExportResult> => runExportProjectCsv(defaultDependencies, projectId);
 
+export const exportProjectPdf = (
+  projectId: string | 'current',
+  preferences: Pick<PDFExportOptions,
+    'includeHeader' | 'includeTimeline' | 'includeMarkerList' | 'includeCountGrid' | 'includeNotes'>,
+): Promise<ProjectExportResult> => runExportProjectPdf(defaultDependencies, projectId, preferences);
+
 /** Test seam for save/revision/name race verification without replacing the global store. */
 export const createProjectService = (dependencies: ProjectServiceDependencies) => ({
   saveCurrent: (options?: SaveOptions) => runSave(dependencies, 'current', null, options),
@@ -962,6 +1034,11 @@ export const createProjectService = (dependencies: ProjectServiceDependencies) =
   ),
   revertToSaved: () => runRevertToSaved(dependencies),
   exportProjectCsv: (projectId: string | 'current') => runExportProjectCsv(dependencies, projectId),
+  exportProjectPdf: (
+    projectId: string | 'current',
+    preferences: Pick<PDFExportOptions,
+      'includeHeader' | 'includeTimeline' | 'includeMarkerList' | 'includeCountGrid' | 'includeNotes'>,
+  ) => runExportProjectPdf(dependencies, projectId, preferences),
 });
 
 export type { ProjectServiceDependencies, SaveOptions };

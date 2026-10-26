@@ -1,9 +1,10 @@
 import { Platform } from 'react-native';
-import { ExportOptions, ExportResult } from './exportTypes';
+import { ExportOptions, ExportResult, PDFExportOptions } from './exportTypes';
 
 interface ExportEngineContract {
   exportToCSV(options: ExportOptions): Promise<ExportResult>;
   exportToMIDI(options: ExportOptions): Promise<ExportResult>;
+  exportToPDF(options: PDFExportOptions): Promise<ExportResult>;
 }
 
 async function getExportEngine(): Promise<ExportEngineContract> {
@@ -28,6 +29,11 @@ export class ExportEngine {
     const engine = await getExportEngine();
     return engine.exportToMIDI(options);
   }
+
+  static async exportToPDF(options: PDFExportOptions): Promise<ExportResult> {
+    const engine = await getExportEngine();
+    return engine.exportToPDF(options);
+  }
 }
 
-export type { ExportOptions, ExportResult } from './exportTypes';
+export type { ExportOptions, ExportResult, PDFExportOptions } from './exportTypes';

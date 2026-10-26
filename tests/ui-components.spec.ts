@@ -542,9 +542,13 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('load-project').click();
     await page.getByTestId('current-project-export-csv').click();
     await expect(page.getByTestId('export-modal-glass')).toBeVisible();
-    await expect(page.getByText('Export CSV', { exact: true }).last()).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(page.getByText('Export Project', { exact: true }).last()).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(page.getByText('Includes timestamps, bar:beat and phrase:count timing, and annotations', { exact: true }))
       .toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(page.getByTestId('export-pdf')).toBeVisible();
+    await expect(page.getByTestId('pdf-option-includeTimeline')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('pdf-option-includeTimeline').click();
+    await expect(page.getByTestId('pdf-option-includeTimeline')).toHaveAttribute('aria-checked', 'false');
     await page.getByText('Cancel', { exact: true }).last().click();
     await page.getByText('Close', { exact: true }).click();
 

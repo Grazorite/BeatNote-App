@@ -1,11 +1,25 @@
 import { Layer } from '../hooks/useStudioStore';
-import { ExportOptions } from './exportTypes';
+import { ExportOptions, PDFExportOptions } from './exportTypes';
 import { danceCountAtTime } from './danceCount';
 import { getLayerDisplayName } from './layers';
 
 function sanitizeProjectName(projectName: string): string {
   return projectName.replace(/[^a-zA-Z0-9]/g, '_');
 }
+
+const escapeHtml = (value: string): string => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+
+const formatClock = (milliseconds: number): string => {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
 
 function collectVisibleMarkers(layers: Layer[]) {
   const allMarkers: { time: number; layer: string; annotation: string }[] = [];
@@ -51,6 +65,56 @@ export function buildCsvContent(options: ExportOptions): { filename: string; con
   });
 
   return { filename, content: csvContent };
+}
+
+export function buildPdfHtml(options: PDFExportOptions): { filename: string; html: string } {
+  const markers = collectVisibleMarkers(options.layers).map(marker => ({
+    ...marker,
+    danceCount: danceCountAtTime(marker.time, options.bpm, options.countSize),
+  }));
+  const filename = options.filename ?? `${sanitizeProjectName(options.projectName)}_choreography.pdf`;
+  const markerRows = markers.map(marker => `
+    <tr>
+      <td>${escapeHtml(formatClock(marker.time))}</td>
+      <td>${marker.danceCount.phrase}:${marker.danceCount.count}</td>
+      <td>${escapeHtml(marker.layer)}</td>
+      ${options.includeNotes ? `<td>${escapeHtml(marker.annotation || '—')}</td>` : ''}
+    </tr>`).join('');
+  const timelineMarkers = markers.map(marker => {
+    const left = options.songDuration > 0
+      ? Math.min(100, Math.max(0, marker.time / options.songDuration * 100))
+      : 0;
+    return `<span class="timeline-marker" style="left:${left.toFixed(3)}%" title="${escapeHtml(marker.layer)}"></span>`;
+  }).join('');
+  const countRows = markers.map(marker => `
+    <tr><td>${marker.danceCount.phrase}</td><td>${marker.danceCount.count}</td><td>${escapeHtml(formatClock(marker.time))}</td><td>${escapeHtml(marker.layer)}</td></tr>`).join('');
+
+  const html = `<!doctype html>
+<html><head><meta charset="utf-8"><title>${escapeHtml(options.projectName)}</title>
+<style>
+  @page { size: A4; margin: 16mm; }
+  * { box-sizing: border-box; }
+  body { color: #17171c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 11pt; margin: 0; }
+  h1 { font-size: 24pt; margin: 0 0 4px; }
+  h2 { border-bottom: 1px solid #d8d8df; font-size: 14pt; margin: 24px 0 10px; padding-bottom: 5px; }
+  .meta { color: #5d5d68; display: flex; gap: 20px; }
+  .timeline { background: #ececf2; border-radius: 5px; height: 22px; margin: 18px 0 4px; position: relative; }
+  .timeline-marker { background: #d89018; border: 1px solid #6f4607; height: 22px; position: absolute; top: 0; width: 3px; }
+  .timeline-labels { color: #696973; display: flex; font-size: 9pt; justify-content: space-between; }
+  table { border-collapse: collapse; page-break-inside: auto; width: 100%; }
+  tr { page-break-inside: avoid; }
+  th { background: #292931; color: #fff; text-align: left; }
+  th, td { border: 1px solid #d8d8df; padding: 7px 8px; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #f6f6f8; }
+  .empty { color: #696973; font-style: italic; }
+</style></head><body>
+${options.includeHeader ? `<header><h1>${escapeHtml(options.projectName)}</h1><div class="meta"><span>${options.bpm} BPM</span><span>${options.countSize}-count phrases</span><span>${markers.length} markers</span></div></header>` : ''}
+${options.includeTimeline ? `<section><h2>Timeline</h2><div class="timeline">${timelineMarkers}</div><div class="timeline-labels"><span>0:00</span><span>${escapeHtml(formatClock(options.songDuration))}</span></div></section>` : ''}
+${options.includeMarkerList ? `<section><h2>Choreography markers</h2>${markers.length === 0 ? '<p class="empty">No visible markers.</p>' : `<table><thead><tr><th>Time</th><th>Count</th><th>Layer</th>${options.includeNotes ? '<th>Notes</th>' : ''}</tr></thead><tbody>${markerRows}</tbody></table>`}</section>` : ''}
+${options.includeCountGrid ? `<section><h2>Count grid</h2>${markers.length === 0 ? '<p class="empty">No counts to show.</p>' : `<table><thead><tr><th>Phrase</th><th>Count</th><th>Time</th><th>Layer</th></tr></thead><tbody>${countRows}</tbody></table>`}</section>` : ''}
+</body></html>`;
+
+  return { filename, html };
 }
 
 function encodeVariableLength(mutValue: number): number[] {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Alert, Platform } from 'react-native';
-import { exportProjectCsv } from '../../../features/library/projectService';
+import { View, Text, TouchableOpacity, Modal, Alert, Platform, ScrollView } from 'react-native';
+import { exportProjectCsv, exportProjectPdf } from '../../../features/library/projectService';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import GlassBackdrop from '../controls/GlassBackdrop';
 
@@ -20,11 +20,20 @@ const ExportModal: React.FC<ExportModalProps> = ({
   markerCount,
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [pdfOptions, setPdfOptions] = useState({
+    includeHeader: true,
+    includeTimeline: true,
+    includeMarkerList: true,
+    includeCountGrid: true,
+    includeNotes: true,
+  });
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'pdf') => {
     setIsExporting(true);
     try {
-      const outcome = await exportProjectCsv(projectId);
+      const outcome = format === 'csv'
+        ? await exportProjectCsv(projectId)
+        : await exportProjectPdf(projectId, pdfOptions);
       if (outcome.kind !== 'exported') {
         const message = outcome.kind === 'failed'
           ? outcome.reason
@@ -36,11 +45,14 @@ const ExportModal: React.FC<ExportModalProps> = ({
       const result = outcome.result;
 
       const title = 'Export Successful';
+      const formatLabel = format.toUpperCase();
       const message = Platform.OS === 'ios'
         ? (result.shared
-          ? `CSV file "${result.filename}" was exported and opened in the share sheet.`
-          : `CSV file "${result.filename}" was saved locally at:\n${result.uri}`)
-        : `CSV file "${result.filename}" has been downloaded to your Downloads folder.`;
+          ? `${formatLabel} file "${result.filename}" was exported and opened in the share sheet.`
+          : `${formatLabel} file "${result.filename}" was saved locally at:\n${result.uri}`)
+        : format === 'pdf'
+          ? 'The choreography sheet opened in a print window. Choose “Save as PDF” to download it.'
+          : `CSV file "${result.filename}" has been downloaded to your Downloads folder.`;
       
       Alert.alert(
         title,
@@ -68,8 +80,9 @@ const ExportModal: React.FC<ExportModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <GlassBackdrop gradientId="export-modal-glass" radius={16} testID="export-modal-glass" />
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>
-            Export CSV
+            Export Project
           </Text>
           
           <Text style={styles.subtitle}>
@@ -82,7 +95,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               styles.csvButton,
               isExporting && styles.disabledButton
             ]}
-            onPress={handleExport}
+            onPress={() => { void handleExport('csv'); }}
             disabled={isExporting}
             testID="export-csv"
           >
@@ -91,6 +104,48 @@ const ExportModal: React.FC<ExportModalProps> = ({
             </Text>
             <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
               Includes timestamps, bar:beat and phrase:count timing, and annotations
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.pdfOptions} testID="pdf-export-options">
+            <Text style={styles.optionsTitle}>PDF choreography sheet</Text>
+            {([
+              ['includeHeader', 'Project header'],
+              ['includeTimeline', 'Song timeline'],
+              ['includeMarkerList', 'Marker list'],
+              ['includeCountGrid', 'Phrase/count grid'],
+              ['includeNotes', 'Annotation notes'],
+            ] as const).map(([key, label]) => (
+              <TouchableOpacity
+                key={key}
+                style={styles.optionRow}
+                onPress={() => setPdfOptions(current => ({ ...current, [key]: !current[key] }))}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: pdfOptions[key] }}
+                aria-checked={pdfOptions[key]}
+                testID={`pdf-option-${key}`}
+              >
+                <View style={[styles.checkbox, pdfOptions[key] && styles.checkboxChecked]}>
+                  <Text style={styles.checkmark}>{pdfOptions[key] ? '✓' : ''}</Text>
+                </View>
+                <Text style={styles.optionLabel}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.exportButton,
+              styles.pdfButton,
+              isExporting && styles.disabledButton,
+            ]}
+            onPress={() => { void handleExport('pdf'); }}
+            disabled={isExporting}
+            testID="export-pdf"
+          >
+            <Text style={[styles.buttonText, styles.primaryButtonText]}>Export PDF</Text>
+            <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
+              Print-ready choreography sheet with your selected sections
             </Text>
           </TouchableOpacity>
           
@@ -103,6 +158,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               Cancel
             </Text>
           </TouchableOpacity>
+          </ScrollView>
         </View>
       </View>
     </Modal>

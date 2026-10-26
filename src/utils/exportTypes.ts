@@ -1,6 +1,6 @@
 import { Layer } from '../hooks/useStudioStore';
 
-export type ExportFormat = 'midi' | 'csv';
+export type ExportFormat = 'midi' | 'csv' | 'pdf';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -11,6 +11,15 @@ export interface ExportOptions {
   countSize: 4 | 6 | 8;
   songDuration: number;
   projectName: string;
+}
+
+export interface PDFExportOptions extends ExportOptions {
+  format: 'pdf';
+  includeHeader: boolean;
+  includeTimeline: boolean;
+  includeMarkerList: boolean;
+  includeCountGrid: boolean;
+  includeNotes: boolean;
 }
 
 export interface ExportResult {

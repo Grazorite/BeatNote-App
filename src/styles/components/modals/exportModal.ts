@@ -13,10 +13,14 @@ export const exportModalStyles = StyleSheet.create({
     position: 'relative',
     backgroundColor: 'transparent',
     borderRadius: 16,
-    padding: 24,
+    padding: 0,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 440,
+    maxHeight: '92%',
     overflow: 'hidden',
+  },
+  content: {
+    padding: 24,
   },
   title: {
     color: colors.text,
@@ -43,6 +47,50 @@ export const exportModalStyles = StyleSheet.create({
   },
   csvButton: {
     backgroundColor: colors.accent,
+  },
+  pdfButton: {
+    backgroundColor: colors.accent,
+  },
+  pdfOptions: {
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: dimensions.borderRadius,
+    marginBottom: 12,
+    padding: 12,
+  },
+  optionsTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  optionRow: {
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  checkmark: {
+    color: colors.onAccent,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  optionLabel: {
+    color: colors.text,
+    fontSize: 13,
   },
   importButton: {
     backgroundColor: colors.accent,
