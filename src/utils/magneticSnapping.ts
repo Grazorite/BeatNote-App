@@ -29,6 +29,7 @@ export const snapToNearestTarget = (
 
 export const generateSnapTargets = (
   bpm: number,
+  countSize: 4 | 6 | 8,
   songDuration: number,
   markers: number[],
   viewportStartTime: number,
@@ -36,10 +37,9 @@ export const generateSnapTargets = (
 ): number[] => {
   const targets: number[] = [];
   
-  // Add major grid lines (every 8 beats)
-  const beatsPerMs = bpm / 60000;
+  // Add phrase boundaries for the selected dance-count size.
   const msPerBeat = 60000 / bpm;
-  const msPerMajorLine = msPerBeat * 8;
+  const msPerMajorLine = msPerBeat * countSize;
   
   const startBeat = Math.floor(viewportStartTime / msPerMajorLine);
   const endBeat = Math.ceil((viewportStartTime + viewportDuration) / msPerMajorLine);

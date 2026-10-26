@@ -19,6 +19,7 @@ import DockToast from '../ui/controls/DockToast';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
+import DanceCountDisplay from '../ui/controls/DanceCountDisplay';
 import AnnotationEditorModal from '../ui/modals/AnnotationEditorModal';
 import WaveformWorkspace from '../ui/waveform/WaveformWorkspace';
 
@@ -241,6 +242,7 @@ const MainContent: React.FC<MainContentProps> = ({
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
         <DockToast key={toast.nonce} message={toast.message} action={toast.action} />
+        <DanceCountDisplay />
         {timedAnnotationMarker && displayedAnnotation.trim() && (
           <AnnotationCallout
             key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
@@ -326,6 +328,7 @@ const MainContent: React.FC<MainContentProps> = ({
       </View>
       {waveform}
       {timeline}
+      <DanceCountDisplay />
       <View style={styles.controlsRow}>
         {audioControls}
         <AnnotationField ref={annotationFieldRef} />

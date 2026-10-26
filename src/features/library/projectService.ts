@@ -906,6 +906,7 @@ async function runExportProjectCsv(
       filename: sanitizeExportFilename(projectName),
       layers: content.layers,
       bpm: content.bpm,
+      countSize: content.settings.countSize ?? 8,
       songDuration,
       projectName,
     });

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import { useStudioStore } from '../../../hooks/useStudioStore';
 import { rowGutterStyles as styles } from '../../../styles/components/waveform/rowGutter';
+import { danceCountAtTime } from '../../../utils/danceCount';
 
 interface RowGutterProps {
   startMs: number;
@@ -21,11 +23,14 @@ const RowGutter: React.FC<RowGutterProps> = ({
   testID,
 }) => {
   const startTime = formatTime(startMs);
+  const bpm = useStudioStore(state => state.bpm);
+  const countSize = useStudioStore(state => state.countSize);
+  const countLabel = danceCountAtTime(startMs, bpm, countSize).absoluteCount;
 
   return (
     <View
       style={[styles.container, { width }]}
-      accessibilityLabel={`Row starts at ${startTime}`}
+      accessibilityLabel={`Row starts at ${startTime}, dance count ${countLabel}`}
       testID={testID}
     >
       <Text
@@ -35,6 +40,9 @@ const RowGutter: React.FC<RowGutterProps> = ({
         numberOfLines={1}
       >
         {startTime}
+      </Text>
+      <Text style={styles.count} numberOfLines={1} testID={testID ? `${testID}-count` : undefined}>
+        {countLabel}
       </Text>
     </View>
   );

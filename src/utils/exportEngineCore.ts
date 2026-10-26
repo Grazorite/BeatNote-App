@@ -1,5 +1,6 @@
 import { Layer } from '../hooks/useStudioStore';
 import { ExportOptions } from './exportTypes';
+import { danceCountAtTime } from './danceCount';
 
 function sanitizeProjectName(projectName: string): string {
   return projectName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -34,17 +35,18 @@ export function buildCsvContent(options: ExportOptions): { filename: string; con
   if (allMarkers.length === 0) {
     return {
       filename,
-      content: 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Annotation\n',
+      content: 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Count (phrase:beat),Annotation\n',
     };
   }
 
-  let csvContent = 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Annotation\n';
+  let csvContent = 'Layer,Marker Time (ms),Marker Time (seconds),Marker Time (bars:beats),Count (phrase:beat),Annotation\n';
 
   allMarkers.forEach((marker) => {
     const seconds = (marker.time / 1000).toFixed(3);
     const bars = Math.floor(marker.time / (60000 / options.bpm * 4)) + 1;
     const beats = Math.floor((marker.time % (60000 / options.bpm * 4)) / (60000 / options.bpm)) + 1;
-    csvContent += `${marker.layer},${marker.time},${seconds},${bars}:${beats},"${marker.annotation.replace(/"/g, '""')}"\n`;
+    const danceCount = danceCountAtTime(marker.time, options.bpm, options.countSize);
+    csvContent += `${marker.layer},${marker.time},${seconds},${bars}:${beats},${danceCount.phrase}:${danceCount.count},"${marker.annotation.replace(/"/g, '""')}"\n`;
   });
 
   return { filename, content: csvContent };

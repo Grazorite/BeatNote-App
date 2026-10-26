@@ -65,6 +65,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const isPlaying = useStudioStore(state => state.isPlaying);
   const showGridLines = useStudioStore(state => state.showGridLines);
   const bpm = useStudioStore(state => state.bpm);
+  const countSize = useStudioStore(state => state.countSize);
   const magneticSnapping = useStudioStore(state => state.magneticSnapping);
   const allLayersData = useStudioStore(state => state.allLayersData);
   const setViewportStartTime = useStudioStore(state => state.setViewportStartTime);
@@ -118,7 +119,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -132,7 +133,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -159,7 +160,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }

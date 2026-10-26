@@ -8,6 +8,7 @@ export interface ExportOptions {
   filename?: string;
   layers: Layer[];
   bpm: number;
+  countSize: 4 | 6 | 8;
   songDuration: number;
   projectName: string;
 }

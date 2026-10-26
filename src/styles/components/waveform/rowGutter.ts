@@ -20,4 +20,13 @@ export const rowGutterStyles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     textAlign: 'center',
   },
+  count: {
+    width: '100%',
+    color: colors.gridMajor,
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+  },
 });

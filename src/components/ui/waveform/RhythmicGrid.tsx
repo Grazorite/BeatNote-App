@@ -18,6 +18,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
   const viewportStartTime = useStudioStore(state => state.viewportStartTime);
   const viewportDuration = useStudioStore(state => state.viewportDuration);
   const showGridLines = useStudioStore(state => state.showGridLines);
+  const countSize = useStudioStore(state => state.countSize);
   
   const { rulerLines, majorLines } = React.useMemo(() => {
     const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
@@ -33,9 +34,9 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
       const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * width;
       
       if (x >= 0 && x <= width) {
-        const isEighthCount = beat % 8 === 0;
-        const isFourthCount = beat % 4 === 0 && beat % 8 !== 0;
-        const isDownbeat = beat % 4 === 0;
+        const isPhraseBoundary = beat % countSize === 0;
+        const isMiddleCount = countSize % 2 === 0
+          && beat % countSize === countSize / 2;
         
         // Ruler lines (all beats)
         rulerLines.push(
@@ -44,16 +45,15 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
             x1={x}
             y1={0}
             x2={x}
-            y2={isEighthCount ? rulerHeight : (isFourthCount ? rulerHeight * 0.8 : rulerHeight * 0.6)}
-            stroke={isEighthCount ? colors.gridMajor : (isFourthCount ? colors.gridMiddle : colors.gridMinor)}
-            strokeWidth={isEighthCount ? 2 : (isFourthCount ? 1.5 : 1)}
+            y2={isPhraseBoundary ? rulerHeight : (isMiddleCount ? rulerHeight * 0.8 : rulerHeight * 0.6)}
+            stroke={isPhraseBoundary ? colors.gridMajor : (isMiddleCount ? colors.gridMiddle : colors.gridMinor)}
+            strokeWidth={isPhraseBoundary ? 2 : (isMiddleCount ? 1.5 : 1)}
             opacity={0.8}
           />
         );
         
         // Add measure numbers to ruler for major lines
-        if (isEighthCount) {
-          const measureNumber = Math.floor(beat / 8) + 1;
+        if (isPhraseBoundary) {
           rulerLines.push(
             <Text
               key={`measure-${beat}`}
@@ -64,25 +64,24 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
               opacity={0.8}
               filter={Platform.OS === 'web' ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' : undefined}
             >
-              {measureNumber}
+              {beat + 1}
             </Text>
           );
         }
         
-        // Major lines that extend into waveform (every 8 beats)
-        if (isEighthCount) {
+        // Phrase boundaries extend into the waveform with the strongest weight.
+        if (isPhraseBoundary) {
           majorLines.push({ x, beat });
         }
         
-        // Middle lines (every 4 beats, but not major lines)
-        if (isFourthCount) {
+        if (isMiddleCount) {
           majorLines.push({ x, beat, isMiddle: true });
         }
       }
     }
     
     return { rulerLines, majorLines };
-  }, [width, pixelsPerSecond, bpm, viewportStartTime, viewportDuration]);
+  }, [width, pixelsPerSecond, bpm, countSize, viewportStartTime, viewportDuration]);
   
   return (
     <View>

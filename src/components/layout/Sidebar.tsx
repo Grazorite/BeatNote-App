@@ -16,6 +16,8 @@ import ViewModeToggle from './ViewModeToggle';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 
 import HelpButton from '../ui/controls/HelpButton';
+import BpmControl from '../ui/controls/BpmControl';
+import CountSizeControl from '../ui/controls/CountSizeControl';
 import HelpScreen from '../ui/screens/HelpScreen';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
@@ -125,6 +127,11 @@ const Sidebar: React.FC = () => {
                 contentContainerStyle={styles.mobileScrollContent}
                 showsVerticalScrollIndicator={false}
               >
+                <Text style={styles.sectionLabel}>Timing</Text>
+                <View style={styles.sidebarSection}>
+                  <BpmControl />
+                  <CountSizeControl />
+                </View>
                 <Text style={styles.sectionLabel}>Support</Text>
                 <View style={styles.sidebarSection}>
                   <HelpButton />
@@ -170,6 +177,12 @@ const Sidebar: React.FC = () => {
           showsVerticalScrollIndicator={true}
           indicatorStyle="default"
         >
+          <Text style={styles.sectionLabel}>Timing</Text>
+          <View style={styles.sidebarSection}>
+            <BpmControl />
+            <CountSizeControl />
+          </View>
+          <Text style={styles.sectionLabel}>Support</Text>
           <View style={styles.sidebarSection}>
             <HelpButton />
           </View>

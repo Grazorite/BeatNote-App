@@ -2,7 +2,7 @@ import { test, expect, loadTestAudio, prepareFilePicker } from './setup';
 import path from 'node:path';
 
 test.describe('UI Components & Layout', () => {
-  test('V1 settings open as a full mobile page with only relevant support content', async ({ page }) => {
+  test('V1 settings expose timing guidance and support in a full mobile page', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
 
@@ -53,8 +53,12 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
     await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
-    await expect(page.getByTestId('settings-bpm')).toHaveCount(0);
-    await expect(page.getByText('Project BPM', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('settings-bpm')).toBeVisible();
+    await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-count-size')).toBeVisible();
+    await expect(page.getByTestId('count-size-8')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('count-size-6').click();
+    await expect(page.getByTestId('count-size-6')).toHaveAttribute('aria-checked', 'true');
     await expect.poll(async () => {
       const box = await page.getByTestId('settings-page').boundingBox();
       return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
@@ -432,6 +436,8 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
 
     await loadTestAudio(page);
+    await expect(page.getByTestId('dance-count-display')).toHaveText('Phrase 1 | Count 1');
+    await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveText('1');
     await page.reload();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     const songTitleControl = page.getByTestId('song-title-control');
@@ -529,7 +535,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('current-project-export-csv').click();
     await expect(page.getByTestId('export-modal-glass')).toBeVisible();
     await expect(page.getByText('Export CSV', { exact: true }).last()).toHaveCSS('color', 'rgb(0, 0, 0)');
-    await expect(page.getByText('Includes timestamps, BPM-derived bar:beat timing, and annotations', { exact: true }))
+    await expect(page.getByText('Includes timestamps, bar:beat and phrase:count timing, and annotations', { exact: true }))
       .toHaveCSS('color', 'rgb(0, 0, 0)');
     await page.getByText('Cancel', { exact: true }).last().click();
     await page.getByText('Close', { exact: true }).click();

@@ -44,7 +44,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
   
   console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
-  const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, magneticSnapping, bpm, allLayersData } = useStudioStore();
+  const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, magneticSnapping, bpm, countSize, allLayersData } = useStudioStore();
   const { waveformData } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
   const stemRef = useRef<View>(null);
@@ -64,7 +64,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -77,7 +77,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -104,7 +104,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }

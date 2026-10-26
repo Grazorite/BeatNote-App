@@ -90,7 +90,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               Export CSV
             </Text>
             <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
-              Includes timestamps, BPM-derived bar:beat timing, and annotations
+              Includes timestamps, bar:beat and phrase:count timing, and annotations
             </Text>
           </TouchableOpacity>
           
