@@ -5,6 +5,11 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Complete local implementation, retained automation, simulator accessibility review, and
+      durable documentation for `local-music-library-queue`, including consistent Project Manager
+      action alignment and deterministic per-case native fixture isolation
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/testing-strategy.md`, `scripts/ios-ui-test.js`, `src/components/ui/`, `tests/`</sub>
+
 - [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
       draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`</sub>
@@ -230,6 +235,44 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-25 — Finish local music library validation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen durability checks · **Commit(s):** `2754c36`
+**Kanban moved:** local-music-library-queue Tasks 42–43, 44.1–44.3, and 45 → Done; Task 44.4 → In Progress
+
+**Changed:**
+
+- Retained seven isolated iOS journeys for picker/import, restoration, loop transport, CSV/share,
+  background playback, landscape interaction, and Open_In without relying on a transient toast.
+- Exercised draft, switching, migration, quota, crash, and background invariants in 16 temporary
+  checks, then removed them in accordance with the repository's temporary-unit-test policy.
+- Fixed maximum-Dynamic-Type clipping and aligned Project Manager action icons consistently while
+  keeping labels centred; documented ADR-012…ADR-016 and the finished library workflow.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, JavaScript syntax,
+  disabled-test search, `git diff --check`, and Markdown lint → clean.
+- Full retained Playwright gate → 6/6 journeys passed, including library persistence and sheet focus.
+- Isolated iPhone 17 Pro / iOS 26.2 aggregate → all seven retained native cases passed; the final
+  portrait picker/layout rerun also passed after the Dynamic Type and action-alignment fixes.
+- Simulator review → portrait, landscape, Music Library, Project Manager, queue controls, and
+  maximum accessibility text fit without horizontal overflow after the clipping fixes.
+
+**Not verified / known gaps:**
+
+- Task 44.4 remains: physical Files/third-party Open_In, files over 100 MB, backup/restore, low disk,
+  interruptions/routes, force-quit durability, spoken VoiceOver, Reduce Motion touch comfort, and
+  rapid queue navigation.
+- A final focused landscape rerun stalled in Apple's test runner after returning to the home screen;
+  the identical retained landscape journey passed in the preceding isolated aggregate, before the
+  subsequent Project-Manager-only alignment change.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `2754c36`.
+
+**Next agent should:**
+
+- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
 
 ### 2026-10-24 — Complete retained library browser journeys
 

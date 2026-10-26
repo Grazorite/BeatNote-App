@@ -93,7 +93,6 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
 
@@ -117,6 +116,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Add configurable PDF choreography sheets with project header, timeline, marker list,
+      phrase/count grid, optional notes, native iOS generation/sharing, and web print-to-PDF
+      <sub>**Key Artifacts:** `package.json`, `src/components/ui/modals/ExportModal.tsx`, `src/features/library/projectService.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngine.web.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
       persistence, restored display names, accessibility labels, and named exports
       <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
@@ -132,11 +135,6 @@ potentially adding a hybrid path later.
 - [x] Replace Project Manager action icons with responsive text-only controls so labels remain
       complete at narrow widths and reflow to single-column rows at large accessibility text sizes
       <sub>**Key Artifacts:** `src/components/ui/projects/CurrentProjectSection.tsx`, `src/styles/components/projects/currentProjectSection.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Complete local implementation, retained automation, simulator accessibility review, and
-      durable documentation for `local-music-library-queue`, including consistent Project Manager
-      action alignment and deterministic per-case native fixture isolation
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/testing-strategy.md`, `scripts/ios-ui-test.js`, `src/components/ui/`, `tests/`</sub>
 
 ---
 
@@ -211,6 +209,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Add choreography PDF export
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `948da9d`
+**Kanban moved:** PDF choreography export → Done
+
+**Changed:**
+
+- Added shared, escaped print-ready choreography HTML with configurable project header, timeline,
+  marker table, phrase/count grid, and annotation notes.
+- Added `exportToPDF` across the export boundary and Project Manager flow; iOS creates and shares a
+  real PDF through Expo Print, while web opens the system print-to-PDF workflow.
+- Made the expanded export surface scroll-safe and exposed accessible checkbox state for every PDF
+  section option.
+
+**Verified:**
+
+- Temporary PDF rendering/escaping/option unit checks → 2/2 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, and
+  `git diff --check` → clean.
+- Focused Project Manager/export browser journey → passed, including PDF option visibility and
+  checkbox state changes.
+- iPhone 17 Pro / iOS 27.1 simulator build → succeeded with `ExpoPrint` linked into the app target.
+
+**Not verified / known gaps:**
+
+- Completing an actual external share and visually reviewing multi-page output on a physical iPhone
+  remain part of hardware acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `948da9d`.
+
+**Next agent should:**
+
+- Add built-in annotation vocabulary suggestion chips without replacing free-form entry.
 
 ### 2026-10-26 — Add custom layer names
 
@@ -329,43 +360,6 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Task 44.4 physical-device acceptance remains unchanged, including spoken VoiceOver, touch comfort,
   and large-text review on actual hardware.
 - Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `9a5da26`.
-
-**Next agent should:**
-
-- Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
-### 2026-10-25 — Finish local music library validation
-
-**Agent:** orchestrator (Codex) + DSH-Qwen durability checks · **Commit(s):** `2754c36`
-**Kanban moved:** local-music-library-queue Tasks 42–43, 44.1–44.3, and 45 → Done; Task 44.4 → In Progress
-
-**Changed:**
-
-- Retained seven isolated iOS journeys for picker/import, restoration, loop transport, CSV/share,
-  background playback, landscape interaction, and Open_In without relying on a transient toast.
-- Exercised draft, switching, migration, quota, crash, and background invariants in 16 temporary
-  checks, then removed them in accordance with the repository's temporary-unit-test policy.
-- Fixed maximum-Dynamic-Type clipping and aligned Project Manager action icons consistently while
-  keeping labels centred; documented ADR-012…ADR-016 and the finished library workflow.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, JavaScript syntax,
-  disabled-test search, `git diff --check`, and Markdown lint → clean.
-- Full retained Playwright gate → 6/6 journeys passed, including library persistence and sheet focus.
-- Isolated iPhone 17 Pro / iOS 26.2 aggregate → all seven retained native cases passed; the final
-  portrait picker/layout rerun also passed after the Dynamic Type and action-alignment fixes.
-- Simulator review → portrait, landscape, Music Library, Project Manager, queue controls, and
-  maximum accessibility text fit without horizontal overflow after the clipping fixes.
-
-**Not verified / known gaps:**
-
-- Task 44.4 remains: physical Files/third-party Open_In, files over 100 MB, backup/restore, low disk,
-  interruptions/routes, force-quit durability, spoken VoiceOver, Reduce Motion touch comfort, and
-  rapid queue navigation.
-- A final focused landscape rerun stalled in Apple's test runner after returning to the home screen;
-  the identical retained landscape journey passed in the preceding isolated aggregate, before the
-  subsequent Project-Manager-only alignment change.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `2754c36`.
 
 **Next agent should:**
 
