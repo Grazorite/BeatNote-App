@@ -6,6 +6,11 @@ test.describe('Critical annotation workflow', () => {
     await page.goto('/');
     await loadTestAudio(page);
 
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666');
+    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
+    await expect(page.getByTestId('loop-overview-playhead-underlay')).toHaveAttribute('stroke', '#000000');
+    await expect(page.getByTestId('loop-overview-playhead-cap')).toHaveAttribute('fill', '#ff8c00');
+
     const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
     const box = await gestureArea.boundingBox();
     expect(box).not.toBeNull();
@@ -22,6 +27,10 @@ test.describe('Critical annotation workflow', () => {
     await expect(page.getByTestId('annotation-editor-input')).not.toBeVisible();
 
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
+    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
+    await expect(page.getByTestId('wrapped-row-playhead-underlay-0')).toHaveAttribute('stroke', '#000000');
+    await expect(page.getByTestId('wrapped-row-playhead-0')).toHaveAttribute('stroke', '#ff8c00');
+    await expect(page.getByTestId('wrapped-row-playhead-cap-0')).toHaveAttribute('fill', '#ff8c00');
     await expect.poll(markerCount).toBe(0);
     await page.getByTestId('add-marker').click();
     await expect.poll(markerCount).toBe(1);

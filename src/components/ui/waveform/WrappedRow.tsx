@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Polygon, Rect, Text as SvgText } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
@@ -417,15 +417,34 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
           ))}
 
           {isActiveRow && (
-            <Line
-              x1={playheadX}
-              y1={0}
-              x2={playheadX}
-              y2={waveformHeight}
-              stroke={colors.accent}
-              strokeWidth={2}
-              testID={`wrapped-row-playhead-${row.index}`}
-            />
+            <>
+              <Line
+                x1={playheadX}
+                y1={0}
+                x2={playheadX}
+                y2={waveformHeight}
+                stroke={colors.background}
+                strokeWidth={5}
+                opacity={0.9}
+                testID={`wrapped-row-playhead-underlay-${row.index}`}
+              />
+              <Line
+                x1={playheadX}
+                y1={0}
+                x2={playheadX}
+                y2={waveformHeight}
+                stroke={colors.loopPlayhead}
+                strokeWidth={2}
+                testID={`wrapped-row-playhead-${row.index}`}
+              />
+              <Polygon
+                points={`${playheadX - 4},1 ${playheadX + 4},1 ${playheadX},7`}
+                fill={colors.loopPlayhead}
+                stroke={colors.background}
+                strokeWidth={1.5}
+                testID={`wrapped-row-playhead-cap-${row.index}`}
+              />
+            </>
           )}
           </Svg>
         </View>

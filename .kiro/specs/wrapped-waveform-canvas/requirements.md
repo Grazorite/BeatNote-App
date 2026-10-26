@@ -355,6 +355,12 @@ capability, so that I can use the wrapped view before native waveform extraction
    provide the same timestamp-aligned waveform content used by the web provider.
 7. THE waveform components SHALL request a resolution from the Waveform_Provider without reading a
    purchase vendor directly, so a future capability service can select basic or detailed extraction.
+8. WHEN real peaks are available, THE loop overview SHALL render the full waveform in the same muted
+   colour as unplayed wrapped rows and SHALL overlay elapsed playback in the active layer colour;
+   marker, playhead, and loop colours SHALL retain their distinct semantic roles. THE overview
+   playhead and the active wrapped-row playhead SHALL use the same amber core, contrasting underlay,
+   and cap so they remain distinguishable from both the waveform and plain marker lines across every
+   active-layer colour.
 
 ### Requirement 18: State and persistence
 

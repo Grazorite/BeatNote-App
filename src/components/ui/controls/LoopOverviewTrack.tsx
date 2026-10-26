@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Svg, { Line, Path, Rect } from 'react-native-svg';
+import Svg, { ClipPath, Defs, Line, Path, Polygon, Rect } from 'react-native-svg';
 
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath, useWaveformData } from '../../../hooks/useWaveformData';
@@ -19,9 +19,11 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const songDuration = useStudioStore(state => state.songDuration);
   const songLoaded = useStudioStore(state => state.songLoaded);
   const layers = useStudioStore(state => state.allLayersData);
+  const activeLayerId = useStudioStore(state => state.activeLayerId);
   const { waveformData } = useWaveformData(audioUri);
   const drawable = songLoaded && Number.isFinite(songDuration) && songDuration > 0 && width > 0;
   const playheadX = overviewPlayheadX(currentTime, songDuration, width);
+  const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color ?? colors.accent;
   const waveformPath = useMemo(() => {
     if (!drawable || waveformData?.source !== 'decoded' || waveformData.peaks.length === 0) return '';
     return generateWaveformPath(
@@ -39,14 +41,33 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
       <Svg width={Math.max(0, width)} height={34}>
         <Rect x={0} y={0} width={Math.max(0, width)} height={34} fill={colors.loopTrack} />
         {waveformPath ? (
-          <Path
-            d={waveformPath}
-            stroke={colors.success}
-            strokeWidth={1}
-            fill="none"
-            opacity={0.7}
-            testID="loop-overview-peaks"
-          />
+          <>
+            <Path
+              d={waveformPath}
+              stroke={colors.gridMinor}
+              strokeWidth={1}
+              fill="none"
+              opacity={0.75}
+              testID="loop-overview-peaks"
+            />
+            {playheadX > 0 && (
+              <>
+                <Defs>
+                  <ClipPath id="loop-overview-progress-clip">
+                    <Rect x={0} y={0} width={playheadX} height={34} />
+                  </ClipPath>
+                </Defs>
+                <Path
+                  d={waveformPath}
+                  stroke={activeLayerColor}
+                  strokeWidth={1.5}
+                  fill="none"
+                  clipPath="url(#loop-overview-progress-clip)"
+                  testID="loop-overview-progress"
+                />
+              </>
+            )}
+          </>
         ) : (
           <Rect x={0} y={15} width={Math.max(0, width)} height={4} fill={colors.border} />
         )}
@@ -65,15 +86,34 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
               ))
           : [])}
         {drawable && (
-          <Line
-            x1={playheadX}
-            x2={playheadX}
-            y1={1}
-            y2={33}
-            stroke={colors.loopPlayhead}
-            strokeWidth={2}
-            testID="loop-overview-playhead"
-          />
+          <>
+            <Line
+              x1={playheadX}
+              x2={playheadX}
+              y1={1}
+              y2={33}
+              stroke={colors.background}
+              strokeWidth={5}
+              opacity={0.9}
+              testID="loop-overview-playhead-underlay"
+            />
+            <Line
+              x1={playheadX}
+              x2={playheadX}
+              y1={1}
+              y2={33}
+              stroke={colors.loopPlayhead}
+              strokeWidth={2}
+              testID="loop-overview-playhead"
+            />
+            <Polygon
+              points={`${playheadX - 4},1 ${playheadX + 4},1 ${playheadX},7`}
+              fill={colors.loopPlayhead}
+              stroke={colors.background}
+              strokeWidth={1.5}
+              testID="loop-overview-playhead-cap"
+            />
+          </>
         )}
       </Svg>
     </View>

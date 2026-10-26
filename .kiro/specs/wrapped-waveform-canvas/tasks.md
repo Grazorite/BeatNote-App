@@ -183,6 +183,13 @@ gate: TypeScript (`npx tsc --noEmit`), unit tests
   - _Requirements: 17.1, 17.2, 17.3, 17.5, 17.6, 17.7_
   - Ensure all tests pass, ask the user if questions arise.
 
+- [x] 11.2 Align the overview waveform palette with wrapped playback progress
+  - Render the full overview waveform with the wrapped row's muted waveform token, then clip an
+    active-layer-colour overlay to elapsed playback while preserving semantic marker, playhead, and
+    loop colours. Give both the overview and active wrapped-row amber playheads a dark underlay and
+    triangular cap so they cannot be mistaken for markers or disappear into any active-layer colour.
+  - _Requirements: 17.8_
+
 ### Phase 5 — Gestures, seeking, and marker placement
 
 - [x] 12. Add seek and marker gestures to wrapped rows
