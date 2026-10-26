@@ -1,7 +1,7 @@
 import { Layer } from '../hooks/useStudioStore';
 import { ExportOptions, PDFExportOptions } from './exportTypes';
 import { danceCountAtTime } from './danceCount';
-import { getLayerDisplayName } from './layers';
+import { getExportLayerDisplayName } from './layers';
 
 function sanitizeProjectName(projectName: string): string {
   return projectName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -33,7 +33,7 @@ function collectVisibleMarkers(layers: Layer[]) {
       const annotation = layer.annotations.find((ann) => Math.abs(ann.timestamp - markerTime) < 100);
       allMarkers.push({
         time: markerTime,
-        layer: getLayerDisplayName(layer),
+        layer: getExportLayerDisplayName(layer),
         annotation: annotation?.text ?? '',
       });
     });
@@ -164,7 +164,7 @@ export function buildMidiData(options: ExportOptions): { filename: string; data:
     }
 
     layer.markers.forEach((markerTime) => {
-      allMarkers.push({ time: markerTime, layer: getLayerDisplayName(layer), layerObj: layer });
+      allMarkers.push({ time: markerTime, layer: getExportLayerDisplayName(layer), layerObj: layer });
     });
   });
 

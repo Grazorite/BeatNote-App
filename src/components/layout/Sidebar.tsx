@@ -135,9 +135,9 @@ const Sidebar: React.FC = () => {
                   <DanceCountVisibilityControl />
                   <CountSizeControl />
                 </View>
-                <Text style={styles.sectionLabel}>Layer names</Text>
+                <Text style={styles.sectionLabel}>Annotation lane</Text>
                 <View style={styles.sidebarSection}>
-                  <LayerNameSettings />
+                  <LayerNameSettings singleAnnotationLane />
                 </View>
                 <Text style={styles.sectionLabel}>Support</Text>
                 <View style={styles.sidebarSection}>

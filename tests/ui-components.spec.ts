@@ -58,6 +58,12 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-dance-counts')).toBeVisible();
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-count-size')).toBeVisible();
+    await expect(page.getByText('Annotation lane', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Annotations');
+    await expect(page.getByTestId('settings-layer-name-vocals'))
+      .toHaveAttribute('aria-label', 'Annotation lane name');
+    await expect(page.getByTestId('settings-layer-name-drums')).toHaveCount(0);
+    await expect(page.getByText('Layer names', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('count-size-8')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('count-size-6').click();
     await expect(page.getByTestId('count-size-6')).toHaveAttribute('aria-checked', 'true');
@@ -487,6 +493,8 @@ test.describe('UI Components & Layout', () => {
     await restoredLibraryRow.click();
     await page.getByTestId('sidebar-open-toggle').click();
     const layerNameInput = page.getByTestId('settings-layer-name-vocals');
+    await expect(layerNameInput).toHaveValue('Annotations');
+    await expect(page.getByTestId('settings-layer-name-drums')).toHaveCount(0);
     await layerNameInput.fill('Lead movement');
     await layerNameInput.press('Enter');
     await page.getByTestId('sidebar-toggle').click();
