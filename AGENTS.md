@@ -93,7 +93,6 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Implement custom layer names — `Layer.customName`, inline edit, project persistence
 - [ ] Implement PDF choreography export — `exportToPDF` + `PDFExportOptions`, add to `ExportModal`
 - [ ] Add annotation vocabulary suggestion chips to `AnnotationField`
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
@@ -118,6 +117,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
+      persistence, restored display names, accessibility labels, and named exports
+      <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Define stable provider-neutral product capabilities and the V1 Lite/Pro matrix behind a
       non-enforcing preview entitlement provider
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `src/features/entitlements/`</sub>
@@ -134,10 +137,6 @@ potentially adding a hybrid path later.
       durable documentation for `local-music-library-queue`, including consistent Project Manager
       action alignment and deterministic per-case native fixture isolation
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/`, `.kiro/steering/architecture-decisions.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/testing-strategy.md`, `scripts/ios-ui-test.js`, `src/components/ui/`, `tests/`</sub>
-
-- [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
-      draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -212,6 +211,35 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-26 — Add custom layer names
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `8df8c71`
+**Kanban moved:** custom layer names → Done
+
+**Changed:**
+
+- Added optional `customName` content without changing the six immutable layer IDs or defaults.
+- Added inline desktop editing plus an iPhone-accessible Layer names Settings section with reset,
+  length normalization, keyboard focus handling, and immediate dirty-state tracking.
+- Routed custom display names through the active-layer label, multitrack/wrapped views, project
+  persistence, restoration, CSV export, and accessibility labels.
+
+**Verified:**
+
+- Temporary normalization/persistence unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- Focused browser project journey → passed, including rename, save/copy, song switch, newest-project
+  restoration, and restored custom name in mobile Settings.
+
+**Not verified / known gaps:**
+
+- Spoken VoiceOver and physical-keyboard behavior remain part of hardware acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `8df8c71`.
+
+**Next agent should:**
+
+- Implement PDF choreography export and expose its options from the Project Manager export flow.
 
 ### 2026-10-26 — Add product capability boundary
 
@@ -305,7 +333,6 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
-
 ### 2026-10-25 — Finish local music library validation
 
 **Agent:** orchestrator (Codex) + DSH-Qwen durability checks · **Commit(s):** `2754c36`
@@ -343,35 +370,3 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run Task 44.4 on a signed physical iPhone and record the device/iOS result for each acceptance item.
-
-### 2026-10-24 — Complete retained library browser journeys
-
-**Agent:** orchestrator (Codex) + context/DSH reviewers · **Commit(s):** `701f239`
-**Kanban moved:** local-music-library-queue Task 41 → Done
-
-**Changed:**
-
-- Expanded the retained project journey through named Save, Save as New, newest-project restore,
-  dirty-draft Keep & Switch, confirmed CSV replacement with toast Undo, and seeded legacy relink.
-- Expanded the dock journey with three durable audio identities for restart/switch semantics,
-  First/Previous/Next, Shuffle, end-of-queue accessibility, and rapid Next coalescing.
-- Closed test-discovered product races: Project Manager now yields before showing a save prompt,
-  and authored changes update dirty state immediately while durable autosave remains debounced.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
-  search, and `git diff --check` → clean for the completed change.
-- Full retained Playwright gate → 6/6 journeys passed, including the concurrent waveform journeys.
-- Focused V1 toolbar, dock/queue, and project/CSV/legacy journeys each passed independently.
-
-**Not verified / known gaps:**
-
-- Task 42's expanded native XCTest journeys, physical-device queue/relink/VoiceOver behavior, and
-  long-session durability remain unverified.
-- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `701f239`.
-
-**Next agent should:**
-
-- Implement Task 42.1 by updating the launch/picker XCTest, then extend the annotation/restore,
-  queue transport, settings, and CSV/share native journeys in Tasks 42.2–42.5.

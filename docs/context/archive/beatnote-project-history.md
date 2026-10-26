@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Extend the retained browser journeys across project save/copy, newest-project restoration,
+      draft-preserving switches, CSV replace/undo, legacy relink, queue transport, and toolbar order
+      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `src/components/ui/controls/DockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add reproducible iOS audio document declarations and an autolinked native Open_In bridge with
       retained cold-launch URLs, serialized import/switch handling, and focused simulator coverage
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/design.md`, `.kiro/specs/local-music-library-queue/tasks.md`, `app.json`, `plugins/withAudioDocumentTypes.js`, `modules/library-storage/expo-module.config.json`, `modules/library-storage/ios/LibraryStorageModule.swift`, `modules/library-storage/src/index.ts`, `modules/library-storage/src/index.web.ts`, `scripts/ios-ui-test.js`, `src/features/library/useLibraryLifecycle.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
@@ -226,6 +230,38 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-24 — Complete retained library browser journeys
+
+**Agent:** orchestrator (Codex) + context/DSH reviewers · **Commit(s):** `701f239`
+**Kanban moved:** local-music-library-queue Task 41 → Done
+
+**Changed:**
+
+- Expanded the retained project journey through named Save, Save as New, newest-project restore,
+  dirty-draft Keep & Switch, confirmed CSV replacement with toast Undo, and seeded legacy relink.
+- Expanded the dock journey with three durable audio identities for restart/switch semantics,
+  First/Previous/Next, Shuffle, end-of-queue accessibility, and rapid Next coalescing.
+- Closed test-discovered product races: Project Manager now yields before showing a save prompt,
+  and authored changes update dirty state immediately while durable autosave remains debounced.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
+  search, and `git diff --check` → clean for the completed change.
+- Full retained Playwright gate → 6/6 journeys passed, including the concurrent waveform journeys.
+- Focused V1 toolbar, dock/queue, and project/CSV/legacy journeys each passed independently.
+
+**Not verified / known gaps:**
+
+- Task 42's expanded native XCTest journeys, physical-device queue/relink/VoiceOver behavior, and
+  long-session durability remain unverified.
+- Concurrent uncommitted wrapped-waveform/playhead edits remain outside `701f239`.
+
+**Next agent should:**
+
+- Implement Task 42.1 by updating the launch/picker XCTest, then extend the annotation/restore,
+  queue transport, settings, and CSV/share native journeys in Tasks 42.2–42.5.
 
 ### 2026-10-24 — Complete native audio Open_In delivery
 
