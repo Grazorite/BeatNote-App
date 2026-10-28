@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add configurable PDF choreography sheets with project header, timeline, marker list,
+      phrase/count grid, optional notes, native iOS generation/sharing, and web print-to-PDF
+      <sub>**Key Artifacts:** `package.json`, `src/components/ui/modals/ExportModal.tsx`, `src/features/library/projectService.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngine.web.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add project-scoped custom layer names with inline desktop and Settings editing, draft/project
       persistence, restored display names, accessibility labels, and named exports
       <sub>**Key Artifacts:** `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/hooks/useStudioStore.ts`, `src/types/project.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
@@ -251,6 +255,39 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-26 — Improve landscape safety and dance-count controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `eb683b8`
+**Kanban moved:** landscape overview safety and default-off dance counts → Done
+
+**Changed:**
+
+- Raised the landscape canvas by the device bottom safe area plus additional spacing, with an
+  18-point minimum clearance in environments that do not report safe-area insets.
+- Added an accessible Settings switch for phrase/count guidance, defaulted it off, and persisted it
+  per song draft/project while keeping phrase snapping and exports independent of visibility.
+- Hid live transport counts, row-gutter counts, phrase labels, and phrase emphasis when disabled;
+  documented that counts derive from BPM and song time zero rather than audio analysis.
+
+**Verified:**
+
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
+  search, and `git diff --check` → clean for the completed change.
+- Focused Settings, landscape dock, and restoration browser checks → 3/3 passed.
+- Full retained Playwright gate → 7/7 journeys passed, including default-off state, toggle-on
+  persistence after reload, and at least 18 points of landscape overview clearance.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone home-indicator swipe comfort and spoken VoiceOver behavior remain part of the
+  existing hardware acceptance backlog.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `eb683b8`.
+
+**Next agent should:**
+
+- Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
+  available; all currently listed local-only implementation work is complete.
 
 ### 2026-10-26 — Add choreography PDF export
 

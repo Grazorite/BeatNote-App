@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-10-29
-**Branch:** `codex/automatic-bpm-detection` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
+**Branch:** `codex/automatic-bpm-detection` · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -59,30 +59,27 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Complete the iOS 27 UIKit scene-lifecycle acceptance on a physical iPhone, including dev-client
-   URLs, background/foreground subscribers, and audio Open_In delivery. Simulator launch and the
-   focused native BPM flow pass with the generated scene configuration.
-2. Finish `automatic-bpm-detection` runtime acceptance: native cancellation latency, 150-second
+1. Finish `automatic-bpm-detection` runtime acceptance: native cancellation latency, 150-second
    peak memory, browser long-task/long-song measurements, and representative real-song/physical-
    device evidence. Web production wiring, synthetic native accuracy, and Phases 2–7 are
    implemented; downbeat estimation remains deliberately open.
-3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
+2. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
    third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
    near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
-4. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
+3. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
-5. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+4. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-6. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
+5. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-7. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+6. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-8. Keep the completed local choreography workflow stable while physical-device acceptance and the
+7. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -104,8 +101,6 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Restore physical-iPhone launch under the iOS 27 SDK by adopting the UIKit scene lifecycle
-      without regressing Expo lifecycle subscribers, dev-client URLs, or audio Open_In delivery
 - [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
       exports, retained browser flow, and octave-resolved native synthetic XCTest are implemented;
@@ -128,6 +123,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Restore physical-iPhone launch under the iOS 27 SDK with a reproducible UIKit scene-lifecycle
+      bridge while preserving Expo's launch bootstrap and local dev-client URL delivery
+      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `app.json`, `plugins/withIosSceneLifecycle.js`</sub>
+
 - [x] Reconcile the completed waveform progress/playhead visuals and approve the requirements,
       architecture, and phased plan for automatic BPM, beat-anchor, and phrase-start assistance
       <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/`, `.kiro/specs/wrapped-waveform-canvas/requirements.md`, `.kiro/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
@@ -143,10 +142,6 @@ potentially adding a hybrid path later.
 - [x] Add the built-in choreography vocabulary as accessible suggestion chips in the desktop
       annotation field and iPhone editor while preserving free-form annotation entry
       <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/AnnotationSuggestionChips.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/utils/annotationSuggestions.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add configurable PDF choreography sheets with project header, timeline, marker list,
-      phrase/count grid, optional notes, native iOS generation/sharing, and web print-to-PDF
-      <sub>**Key Artifacts:** `package.json`, `src/components/ui/modals/ExportModal.tsx`, `src/features/library/projectService.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngine.web.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -221,6 +216,43 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Verify physical iOS 27 launch
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`
+**Kanban moved:** physical-iPhone iOS 27 scene launch → Done
+
+**Changed:**
+
+- Closed the scene-lifecycle launch task after validating the generated config-plugin output on an
+  iPhone 15 Pro Max running iOS 27.0.1.
+- Documented the locally signed Xcode/CLI workflow and the wired local Metro payload path used when
+  the phone is not on the Mac's Wi-Fi network.
+
+**Verified:**
+
+- Signed Debug device build with Xcode 27.1 and the iOS 27.1 SDK → succeeded for
+  `com.beatnote.app`; installation and `devicectl` launch both succeeded on the connected phone.
+- Native shell → reached Expo Development Build without the former UIScene runtime failure.
+- Local wired payload URL → Metro bundled 1,370 modules and the physical phone rendered the
+  BeatNote studio UI; startup also completed the library orphan sweep.
+- Background/foreground scene cycle → after foregrounding iOS Settings, BeatNote reactivated with
+  its loaded song, waveform, markers, playhead, and loop state intact.
+- Version consistency, `npx tsc --noEmit`, the intentionally empty unit gate, JavaScript syntax,
+  full retained Playwright gate (7/7), `git diff --check`, and orchestrator close-contract
+  validation → passed.
+
+**Not verified / known gaps:**
+
+- Physical Files/third-party Open In, background audio continuity, interruptions,
+  Bluetooth, and the remainder of the existing device acceptance matrix are still open.
+- The public-tunnel option was deliberately not used; the verified development path stays local to
+  the Mac/iPhone wired connection.
+
+**Next agent should:**
+
+- Continue Task 44.4 with physical Files import and third-party Open In, then exercise playback,
+  backgrounding, and force-quit draft restoration with a representative song.
 
 ### 2026-10-29 — Verify native BPM and restore scene launch
 
@@ -378,36 +410,4 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Begin the physical-iPhone acceptance pass from the current `1.0.0` development build.
 
-### 2026-10-26 — Improve landscape safety and dance-count controls
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `eb683b8`
-**Kanban moved:** landscape overview safety and default-off dance counts → Done
-
-**Changed:**
-
-- Raised the landscape canvas by the device bottom safe area plus additional spacing, with an
-  18-point minimum clearance in environments that do not report safe-area insets.
-- Added an accessible Settings switch for phrase/count guidance, defaulted it off, and persisted it
-  per song draft/project while keeping phrase snapping and exports independent of visibility.
-- Hid live transport counts, row-gutter counts, phrase labels, and phrase emphasis when disabled;
-  documented that counts derive from BPM and song time zero rather than audio analysis.
-
-**Verified:**
-
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, disabled-test
-  search, and `git diff --check` → clean for the completed change.
-- Focused Settings, landscape dock, and restoration browser checks → 3/3 passed.
-- Full retained Playwright gate → 7/7 journeys passed, including default-off state, toggle-on
-  persistence after reload, and at least 18 points of landscape overview clearance.
-
-**Not verified / known gaps:**
-
-- Physical-iPhone home-indicator swipe comfort and spoken VoiceOver behavior remain part of the
-  existing hardware acceptance backlog.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `eb683b8`.
-
-**Next agent should:**
-
-- Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
-  available; all currently listed local-only implementation work is complete.
 <!-- end handover log -->

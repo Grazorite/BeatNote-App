@@ -6,9 +6,10 @@ inclusion: always
 
 ## Status
 
-The generated iOS app builds and the XCTest UI suite runs on Xcode 27's iOS simulator runtime.
-Apple Developer enrollment and TestFlight setup remain pending; they are not required for simulator
-development.
+The generated iOS app builds and the XCTest UI suite runs on Xcode 27's iOS simulator runtime. A
+locally signed development build also launches on an iPhone 15 Pro Max running iOS 27.0.1. Apple
+Developer enrollment for distribution and TestFlight setup remain pending; they are not required
+for simulator development or the current locally signed device workflow.
 
 The generated `ios/` directory is intentionally ignored. Native configuration must be expressed in
 `app.json` or Expo config plugins so `expo prebuild` can reproduce it.
@@ -18,6 +19,27 @@ The generated `ios/` directory is intentionally ignored. Native configuration mu
 `didFinishLaunchingWithOptions` so Expo Dev Launcher subscribers receive their prepared bridge and
 key window; the scene delegate then attaches that existing window to the connected `UIWindowScene`
 and forwards scene lifecycle, URL, and user-activity events through `AppDelegate`.
+
+### Physical development build on iOS 27
+
+1. Connect and unlock the iPhone, enable Developer Mode, and trust/pair it with Xcode.
+2. Start Metro on the Mac host network. For a wired phone that is not on the same Wi-Fi network,
+   identify the Mac-side link-local address (for example with `ifconfig`) and keep Metro listening
+   on port 8081.
+3. Open `ios/BeatNote.xcworkspace`, select the `BeatNote` scheme and the physical phone, then use
+   Product > Run. A CLI build may need `CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION=YES` because the
+   Expo configure phase updates development entitlements before signing.
+4. If Expo Dev Launcher cannot discover Metro, launch the installed app with a development-client
+   payload URL that points to the Mac-side wired address. Do not expose Metro through a public
+   tunnel merely to avoid local network setup.
+
+The physical iOS 27 acceptance on 2026-10-29 proved both stages independently: the signed native
+shell reached Expo Dev Launcher without the former `UIScene life cycle is required` failure, and a
+wired local payload URL loaded the 1,370-module bundle into BeatNote's studio UI. Foregrounding
+iOS Settings and returning to the existing BeatNote process restored the loaded song, waveform,
+markers, playhead, and loop state. This verifies scene adoption, dev-client URL forwarding, and
+basic scene reactivation. Physical Files/third-party Open In and background audio continuity remain
+separate acceptance items.
 
 ## Local simulator workflow
 
