@@ -193,43 +193,79 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
             <Text style={styles.title}>Playback speed</Text>
             <Text style={styles.currentValue} testID="playback-speed-value">{formatSpeedLabel(value)}</Text>
           </View>
-          <View
-            testID="playback-speed-slider"
-            style={styles.sliderTouchArea}
-            onLayout={onTrackLayout}
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}
-            onResponderGrant={onTrackGrant}
-            onResponderMove={onTouch}
-            onResponderRelease={finishPopupInteraction}
-            onResponderTerminate={finishPopupInteraction}
-            accessible
-            accessibilityRole="adjustable"
-            accessibilityLabel="Playback speed slider"
-            accessibilityValue={{
-              min: MIN_PLAYBACK_SPEED,
-              max: MAX_PLAYBACK_SPEED,
-              now: value,
-              text: formatSpeedLabel(value),
-            }}
-            aria-valuemin={MIN_PLAYBACK_SPEED}
-            aria-valuemax={MAX_PLAYBACK_SPEED}
-            aria-valuenow={value}
-            aria-valuetext={formatSpeedLabel(value)}
-            accessibilityActions={[
-              { name: 'increment', label: 'Increase playback speed' },
-              { name: 'decrement', label: 'Decrease playback speed' },
-            ]}
-            onAccessibilityAction={onAdjust}
-          >
-            <View pointerEvents="none" style={styles.sliderTrack}>
-              <View style={[styles.sliderFill, { width: `${progress * 100}%` }]} />
-              <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+          <View style={styles.sliderControls}>
+            <TouchableOpacity
+              testID="playback-speed-decrement"
+              style={[styles.stepButton, value <= MIN_PLAYBACK_SPEED && styles.stepButtonDisabled]}
+              onPress={() => {
+                restorePopup();
+                stepSpeed(-1);
+                scheduleCloseAfterDrag();
+              }}
+              disabled={value <= MIN_PLAYBACK_SPEED}
+              accessibilityRole="button"
+              accessibilityLabel={`Decrease playback speed by ${PLAYBACK_SPEED_STEP}×`}
+              accessibilityHint={`Current speed ${formatSpeedLabel(value)}`}
+              accessibilityState={{ disabled: value <= MIN_PLAYBACK_SPEED }}
+            >
+              <Text style={styles.stepButtonText}>−</Text>
+            </TouchableOpacity>
+            <View style={styles.sliderColumn}>
+              <View
+                testID="playback-speed-slider"
+                style={styles.sliderTouchArea}
+                onLayout={onTrackLayout}
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={onTrackGrant}
+                onResponderMove={onTouch}
+                onResponderRelease={finishPopupInteraction}
+                onResponderTerminate={finishPopupInteraction}
+                accessible
+                accessibilityRole="adjustable"
+                accessibilityLabel="Playback speed slider"
+                accessibilityValue={{
+                  min: MIN_PLAYBACK_SPEED,
+                  max: MAX_PLAYBACK_SPEED,
+                  now: value,
+                  text: formatSpeedLabel(value),
+                }}
+                aria-valuemin={MIN_PLAYBACK_SPEED}
+                aria-valuemax={MAX_PLAYBACK_SPEED}
+                aria-valuenow={value}
+                aria-valuetext={formatSpeedLabel(value)}
+                accessibilityActions={[
+                  { name: 'increment', label: 'Increase playback speed' },
+                  { name: 'decrement', label: 'Decrease playback speed' },
+                ]}
+                onAccessibilityAction={onAdjust}
+              >
+                <View pointerEvents="none" style={styles.sliderTrack}>
+                  <View style={[styles.sliderFill, { width: `${progress * 100}%` }]} />
+                  <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                </View>
+              </View>
+              <View style={styles.rangeLabels}>
+                <Text style={styles.rangeLabel}>{formatSpeedLabel(MIN_PLAYBACK_SPEED)}</Text>
+                <Text style={styles.rangeLabel}>{formatSpeedLabel(MAX_PLAYBACK_SPEED)}</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.rangeLabels}>
-            <Text style={styles.rangeLabel}>{formatSpeedLabel(MIN_PLAYBACK_SPEED)}</Text>
-            <Text style={styles.rangeLabel}>{formatSpeedLabel(MAX_PLAYBACK_SPEED)}</Text>
+            <TouchableOpacity
+              testID="playback-speed-increment"
+              style={[styles.stepButton, value >= MAX_PLAYBACK_SPEED && styles.stepButtonDisabled]}
+              onPress={() => {
+                restorePopup();
+                stepSpeed(1);
+                scheduleCloseAfterDrag();
+              }}
+              disabled={value >= MAX_PLAYBACK_SPEED}
+              accessibilityRole="button"
+              accessibilityLabel={`Increase playback speed by ${PLAYBACK_SPEED_STEP}×`}
+              accessibilityHint={`Current speed ${formatSpeedLabel(value)}`}
+              accessibilityState={{ disabled: value >= MAX_PLAYBACK_SPEED }}
+            >
+              <Text style={styles.stepButtonText}>+</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.presets}>
             {options.map(option => {

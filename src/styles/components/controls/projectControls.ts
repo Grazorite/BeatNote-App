@@ -21,7 +21,11 @@ export const projectControlsStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 4,
-    paddingHorizontal: 6,
+    paddingHorizontal: 10,
+  },
+  mobileActionsLandscape: {
+    paddingLeft: 10,
+    paddingRight: 0,
   },
   libraryStatus: {
     color: colors.textSecondary,

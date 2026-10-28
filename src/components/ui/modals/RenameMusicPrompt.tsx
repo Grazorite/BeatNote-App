@@ -19,6 +19,7 @@ export interface RenameMusicPromptProps {
   initialTitle: string;
   onClose: () => void;
   onConfirm: (title: string) => Promise<string | null>;
+  onDismiss?: () => void;
 }
 
 const focusNode = (node: unknown): void => {
@@ -32,6 +33,7 @@ const RenameMusicPrompt: React.FC<RenameMusicPromptProps> = ({
   initialTitle,
   onClose,
   onConfirm,
+  onDismiss,
 }) => {
   const titleRef = useRef<Text>(null);
   const [value, setValue] = useState(initialTitle);
@@ -68,6 +70,7 @@ const RenameMusicPrompt: React.FC<RenameMusicPromptProps> = ({
       visible={visible}
       transparent
       animationType="fade"
+      onDismiss={onDismiss}
       onRequestClose={close}
       onShow={() => focusNode(titleRef.current)}
       accessibilityViewIsModal

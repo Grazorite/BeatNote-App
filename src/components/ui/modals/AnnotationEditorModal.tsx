@@ -12,6 +12,7 @@ interface AnnotationEditorModalProps {
   initialText: string;
   onCancel: () => void;
   onSave: (text: string) => void;
+  onDismiss?: () => void;
 }
 
 const formatMarkerTime = (timestamp: number): string => {
@@ -28,6 +29,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
   initialText,
   onCancel,
   onSave,
+  onDismiss,
 }) => {
   const [draft, setDraft] = useState(initialText);
 
@@ -36,7 +38,13 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
   }, [initialText, visible]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onDismiss={onDismiss}
+      onRequestClose={onCancel}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
@@ -48,7 +56,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
             <Text style={styles.timestamp}>Marker at {formatMarkerTime(marker.timestamp)}</Text>
           )}
           <TextInput
-            key={`${marker?.layerId ?? 'none'}-${marker?.timestamp ?? 0}-${visible ? 'open' : 'closed'}-${initialText}`}
+            key={`${marker?.layerId ?? 'none'}-${marker?.timestamp ?? 0}`}
             autoFocus
             multiline
             maxLength={500}

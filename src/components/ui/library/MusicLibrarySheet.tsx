@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   Platform,
   Text,
   TextInput,
@@ -106,6 +107,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const [focused, setFocused] = useState<string | null>(null);
   const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
   const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
+  const pendingRenameItemsRef = useRef<typeof libraryItems | null>(null);
   const [deletePrompt, setDeletePrompt] = useState<DeletePromptState | null>(null);
   const [actionBusyId, setActionBusyId] = useState<string | null>(null);
   const [relinkConfirmation, setRelinkConfirmation] = useState<RelinkPromptState | null>(null);
@@ -132,6 +134,13 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     || saveInProgress
     || activeLoadingId !== null
     || actionBusyId !== null;
+
+  const publishPendingRename = useCallback(() => {
+    const items = pendingRenameItemsRef.current;
+    if (items === null) return;
+    pendingRenameItemsRef.current = null;
+    useStudioStore.setState({ libraryItems: items });
+  }, []);
 
   useEffect(() => {
     if (
@@ -450,11 +459,15 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
         visible={renameItem !== null}
         initialTitle={renameItem?.displayTitle ?? ''}
         onClose={() => setRenameItem(null)}
+        onDismiss={publishPendingRename}
         onConfirm={async title => {
           if (renameItem === null) return null;
-          const result = await renameMusicItem(renameItem.id, title);
+          const result = await renameMusicItem(renameItem.id, title, { publish: false });
           if (result.kind === 'renamed') {
+            pendingRenameItemsRef.current = result.items;
+            Keyboard.dismiss();
             setRenameItem(null);
+            if (Platform.OS !== 'ios') requestAnimationFrame(publishPendingRename);
             return null;
           }
           return result.error;

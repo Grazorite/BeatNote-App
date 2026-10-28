@@ -22,7 +22,6 @@ import {
   type WrappedRow as WrappedRowModel,
 } from '../../../utils/rowLayout';
 import {
-  clipRowProgress,
   loopSegmentsForRows,
   timestampToRow,
   type RowLoopSegment,
@@ -59,7 +58,6 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
 }) => {
   const window = useWindowDimensions();
   const isLandscape = window.width > window.height;
-  const currentTime = useStudioStore(state => state.currentTime);
   const songDuration = useStudioStore(state => state.songDuration);
   const songLoaded = useStudioStore(state => state.songLoaded);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
@@ -252,7 +250,6 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       rowHeight={rowHeight}
       gutterWidth={gutterWidth}
       isActiveRow={row.index === activeRowIndex}
-      progress={clipRowProgress(row, currentTime)}
       activeLayerColor={activeLayerColor}
       markersByLayer={markersByRow.get(row.index) ?? EMPTY_MARKERS}
       peaks={realPeaks}

@@ -16,11 +16,13 @@ import SongTitleControl from './SongTitleControl';
 interface ProjectControlsProps {
   audioFilename: string | null;
   isMobile?: boolean;
+  isLandscape?: boolean;
 }
 
 const ProjectControls: React.FC<ProjectControlsProps> = ({
   audioFilename: _audioFilename,
   isMobile = false,
+  isLandscape = false,
 }) => {
   const {
     toggleSidebar,
@@ -233,7 +235,12 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         </Text>
       )}
       {isMobile ? (
-        <View style={styles.mobileActions} testID="project-actions-scroll">{actions}</View>
+        <View
+          style={[styles.mobileActions, isLandscape && styles.mobileActionsLandscape]}
+          testID="project-actions-scroll"
+        >
+          {actions}
+        </View>
       ) : actions}
 
       <SaveProjectPrompt

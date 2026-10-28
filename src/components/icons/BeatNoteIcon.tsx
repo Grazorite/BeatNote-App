@@ -52,7 +52,7 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <><Rect x="4" y="4" width="16" height="16" rx="3" {...common} /><Path d="M8 4v6h8V4M8 20v-6h8v6" {...common} /></>;
       case 'import':
       case 'export': {
-        const arrow = name === 'import' ? 'M21 13h-9m3-3-3 3 3 3' : 'M12 13h9m-3-3 3 3-3 3';
+        const arrow = name === 'import' ? 'M19 13h-7m3-3-3 3 3 3' : 'M12 13h7m-3-3 3 3-3 3';
         return <><Path d="M4 4h7l4 4v12H4Z M11 4v4h4" {...common} /><Path d={arrow} {...common} /></>;
       }
       case 'settings':

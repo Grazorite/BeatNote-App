@@ -58,6 +58,34 @@ export const playbackSpeedControlStyles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
+  sliderControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sliderColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  stepButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.borderEmphasis,
+    backgroundColor: colors.surfaceRaised,
+  },
+  stepButtonDisabled: {
+    opacity: 0.35,
+  },
+  stepButtonText: {
+    color: colors.text,
+    fontSize: 24,
+    lineHeight: 26,
+    fontWeight: '700',
+  },
   sliderTouchArea: {
     height: 38,
     justifyContent: 'center',

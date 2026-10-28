@@ -1,5 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, ScrollView, Platform, useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  InteractionManager,
+  Keyboard,
+  View,
+  Text,
+  ScrollView,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
@@ -83,6 +91,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const opacity = useSharedValue(1);
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
+  const pendingAnnotationSaveRef = useRef<{ marker: SelectedMarker; text: string } | null>(null);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
@@ -119,11 +128,21 @@ const MainContent: React.FC<MainContentProps> = ({
     setEditingMarker(marker);
   };
   const closeAnnotationEditor = () => setEditingMarker(null);
+  const commitPendingAnnotationSave = useCallback(() => {
+    const pending = pendingAnnotationSaveRef.current;
+    if (pending === null) return;
+    pendingAnnotationSaveRef.current = null;
+    updateMarkerAnnotation(pending.marker.layerId, pending.marker.timestamp, pending.text);
+    toast.show(pending.text.trim() ? 'Annotation saved' : 'Annotation removed');
+  }, [toast.show, updateMarkerAnnotation]);
   const saveAnnotation = (text: string) => {
     if (!editingMarker) return;
-    updateMarkerAnnotation(editingMarker.layerId, editingMarker.timestamp, text);
+    pendingAnnotationSaveRef.current = { marker: editingMarker, text };
+    Keyboard.dismiss();
     setEditingMarker(null);
-    toast.show(text.trim() ? 'Annotation saved' : 'Annotation removed');
+    if (Platform.OS !== 'ios') {
+      InteractionManager.runAfterInteractions(commitPendingAnnotationSave);
+    }
   };
   
   // Pass focus function to parent
@@ -157,6 +176,7 @@ const MainContent: React.FC<MainContentProps> = ({
     <ProjectControls
       audioFilename={audioFilename}
       isMobile={isMobile}
+      isLandscape={isLandscapePhone}
     />
   );
   const waveformCapabilityMessage = hasLoadedSong && !capabilities.waveformAccess
@@ -314,6 +334,7 @@ const MainContent: React.FC<MainContentProps> = ({
           initialText={editingAnnotation}
           onCancel={closeAnnotationEditor}
           onSave={saveAnnotation}
+          onDismiss={commitPendingAnnotationSave}
         />
       </View>
     );

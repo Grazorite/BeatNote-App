@@ -6,7 +6,7 @@ import { danceCountDisplayStyles as styles } from '../../../styles/components/co
 import { formatDanceCount } from '../../../utils/danceCount';
 
 const DanceCountDisplay: React.FC = () => {
-  const currentTime = useStudioStore(state => state.currentTime);
+  const currentTime = useStudioStore(state => state.showDanceCounts ? state.currentTime : 0);
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const songLoaded = useStudioStore(state => state.songLoaded);

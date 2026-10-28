@@ -27,7 +27,6 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast
   const loopEndMs = useStudioStore(state => state.loopEndMs);
   const songDuration = useStudioStore(state => state.songDuration);
   const isLoopRangeEnabled = useStudioStore(state => state.isLoopRangeEnabled);
-  const currentTime = useStudioStore(state => state.currentTime);
   const setLoopStartAtPlayhead = useStudioStore(state => state.setLoopStartAtPlayhead);
   const setLoopEndAtPlayhead = useStudioStore(state => state.setLoopEndAtPlayhead);
   const clearLoopRange = useStudioStore(state => state.clearLoopRange);
@@ -70,11 +69,11 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast
       accessibilityActions={accessibilityActions}
       onAccessibilityAction={event => {
         if (event.nativeEvent.actionName === 'setLoopStart') {
-          setLoopStartAtPlayhead(currentTime);
+          setLoopStartAtPlayhead(useStudioStore.getState().currentTime);
           announceBound('start');
         }
         if (event.nativeEvent.actionName === 'setLoopEnd') {
-          setLoopEndAtPlayhead(currentTime);
+          setLoopEndAtPlayhead(useStudioStore.getState().currentTime);
           announceBound('end');
         }
         if (event.nativeEvent.actionName === 'clearLoop' && validRange) clearLoopRange(Date.now());
@@ -114,7 +113,7 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast
             accessibilityRole="button"
             accessibilityLabel="Set loop start at playhead"
             onPress={() => {
-              setLoopStartAtPlayhead(currentTime);
+              setLoopStartAtPlayhead(useStudioStore.getState().currentTime);
               announceBound('start');
             }}
             tabIndex={-1}
@@ -125,7 +124,7 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast
             accessibilityRole="button"
             accessibilityLabel="Set loop end at playhead"
             onPress={() => {
-              setLoopEndAtPlayhead(currentTime);
+              setLoopEndAtPlayhead(useStudioStore.getState().currentTime);
               announceBound('end');
             }}
             tabIndex={-1}

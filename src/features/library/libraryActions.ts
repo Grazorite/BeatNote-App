@@ -17,7 +17,7 @@ import {
 import { cancelAnalysis, invalidateAnalysis } from '../analysis/bpmAnalysisService';
 
 export type RenameMusicItemResult =
-  | { kind: 'renamed'; title: string }
+  | { kind: 'renamed'; title: string; items: LibraryRecord['items'] }
   | { kind: 'invalid'; error: string }
   | { kind: 'failed'; error: string };
 
@@ -46,6 +46,7 @@ const repositoryOptions = (): RepositoryOptions => ({
 export async function renameMusicItem(
   musicItemId: string,
   requestedTitle: string,
+  options: { publish?: boolean } = {},
 ): Promise<RenameMusicItemResult> {
   const title = normalizeDisplayTitle(requestedTitle);
   if (title === null) return { kind: 'invalid', error: 'Enter a song name' };
@@ -65,8 +66,8 @@ export async function renameMusicItem(
       };
       return { library: next, result: next };
     }, repositoryOptions());
-    useStudioStore.setState({ libraryItems: library.items });
-    return { kind: 'renamed', title };
+    if (options.publish !== false) useStudioStore.setState({ libraryItems: library.items });
+    return { kind: 'renamed', title, items: library.items };
   } catch (error) {
     return {
       kind: 'failed',

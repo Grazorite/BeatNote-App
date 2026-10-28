@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Polygon, Rect, Text as SvgText } from 'react-native-svg';
@@ -7,7 +7,11 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
 import { clusterAnnotationIndicators } from '../../../utils/annotationClusters';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
-import { pointerToTimestamp, type RowLoopSegment } from '../../../utils/timelineMapping';
+import {
+  clipRowProgress,
+  pointerToTimestamp,
+  type RowLoopSegment,
+} from '../../../utils/timelineMapping';
 import RowGutter from './RowGutter';
 import { wrappedRowStyles as styles } from '../../../styles/components/waveform/wrappedRow';
 import { colors } from '../../../styles/common';
@@ -26,7 +30,6 @@ interface WrappedRowProps {
   rowHeight: number;
   gutterWidth: number;
   isActiveRow: boolean;
-  progress: number;
   activeLayerColor: string;
   markersByLayer: WrappedLayerMarkers[];
   peaks?: number[];
@@ -102,7 +105,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   rowHeight,
   gutterWidth,
   isActiveRow,
-  progress,
   activeLayerColor,
   markersByLayer,
   peaks,
@@ -117,6 +119,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   onSelectForDetail,
 }) => {
   const scrubStartedRef = useRef(false);
+  const progress = useStudioStore(state => clipRowProgress(row, state.currentTime));
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
   const safeProgress = Math.max(0, Math.min(1, progress));
@@ -159,8 +162,11 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     );
   }, [peaks, row.endMs, row.startMs, rowPixelWidth, totalDuration, waveformHeight]);
 
-  const timeAtPosition = (x: number) => pointerToTimestamp({ row, rowPixelWidth }, x);
-  const markerAtPosition = (x: number) => {
+  const timeAtPosition = useCallback(
+    (x: number) => pointerToTimestamp({ row, rowPixelWidth }, x),
+    [row, rowPixelWidth],
+  );
+  const markerAtPosition = useCallback((x: number) => {
     let closest: { layerId: LayerId; timestamp: number; distance: number } | null = null;
     markersByLayer.forEach(layer => layer.timestamps.forEach(timestamp => {
       const distance = Math.abs(markerX(row, timestamp, rowPixelWidth) - x);
@@ -169,45 +175,57 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
       }
     }));
     return closest as { layerId: LayerId; timestamp: number; distance: number } | null;
-  };
+  }, [markersByLayer, row, rowPixelWidth]);
 
-  const tapGesture = Gesture.Tap()
-    .runOnJS(true)
-    .maxDuration(250)
-    .onEnd(event => {
-      const targetTime = timeAtPosition(event.x);
-      if (event.y <= markerLaneHeight) {
-        const marker = markerAtPosition(event.x);
-        if (marker) {
-          onSelectMarker(marker.layerId, marker.timestamp);
-          onSeek(marker.timestamp);
-          return;
+  const composedGesture = useMemo(() => {
+    const tapGesture = Gesture.Tap()
+      .runOnJS(true)
+      .maxDuration(250)
+      .onEnd(event => {
+        const targetTime = timeAtPosition(event.x);
+        if (event.y <= markerLaneHeight) {
+          const marker = markerAtPosition(event.x);
+          if (marker) {
+            onSelectMarker(marker.layerId, marker.timestamp);
+            onSeek(marker.timestamp);
+            return;
+          }
         }
-      }
-      onSeek(targetTime);
-    });
+        onSeek(targetTime);
+      });
 
-  const panGesture = Gesture.Pan()
-    .runOnJS(true)
-    .activeOffsetX([-6, 6])
-    .failOffsetY([-12, 12])
-    .onStart(() => {
-      scrubStartedRef.current = true;
-      onScrubStart();
-    })
-    .onUpdate(event => {
-      const targetTime = timeAtPosition(event.x);
-      setCurrentTime(targetTime);
-      setGhostPlayheadTime(targetTime);
-    })
-    .onFinalize(() => {
-      if (!scrubStartedRef.current) return;
-      scrubStartedRef.current = false;
-      setGhostPlayheadTime(null);
-      onScrubEnd();
-    });
+    const panGesture = Gesture.Pan()
+      .runOnJS(true)
+      .activeOffsetX([-6, 6])
+      .failOffsetY([-12, 12])
+      .onStart(() => {
+        scrubStartedRef.current = true;
+        onScrubStart();
+      })
+      .onUpdate(event => {
+        const targetTime = timeAtPosition(event.x);
+        setCurrentTime(targetTime);
+        setGhostPlayheadTime(targetTime);
+      })
+      .onFinalize(() => {
+        if (!scrubStartedRef.current) return;
+        scrubStartedRef.current = false;
+        setGhostPlayheadTime(null);
+        onScrubEnd();
+      });
 
-  const composedGesture = Gesture.Race(tapGesture, panGesture);
+    return Gesture.Race(tapGesture, panGesture);
+  }, [
+    markerAtPosition,
+    markerLaneHeight,
+    onScrubEnd,
+    onScrubStart,
+    onSeek,
+    onSelectMarker,
+    setCurrentTime,
+    setGhostPlayheadTime,
+    timeAtPosition,
+  ]);
 
   return (
     <View style={[styles.row, { height: rowHeight }]}>
@@ -474,7 +492,6 @@ const areWrappedRowPropsEqual = (previous: WrappedRowProps, next: WrappedRowProp
   && previous.rowHeight === next.rowHeight
   && previous.gutterWidth === next.gutterWidth
   && previous.isActiveRow === next.isActiveRow
-  && previous.progress === next.progress
   && previous.activeLayerColor === next.activeLayerColor
   && previous.markersByLayer === next.markersByLayer
   && previous.peaks === next.peaks

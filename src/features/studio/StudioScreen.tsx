@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { KeyboardAvoidingView, Platform, useWindowDimensions, View } from 'react-native';
+import { Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../hooks/useStudioStore';
@@ -65,9 +65,7 @@ export default function StudioScreen() {
 
   return (
     <View style={styles.mainContainer}>
-      <KeyboardAvoidingView
-        enabled={isMobile && Platform.OS !== 'web'}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
         style={[
           styles.scrollView,
           {
@@ -97,7 +95,7 @@ export default function StudioScreen() {
         onFocusTextInput={registerFocusTextInput}
         safeAreaBottom={insets.bottom}
         />
-      </KeyboardAvoidingView>
+      </View>
       <Sidebar />
       <HelpScreen 
         visible={showHelpScreen}

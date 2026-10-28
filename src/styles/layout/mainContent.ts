@@ -59,7 +59,8 @@ export const mainContentStyles = StyleSheet.create({
     borderLeftColor: colors.border,
     justifyContent: 'center',
     paddingHorizontal: 6,
-    paddingTop: 4,
+    paddingTop: 6,
+    paddingBottom: 6,
   },
   landscapeMarkerActions: {
     width: '100%',

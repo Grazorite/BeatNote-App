@@ -44,7 +44,6 @@ export function useWrappedRows(
   const bpm = useStudioStore((s) => s.bpm);
   const countSize = useStudioStore((s) => s.countSize);
   const rowDensity = useStudioStore((s) => s.rowDensity);
-  const currentTime = useStudioStore((s) => s.currentTime);
 
   const { rows, recomputeKey } = useMemo(() => {
     const duration = Math.max(0, Math.round(toFiniteNumber(songDuration)));
@@ -96,7 +95,9 @@ export function useWrappedRows(
     overscan,
   );
 
-  const activeRowIndex = timestampToRow(rows, toFiniteNumber(currentTime));
+  const activeRowIndex = useStudioStore(state => (
+    timestampToRow(rows, toFiniteNumber(state.currentTime))
+  ));
 
   return {
     rows,

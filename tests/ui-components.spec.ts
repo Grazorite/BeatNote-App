@@ -248,6 +248,22 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('playback-speed-glass')).toBeVisible();
     await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemin', '0.5');
     await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemax', '2');
+    const decrementSpeed = page.getByTestId('playback-speed-decrement');
+    const incrementSpeed = page.getByTestId('playback-speed-increment');
+    await expect(decrementSpeed).toBeEnabled();
+    await expect(incrementSpeed).toBeEnabled();
+    await decrementSpeed.click();
+    await expect(page.getByTestId('playback-speed')).toContainText('0.95×');
+    await incrementSpeed.click();
+    await expect(page.getByTestId('playback-speed')).toContainText('1×');
+    await page.getByRole('button', { name: 'Select 0.5× playback speed' }).click();
+    await expect(decrementSpeed).toBeDisabled();
+    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    await page.getByTestId('playback-speed').click();
+    await page.getByRole('button', { name: 'Select 2× playback speed' }).click();
+    await expect(incrementSpeed).toBeDisabled();
+    await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
+    await page.getByTestId('playback-speed').click();
     await page.getByRole('button', { name: 'Select 0.75× playback speed' }).click();
     await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
     await expect(page.getByTestId('dock-toast')).toHaveCount(0);
@@ -380,6 +396,9 @@ test.describe('UI Components & Layout', () => {
       const overview = box('loop-overview');
       const rail = box('landscape-control-rail');
       const glass = box('control-dock-glass');
+      const title = box('song-title-control');
+      const settings = box('sidebar-open-toggle');
+      const waveform = box('waveform-container');
       return {
         leftColumn: [previousMarker?.x, addMarker?.x, innerLoop?.x, repeat?.x, firstTrack?.x, previousTrack?.x],
         rightColumn: [nextMarker?.x, removePrevious?.x, annotation?.x, speed?.x, shuffle?.x, nextTrack?.x],
@@ -391,6 +410,9 @@ test.describe('UI Components & Layout', () => {
         lastControlBottom: previousTrack?.bottom,
         rail: rail ? { top: rail.top, bottom: rail.bottom, left: rail.left, right: rail.right, width: rail.width } : null,
         glass: glass ? { width: glass.width, height: glass.height } : null,
+        title: title ? { left: title.left } : null,
+        settings: settings ? { right: settings.right } : null,
+        waveform: waveform ? { left: waveform.left } : null,
       };
     });
     expect(new Set(landscape.leftColumn).size).toBe(1);
@@ -405,17 +427,23 @@ test.describe('UI Components & Layout', () => {
     expect(landscape.rail?.width).toBeLessThanOrEqual(110);
     expect(landscape.ordinary?.height).toBeGreaterThanOrEqual(38);
     expect((landscape.ordinary?.width ?? 0) / (landscape.ordinary?.height ?? 1)).toBeLessThanOrEqual(1.2);
-    expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeLessThanOrEqual(2);
+    expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeGreaterThanOrEqual(4);
+    expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeLessThanOrEqual(8);
     expect(landscape.overview?.right).toBeLessThanOrEqual((landscape.rail?.left ?? 0) + 1);
     expect(390 - (landscape.overview?.bottom ?? 390)).toBeGreaterThanOrEqual(18);
     expect(landscape.annotation?.left).toBeGreaterThanOrEqual((landscape.rail?.left ?? 0) - 1);
     expect(Math.abs((landscape.glass?.width ?? 0) - (landscape.rail?.width ?? 0))).toBeLessThanOrEqual(1);
+    expect(Math.abs((landscape.title?.left ?? 0) - (landscape.waveform?.left ?? 0))).toBeLessThanOrEqual(4);
+    expect(Math.abs((landscape.settings?.right ?? 0) - (landscape.rail?.right ?? 0))).toBeLessThanOrEqual(2);
 
     await page.setViewportSize({ width: 393, height: 852 });
     await expect(page.getByTestId('portrait-control-dock')).toBeVisible();
     const portraitGlass = await page.getByTestId('control-dock-glass').boundingBox();
     const portraitDock = await page.getByTestId('portrait-control-dock').boundingBox();
     expect(portraitGlass?.width).toBeCloseTo(portraitDock?.width ?? 0, 0);
+    const portraitTitle = await page.getByTestId('song-title-control').boundingBox();
+    const portraitWaveform = await page.getByTestId('waveform-container').boundingBox();
+    expect(Math.abs((portraitTitle?.x ?? 0) - (portraitWaveform?.x ?? 0))).toBeLessThanOrEqual(4);
 
     await expect(page.getByTestId('previous-track-icon').locator('path')).toHaveCount(2);
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
@@ -436,6 +464,7 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('annotation-editor-input').fill('Turn left into diagonal');
     await page.getByTestId('save-annotation').click();
+    await expect(page.getByTestId('annotation-editor')).toHaveCount(0);
     await page.getByTestId('annotation-control').click();
     await expect(page.getByTestId('annotation-editor-input')).toHaveValue('Turn left into diagonal');
   });
@@ -509,6 +538,8 @@ test.describe('UI Components & Layout', () => {
     const songTitleControl = page.getByTestId('song-title-control');
     await songTitleControl.click();
     await expect(page.getByTestId('music-library-sheet-title')).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Import Audio' }).locator('path').last())
+      .toHaveAttribute('d', /^M19 13h-7/);
     await page.keyboard.press('Tab');
     await expect.poll(() => page.evaluate(() => (
       document.querySelector('[data-testid="music-library-sheet"]')?.contains(document.activeElement)
@@ -519,6 +550,18 @@ test.describe('UI Components & Layout', () => {
     const restoredLibraryRow = page.getByRole('button', { name: /^test-audio,/ });
     await expect(restoredLibraryRow).toBeVisible();
     await expect(restoredLibraryRow).not.toContainText('Audio missing');
+    const restoredRowOverflow = page.locator('[data-testid^="music-library-row-overflow-"]').first();
+    await restoredRowOverflow.click();
+    await page.locator('[data-testid^="music-library-row-rename-"]').click();
+    await page.getByTestId('rename-music-title').fill('Renamed test audio');
+    await page.getByTestId('rename-music-save').click();
+    await expect(page.getByTestId('rename-music-prompt')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Renamed test audio,/ })).toBeVisible();
+    await restoredRowOverflow.click();
+    await page.locator('[data-testid^="music-library-row-rename-"]').click();
+    await page.getByTestId('rename-music-title').fill('test-audio');
+    await page.getByTestId('rename-music-save').click();
+    await expect(page.getByRole('button', { name: /^test-audio,/ })).toBeVisible();
     await restoredLibraryRow.click();
     await page.getByTestId('sidebar-open-toggle').click();
     const layerNameInput = page.getByTestId('settings-layer-name-vocals');

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAudioPlayer, useAudioPlayerStatus, AudioSource, setAudioModeAsync } from 'expo-audio';
+import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
 import { Alert } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
@@ -14,7 +14,7 @@ interface ErrorState {
 
 // Constants for audio playback behavior
 const END_OF_TRACK_TOLERANCE_MS = 100;
-const PLAYBACK_UPDATE_INTERVAL_MS = 50;
+const PLAYBACK_UPDATE_INTERVAL_MS = 100;
 
 /**
  * Custom audio player hook that handles:
@@ -38,8 +38,8 @@ export const useCustomAudioPlayer = () => {
     [currentAudioUri],
   );
   const player = useAudioPlayer(audioSource);
-  const playerStatus = useAudioPlayerStatus(player);
-  const playerStatusRef = useRef(playerStatus);
+  const playerStatusRef = useRef(player.currentStatus);
+  const [playerIsLoaded, setPlayerIsLoaded] = useState(player.isLoaded);
   const {
     isPlaying,
     layers,
@@ -71,19 +71,30 @@ export const useCustomAudioPlayer = () => {
   }, []);
 
   useEffect(() => {
-    playerStatusRef.current = playerStatus;
-  }, [playerStatus]);
+    playerStatusRef.current = player.currentStatus;
+    setPlayerIsLoaded(player.isLoaded);
+    const subscription = player.addListener('playbackStatusUpdate', status => {
+      playerStatusRef.current = status;
+      setPlayerIsLoaded(previous => previous === status.isLoaded ? previous : status.isLoaded);
+      const durationMs = status.duration * 1000;
+      if (Number.isFinite(durationMs) && durationMs > 0
+        && useStudioStore.getState().songDuration !== durationMs) {
+        setSongDuration(durationMs);
+      }
+    });
+    return () => subscription.remove();
+  }, [player, setSongDuration]);
 
   useEffect(() => {
     updateTrackSwitchPlayer({
       uri: currentAudioUri,
-      isLoaded: playerStatus.isLoaded,
+      isLoaded: playerIsLoaded,
       pause: () => player.pause(),
       play: () => player.play(),
       seekTo: milliseconds => player.seekTo(milliseconds / 1000),
     });
     return () => updateTrackSwitchPlayer(null);
-  }, [currentAudioUri, player, playerStatus.isLoaded]);
+  }, [currentAudioUri, player, playerIsLoaded]);
 
   useEffect(() => {
     if (!player) return;
@@ -223,13 +234,6 @@ export const useCustomAudioPlayer = () => {
       addMarker(currentTime);
     }
   }, [activeLayerId, addMarker, isPlaying, layers, player, removeMarker]);
-
-  // Update song duration when audio loads
-  useEffect(() => {
-    if (player?.duration) {
-      setSongDuration(player.duration * 1000); // Convert to milliseconds
-    }
-  }, [player?.duration, setSongDuration]);
 
   // Handle playback position updates and end-of-track detection
   useEffect(() => {
