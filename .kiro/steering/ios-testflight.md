@@ -13,6 +13,12 @@ development.
 The generated `ios/` directory is intentionally ignored. Native configuration must be expressed in
 `app.json` or Expo config plugins so `expo prebuild` can reproduce it.
 
+`plugins/withIosSceneLifecycle.js` supplies the UIKit scene manifest and generated
+`SceneDelegate.swift` required by the iOS 27 SDK. React Native still starts during
+`didFinishLaunchingWithOptions` so Expo Dev Launcher subscribers receive their prepared bridge and
+key window; the scene delegate then attaches that existing window to the connected `UIWindowScene`
+and forwards scene lifecycle, URL, and user-activity events through `AppDelegate`.
+
 ## Local simulator workflow
 
 ### Interactive Xcode 27 workflow
@@ -53,7 +59,8 @@ The suite covers app launch and document-picker presentation, settings drawer op
 audio selection/playback, marker/annotation entry (including annotation while playback continues),
 durable-copy and per-song draft restoration after a cache purge, confirmed CSV replacement, CSV
 export to the iOS share sheet, background/foreground playback, long-track overview tap/drag seeking,
-landscape waveform and controls, and Open In delivery into the retained Music Library. The
+landscape waveform and controls, Open In delivery into the retained Music Library, and native
+automatic-BPM detection with half/double resolution, preview/apply/restore, and anchor nudging. The
 150-second `long-test-track.m4a` fixture is copied to Files > On My iPhone > BeatNote for manual
 simulator checks.
 

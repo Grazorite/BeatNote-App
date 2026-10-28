@@ -112,6 +112,40 @@ function localFileProviderStorage(simulatorDataPath) {
   throw new Error('Unable to locate the simulator On My iPhone provider storage.');
 }
 
+function syntheticClickWav(bpm = 120, durationSeconds = 12) {
+  const sampleRate = 44_100;
+  const sampleCount = Math.round(sampleRate * durationSeconds);
+  const dataSize = sampleCount * 2;
+  const wav = Buffer.alloc(44 + dataSize);
+  wav.write('RIFF', 0);
+  wav.writeUInt32LE(36 + dataSize, 4);
+  wav.write('WAVEfmt ', 8);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(sampleRate, 24);
+  wav.writeUInt32LE(sampleRate * 2, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write('data', 36);
+  wav.writeUInt32LE(dataSize, 40);
+
+  const intervalSeconds = 60 / bpm;
+  const leadingSilenceSeconds = 0.5;
+  const clickLength = Math.round(sampleRate * 0.01);
+  for (let beatSeconds = intervalSeconds;
+    leadingSilenceSeconds + beatSeconds < durationSeconds - 0.02;
+    beatSeconds += intervalSeconds) {
+    const start = Math.round((leadingSilenceSeconds + beatSeconds) * sampleRate);
+    for (let index = 0; index < clickLength; index += 1) {
+      const fade = 1 - index / clickLength;
+      const value = 0.6 * fade * Math.sin(index / sampleRate * 2 * Math.PI * 1_000);
+      wav.writeInt16LE(Math.round(value * 32767), 44 + (start + index) * 2);
+    }
+  }
+  return wav;
+}
+
 function stagePickerFixtures(simulatorId, simulatorDataPath) {
   const appBundle = path.join(derivedData, 'Build', 'Products', 'Debug-iphonesimulator', 'BeatNote.app');
   if (!fs.existsSync(appBundle)) throw new Error(`Built app not found at ${appBundle}`);
@@ -147,6 +181,9 @@ function stagePickerFixtures(simulatorId, simulatorDataPath) {
     fs.copyFileSync(fixture, path.join(documents, filename));
     fs.copyFileSync(fixture, path.join(pickerStorage, filename));
   }
+  const clickTrack = syntheticClickWav();
+  fs.writeFileSync(path.join(documents, 'bpm-click-track.wav'), clickTrack);
+  fs.writeFileSync(path.join(pickerStorage, 'bpm-click-track.wav'), clickTrack);
   // Restart Files once more after staging so the freshly populated BeatNote folder is discoverable.
   spawnSync('xcrun', ['simctl', 'terminate', simulatorId, 'com.apple.DocumentsApp'], {
     cwd: root,
@@ -191,6 +228,7 @@ async function main() {
     const pickerTests = [
       'testStudioLaunchesAndDocumentPickerOpens',
       'testAudioAnnotationAndProjectRestore',
+      'testAutomaticBpmSuggestionAndAnchorControls',
       'testLoopRangeToggleAndTransportFits',
       'testCsvImportAndShareSheetExport',
       'testAudioContinuesWhileAppIsInBackground',

@@ -64,6 +64,7 @@
       "./plugins/withIosPodDeploymentTarget",
       "./plugins/withVersionConsistency",
       "./plugins/withAudioDocumentTypes",
+      "./plugins/withIosSceneLifecycle",
       "./plugins/withIosUiTests"
     ],
     "extra": {

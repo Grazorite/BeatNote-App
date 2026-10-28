@@ -148,6 +148,77 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(String(describing: element("inner-loop-cycle").value ?? ""), savedLoopToggleValue)
   }
 
+  func testAutomaticBpmSuggestionAndAnchorControls() {
+    loadBundledSimulatorAudio("bpm-click-track.wav")
+    element("sidebar-open-toggle").tap()
+
+    let suggestion = element("bpm-suggestion-card")
+    XCTAssertTrue(
+      suggestion.waitForExistence(timeout: 30),
+      "The native tempo provider should produce a suggestion for the synthetic click track.\n\(app.debugDescription)"
+    )
+    let suggestedText = app.staticTexts.matching(
+      NSPredicate(format: "label BEGINSWITH %@", "Suggested:")
+    ).firstMatch
+    XCTAssertTrue(suggestedText.waitForExistence(timeout: 5))
+    let suggestedLabel = suggestedText.label
+    let bpmPattern = try! NSRegularExpression(pattern: "Suggested: ([0-9]+(?:\\.[0-9]+)?) BPM")
+    let range = NSRange(suggestedLabel.startIndex..<suggestedLabel.endIndex, in: suggestedLabel)
+    let match = bpmPattern.firstMatch(in: suggestedLabel, range: range)
+    XCTAssertNotNil(match, "Unexpected suggestion label: \(suggestedLabel)")
+    let primaryBpm = match
+      .flatMap({ Range($0.range(at: 1), in: suggestedLabel) })
+      .flatMap({ Double(suggestedLabel[$0]) })
+    XCTAssertNotNil(primaryBpm)
+
+    if let primaryBpm, abs(primaryBpm - 120) <= 0.5 {
+      app.buttons["Preview"].tap()
+    } else {
+      XCTAssertEqual(primaryBpm ?? 0, 60, accuracy: 0.5)
+      app.buttons["Alternatives"].tap()
+      let doubleTempo = app.buttons.matching(
+        NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "BPM", "double tempo")
+      ).firstMatch
+      XCTAssertTrue(doubleTempo.waitForExistence(timeout: 5))
+      let alternativeLabel = doubleTempo.label
+      let alternativePattern = try! NSRegularExpression(pattern: "Use ([0-9]+(?:\\.[0-9]+)?) BPM")
+      let alternativeRange = NSRange(
+        alternativeLabel.startIndex..<alternativeLabel.endIndex,
+        in: alternativeLabel
+      )
+      let alternativeMatch = alternativePattern.firstMatch(in: alternativeLabel, range: alternativeRange)
+      let doubleBpm = alternativeMatch
+        .flatMap({ Range($0.range(at: 1), in: alternativeLabel) })
+        .flatMap({ Double(alternativeLabel[$0]) })
+      XCTAssertEqual(doubleBpm ?? 0, 120, accuracy: 0.5)
+      doubleTempo.tap()
+    }
+
+    XCTAssertTrue(app.buttons["Apply Preview"].waitForExistence(timeout: 5))
+    element("sidebar-toggle").tap()
+    element("wrapped-row-detail-0").tap()
+    XCTAssertTrue(element("grid-preview-overlay").waitForExistence(timeout: 5))
+
+    element("sidebar-open-toggle").tap()
+    app.buttons["Apply Preview"].tap()
+    XCTAssertTrue(app.buttons["Restore Previous"].waitForExistence(timeout: 5))
+    app.buttons["Restore Previous"].tap()
+    element("sidebar-toggle").tap()
+    element("waveform-detail-close").tap()
+    element("sidebar-open-toggle").tap()
+
+    XCTAssertEqual(element("beat-anchor-value").label, "0.000s")
+    element("set-count-one-here").tap()
+    element("beat-anchor-later-5").tap()
+    XCTAssertEqual(element("beat-anchor-value").label, "0.005s")
+    element("beat-anchor-earlier-5").tap()
+    XCTAssertEqual(element("beat-anchor-value").label, "0.000s")
+    element("beat-anchor-later-quarter").tap()
+    XCTAssertEqual(element("beat-anchor-value").label, "0.125s")
+    element("beat-anchor-earlier-quarter").tap()
+    XCTAssertEqual(element("beat-anchor-value").label, "0.000s")
+  }
+
   func testLoopRangeToggleAndTransportFits() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 

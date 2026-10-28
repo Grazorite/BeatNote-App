@@ -95,8 +95,10 @@
   - 2026-10-28: 4.1 is production-wired and its retained browser workflow detected a generated
     120-BPM WAV at 119.71 BPM, rendered preview, applied, and restored. The exported worker is a
     separate 9.75-kB bundle. The iOS module is implemented, autolinked, windowed, cancellable, and
-    compiles with `.utility` tasks; 4.2 remains unchecked pending runtime XCTest, long-fixture
-    memory, and cancellation measurements.
+    compiles with `.utility` tasks. A focused iPhone 17 Pro simulator journey resolved its 60.09 BPM
+    primary estimate to the offered 120.19 BPM double-tempo alternative (both within ±0.5 BPM), then
+    previewed, applied, and restored it. 4.2 remains unchecked pending long-fixture memory and
+    cancellation measurements.
   - **Dependencies:** 1, 2. **Affected:** `src/services/bpmAnalysis.*`, `modules/beatnote-tempo/*`.
   - **Acceptance:** each provider returns a well-formed `AnalysisResult` on a fixture; `null`/throw
     maps cleanly to `unavailable`/`failed`; cancellation leaves no partial state; web waveform appears
@@ -199,7 +201,9 @@
 
 - [ ] 9. Retained automation for the complete workflow
   - 2026-10-28: the existing seven-journey browser suite now retains synthetic worker detection,
-    preview/apply/restore, Set Count 1, and both nudge sizes. Focused native runtime XCTest and memory
+    preview/apply/restore, Set Count 1, and both nudge sizes. An eighth retained iOS journey covers
+    synthetic native detection with octave resolution, alternatives, preview/apply/restore, the
+    preview overlay, Set Count 1, and both nudge sizes. Native cancellation and long-fixture memory
     coverage remain open.
   - Extend the existing library/project Playwright journey with
     suggest → apply → alternatives → Set Count 1 → nudge → restore, plus "analysis failure keeps
