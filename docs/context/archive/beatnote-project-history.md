@@ -3403,3 +3403,38 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Implement Task 34.1 music-item rename, then Task 34.2 deletion semantics.
+
+### 2026-10-26 — Add annotation suggestion chips
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `b89171c`
+**Kanban moved:** annotation vocabulary suggestions → Done
+
+**Changed:**
+
+- Added the approved Hit, 8-count, Formation, Freeze, Turn, Jump, and Accent vocabulary as one
+  reusable, horizontally scrollable chip row.
+- Shared the chips between the desktop inline field and iPhone annotation modal; taps append to the
+  current note within its length limit and never prevent arbitrary free-form text.
+- Converted the modal input to controlled state so chip updates and typed edits remain synchronized.
+
+**Verified:**
+
+- Temporary vocabulary/append/limit unit checks → 2/2 passed, then removed per repository policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit` and `git diff --check` → clean.
+- New retained browser journey → passed, including all seven chips, multi-chip append, free-form
+  replacement, save, and reopen.
+- Full retained Playwright gate → 7/7 journeys passed; the permanent unit gate remains intentionally
+  empty and the disabled-test search is clean.
+- iPhone 17 Pro simulator build with Expo Print → succeeded, then the current 1.0.0 app was installed
+  and launched against the running Metro server on localhost:8081.
+
+**Not verified / known gaps:**
+
+- Spoken VoiceOver chip traversal and physical-device keyboard behavior remain part of hardware
+  acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `b89171c`.
+
+**Next agent should:**
+
+- Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
+  available; all currently listed local-only implementation work is complete.
