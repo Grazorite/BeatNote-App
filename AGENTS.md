@@ -219,7 +219,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-28 — Implement automatic BPM detection and authored grid
 
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1d88ee7`
 **Kanban moved:** automatic BPM detection → In Progress (web + Phases 2–7 implemented; native/runtime acceptance remains)
 
 **Changed:**
@@ -258,7 +258,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Browser real-song accuracy, long-task/peak-memory/import-latency measurements, and physical-device
   thermal/battery/background/Bluetooth behavior remain unverified. Current providers do not emit a
   downbeat estimate, so phrase-start assistance falls back to the manual anchor as designed.
-- The tree is intentionally uncommitted on `codex/automatic-bpm-detection`; unrelated physical-
+- Implementation is committed as `1d88ee7` on `codex/automatic-bpm-detection`; unrelated physical-
   device backlog remains unchanged.
 
 **Next agent should:**
