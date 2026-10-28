@@ -246,7 +246,7 @@ Candidates considered:
 - **Hand-rolled autocorrelation + onset-energy detector (plain TS).** Pro: zero dependency, MIT-clean,
   tiny, full control over cancellation and downsampling, deterministic for click-track tests. Con: we
   own accuracy; downbeat detection is weak. Memory: bounded by our own downsample to mono ~11 kHz.
-- **`realtime-bpm-analyzer` (npm).** Pro: small, MIT, actively maintained, designed for Web Audio.
+- **`realtime-bpm-analyzer` (npm).** Pro: small, Apache-2.0, actively maintained, designed for Web Audio.
   Con: tuned for streaming/real-time, returns tempo candidates not beat phase/downbeat; still need our
   own anchor logic. Evaluate accuracy on the synthetic suite in the spike.
 - **`essentia.js` (WASM).** Pro: research-grade `RhythmExtractor2013` gives BPM + beat positions +
@@ -258,6 +258,39 @@ Candidates considered:
 **Approved default:** ship the self-contained detector for V1 (BPM + anchor). Treat downbeat as
 best-effort/low-confidence. Reconsider `essentia.js` only if the spike shows our accuracy misses the
 real-song threshold and the licence/size are acceptable. Record the spike result in this file.
+
+#### Phase 1 evidence — 2026-10-27 (web decision confirmed; native measurements pending)
+
+The disposable `scripts/spikes/tempo/benchmark.mjs` prototype generated 30-second click tracks at
+60, 90, 120, 150, and 180 BPM with 347 ms of leading silence, downsampled them from 44.1 kHz to
+11.025 kHz, then ran onset-envelope peak detection plus autocorrelation. On Node 24.11.1 / Apple
+Silicon it detected all five within 0.175 BPM and placed the anchor within 9.179 ms, meeting band A.
+The 150-second and 240-second 120-BPM runs took 9.04 ms and 15.60 ms respectively for analysis after
+downsampling; the 240-second process RSS increase was 51.1 MiB including the 40.4 MiB source PCM.
+The entire disposable benchmark was 7.8 kB raw / 2.3 kB gzip, an upper bound that also includes
+fixture generation and reporting rather than only production detector logic.
+
+`realtime-bpm-analyzer` 5.0.15 returned an octave-resolved correct candidate for all five click
+tracks in a headless Chromium comparison (14.9–32.1 ms per 30-second track), but normalized 60 BPM to
+120 and 180 BPM to 90. Its published ESM is 35.0 kB raw / 6.8 kB gzip, is Apache-2.0 licensed, and
+still provides no beat anchor, so adopting it would retain the hardest BeatNote-specific phase work
+while adding a dependency. `essentia.js` 0.1.3 was rejected before runtime comparison: the npm
+package is AGPL-3.0, 10.1 MB unpacked, and its web deployment includes a 2.0 MB WASM binary (about
+526 kB gzip) plus JS glue. Those licence obligations are incompatible with the planned commercial
+distribution without separate licensing.
+
+**Decision:** confirm D-2's self-contained web detector. Keep half/double alternatives explicit and
+run analysis in a worker; do not adopt either evaluated package. This evidence is synthetic only.
+Browser `decodeAudioData` time, real-song band B accuracy, main-thread long tasks, and import-to-
+suggestion latency remain unverified. D-3's separate streaming iOS module remains approved on
+architecture grounds, but its 150-second peak memory and cancellation latency still require the
+native prototype before Phase 1 is complete.
+
+Production integration evidence on 2026-10-28 retained a generated 12-second, 120-BPM WAV in the
+Playwright workflow. Chromium decoded it once for waveform plus analysis, ran the detector in the
+split worker, and returned 119.71 BPM (0.29 BPM error, band A) before preview/apply/restore. Static
+web export emitted the worker as a separate 9.75-kB bundle. This confirms bundling and one synthetic
+browser path, not the still-open long-task, peak-memory, import-latency, or real-song measurements.
 
 **Web execution model (main thread decodes, worker analyses):**
 
@@ -304,6 +337,17 @@ A separate module means iOS decodes the file twice: once for waveform peaks, onc
 is acceptable because both passes stream, and the windowed reads in D-5 make the analysis pass a
 fraction of the file. Set `AVAssetReader.timeRange` per window so only the needed audio is decoded.
 Run the analysis on a `.utility` quality-of-service task so it never competes with playback or UI.
+
+The 2026-10-27 web spike did not implement the native prototype. This decision is therefore
+confirmed structurally but remains conditional on the Phase 1 iOS memory and cancellation
+measurements; see proposed ADR-018.
+
+On 2026-10-28 the production module was implemented with bounded `AVAssetReader.timeRange` windows,
+11.025-kHz mono streaming, Accelerate autocorrelation, explicit cancellation checks, progress events,
+and per-window `Task.detached(priority: .utility)` execution. The autolinked `BeatNoteTempo` pod
+compiles for the arm64 iOS Simulator. That is compile evidence only: native result accuracy,
+150-second peak memory, cancellation latency, and playback coexistence still require runtime XCTest
+and physical-device measurement.
 
 ### D-4 — Android
 

@@ -14,6 +14,7 @@ import {
   restoreTrackAfterDeleteFailure,
   resumeTrackSwitchPlayer,
 } from './trackSwitch';
+import { cancelAnalysis, invalidateAnalysis } from '../analysis/bpmAnalysisService';
 
 export type RenameMusicItemResult =
   | { kind: 'renamed'; title: string }
@@ -105,6 +106,7 @@ export async function deleteMusicItem(musicItemId: string): Promise<DeleteMusicI
   }
 
   const deletingCurrent = initial.currentMusicItemId === musicItemId;
+  cancelAnalysis(musicItemId);
   let switchedBeforeDelete = false;
   let gatedCurrentBeforeDelete = false;
   if (deletingCurrent) {
@@ -187,6 +189,9 @@ export async function deleteMusicItem(musicItemId: string): Promise<DeleteMusicI
           loadingMusicItemId: null,
         } : {}),
       }));
+    });
+    await invalidateAnalysis(musicItemId).catch(error => {
+      console.error('Unable to remove cached BPM analysis for deleted song', error);
     });
     return { kind: 'deleted' };
   } catch (error) {

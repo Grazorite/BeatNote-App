@@ -10,10 +10,16 @@ export const danceCountAtTime = (
   timeMs: number,
   bpm: number,
   countSize: DanceCountSize,
+  beatAnchorMs = 0,
+  phraseStartMs: number | null = null,
 ): DanceCountPosition => {
   const safeTime = Number.isFinite(timeMs) ? Math.max(0, timeMs) : 0;
   const safeBpm = Number.isFinite(bpm) && bpm > 0 ? bpm : 120;
-  const beatIndex = Math.floor(safeTime / (60_000 / safeBpm));
+  const safeAnchor = Number.isFinite(beatAnchorMs) ? beatAnchorMs : 0;
+  const effectiveStart = phraseStartMs !== null && Number.isFinite(phraseStartMs)
+    ? phraseStartMs
+    : safeAnchor;
+  const beatIndex = Math.max(0, Math.floor((safeTime - effectiveStart) / (60_000 / safeBpm)));
 
   return {
     phrase: Math.floor(beatIndex / countSize) + 1,
@@ -26,7 +32,9 @@ export const formatDanceCount = (
   timeMs: number,
   bpm: number,
   countSize: DanceCountSize,
+  beatAnchorMs = 0,
+  phraseStartMs: number | null = null,
 ): string => {
-  const position = danceCountAtTime(timeMs, bpm, countSize);
+  const position = danceCountAtTime(timeMs, bpm, countSize, beatAnchorMs, phraseStartMs);
   return `Phrase ${position.phrase} | Count ${position.count}`;
 };

@@ -4,6 +4,7 @@ import Svg, { Line, Text } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { rhythmicGridStyles as styles } from '../../../styles/components/waveform/rhythmicGrid';
 import { colors, dimensions } from '../../../styles/common';
+import GridPreviewOverlay from './GridPreviewOverlay';
 
 interface RhythmicGridProps {
   width: number;
@@ -20,18 +21,22 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
   const showGridLines = useStudioStore(state => state.showGridLines);
   const countSize = useStudioStore(state => state.countSize);
   const showDanceCounts = useStudioStore(state => state.showDanceCounts);
+  const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
+  const phraseStartMs = useStudioStore(state => state.phraseStartMs);
+  const gridPreview = useStudioStore(state => state.gridPreview);
   
   const { rulerLines, majorLines } = React.useMemo(() => {
-    const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
-    const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
-    const endBeat = Math.ceil(((viewportStartTime + viewportDuration) / 1000) * (bpm / 60));
+    const millisecondsPerBeat = 60_000 / bpm;
+    const originMs = phraseStartMs ?? beatAnchorMs;
+    const startBeat = Math.floor((viewportStartTime - originMs) / millisecondsPerBeat);
+    const endBeat = Math.ceil((viewportStartTime + viewportDuration - originMs) / millisecondsPerBeat);
     
     const rulerHeight = dimensions.ruler.height;
     const rulerLines: React.ReactElement[] = [];
     const majorLines: Array<{ x: number; beat: number; isMiddle?: boolean }> = [];
   
     for (let beat = startBeat; beat <= endBeat; beat++) {
-      const beatTimeMs = (beat / (bpm / 60)) * 1000;
+      const beatTimeMs = originMs + beat * millisecondsPerBeat;
       const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * width;
       
       if (x >= 0 && x <= width) {
@@ -54,7 +59,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
         );
         
         // Add measure numbers to ruler for major lines
-        if (isPhraseBoundary) {
+        if (isPhraseBoundary && beat >= 0) {
           rulerLines.push(
             <Text
               key={`measure-${beat}`}
@@ -82,7 +87,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
     }
     
     return { rulerLines, majorLines };
-  }, [width, pixelsPerSecond, bpm, countSize, showDanceCounts, viewportStartTime, viewportDuration]);
+  }, [width, pixelsPerSecond, bpm, countSize, showDanceCounts, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs]);
   
   return (
     <View>
@@ -95,20 +100,33 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
       
       {/* Major lines overlay for waveform */}
       {showGridLines && overlayHeight > 0 && (
-        <Svg width={width} height={overlayHeight} style={styles.majorLines}>
-          {majorLines.map(({ x, beat, isMiddle }: { x: number; beat: number; isMiddle?: boolean }) => (
-            <Line
-              key={`major-${beat}`}
-              x1={x}
-              y1={0}
-              x2={x}
-              y2={overlayHeight}
-              stroke={isMiddle ? colors.gridMinor : colors.gridMajor}
-              strokeWidth={1}
-              opacity={isMiddle ? 0.2 : 0.3}
+        <>
+          <Svg width={width} height={overlayHeight} style={styles.majorLines}>
+            {majorLines.map(({ x, beat, isMiddle }: { x: number; beat: number; isMiddle?: boolean }) => (
+              <Line
+                key={`major-${beat}`}
+                x1={x}
+                y1={0}
+                x2={x}
+                y2={overlayHeight}
+                stroke={isMiddle ? colors.gridMinor : colors.gridMajor}
+                strokeWidth={1}
+                opacity={isMiddle ? 0.2 : 0.3}
+              />
+            ))}
+          </Svg>
+          {gridPreview !== null && (
+            <GridPreviewOverlay
+              preview={gridPreview}
+              width={width}
+              height={overlayHeight}
+              viewportStartTime={viewportStartTime}
+              viewportDuration={viewportDuration}
+              countSize={countSize}
+              topOffset={dimensions.ruler.height}
             />
-          ))}
-        </Svg>
+          )}
+        </>
       )}
     </View>
   );

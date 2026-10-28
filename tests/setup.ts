@@ -53,5 +53,56 @@ export async function loadTestAudio(
   await expect(page.getByTestId('music-library-sheet')).toHaveCount(0);
 }
 
+const syntheticClickWav = (bpm = 120, durationSeconds = 12): Buffer => {
+  const sampleRate = 44_100;
+  const sampleCount = Math.round(sampleRate * durationSeconds);
+  const dataSize = sampleCount * 2;
+  const wav = Buffer.alloc(44 + dataSize);
+  wav.write('RIFF', 0);
+  wav.writeUInt32LE(36 + dataSize, 4);
+  wav.write('WAVEfmt ', 8);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(sampleRate, 24);
+  wav.writeUInt32LE(sampleRate * 2, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write('data', 36);
+  wav.writeUInt32LE(dataSize, 40);
+
+  const intervalSeconds = 60 / bpm;
+  const leadingSilenceSeconds = 0.5;
+  const clickLength = Math.round(sampleRate * 0.01);
+  for (let beatSeconds = intervalSeconds;
+    leadingSilenceSeconds + beatSeconds < durationSeconds - 0.02;
+    beatSeconds += intervalSeconds) {
+    const start = Math.round((leadingSilenceSeconds + beatSeconds) * sampleRate);
+    for (let index = 0; index < clickLength; index++) {
+      const fade = 1 - index / clickLength;
+      const value = 0.6 * fade * Math.sin(index / sampleRate * 2 * Math.PI * 1_000);
+      wav.writeInt16LE(Math.round(value * 32767), 44 + (start + index) * 2);
+    }
+  }
+  return wav;
+};
+
+/** Import a deterministic click track for the retained automatic-BPM browser workflow. */
+export async function loadSyntheticClickAudio(page: Page) {
+  await prepareFilePicker(page);
+  await page.getByTestId('song-title-control').click();
+  await expect(page.getByTestId('music-library-sheet')).toBeVisible();
+  await page.getByTestId('music-library-import').click();
+  const fileInput = page.locator('input[type="file"]').last();
+  await expect(fileInput).toBeAttached({ timeout: 5000 });
+  await fileInput.setInputFiles({
+    name: 'test-audio.wav',
+    mimeType: 'audio/wav',
+    buffer: syntheticClickWav(),
+  });
+  await expect(page.getByTestId('song-title-control')).toContainText('test-audio', { timeout: 10000 });
+  await expect(page.getByTestId('music-library-sheet')).toHaveCount(0);
+}
+
 // Re-export everything else
 export { Page, Locator, BrowserContext } from '@playwright/test';

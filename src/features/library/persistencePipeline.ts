@@ -7,7 +7,8 @@ export type PersistenceKeyFamily =
   | 'projectIndex'
   | 'queue'
   | 'prefs'
-  | 'journal';
+  | 'journal'
+  | 'analysis';
 
 export interface WriteOp {
   label: string;

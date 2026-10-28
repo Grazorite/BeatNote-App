@@ -4,11 +4,11 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { bpmControlStyles as styles } from '../../../styles/components/controls/bpmControl';
 
 const BpmControl: React.FC = () => {
-  const { bpm, setBpm } = useStudioStore();
+  const { bpm, setBpmManual } = useStudioStore();
 
   const adjustBpm = (delta: number) => {
     const newBpm = Math.max(60, Math.min(200, bpm + delta));
-    setBpm(newBpm);
+    setBpmManual(newBpm);
   };
 
   return (

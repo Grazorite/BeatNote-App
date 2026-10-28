@@ -1,7 +1,8 @@
 # Implementation Plan — Automatic BPM Detection
 
-> Planned M2 feature. **Do not implement from this document in the current session** — it is the
-> specification only. Phases are ordered so each is independently verifiable and safe to roll back.
+> M2 implementation began on 2026-10-27 by explicit user direction, superseding the earlier
+> sequencing behind physical-iPhone V1 acceptance. Phases remain ordered so each is independently
+> verifiable and safe to roll back.
 > Every task notes whether it can be delegated to its own workflow agent. Build gate throughout:
 > `npx tsc --noEmit`, the retained Playwright journeys (`npm test`), temporary Jest/`fast-check`
 > checks removed after verification (testing-strategy.md), and focused XCTest for native surfaces.
@@ -9,6 +10,9 @@
 ## Phase 1 — Research spike and architecture decision
 
 - [ ] 1. Tempo-analysis spike: confirm or amend design decisions D-2 (web) and D-3 (iOS)
+  - 2026-10-27: web synthetic benchmark and package/licence comparison completed; D-2 confirmed.
+    Native 150-second peak-memory/cancellation measurements, browser decode/long-task metrics, and
+    representative real-song evidence remain before this task can be checked.
   - Prototype the self-contained web detector (decode → mono ~11.025 kHz downsample → ACF tempo +
     onset-peak anchor) and, for comparison, measure `realtime-bpm-analyzer` and `essentia.js` on the
     synthetic click-track set; record BPM accuracy, bundle size, licence, memory, and cancellation.
@@ -32,7 +36,9 @@
 
 ## Phase 2 — Pure analysis result and data contracts
 
-- [ ] 2. Add analysis types and anchor-aware grid math (no UI, no persistence wiring)
+- [x] 2. Add analysis types and anchor-aware grid math (no UI, no persistence wiring)
+  - 2026-10-27: added the provider/cache contracts and backward-compatible anchor/phrase-start
+    parameters. Temporary property and deterministic checks passed 3/3; `npx tsc --noEmit` passed.
   - Create `src/services/bpmAnalysis.types.ts` (`AnalysisResult`, `BpmAlternative`, `TempoModel`,
     `ConfidenceBand`, `AnalysisRequest`, `BpmAnalysisProvider`) and `src/types/analysis.ts`
     (`AnalysisCacheEntry`).
@@ -49,7 +55,11 @@
 
 ## Phase 3 — Persistence and migration
 
-- [ ] 3. Applied_Grid in draft/project content + Analysis_Cache repository
+- [x] 3. Applied_Grid in draft/project content + Analysis_Cache repository
+  - 2026-10-27: optional authored-grid fields now round-trip through drafts/projects with legacy
+    defaults; the per-item analysis repository uses its own key family, validates full result shape,
+    quarantines corrupt JSON, and scopes failed-read write blocking to the affected analysis key.
+    Temporary round-trip/read-write-remove/read-failure checks passed 4/4 and were removed.
   - Add optional `beatAnchorMs`, `phraseStartMs`, `appliedBpm`, `manuallyOverriddenBpm`,
     `manuallyOverriddenAnchor` to `BeatNoteProject['settings']` and thread them through
     `persistedContent.ts` (`createEmptyPersistedContent`, `extract`, `apply`, `splitProjectEnvelope`,
@@ -72,7 +82,7 @@
 ## Phase 4 — Platform provider prototype → production
 
 - [ ] 4. Implement the analysis providers behind the boundary
-  - [ ] 4.1 Web provider `bpmAnalysis.web.ts` per the approved spike decision. Add a shared decode
+  - [x] 4.1 Web provider `bpmAnalysis.web.ts` per the approved spike decision. Add a shared decode
         helper so `waveformExtraction.web.ts` and analysis use one `decodeAudioData` pass; emit
         waveform peaks first, then mono-downsample to ~11.025 kHz and release the `AudioBuffer`.
         Transfer the samples to `bpmAnalysis.worker.ts`, which computes tempo, anchor, and
@@ -82,6 +92,11 @@
         streaming `AVAssetReader` decode restricted to the D-5 windows via `timeRange`, Accelerate
         tempo/anchor, `.utility` QoS, progress callbacks, cancel token (Req 14.1, 14.5). Register via
         `modules/` autolinking (package.json `expo.autolinking`).
+  - 2026-10-28: 4.1 is production-wired and its retained browser workflow detected a generated
+    120-BPM WAV at 119.71 BPM, rendered preview, applied, and restored. The exported worker is a
+    separate 9.75-kB bundle. The iOS module is implemented, autolinked, windowed, cancellable, and
+    compiles with `.utility` tasks; 4.2 remains unchecked pending runtime XCTest, long-fixture
+    memory, and cancellation measurements.
   - **Dependencies:** 1, 2. **Affected:** `src/services/bpmAnalysis.*`, `modules/beatnote-tempo/*`.
   - **Acceptance:** each provider returns a well-formed `AnalysisResult` on a fixture; `null`/throw
     maps cleanly to `unavailable`/`failed`; cancellation leaves no partial state; web waveform appears
@@ -96,7 +111,10 @@
 
 ## Phase 5 — Import and lifecycle integration
 
-- [ ] 5. Wire the Analyzer orchestrator and lifecycle
+- [x] 5. Wire the Analyzer orchestrator and lifecycle
+  - 2026-10-28: added the single-flight cache-aware queue, source capability, import/relink/delete
+    hooks, current-item priority, store mirror, and AppState pause/resume. Temporary checks passed
+    for single-flight ordering, capability-off, cache reuse, and delete-mid-flight cleanup.
   - Create `bpmAnalysisService.ts` (single-flight queue, capability check, cache validity, cancel/
     retry/invalidate, subscribe) and `bpmAnalysisBridge.ts` (mirror job views into the store).
   - Add `decodedAudioAnalysis` to `PlaybackCapabilities` + `LOCAL_CAPABILITIES`/`NO_SOURCE_CAPABILITIES`.
@@ -117,7 +135,11 @@
 
 ## Phase 6 — BPM suggestion UI
 
-- [ ] 6. `BpmSuggestionCard` + `AlternativesSheet` and apply/keep/retry/restore actions
+- [x] 6. `BpmSuggestionCard` + `AlternativesSheet` and apply/keep/retry/restore actions
+  - 2026-10-28: the capability-gated card now exposes progress, confidence, alternatives, keep,
+    retry, preview/apply/cancel, and atomic restore. Manual BPM changes cancel previews and suppress
+    the suggestion surface. Alternatives use the same in-card responsive action surface rather than
+    a separate modal sheet.
   - Build the non-blocking suggestion surface and alternatives sheet; add store actions
     `applyAnalysisSuggestion`, `setBpmManual`, `restoreGridSnapshot`, `gridRestoreSnapshot`.
   - Route the existing BPM control through `setBpmManual` so manual edits set `manuallyOverriddenBpm`.
@@ -135,7 +157,10 @@
 
 ## Phase 7 — Beat-anchor and "Set Count 1 Here" controls
 
-- [ ] 7. Anchor controls, nudge, and grid preview
+- [x] 7. Anchor controls, nudge, and grid preview
+  - 2026-10-28: Set Count 1, ±5-ms and ±quarter-beat nudges, preview overlay, and authored-grid
+    origins are wired through the detail/multitrack grid, snapping, gutters, live counts, CSV/PDF
+    labels, and persistence. The retained browser journey covers preview/apply/restore and nudges.
   - Add `setBeatAnchorManual`, `setPhraseStartAtPlayhead`, `nudgeBeatAnchor`; add **"Set Count 1 Here"**
     at the playhead and an earlier/later nudge pair modelled on the loop-bound nudge; add
     `GridPreviewOverlay` for preview-before-apply.
@@ -155,6 +180,9 @@
 ## Phase 8 — Phrase/downbeat assistance
 
 - [ ] 8. Downbeat suggestion as confidence-based, correctable assistance
+  - 2026-10-28: the UI handles a provider-supplied confident downbeat and otherwise labels phrase
+    start unconfirmed, but current providers intentionally emit no downbeat estimate; this phase
+    remains open.
   - Surface `suggestedDownbeatMs` + separate `downbeatConfidence`; offer "Use suggested Count 1" that
     sets `phraseStartMs` (never auto-applied); fall back to anchor-as-Count-1 with an
     "unconfirmed phrase start" indicator when unavailable/low confidence.
@@ -170,6 +198,9 @@
 ## Phase 9 — Browser and native automation
 
 - [ ] 9. Retained automation for the complete workflow
+  - 2026-10-28: the existing seven-journey browser suite now retains synthetic worker detection,
+    preview/apply/restore, Set Count 1, and both nudge sizes. Focused native runtime XCTest and memory
+    coverage remain open.
   - Extend the existing library/project Playwright journey with
     suggest → apply → alternatives → Set Count 1 → nudge → restore, plus "analysis failure keeps
     annotation usable" and "`showDanceCounts` toggle does not trigger/erase analysis".

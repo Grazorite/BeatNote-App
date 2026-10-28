@@ -15,6 +15,7 @@ export interface PlaybackCapabilities {
   backgroundPlayback: boolean;
   repeat: boolean;
   shuffle: boolean;
+  decodedAudioAnalysis: boolean;
 }
 
 export const IMPORTED_MUSIC_COLLECTION_ID = 'imported-music';

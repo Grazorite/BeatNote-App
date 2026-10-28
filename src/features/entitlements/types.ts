@@ -11,6 +11,7 @@ export const PRODUCT_CAPABILITIES = [
   'snapping.advanced',
   'projects.templates',
   'annotations.customVocabulary',
+  'analysis.autoBpm',
 ] as const;
 
 export type ProductCapability = typeof PRODUCT_CAPABILITIES[number];

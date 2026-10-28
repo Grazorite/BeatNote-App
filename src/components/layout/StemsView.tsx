@@ -63,7 +63,7 @@ const StemsView: React.FC<StemsViewProps> = ({
   
   console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
-  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded, magneticSnapping, bpm, countSize, allLayersData } = useStudioStore();
+  const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded, magneticSnapping, bpm, countSize, beatAnchorMs, phraseStartMs, allLayersData } = useStudioStore();
   const { waveformData, loading } = useWaveformData(audioUri || null);
   const pinchGesture = useZoomGesture();
   const stemsRef = useRef<View>(null);
@@ -104,7 +104,7 @@ const StemsView: React.FC<StemsViewProps> = ({
     
     if (magneticSnapping) {
       const allMarkers = allLayersData.flatMap(layer => layer.markers);
-      const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
+      const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs);
       const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
       targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
     }
@@ -132,7 +132,7 @@ const StemsView: React.FC<StemsViewProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }

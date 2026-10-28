@@ -9,6 +9,8 @@ export interface ExportOptions {
   layers: Layer[];
   bpm: number;
   countSize: 4 | 6 | 8;
+  beatAnchorMs?: number;
+  phraseStartMs?: number | null;
   songDuration: number;
   projectName: string;
 }

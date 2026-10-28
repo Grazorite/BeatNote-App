@@ -58,9 +58,17 @@ export function buildCsvContent(options: ExportOptions): { filename: string; con
 
   allMarkers.forEach((marker) => {
     const seconds = (marker.time / 1000).toFixed(3);
-    const bars = Math.floor(marker.time / (60000 / options.bpm * 4)) + 1;
-    const beats = Math.floor((marker.time % (60000 / options.bpm * 4)) / (60000 / options.bpm)) + 1;
-    const danceCount = danceCountAtTime(marker.time, options.bpm, options.countSize);
+    const beatDuration = 60_000 / options.bpm;
+    const beatIndex = Math.max(0, Math.floor((marker.time - (options.beatAnchorMs ?? 0)) / beatDuration));
+    const bars = Math.floor(beatIndex / 4) + 1;
+    const beats = (beatIndex % 4) + 1;
+    const danceCount = danceCountAtTime(
+      marker.time,
+      options.bpm,
+      options.countSize,
+      options.beatAnchorMs ?? 0,
+      options.phraseStartMs ?? null,
+    );
     csvContent += `${marker.layer},${marker.time},${seconds},${bars}:${beats},${danceCount.phrase}:${danceCount.count},"${marker.annotation.replace(/"/g, '""')}"\n`;
   });
 
@@ -70,7 +78,13 @@ export function buildCsvContent(options: ExportOptions): { filename: string; con
 export function buildPdfHtml(options: PDFExportOptions): { filename: string; html: string } {
   const markers = collectVisibleMarkers(options.layers).map(marker => ({
     ...marker,
-    danceCount: danceCountAtTime(marker.time, options.bpm, options.countSize),
+    danceCount: danceCountAtTime(
+      marker.time,
+      options.bpm,
+      options.countSize,
+      options.beatAnchorMs ?? 0,
+      options.phraseStartMs ?? null,
+    ),
   }));
   const filename = options.filename ?? `${sanitizeProjectName(options.projectName)}_choreography.pdf`;
   const markerRows = markers.map(marker => `

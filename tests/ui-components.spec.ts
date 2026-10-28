@@ -1,4 +1,4 @@
-import { test, expect, loadTestAudio, prepareFilePicker } from './setup';
+import { test, expect, loadSyntheticClickAudio, loadTestAudio, prepareFilePicker } from './setup';
 import path from 'node:path';
 
 test.describe('UI Components & Layout', () => {
@@ -463,10 +463,39 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('help-close').click();
     await page.getByTestId('sidebar-toggle').click();
 
-    await loadTestAudio(page);
+    await loadSyntheticClickAudio(page);
     await expect(page.getByTestId('dance-count-display')).toHaveCount(0);
     await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveCount(0);
     await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('bpm-suggestion-card')).toContainText(/Suggested: \d+(?:\.\d+)? BPM/, {
+      timeout: 15000,
+    });
+    const suggestedBpmText = await page.getByTestId('bpm-suggestion-card').textContent();
+    const suggestedBpm = Number(suggestedBpmText?.match(/Suggested: (\d+(?:\.\d+)?) BPM/)?.[1]);
+    expect(Math.abs(suggestedBpm - 120)).toBeLessThanOrEqual(0.5);
+    await page.getByRole('button', { name: 'Preview' }).click();
+    await expect(page.getByRole('button', { name: 'Apply Preview' })).toBeVisible();
+    await page.getByTestId('sidebar-toggle').click();
+    await page.getByTestId('wrapped-row-detail-0').click();
+    await expect(page.getByTestId('grid-preview-overlay')).toBeVisible();
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByRole('button', { name: 'Apply Preview' }).click();
+    await expect(page.getByRole('button', { name: 'Restore Previous' })).toBeVisible();
+    await page.getByRole('button', { name: 'Restore Previous' }).click();
+    await page.getByTestId('sidebar-toggle').click();
+    await page.getByTestId('waveform-detail-close').click();
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('beat-anchor-control')).toBeVisible();
+    await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.000s');
+    await page.getByTestId('set-count-one-here').click();
+    await page.getByTestId('beat-anchor-later-5').click();
+    await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.005s');
+    await page.getByTestId('beat-anchor-earlier-5').click();
+    await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.000s');
+    await page.getByTestId('beat-anchor-later-quarter').click();
+    await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.125s');
+    await page.getByTestId('beat-anchor-earlier-quarter').click();
+    await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.000s');
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('dance-counts-toggle').click();
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'true');

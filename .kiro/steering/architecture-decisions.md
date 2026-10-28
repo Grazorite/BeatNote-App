@@ -130,6 +130,18 @@ purchase, restore, refresh, offline-grace, and expiry behavior pass acceptance.
 Rationale: separating product entitlement from playback-source capability keeps Apple Music/Spotify
 integration independent of monetisation and prevents vendor details from spreading through the UI.
 
+### ADR-018 (proposed): Separate local tempo-analysis providers
+
+Automatic BPM analysis remains local-first and uses platform providers behind one TypeScript
+contract. Web uses a self-contained onset-envelope/autocorrelation detector in a worker after a
+shared waveform decode; iOS uses a separate `BeatNoteTempo` Expo Module that streams bounded windows
+through `AVAssetReader` and Accelerate rather than extending `BeatNoteWaveform`. The web decision is
+supported by the 2026-10-27 synthetic spike and retained 2026-10-28 worker workflow; the native pod
+now compiles with bounded windows and utility-priority work. This ADR remains proposed until the
+native prototype measures peak memory and cancellation latency on the 150-second fixture.
+Rationale: BeatNote needs its own beat-phase anchor regardless of third-party tempo libraries, while
+the native analysis lifecycle and outputs differ materially from waveform rendering.
+
 ## Patterns to follow
 
 ### Platform branching

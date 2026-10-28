@@ -23,8 +23,10 @@ Dance is structured in 8-beat phrases (8-counts). Some styles use 6-count phrase
 - Phrase/count guidance is controlled by the persisted `showDanceCounts` setting and is off by
   default. The setting hides phrase emphasis, waveform count labels, and the live transport count;
   it does not change phrase snapping or exported count semantics.
-- Counts are calculated from project BPM and song time zero. BeatNote does not infer musical phrase
-  starts or downbeats from the audio, so users should adjust BPM and phrase length to match the song.
+- Counts, phrase boundaries, snapping, and exports are calculated from project BPM plus the authored
+  beat anchor and optional phrase start. Automatic analysis offers a declinable BPM/anchor preview;
+  it never moves the grid on its own. Downbeat remains confidence-based assistance, and users can
+  always use Set Count 1 Here or fine nudges to align the phrase grid manually.
 
 ### Beat counting display
 

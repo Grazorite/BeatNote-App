@@ -34,8 +34,8 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-26
-**Branch:** `master` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
+**Last updated:** 2026-10-28
+**Branch:** `codex/automatic-bpm-detection` · **Deploy:** Web (Netlify) · local iOS simulator verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -55,27 +55,31 @@ potentially adding a hybrid path later.
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 7 critical native integrations retained; focused V1 launch/settings and Open_In checks pass |
 | E2E spec files | 2 (Playwright, 7 critical journeys) |
-| Native Expo modules | 2 (`BeatNoteWaveform` extraction and `LibraryStorage` persistence/Open_In) |
+| Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
 
 ### Current Focus
 
-1. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
+1. Finish `automatic-bpm-detection` native/runtime acceptance: iOS synthetic accuracy,
+   cancellation latency, 150-second peak memory, browser long-task/long-song measurements, and
+   representative real-song/physical-device evidence. Web production wiring and Phases 2–7 are
+   implemented; downbeat estimation remains deliberately open.
+2. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
    third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
    near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
-2. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
+3. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
    landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
    speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
-3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+4. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-4. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
+5. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
    VoiceOver adjustment, contrast, and audible boundary quality.
-5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+6. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-6. Keep the completed local choreography workflow stable while physical-device acceptance and the
+7. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -84,7 +88,7 @@ potentially adding a hybrid path later.
 | Agent / Role | Owns | Current assignment |
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
-| `context-gatherer` (sub-agent) | Codebase investigation before edits | Dispatch before touching unfamiliar paths |
+| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Drafted the Phase 4.1 detector/test in `session-7adcd112-5f2d-43cf-9763-4af6440a1441`; the turn exhausted its token limit, then the orchestrator reviewed and repaired the implementation |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -94,11 +98,13 @@ potentially adding a hybrid path later.
 ### 🔜 To Do
 
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
-- [ ] Implement `automatic-bpm-detection` from its approved phased spec after the physical-iPhone
-      V1 acceptance pass; begin with the disposable accuracy/performance/licensing spike
 
 ### 🚧 In Progress
 
+- [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
+      lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
+      exports, retained browser flow, and compiling iOS provider are implemented; native XCTest,
+      measured long-song memory/cancellation, real-song accuracy, and physical acceptance remain
 - [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
       temporary durability/property checks, all six browser journeys, the isolated seven-case native
       suite, simulator rotation, and maximum Dynamic Type review are complete
@@ -211,6 +217,55 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-28 — Implement automatic BPM detection and authored grid
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
+**Kanban moved:** automatic BPM detection → In Progress (web + Phases 2–7 implemented; native/runtime acceptance remains)
+
+**Changed:**
+
+- Web analysis services: shared waveform/analysis decode, transferable worker, D-5 window voting,
+  cancellation, half/double alternatives, and a self-contained onset/autocorrelation detector.
+- `modules/beatnote-tempo/` and the iOS bridge: bounded `AVAssetReader` windows, 11.025-kHz mono
+  streaming, Accelerate correlation, progress/cancel, and utility-priority work.
+- Analysis lifecycle/persistence/store: per-item validated cache, single-flight queue, source
+  capability, import/relink/delete hooks, AppState pause/resume, authored-grid persistence, and
+  atomic preview/restore state.
+- Timing UI and grid consumers: capability-gated suggestion/confidence/alternatives, proposed-grid
+  overlay, Set Count 1, ±5-ms/±quarter-beat nudge, anchor-aware snapping/counts/grids/exports, and
+  unconfirmed/suggested downbeat copy.
+- Spec/steering/automation: recorded evidence and open gaps, added proposed ADR-018, updated the
+  choreography count-origin rule, and extended the retained browser journey with a generated WAV.
+
+**Verified:**
+
+- Detector temporary checks → 7/7 passed across 60/90/120/150/180 BPM, silence, and steady tone;
+  grid/store/service temporary checks → 7/7 passed for atomic preview/restore, overrides,
+  single-flight, cache, capability-off, and delete-mid-flight cleanup.
+- Retained Chromium worker flow → generated 120-BPM WAV detected at 119.71 BPM, then previewed,
+  applied, restored, set Count 1, and exercised both nudge sizes; focused journey passed.
+- Static web export → passed with a separate 9.75-kB analysis worker bundle. Focused arm64 iOS
+  Simulator pod build for `BeatNoteTempo` → passed.
+- `npx tsc --noEmit`, version consistency, empty permanent unit gate, disabled-test search,
+  `git diff --check`, and orchestrator close-contract validation → passed after temporary tests were
+  removed. Full retained Playwright gate → 7/7 passed; the chunked downsample worker journey passed
+  again after the final performance fix.
+
+**Not verified / known gaps:**
+
+- iOS runtime accuracy, cancellation latency, long-fixture memory, and playback coexistence are not
+  verified; only the native pod compilation is verified. Focused native XCTest is not yet present.
+- Browser real-song accuracy, long-task/peak-memory/import-latency measurements, and physical-device
+  thermal/battery/background/Bluetooth behavior remain unverified. Current providers do not emit a
+  downbeat estimate, so phrase-start assistance falls back to the manual anchor as designed.
+- The tree is intentionally uncommitted on `codex/automatic-bpm-detection`; unrelated physical-
+  device backlog remains unchanged.
+
+**Next agent should:**
+
+- Add focused `BeatNoteTempo` runtime XCTest and collect the outstanding native/browser performance
+  measurements before considering the capability production-ready on physical devices.
+
 ### 2026-10-26 — Reconcile waveform visuals and automatic-BPM spec
 
 **Agent:** orchestrator (Codex) + Kiro specification author · **Commit(s):** `e4e74ab`, `e403811`
@@ -309,7 +364,6 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
   available; all currently listed local-only implementation work is complete.
-
 ### 2026-10-26 — Add annotation suggestion chips
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `b89171c`
@@ -344,36 +398,4 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Run the physical-device acceptance items when a signed iPhone and Apple Developer account are
   available; all currently listed local-only implementation work is complete.
-
-### 2026-10-26 — Add choreography PDF export
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `948da9d`
-**Kanban moved:** PDF choreography export → Done
-
-**Changed:**
-
-- Added shared, escaped print-ready choreography HTML with configurable project header, timeline,
-  marker table, phrase/count grid, and annotation notes.
-- Added `exportToPDF` across the export boundary and Project Manager flow; iOS creates and shares a
-  real PDF through Expo Print, while web opens the system print-to-PDF workflow.
-- Made the expanded export surface scroll-safe and exposed accessible checkbox state for every PDF
-  section option.
-
-**Verified:**
-
-- Temporary PDF rendering/escaping/option unit checks → 2/2 passed, then removed per policy.
-- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, and
-  `git diff --check` → clean.
-- Focused Project Manager/export browser journey → passed, including PDF option visibility and
-  checkbox state changes.
-- iPhone 17 Pro / iOS 27.1 simulator build → succeeded with `ExpoPrint` linked into the app target.
-
-**Not verified / known gaps:**
-
-- Completing an actual external share and visually reviewing multi-page output on a physical iPhone
-  remain part of hardware acceptance.
-- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `948da9d`.
-
-**Next agent should:**
-
-- Add built-in annotation vocabulary suggestion chips without replacing free-form entry.
+<!-- end handover log -->

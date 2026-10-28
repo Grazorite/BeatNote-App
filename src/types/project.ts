@@ -36,6 +36,11 @@ export interface BeatNoteProject {
     primaryView?: 'wrapped' | 'detail';
     countSize?: 4 | 6 | 8;
     showDanceCounts?: boolean;
+    beatAnchorMs?: number;
+    phraseStartMs?: number | null;
+    appliedBpm?: number;
+    manuallyOverriddenBpm?: boolean;
+    manuallyOverriddenAnchor?: boolean;
     rowDensity?: RowDensity;
     followPlayhead?: boolean;
     playbackSpeed?: number;

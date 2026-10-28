@@ -24,6 +24,7 @@ import {
   readLibraryStrict,
   type RepositoryOptions,
 } from './repositories';
+import { enqueueAnalysis, invalidateAnalysis } from '../analysis/bpmAnalysisService';
 
 export type ImportOrigin = 'picker' | 'openIn' | 'relink' | 'migration';
 
@@ -743,7 +744,15 @@ const refreshRelinkedItem = async (item: MusicItem): Promise<void> => {
 export const enqueueImport = async (request: ImportRequest): Promise<ImportOutcome> => {
   const outcome = await enqueueImportRaw(request);
   if (request.origin === 'relink') {
-    if (outcome.kind === 'reattached') await refreshRelinkedItem(outcome.item);
+    if (outcome.kind === 'reattached') {
+      await refreshRelinkedItem(outcome.item);
+      void invalidateAnalysis(outcome.musicItemId)
+        .then(() => enqueueAnalysis(
+          outcome.musicItemId,
+          useStudioStore.getState().currentMusicItemId === outcome.musicItemId,
+        ))
+        .catch(error => console.error('Unable to invalidate relinked BPM analysis', error));
+    }
     return outcome;
   }
   if (request.origin === 'migration'
@@ -755,13 +764,14 @@ export const enqueueImport = async (request: ImportRequest): Promise<ImportOutco
   if (library !== null) useStudioStore.setState({ libraryItems: library.items });
   const item = library?.items[outcome.musicItemId];
   const { requestTrackSwitch } = await import('./trackSwitch');
-  await requestTrackSwitch({
+  const switchResult = await requestTrackSwitch({
     musicItemId: outcome.musicItemId,
     origin: outcome.kind === 'duplicate'
       ? 'duplicate'
       : request.origin === 'openIn' ? 'openIn' : 'library',
     rebuildQueue: request.origin === 'picker' || request.origin === 'openIn',
   });
+  enqueueAnalysis(outcome.musicItemId, switchResult.kind === 'committed');
   if (outcome.kind === 'duplicate') {
     useStudioStore.getState().notify(
       `“${item?.displayTitle ?? request.originalFilename}” is already in your library`,

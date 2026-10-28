@@ -33,19 +33,27 @@ export const generateSnapTargets = (
   songDuration: number,
   markers: number[],
   viewportStartTime: number,
-  viewportDuration: number
+  viewportDuration: number,
+  beatAnchorMs = 0,
+  phraseStartMs: number | null = null,
 ): number[] => {
   const targets: number[] = [];
   
   // Add phrase boundaries for the selected dance-count size.
   const msPerBeat = 60000 / bpm;
   const msPerMajorLine = msPerBeat * countSize;
-  
-  const startBeat = Math.floor(viewportStartTime / msPerMajorLine);
-  const endBeat = Math.ceil((viewportStartTime + viewportDuration) / msPerMajorLine);
+  const safeAnchor = Number.isFinite(beatAnchorMs) ? beatAnchorMs : 0;
+  const majorLineOrigin = phraseStartMs !== null && Number.isFinite(phraseStartMs)
+    ? phraseStartMs
+    : safeAnchor;
+
+  const startBeat = Math.floor((viewportStartTime - majorLineOrigin) / msPerMajorLine);
+  const endBeat = Math.ceil(
+    (viewportStartTime + viewportDuration - majorLineOrigin) / msPerMajorLine,
+  );
   
   for (let beat = startBeat; beat <= endBeat; beat++) {
-    const beatTime = beat * msPerMajorLine;
+    const beatTime = majorLineOrigin + beat * msPerMajorLine;
     if (beatTime >= 0 && beatTime <= songDuration) {
       targets.push(beatTime);
     }

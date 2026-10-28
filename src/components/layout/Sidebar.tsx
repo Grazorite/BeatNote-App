@@ -17,6 +17,8 @@ import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featur
 
 import HelpButton from '../ui/controls/HelpButton';
 import BpmControl from '../ui/controls/BpmControl';
+import BpmSuggestionCard from '../ui/controls/BpmSuggestionCard';
+import BeatAnchorControl from '../ui/controls/BeatAnchorControl';
 import CountSizeControl from '../ui/controls/CountSizeControl';
 import DanceCountVisibilityControl from '../ui/controls/DanceCountVisibilityControl';
 import LayerNameSettings from '../ui/controls/LayerNameSettings';
@@ -132,6 +134,8 @@ const Sidebar: React.FC = () => {
                 <Text style={styles.sectionLabel}>Timing</Text>
                 <View style={styles.sidebarSection}>
                   <BpmControl />
+                  <BpmSuggestionCard />
+                  <BeatAnchorControl />
                   <DanceCountVisibilityControl />
                   <CountSizeControl />
                 </View>
@@ -187,6 +191,8 @@ const Sidebar: React.FC = () => {
           <Text style={styles.sectionLabel}>Timing</Text>
           <View style={styles.sidebarSection}>
             <BpmControl />
+            <BpmSuggestionCard />
+            <BeatAnchorControl />
             <DanceCountVisibilityControl />
             <CountSizeControl />
           </View>

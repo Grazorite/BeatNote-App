@@ -26,10 +26,12 @@ import type {
   SavedProjectSummary,
 } from '../types/project';
 import type { PlaybackQueue } from '../types/queue';
+import type { AnalysisJobView } from '../types/analysis';
 import type { PersistenceIssue } from '../features/library/persistencePipeline';
 import type { ReadOnlyLegacyProjectSummary } from '../features/library/migration';
 import { updateLibrarySort, writeQueue } from '../features/library/repositories';
 import { subscribeImportJobs } from '../features/library/importPipeline';
+import { subscribeAnalysisJobs } from '../features/analysis/bpmAnalysisService';
 import { applyPersistedContent } from '../utils/persistedContent';
 import { queueTarget, setShuffle as setQueueShuffle, type QueueAction } from '../utils/queueOrder';
 import type { SwitchResult } from '../features/library/trackSwitch';
@@ -71,6 +73,20 @@ export interface LoopRestoreSnapshot {
   loopEndMs: number | null;
   isLoopRangeEnabled: boolean;
   expiresAtMs: number;
+}
+
+export interface GridRestoreSnapshot {
+  bpm: number;
+  beatAnchorMs: number;
+  phraseStartMs: number | null;
+  manuallyOverriddenBpm: boolean;
+  manuallyOverriddenAnchor: boolean;
+}
+
+export interface GridPreview {
+  bpm: number;
+  beatAnchorMs: number;
+  phraseStartMs: number | null;
 }
 
 export interface DeletedMarker {
@@ -129,6 +145,7 @@ export interface StudioStore {
   readOnlyLegacyProjects: ReadOnlyLegacyProjectSummary[];
   migrationNoticeCount: number | null;
   importJobs: ImportJobView[];
+  analysisByItem: Record<string, AnalysisJobView>;
   libraryStatus: LibraryStatus;
   persistenceIssues: PersistenceIssue[];
   libraryNotice: { id: number; message: string; action?: DockToastAction } | null;
@@ -172,6 +189,12 @@ export interface StudioStore {
   primaryView: 'wrapped' | 'detail';
   countSize: 4 | 6 | 8;
   showDanceCounts: boolean;
+  beatAnchorMs: number;
+  phraseStartMs: number | null;
+  manuallyOverriddenBpm: boolean;
+  manuallyOverriddenAnchor: boolean;
+  gridRestoreSnapshot: GridRestoreSnapshot | null;
+  gridPreview: GridPreview | null;
   rowDensity: RowDensity;
   followPlayhead: boolean;
   playbackSpeed: number;
@@ -223,6 +246,15 @@ export interface StudioStore {
   setSongDuration: (duration: number) => void;
   setViewportLocked: (locked: boolean) => void;
   setBpm: (bpm: number) => void;
+  setBpmManual: (bpm: number) => void;
+  applyAnalysisSuggestion: (bpm: number, anchorMs: number, phraseStartMs?: number) => void;
+  previewAnalysisSuggestion: (bpm: number, anchorMs: number, phraseStartMs?: number) => void;
+  applyGridPreview: () => void;
+  cancelGridPreview: () => void;
+  restoreGridSnapshot: () => void;
+  setBeatAnchorManual: (anchorMs: number) => void;
+  setPhraseStartAtPlayhead: (playheadMs: number) => void;
+  nudgeBeatAnchor: (deltaMs: number) => void;
   setViewMode: (mode: 'unified' | 'multitrack') => void;
   setPrimaryView: (view: 'wrapped' | 'detail') => void;
   setCountSize: (size: 4 | 6 | 8) => void;
@@ -377,6 +409,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   readOnlyLegacyProjects: [],
   migrationNoticeCount: null,
   importJobs: [],
+  analysisByItem: {},
   libraryStatus: 'booting',
   persistenceIssues: [],
   libraryNotice: null,
@@ -420,6 +453,12 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   primaryView: 'wrapped',
   countSize: 8,
   showDanceCounts: false,
+  beatAnchorMs: 0,
+  phraseStartMs: null,
+  manuallyOverriddenBpm: false,
+  manuallyOverriddenAnchor: false,
+  gridRestoreSnapshot: null,
+  gridPreview: null,
   rowDensity: { mode: 'phrase' },
   followPlayhead: true,
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
@@ -551,6 +590,8 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       lastRemovedMarker: null,
       markerDeletionHistory: [],
       loopRestoreSnapshot: null,
+      gridRestoreSnapshot: null,
+      gridPreview: null,
       isLoopMarkerActive: false,
       libraryNotice: null,
       showHelpScreen: false,
@@ -656,6 +697,75 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
+  setBpmManual: (bpm) => set({ bpm, manuallyOverriddenBpm: true, gridPreview: null }),
+  applyAnalysisSuggestion: (bpm, anchorMs, phraseStartMs) => set((state) => ({
+    gridRestoreSnapshot: {
+      bpm: state.bpm,
+      beatAnchorMs: state.beatAnchorMs,
+      phraseStartMs: state.phraseStartMs,
+      manuallyOverriddenBpm: state.manuallyOverriddenBpm,
+      manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
+    },
+    bpm,
+    beatAnchorMs: Math.max(0, Math.round(anchorMs)),
+    phraseStartMs: phraseStartMs === undefined ? state.phraseStartMs : Math.max(0, Math.round(phraseStartMs)),
+    manuallyOverriddenBpm: false,
+    manuallyOverriddenAnchor: false,
+    gridPreview: null,
+  })),
+  previewAnalysisSuggestion: (bpm, anchorMs, phraseStartMs) => set((state) => ({
+    gridPreview: {
+      bpm,
+      beatAnchorMs: Math.max(0, Math.round(anchorMs)),
+      phraseStartMs: phraseStartMs === undefined
+        ? state.phraseStartMs
+        : Math.max(0, Math.round(phraseStartMs)),
+    },
+  })),
+  applyGridPreview: () => set((state) => state.gridPreview === null ? {} : ({
+    gridRestoreSnapshot: {
+      bpm: state.bpm,
+      beatAnchorMs: state.beatAnchorMs,
+      phraseStartMs: state.phraseStartMs,
+      manuallyOverriddenBpm: state.manuallyOverriddenBpm,
+      manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
+    },
+    bpm: state.gridPreview.bpm,
+    beatAnchorMs: state.gridPreview.beatAnchorMs,
+    phraseStartMs: state.gridPreview.phraseStartMs,
+    manuallyOverriddenBpm: false,
+    manuallyOverriddenAnchor: false,
+    gridPreview: null,
+  })),
+  cancelGridPreview: () => set({ gridPreview: null }),
+  restoreGridSnapshot: () => set((state) => state.gridRestoreSnapshot === null ? {} : ({
+    ...state.gridRestoreSnapshot,
+    gridRestoreSnapshot: null,
+    gridPreview: null,
+  })),
+  setBeatAnchorManual: (anchorMs) => set((state) => ({
+    beatAnchorMs: Math.max(0, Math.min(state.songDuration, Math.round(anchorMs))),
+    manuallyOverriddenAnchor: true,
+    gridPreview: null,
+  })),
+  setPhraseStartAtPlayhead: (playheadMs) => set((state) => {
+    const anchorMs = Math.max(0, Math.min(state.songDuration, Math.round(playheadMs)));
+    return {
+      beatAnchorMs: anchorMs,
+      phraseStartMs: anchorMs,
+      manuallyOverriddenAnchor: true,
+      gridPreview: null,
+    };
+  }),
+  nudgeBeatAnchor: (deltaMs) => set((state) => {
+    if (!Number.isFinite(deltaMs)) return {};
+    const maximum = Math.max(0, state.songDuration);
+    const beatAnchorMs = Math.max(0, Math.min(maximum, Math.round(state.beatAnchorMs + deltaMs)));
+    const phraseStartMs = state.phraseStartMs === null
+      ? null
+      : Math.max(0, Math.min(maximum, Math.round(state.phraseStartMs + deltaMs)));
+    return { beatAnchorMs, phraseStartMs, manuallyOverriddenAnchor: true, gridPreview: null };
+  }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
@@ -1244,4 +1354,8 @@ export const useStudioStore = create<StudioStore>(studioStoreCreator);
 
 subscribeImportJobs(importJobs => {
   useStudioStore.setState({ importJobs: importJobs.map(job => ({ ...job })) });
+});
+
+subscribeAnalysisJobs(analysisByItem => {
+  useStudioStore.setState({ analysisByItem: { ...analysisByItem } });
 });

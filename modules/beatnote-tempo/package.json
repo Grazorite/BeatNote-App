@@ -1,0 +1,10 @@
+{
+  "name": "beatnote-tempo",
+  "version": "1.0.0",
+  "description": "BeatNote native tempo and beat-anchor analysis",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

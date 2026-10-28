@@ -9,6 +9,7 @@ import { useZoomGesture } from '../../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import RhythmicGrid from './RhythmicGrid';
+import GridPreviewOverlay from './GridPreviewOverlay';
 import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
 import { colors } from '../../../styles/common';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
@@ -66,6 +67,9 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const showGridLines = useStudioStore(state => state.showGridLines);
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
+  const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
+  const phraseStartMs = useStudioStore(state => state.phraseStartMs);
+  const gridPreview = useStudioStore(state => state.gridPreview);
   const magneticSnapping = useStudioStore(state => state.magneticSnapping);
   const allLayersData = useStudioStore(state => state.allLayersData);
   const setViewportStartTime = useStudioStore(state => state.setViewportStartTime);
@@ -119,7 +123,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -133,7 +137,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -160,7 +164,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       
       if (magneticSnapping) {
         const allMarkers = allLayersData.flatMap(layer => layer.markers);
-        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration);
+        const snapTargets = generateSnapTargets(bpm, countSize, songDuration, allMarkers, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs);
         const pixelsPerMs = VIEWPORT_WIDTH / viewportDuration;
         targetTime = snapToNearestTarget(targetTime, snapTargets, pixelsPerMs);
       }
@@ -286,15 +290,16 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     if (!showGridLines) return null;
     
     const lines = [];
-    const pixelsPerBeat = (pixelsPerSecond * 60) / bpm;
-    const startBeat = Math.floor((viewportStartTime / 1000) * (bpm / 60));
-    const endBeat = Math.ceil(((viewportStartTime + viewportDuration) / 1000) * (bpm / 60));
+    const millisecondsPerBeat = 60_000 / bpm;
+    const originMs = phraseStartMs ?? beatAnchorMs;
+    const startBeat = Math.floor((viewportStartTime - originMs) / millisecondsPerBeat);
+    const endBeat = Math.ceil((viewportStartTime + viewportDuration - originMs) / millisecondsPerBeat);
     
     for (let beat = startBeat; beat <= endBeat; beat++) {
-      const beatTimeMs = (beat / (bpm / 60)) * 1000;
+      const beatTimeMs = originMs + beat * millisecondsPerBeat;
       const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
       
-      if (x >= 0 && x <= VIEWPORT_WIDTH && beat % 8 === 0) {
+      if (x >= 0 && x <= VIEWPORT_WIDTH && beat % countSize === 0) {
         lines.push(
           <Line
             key={`grid-${beat}`}
@@ -310,7 +315,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
       }
     }
     return lines;
-  }, [showGridLines, pixelsPerSecond, bpm, viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
+  }, [showGridLines, bpm, countSize, beatAnchorMs, phraseStartMs, viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
 
   // Current playhead position in viewport
   const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
@@ -481,6 +486,16 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               </>
             )}
           </Svg>
+          {gridPreview !== null && (
+            <GridPreviewOverlay
+              preview={gridPreview}
+              width={VIEWPORT_WIDTH}
+              height={WAVEFORM_HEIGHT}
+              viewportStartTime={viewportStartTime}
+              viewportDuration={viewportDuration}
+              countSize={countSize}
+            />
+          )}
         </View>
       </View>
     </View>

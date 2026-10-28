@@ -51,6 +51,10 @@ export type PersistedContentSource = Pick<StudioStore,
   | 'primaryView'
   | 'countSize'
   | 'showDanceCounts'
+  | 'beatAnchorMs'
+  | 'phraseStartMs'
+  | 'manuallyOverriddenBpm'
+  | 'manuallyOverriddenAnchor'
   | 'rowDensity'
   | 'followPlayhead'
   | 'playbackSpeed'
@@ -71,6 +75,10 @@ export type PersistedContentPatch = Pick<StudioStore,
   | 'primaryView'
   | 'countSize'
   | 'showDanceCounts'
+  | 'beatAnchorMs'
+  | 'phraseStartMs'
+  | 'manuallyOverriddenBpm'
+  | 'manuallyOverriddenAnchor'
   | 'rowDensity'
   | 'followPlayhead'
   | 'playbackSpeed'
@@ -119,6 +127,11 @@ export function createEmptyPersistedContent(): PersistedContent {
       primaryView: 'wrapped',
       countSize: 8,
       showDanceCounts: false,
+      beatAnchorMs: 0,
+      phraseStartMs: null,
+      appliedBpm: 120,
+      manuallyOverriddenBpm: false,
+      manuallyOverriddenAnchor: false,
       rowDensity: { mode: 'phrase' },
       followPlayhead: true,
       playbackSpeed: 1,
@@ -148,6 +161,11 @@ export function extractPersistedContent(state: PersistedContentSource): Persiste
       primaryView: state.primaryView,
       countSize: state.countSize,
       showDanceCounts: state.showDanceCounts,
+      beatAnchorMs: state.beatAnchorMs,
+      phraseStartMs: state.phraseStartMs,
+      appliedBpm: state.bpm,
+      manuallyOverriddenBpm: state.manuallyOverriddenBpm,
+      manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
       rowDensity: state.rowDensity,
       followPlayhead: state.followPlayhead,
       playbackSpeed: state.playbackSpeed,
@@ -180,6 +198,10 @@ export function applyPersistedContent(content: PersistedContent): PersistedConte
     primaryView: content.settings.primaryView ?? 'wrapped',
     countSize: content.settings.countSize ?? 8,
     showDanceCounts: content.settings.showDanceCounts ?? false,
+    beatAnchorMs: content.settings.beatAnchorMs ?? 0,
+    phraseStartMs: content.settings.phraseStartMs ?? null,
+    manuallyOverriddenBpm: content.settings.manuallyOverriddenBpm ?? false,
+    manuallyOverriddenAnchor: content.settings.manuallyOverriddenAnchor ?? false,
     rowDensity: content.settings.rowDensity ?? { mode: 'phrase' },
     followPlayhead: content.settings.followPlayhead ?? true,
     playbackSpeed: content.settings.playbackSpeed ?? 1,

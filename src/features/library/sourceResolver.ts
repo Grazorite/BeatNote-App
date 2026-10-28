@@ -20,6 +20,7 @@ export const LOCAL_CAPABILITIES: PlaybackCapabilities = Object.freeze({
   backgroundPlayback: true,
   repeat: true,
   shuffle: true,
+  decodedAudioAnalysis: true,
 });
 
 export const NO_SOURCE_CAPABILITIES: PlaybackCapabilities = Object.freeze({
@@ -31,6 +32,7 @@ export const NO_SOURCE_CAPABILITIES: PlaybackCapabilities = Object.freeze({
   backgroundPlayback: false,
   repeat: false,
   shuffle: false,
+  decodedAudioAnalysis: false,
 });
 
 export class SourceUnavailableError extends Error {

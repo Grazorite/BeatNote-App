@@ -17,6 +17,7 @@ import type {
   SongDraft,
 } from '../types/project';
 import type { PlaybackQueue } from '../types/queue';
+import type { AnalysisCacheEntry } from '../types/analysis';
 
 export interface ValidationResult<T> {
   valid: T;
@@ -91,6 +92,17 @@ const isProjectSettings = (value: unknown): boolean => {
     && value.countSize !== 4
     && value.countSize !== 6
     && value.countSize !== 8) return false;
+  if (value.showDanceCounts !== undefined && !isBoolean(value.showDanceCounts)) return false;
+  if (value.beatAnchorMs !== undefined && !isFiniteNumber(value.beatAnchorMs)) return false;
+  if (value.phraseStartMs !== undefined
+    && value.phraseStartMs !== null
+    && !isFiniteNumber(value.phraseStartMs)) return false;
+  if (value.appliedBpm !== undefined
+    && (!isFiniteNumber(value.appliedBpm) || value.appliedBpm <= 0)) return false;
+  if (value.manuallyOverriddenBpm !== undefined
+    && !isBoolean(value.manuallyOverriddenBpm)) return false;
+  if (value.manuallyOverriddenAnchor !== undefined
+    && !isBoolean(value.manuallyOverriddenAnchor)) return false;
   if (value.rowDensity !== undefined && !isRowDensity(value.rowDensity)) return false;
   if (value.followPlayhead !== undefined && !isBoolean(value.followPlayhead)) return false;
   if (value.playbackSpeed !== undefined && !isFiniteNumber(value.playbackSpeed)) return false;
@@ -327,6 +339,51 @@ export function validateLibraryPrefs(
     },
     invalidIds: [],
   };
+}
+
+const isBpmAlternative = (value: unknown): boolean => isRecord(value)
+  && isFiniteNumber(value.bpm)
+  && isFiniteNumber(value.likelihood)
+  && (value.relation === 'primary'
+    || value.relation === 'half'
+    || value.relation === 'double'
+    || value.relation === 'other');
+
+/** Return whether a parsed value has the complete AnalysisResult shape. */
+export function isAnalysisCacheEntry(value: unknown): value is AnalysisCacheEntry {
+  if (!isRecord(value)
+    || value.schemaVersion !== 1
+    || !isString(value.musicItemId)
+    || !isRecord(value.result)) return false;
+  const result = value.result;
+  return isFiniteNumber(result.detectedBpm)
+    && isFiniteNumber(result.confidence)
+    && (result.confidenceBand === 'high'
+      || result.confidenceBand === 'medium'
+      || result.confidenceBand === 'low')
+    && (result.tempoModel === 'constant' || result.tempoModel === 'variable')
+    && Array.isArray(result.bpmAlternatives)
+    && result.bpmAlternatives.every(isBpmAlternative)
+    && isFiniteNumber(result.suggestedAnchorMs)
+    && (result.detectedBeatTimes === undefined
+      || (Array.isArray(result.detectedBeatTimes)
+        && result.detectedBeatTimes.every(isFiniteNumber)))
+    && (result.suggestedDownbeatMs === undefined || isFiniteNumber(result.suggestedDownbeatMs))
+    && (result.downbeatConfidence === undefined || isFiniteNumber(result.downbeatConfidence))
+    && isString(result.analyzerId)
+    && isPositiveInteger(result.analyzerVersion)
+    && isString(result.audioFingerprint)
+    && isString(result.analyzedAt);
+}
+
+/** Validate a parsed analysis cache entry and identify its music ID on failure. */
+export function validateAnalysisCacheEntry(
+  value: unknown,
+  id: string,
+): ValidationResult<AnalysisCacheEntry | null> {
+  return isAnalysisCacheEntry(value) && value.musicItemId === id
+    ? { valid: value, invalidIds: [] }
+    : { valid: null, invalidIds: [id] };
 }
 
 /** Validate a parsed SavedProject value and identify its storage ID on failure. */

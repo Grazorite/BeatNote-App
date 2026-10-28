@@ -26,7 +26,15 @@ const RowGutter: React.FC<RowGutterProps> = ({
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const showDanceCounts = useStudioStore(state => state.showDanceCounts);
-  const countLabel = danceCountAtTime(startMs, bpm, countSize).absoluteCount;
+  const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
+  const phraseStartMs = useStudioStore(state => state.phraseStartMs);
+  const countLabel = danceCountAtTime(
+    startMs,
+    bpm,
+    countSize,
+    beatAnchorMs,
+    phraseStartMs,
+  ).absoluteCount;
 
   return (
     <View

@@ -252,6 +252,39 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-26 — Add choreography PDF export
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `948da9d`
+**Kanban moved:** PDF choreography export → Done
+
+**Changed:**
+
+- Added shared, escaped print-ready choreography HTML with configurable project header, timeline,
+  marker table, phrase/count grid, and annotation notes.
+- Added `exportToPDF` across the export boundary and Project Manager flow; iOS creates and shares a
+  real PDF through Expo Print, while web opens the system print-to-PDF workflow.
+- Made the expanded export surface scroll-safe and exposed accessible checkbox state for every PDF
+  section option.
+
+**Verified:**
+
+- Temporary PDF rendering/escaping/option unit checks → 2/2 passed, then removed per policy.
+- Version consistency → `1.0.0`; `npx tsc --noEmit`, empty permanent unit gate, and
+  `git diff --check` → clean.
+- Focused Project Manager/export browser journey → passed, including PDF option visibility and
+  checkbox state changes.
+- iPhone 17 Pro / iOS 27.1 simulator build → succeeded with `ExpoPrint` linked into the app target.
+
+**Not verified / known gaps:**
+
+- Completing an actual external share and visually reviewing multi-page output on a physical iPhone
+  remain part of hardware acceptance.
+- Concurrent wrapped-waveform/playhead edits remain uncommitted and outside `948da9d`.
+
+**Next agent should:**
+
+- Add built-in annotation vocabulary suggestion chips without replacing free-form entry.
+
 ### 2026-10-26 — Add custom layer names
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `8df8c71`
