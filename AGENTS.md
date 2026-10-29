@@ -307,7 +307,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-29 — Stabilise physical-iPhone editing and playback rendering
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`, `6299b66`
+**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`, `6299b66`, `4f1b4da`
 **Kanban moved:** physical-iPhone crash, latency, and layout polish → In Progress (implementation verified locally; hardware retest pending)
 
 **Changed:**
@@ -331,9 +331,9 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   rebuild for every finger-move event.
 - Suppressed only React playhead/time publication while a loop gesture is active so audio playback
   and loop-boundary decisions continue without competing SVG renders, then catch up on release.
-- Forced landscape rail rows to a zero flex basis with explicit 1:2 ordinary/play proportions so
-  marker buttons cannot absorb surplus height; retained coverage now requires all twelve ordinary
-  controls to match within one pixel.
+- Measure the outer landscape rail and assign explicit equal heights to all ordinary control rows,
+  with Play exactly twice that height and vertically centred; retained coverage now requires all
+  twelve ordinary controls to match within one pixel.
 - Corrected the playback-visual suppression boundary from touch-down to activated pan, so pressing
   and holding a loop range without moving no longer freezes the playhead.
 
@@ -359,6 +359,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   the time probe to continue advancing. Landscape coverage also requires Play to stay within
   1.9–2.1× ordinary height and share the rail's vertical centre. Both focused journeys passed, and
   the corrected bundle was relaunched successfully on the physical iPhone.
+- The follow-up exact-height implementation passed the focused phone-dock journey, TypeScript,
+  `git diff --check`, and the full retained Playwright gate (7/7); physical inspection remains open.
 
 **Not verified / known gaps:**
 
