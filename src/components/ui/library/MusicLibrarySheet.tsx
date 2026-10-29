@@ -371,7 +371,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                 accessibilityState={{ disabled: libraryStatus !== 'ready' }}
                 testID="music-library-import"
               >
-                <BeatNoteIcon name="import" size={20} color={colors.accent} />
+                <BeatNoteIcon name="import" size={22} color={colors.accent} />
                 <Text style={styles.importText} maxFontSizeMultiplier={MAX_TEXT_SCALE}>Import Audio</Text>
               </TouchableOpacity>
               {importJobs.map(job => (

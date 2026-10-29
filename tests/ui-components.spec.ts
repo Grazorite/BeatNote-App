@@ -578,7 +578,9 @@ test.describe('UI Components & Layout', () => {
     await songTitleControl.click();
     await expect(page.getByTestId('music-library-sheet-title')).toBeFocused();
     await expect(page.getByRole('button', { name: 'Import Audio' }).locator('path').last())
-      .toHaveAttribute('d', /^M19 13h-7/);
+      .toHaveAttribute('d', /^M21 13H8m2\.5-2\.5L8 13l2\.5 2\.5$/);
+    await expect(page.getByRole('button', { name: 'Import Audio' }).locator('path').last())
+      .toHaveAttribute('stroke-width', '2');
     await page.keyboard.press('Tab');
     await expect.poll(() => page.evaluate(() => (
       document.querySelector('[data-testid="music-library-sheet"]')?.contains(document.activeElement)
