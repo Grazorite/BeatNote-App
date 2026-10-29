@@ -271,7 +271,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-29 — Stabilise physical-iPhone editing and playback rendering
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`
+**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`
 **Kanban moved:** physical-iPhone crash, latency, and layout polish → In Progress (implementation verified locally; hardware retest pending)
 
 **Changed:**
@@ -293,6 +293,11 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Moved loop drag/resize previews out of the global project store, coalesced them to animation
   frames, and commit the valid range once on release so wrapped-row geometry and persistence do not
   rebuild for every finger-move event.
+- Suppressed only React playhead/time publication while a loop gesture is active so audio playback
+  and loop-boundary decisions continue without competing SVG renders, then catch up on release.
+- Forced landscape rail rows to a zero flex basis with explicit 1:2 ordinary/play proportions so
+  marker buttons cannot absorb surplus height; retained coverage now requires all twelve ordinary
+  controls to match within one pixel.
 
 **Verified:**
 
@@ -308,6 +313,10 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Physical follow-up found ordinary waveform and transport response improved, while loop dragging
   and rotation still exposed lag; the follow-up implementation passed the two focused responsive
   journeys and the full retained Playwright gate (7/7), then bundled and launched on the iPhone.
+- A second physical follow-up confirmed loop management was substantially better but still lagged
+  during playback and showed over-tall landscape marker rows. The final focused journeys and full
+  retained Playwright gate passed again (7/7); device relaunch was deferred because iOS reported the
+  connected phone locked.
 
 **Not verified / known gaps:**
 
@@ -321,8 +330,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 **Next agent should:**
 
-- Retest loop creation/move/resize and repeated portrait/landscape rotation in the running iPhone
-  bundle, then collect Release/TestFlight performance evidence separately from Metro overhead.
+- Unlock the iPhone, load the waiting Metro bundle, and retest loop editing during playback plus
+  landscape row heights; then collect Release/TestFlight evidence separately from Metro overhead.
 
 ### 2026-10-29 — Add precise playback-speed step buttons
 
