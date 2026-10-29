@@ -111,8 +111,10 @@ test.describe('UI Components & Layout', () => {
     await page.evaluate(() => {
       const monitoredWindow = window as typeof window & {
         __beatNoteAudioSettings?: { rate?: number; preservesPitch?: boolean };
+        __beatNoteAudioRateChanges?: number[];
       };
       monitoredWindow.__beatNoteAudioSettings = {};
+      monitoredWindow.__beatNoteAudioRateChanges = [];
       const rateDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'playbackRate');
       const pitchDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'preservesPitch');
       if (rateDescriptor?.get && rateDescriptor.set) {
@@ -120,6 +122,7 @@ test.describe('UI Components & Layout', () => {
           configurable: true,
           get: rateDescriptor.get,
           set(value: number) {
+            monitoredWindow.__beatNoteAudioRateChanges?.push(value);
             monitoredWindow.__beatNoteAudioSettings = {
               ...monitoredWindow.__beatNoteAudioSettings,
               rate: value,
@@ -153,7 +156,9 @@ test.describe('UI Components & Layout', () => {
     await expect(title).toContainText('long-test-track');
 
     await nextTrack.click();
+    await expect(page.getByTestId('track-switch-transition')).toContainText('Loading background-audio');
     await expect(title).toContainText('background-audio');
+    await expect(page.getByTestId('track-switch-transition')).toHaveCount(0, { timeout: 1000 });
 
     const seekArea = page.getByTestId('wrapped-row-gesture-area-9');
     const seekBox = await seekArea.boundingBox();
@@ -393,6 +398,23 @@ test.describe('UI Components & Layout', () => {
       expect(landscapeSpeedChooser.x + landscapeSpeedChooser.width).toBeLessThanOrEqual(740);
       expect(landscapeSpeedChooser.y + landscapeSpeedChooser.height).toBeLessThanOrEqual(390);
     }
+    await page.getByTestId('playback-speed-reset').click();
+    await expect(page.getByTestId('playback-speed')).toContainText('1×');
+    await page.getByTestId('play-pause').click();
+    await page.getByTestId('playback-speed').click();
+    await page.evaluate(() => {
+      (window as typeof window & { __beatNoteAudioRateChanges?: number[] })
+        .__beatNoteAudioRateChanges = [];
+    });
+    for (let index = 0; index < 6; index += 1) await page.getByTestId('playback-speed-increment').click();
+    await expect(page.getByTestId('playback-speed')).toContainText('1.3×');
+    await expect.poll(async () => page.evaluate(() => (
+      window as typeof window & { __beatNoteAudioRateChanges?: number[] }
+    ).__beatNoteAudioRateChanges?.length ?? 0)).toBe(1);
+    await expect.poll(async () => page.evaluate(() => (
+      window as typeof window & { __beatNoteAudioSettings?: { rate?: number } }
+    ).__beatNoteAudioSettings?.rate)).toBe(1.3);
+    await page.getByTestId('play-pause').click();
     await page.getByTestId('playback-speed-reset').click();
     await expect(page.getByTestId('playback-speed')).toContainText('1×');
     await expect(page.getByTestId('dock-toast')).toHaveCount(0);

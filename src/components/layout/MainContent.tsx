@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   InteractionManager,
   Keyboard,
   LayoutChangeEvent,
@@ -9,7 +10,12 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, {
+  useReducedMotion,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
 import {
@@ -92,11 +98,16 @@ const MainContent: React.FC<MainContentProps> = ({
   safeAreaBottom,
 }) => {
   const opacity = useSharedValue(1);
+  const switchContentOpacity = useSharedValue(1);
+  const switchOverlayOpacity = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const pendingAnnotationSaveRef = useRef<{ marker: SelectedMarker; text: string } | null>(null);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const [landscapeRailHeight, setLandscapeRailHeight] = useState(0);
+  const [switchTransitionVisible, setSwitchTransitionVisible] = useState(false);
+  const [switchTransitionTitle, setSwitchTransitionTitle] = useState('song');
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
   const hasLoadedSong = useStudioStore(state => state.songLoaded);
@@ -107,6 +118,12 @@ const MainContent: React.FC<MainContentProps> = ({
   const lastForwardedNoticeId = useRef(0);
   const playbackSpeed = useStudioStore(state => state.playbackSpeed);
   const setPlaybackSpeed = useStudioStore(state => state.setPlaybackSpeed);
+  const switchPhase = useStudioStore(state => state.switchPhase);
+  const switchTargetTitle = useStudioStore(state => {
+    const targetId = state.pendingSwitchTargetId ?? state.loadingMusicItemId;
+    return targetId === null ? null : state.libraryItems[targetId]?.displayTitle ?? null;
+  });
+  const switchBusy = switchPhase !== 'idle' && switchPhase !== 'guard';
   const activeLayerId = useStudioStore(state => state.activeLayerId);
   const allLayersData = useStudioStore(state => state.allLayersData);
   const currentMarkerKey = useStudioStore(state => markerKey(
@@ -166,9 +183,50 @@ const MainContent: React.FC<MainContentProps> = ({
     lastForwardedNoticeId.current = libraryNotice.id;
     toast.show(libraryNotice.message, libraryNotice.action ?? null);
   }, [libraryNotice, toast.show]);
+
+  useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+    if (switchBusy) {
+      if (switchTargetTitle !== null) setSwitchTransitionTitle(switchTargetTitle);
+      setSwitchTransitionVisible(true);
+      if (reduceMotion) {
+        switchContentOpacity.value = 0.55;
+        switchOverlayOpacity.value = 1;
+      } else {
+        switchContentOpacity.value = withTiming(0.55, { duration: 90 });
+        switchOverlayOpacity.value = withTiming(1, { duration: 90 });
+      }
+    } else if (switchTransitionVisible) {
+      if (reduceMotion) {
+        switchContentOpacity.value = 1;
+        switchOverlayOpacity.value = 0;
+        setSwitchTransitionVisible(false);
+      } else {
+        switchContentOpacity.value = withTiming(1, { duration: 160 });
+        switchOverlayOpacity.value = withTiming(0, { duration: 160 });
+        hideTimer = setTimeout(() => setSwitchTransitionVisible(false), 180);
+      }
+    }
+    return () => {
+      if (hideTimer !== null) clearTimeout(hideTimer);
+    };
+  }, [
+    reduceMotion,
+    switchBusy,
+    switchContentOpacity,
+    switchOverlayOpacity,
+    switchTargetTitle,
+    switchTransitionVisible,
+  ]);
   
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value
+  }));
+  const switchContentStyle = useAnimatedStyle(() => ({
+    opacity: switchContentOpacity.value,
+  }));
+  const switchOverlayStyle = useAnimatedStyle(() => ({
+    opacity: switchOverlayOpacity.value,
   }));
   
   // Responsive container width
@@ -289,8 +347,31 @@ const MainContent: React.FC<MainContentProps> = ({
         ]}
         testID="mobile-workspace-scroll"
       >
-        {waveform}
-        {mobileTimeline}
+        <Animated.View
+          style={[styles.mobileCanvasContent, switchContentStyle]}
+          pointerEvents={switchBusy ? 'none' : 'auto'}
+        >
+          {waveform}
+          {mobileTimeline}
+        </Animated.View>
+        {switchTransitionVisible && (
+          <Animated.View
+            testID="track-switch-transition"
+            style={[styles.trackSwitchTransition, switchOverlayStyle]}
+            pointerEvents={switchBusy ? 'auto' : 'none'}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={`Loading ${switchTransitionTitle}`}
+            accessibilityLiveRegion="polite"
+          >
+            <View style={styles.trackSwitchTransitionCard}>
+              <ActivityIndicator color="#ffffff" size="small" />
+              <Text style={styles.trackSwitchTransitionText} numberOfLines={1}>
+                Loading {switchTransitionTitle}…
+              </Text>
+            </View>
+          </Animated.View>
+        )}
         <Text style={styles.assistiveStatus} testID="grand-total-markers">
           Grand Total: {totalMarkers} markers
         </Text>
@@ -304,6 +385,7 @@ const MainContent: React.FC<MainContentProps> = ({
           isLandscapePhone && styles.landscapeControlRail,
         ]}
         testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}
+        pointerEvents={switchBusy ? 'none' : 'auto'}
         onLayout={isLandscapePhone ? (event: LayoutChangeEvent) => {
           const nextHeight = event.nativeEvent.layout.height;
           setLandscapeRailHeight(current => (

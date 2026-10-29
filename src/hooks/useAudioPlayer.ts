@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
@@ -16,6 +16,7 @@ interface ErrorState {
 // Constants for audio playback behavior
 const END_OF_TRACK_TOLERANCE_MS = 100;
 const PLAYBACK_UPDATE_INTERVAL_MS = 100;
+const PLAYBACK_RATE_DEBOUNCE_MS = 120;
 
 /**
  * Custom audio player hook that handles:
@@ -32,8 +33,18 @@ export const useCustomAudioPlayer = () => {
   const loopDecisionSuspendedRef = useRef(false);
   const loopSeekInFlightRef = useRef(false);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
+  const playbackRateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playbackRateSourceRef = useRef<string | null>(null);
+  const appliedPlaybackSpeedRef = useRef<number | null>(null);
   const currentAudioUri = useStudioStore(state => state.currentAudioUri);
   const currentAudioFilename = useStudioStore(state => state.currentAudioFilename);
+  const lockScreenTitle = useStudioStore(state => (
+    state.currentMusicItemId === null
+      ? state.currentAudioFilename ?? 'BeatNote'
+      : state.libraryItems[state.currentMusicItemId]?.displayTitle
+        ?? state.currentAudioFilename
+        ?? 'BeatNote'
+  ));
   const audioSource = useMemo<AudioSource | null>(
     () => currentAudioUri ? { uri: currentAudioUri } : null,
     [currentAudioUri],
@@ -77,6 +88,18 @@ export const useCustomAudioPlayer = () => {
     const subscription = player.addListener('playbackStatusUpdate', status => {
       playerStatusRef.current = status;
       setPlayerIsLoaded(previous => previous === status.isLoaded ? previous : status.isLoaded);
+      const currentState = useStudioStore.getState();
+      if (currentState.switchPhase === 'idle' && currentState.isPlaying !== status.playing) {
+        currentState.setIsPlaying(status.playing);
+      }
+      if (currentState.switchPhase === 'idle' && !status.playing) {
+        const reportedPositionMs = status.currentTime * 1000;
+        if (Number.isFinite(reportedPositionMs)
+          && Math.abs(currentState.currentTime - reportedPositionMs) > 20) {
+          currentState.setCurrentTime(reportedPositionMs);
+          previousSampleRef.current = reportedPositionMs;
+        }
+      }
       const durationMs = status.duration * 1000;
       if (Number.isFinite(durationMs) && durationMs > 0
         && useStudioStore.getState().songDuration !== durationMs) {
@@ -99,17 +122,42 @@ export const useCustomAudioPlayer = () => {
 
   useEffect(() => {
     if (!player) return;
-    try {
-      player.shouldCorrectPitch = true;
-      player.setPlaybackRate(playbackSpeed, 'high');
-    } catch (playbackRateError) {
-      console.error('Playback speed configuration error:', playbackRateError);
-      showError(
-        'Playback Speed Error',
-        'BeatNote could not apply pitch-preserved playback speed. Playback remains available at the last working speed.',
-      );
+    if (playbackRateTimerRef.current !== null) {
+      clearTimeout(playbackRateTimerRef.current);
+      playbackRateTimerRef.current = null;
     }
-  }, [player, playbackSpeed, showError]);
+    const sourceChanged = playbackRateSourceRef.current !== currentAudioUri;
+    const alreadyApplied = !sourceChanged && appliedPlaybackSpeedRef.current === playbackSpeed;
+    if (alreadyApplied) return;
+
+    const applyPlaybackRate = () => {
+      playbackRateTimerRef.current = null;
+      try {
+        player.shouldCorrectPitch = true;
+        player.setPlaybackRate(playbackSpeed, 'high');
+        playbackRateSourceRef.current = currentAudioUri;
+        appliedPlaybackSpeedRef.current = playbackSpeed;
+      } catch (playbackRateError) {
+        console.error('Playback speed configuration error:', playbackRateError);
+        showError(
+          'Playback Speed Error',
+          'BeatNote could not apply pitch-preserved playback speed. Playback remains available at the last working speed.',
+        );
+      }
+    };
+
+    if (sourceChanged || !isPlaying || appliedPlaybackSpeedRef.current === null) {
+      applyPlaybackRate();
+    } else {
+      playbackRateTimerRef.current = setTimeout(applyPlaybackRate, PLAYBACK_RATE_DEBOUNCE_MS);
+    }
+    return () => {
+      if (playbackRateTimerRef.current !== null) {
+        clearTimeout(playbackRateTimerRef.current);
+        playbackRateTimerRef.current = null;
+      }
+    };
+  }, [currentAudioUri, isPlaying, player, playbackSpeed, showError]);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -120,6 +168,29 @@ export const useCustomAudioPlayer = () => {
       showError('Audio Setup Error', 'BeatNote could not configure audio playback. Please restart the app and try again.');
     });
   }, [showError]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' || currentAudioUri === null || !playerIsLoaded) return;
+    try {
+      player.setActiveForLockScreen(true, {
+        title: lockScreenTitle,
+        artist: 'BeatNote',
+      }, {
+        showSeekBackward: false,
+        showSeekForward: false,
+      });
+    } catch (lockScreenError) {
+      console.error('Lock screen controls setup error:', lockScreenError);
+      return;
+    }
+    return () => {
+      try {
+        player.clearLockScreenControls();
+      } catch (lockScreenError) {
+        console.error('Lock screen controls cleanup error:', lockScreenError);
+      }
+    };
+  }, [currentAudioUri, lockScreenTitle, player, playerIsLoaded]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;

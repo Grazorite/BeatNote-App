@@ -478,7 +478,11 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     const source = snapshotSource(initial);
     const wasPlaying = initial.isPlaying;
     if (wasPlaying) await dependencies.player.pause();
-    dependencies.setState({ isPlaying: false, switchPhase: 'flushing' });
+    dependencies.setState({
+      isPlaying: false,
+      switchPhase: 'flushing',
+      loadingMusicItemId: request.musicItemId,
+    });
     const flushResult = await dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
     if (flushResult === 'failed' || flushResult === 'timeout') {
       dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
