@@ -522,6 +522,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - Collect the browser performance measurements, then run representative real-song BPM and playback
   coexistence acceptance on the physical iPhone.
 
+### 2026-10-29 — Fix Repeat and shuffled track completion
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `e785a85`
+**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
+
+**Changed:**
+
+- Moved whole-track completion onto Expo Audio's native `didJustFinish` signal so iOS cannot clear
+  the playing state and tear down the polling effect before Repeat seeks to zero.
+- Added guarded shuffled completion: Repeat takes precedence; otherwise Shuffle switches to the next
+  entry in its randomized order and continues playback. Stale or repeated completion callbacks
+  during source replacement are ignored.
+- Updated the approved queue contract and recorded the physical library acceptance report: every
+  Task 44.4 case passes on iPhone 15 Pro Max / iOS 27.0.1 except the unavailable >100 MB fixture.
+
+**Verified:**
+
+- Focused retained completion journey → Repeat restarted the same title near zero and Shuffle moved
+  to another queued title; the pre-existing dock journey passed after the stale-event guard.
+- `npx tsc --noEmit`, empty permanent unit gate, version consistency, `git diff --check`, and the
+  full retained Playwright gate → passed, now 8/8 journeys.
+- Markdown lint and the orchestrator contract checker → passed; the updated bundle launched on the
+  connected physical iPhone through the active wired Metro server.
+
+**Not verified / known gaps:**
+
+- Physical Repeat and shuffled natural completion still need the user's hands-on confirmation.
+- The >100 MB import remains the sole open Task 44.4 case. VoiceOver remains deliberately deferred
+  by the product owner, and Debug/Metro performance is not Release evidence.
+
+**Next agent should:**
+
+- Ask the user to let one short track complete with Repeat on, then with Repeat off and Shuffle on;
+  after both pass, source or generate a >100 MB audio fixture to close Task 44.4.
+
 ### 2026-10-28 — Implement automatic BPM detection and authored grid
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1d88ee7`

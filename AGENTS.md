@@ -213,6 +213,45 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-30 — Fix the shuffle-journey flake and repair the signpost native build
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** shuffle fix in `git log` (`test: make the shuffled-queue journey deterministic`); native repairs `uncommitted`
+**Kanban moved:** none (unblocks `app-performance-optimization` native builds; supports the retained gate)
+
+**Changed:**
+
+- `tests/ui-components.spec.ts`: the shuffled-queue journey now finishes a track from 500 ms
+  before the end instead of 50 ms. Root cause: the 5 s web fixture can end on its own while the
+  test toggles repeat/shuffle; that natural end sets the completion guard, and a restart inside
+  the player's 100 ms `END_OF_TRACK_TOLERANCE_MS` can never clear it, so the shuffle completion was
+  ignored. Diagnosed with element-state dumps; this was a test-timing flaw, not a product or
+  performance-instrumentation regression.
+- Performance agent's uncommitted signpost work (left uncommitted for that agent to finish):
+  `LibraryStorageModule.swift` rewritten to the real `os` API (`OSLog` Points of Interest,
+  `OSSignpostID(log:)`, static begin/end name, `setEnabled`, void JS functions, public static
+  entry points). `BeatNoteWaveform.podspec` and `BeatNoteTempo.podspec` now depend on
+  `LibraryStorage` so their `#if canImport(LibraryStorage)` is deterministic. Android
+  `LibraryStorageModule.kt` gained no-op signpost functions matching the web stub.
+
+**Verified:**
+
+- Shuffled-queue journey: 2/8 passing at 6 workers before the change, 16/16 after.
+- Full retained Playwright suite with `--repeat-each=2` at default parallelism → 16/16.
+- iOS simulator build with the repaired Swift → compiles; focused
+  `testAutomaticBpmSuggestionAndAnchorControls` (exercises tempo and waveform modules) → passed.
+
+**Not verified / known gaps:**
+
+- Signposts were not observed in Instruments, and nothing in JS calls `enableSignposts` yet.
+- Android Kotlin stubs were not compiled (no Android build run).
+- Earlier simulator runs were interrupted mid-test and left `testmanagerd` broken; a simulator
+  reboot fixed it. If XCTest reports a missing testmanagerd socket, reboot the simulator first.
+
+**Next agent should:**
+
+- Performance agent: review the repaired `LibraryStorageModule.swift`, wire `enableSignposts` from
+  JS when profiling, then commit the instrumentation together with `perfCounters.ts`/`perfMarks.ts`.
+
 ### 2026-10-29 — Show the "Loop between markers" segment
 
 **Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: show the loop-between-markers segment`)
@@ -350,40 +389,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue automatic-BPM real-song/browser performance acceptance, then collect Release-build app
   performance baselines from the existing optimization spec.
-
-### 2026-10-29 — Fix Repeat and shuffled track completion
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `e785a85`
-**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
-
-**Changed:**
-
-- Moved whole-track completion onto Expo Audio's native `didJustFinish` signal so iOS cannot clear
-  the playing state and tear down the polling effect before Repeat seeks to zero.
-- Added guarded shuffled completion: Repeat takes precedence; otherwise Shuffle switches to the next
-  entry in its randomized order and continues playback. Stale or repeated completion callbacks
-  during source replacement are ignored.
-- Updated the approved queue contract and recorded the physical library acceptance report: every
-  Task 44.4 case passes on iPhone 15 Pro Max / iOS 27.0.1 except the unavailable >100 MB fixture.
-
-**Verified:**
-
-- Focused retained completion journey → Repeat restarted the same title near zero and Shuffle moved
-  to another queued title; the pre-existing dock journey passed after the stale-event guard.
-- `npx tsc --noEmit`, empty permanent unit gate, version consistency, `git diff --check`, and the
-  full retained Playwright gate → passed, now 8/8 journeys.
-- Markdown lint and the orchestrator contract checker → passed; the updated bundle launched on the
-  connected physical iPhone through the active wired Metro server.
-
-**Not verified / known gaps:**
-
-- Physical Repeat and shuffled natural completion still need the user's hands-on confirmation.
-- The >100 MB import remains the sole open Task 44.4 case. VoiceOver remains deliberately deferred
-  by the product owner, and Debug/Metro performance is not Release evidence.
-
-**Next agent should:**
-
-- Ask the user to let one short track complete with Repeat on, then with Repeat off and Shuffle on;
-  after both pass, source or generate a >100 MB audio fixture to close Task 44.4.
 
 <!-- end handover log -->

@@ -545,7 +545,10 @@ test.describe('UI Components & Layout', () => {
         if (!(audio instanceof HTMLMediaElement) || !Number.isFinite(audio.duration)) {
           throw new Error('Active audio element is unavailable');
         }
-        audio.currentTime = Math.max(0, audio.duration - 0.05);
+        // Start outside the player's 100 ms end-of-track tolerance. The 5 s fixture can end on its
+        // own while the test toggles controls; a restart inside the tolerance would then never
+        // clear the completion guard, so the next completion would be ignored.
+        audio.currentTime = Math.max(0, audio.duration - 0.5);
         await audio.play();
       });
     };
