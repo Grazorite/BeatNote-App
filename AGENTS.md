@@ -54,7 +54,7 @@ potentially adding a hybrid path later.
 | Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
-| E2E spec files | 2 (Playwright, 7 critical journeys) |
+| E2E spec files | 2 (Playwright, 8 critical journeys) |
 | Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
 
 ### Current Focus
@@ -134,7 +134,7 @@ potentially adding a hybrid path later.
       <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
 
 - [x] Retire the legacy `beatnote_projects` writers, reconcile the `local-music-library-queue` task list, and archive the completed `wrapped-waveform-canvas` spec
-      <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
+      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
 
 ---
 
@@ -321,7 +321,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-29 — Complete and archive the local music library
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`
+**Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`, `825fe7c`, `81cd94c`
 **Kanban moved:** `local-music-library-queue` physical acceptance → Done
 
 **Changed:**
