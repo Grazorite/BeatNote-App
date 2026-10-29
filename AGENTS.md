@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-29
+**Last updated:** 2026-10-30
 **Branch:** `master` (work happens here; no feature branches) · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -59,9 +59,10 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Establish `app-performance-optimization` Phase 0 instrumentation and Release-local physical
-   baselines before applying any optimisation; deterministic project fixtures, scenario/profiling
-   guides, the results register, and the gated JS interval buffer are now in place.
+1. Complete `app-performance-optimization` Phase 0–1 before applying any optimisation. The JS/native
+   intervals, temporary counters, audit, deterministic projects, short fixture, guides, and results
+   register are committed; simulator Instruments observation, local medium/stress fixture metadata,
+   signpost overhead, and Release-local physical baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -83,7 +84,7 @@ potentially adding a hybrid path later.
 | Agent / Role | Owns | Current assignment |
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
-| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Task 2.2 native signposts in `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; edits limited to the three native modules and LibraryStorage JS stubs |
+| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Completed read-only audit `session-b21ea04d-e305-4b1a-802f-d1b8934c426a` and native signpost implementation `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; orchestrator/Kiro reviewed and repaired the integration |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -97,8 +98,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation; measurement foundation is now being implemented,
-      while device baselines remain pending
+      Release-local baselines before any optimisation; measurement foundation is committed, while
+      simulator Instruments observation and device baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -212,6 +213,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Commit the performance measurement foundation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress (desk foundation complete; simulator/device evidence pending)
+
+**Changed:**
+
+- Added gated JS interaction intervals, native iOS Points of Interest forwarding, waveform/BPM
+  intervals, temporary render/path/gesture/write counters, and a DevTools diagnostics snapshot API.
+- Added the short audio fixture, deterministic 0/50/500-marker project generator, repeatable
+  scenarios, profiling guide, results register, and the 201-subscription Zustand audit.
+- Incorporated Kiro's Swift/API, pod-dependency, and Android no-op repairs; wired signposts at app
+  bootstrap and wrapped the actual tempo-analysis operation rather than only defining helpers.
+
+**Verified:**
+
+- `npx tsc --noEmit`, JavaScript syntax, Swift parsing, and `git diff --check` → passed.
+- Full retained Playwright gate → 9/9 passed; focused iOS automatic-BPM journey → passed with the
+  repaired native modules (`BeatNoteUITests-testAutomaticBpmSuggestionAndAnchorControls-1793305333377.xcresult`).
+- DSH-Qwen's read-only audit independently identified the 10 Hz playback sampling and broad derived
+  selector as profiling candidates; no optimisation has been applied before physical baselines.
+
+**Not verified / known gaps:**
+
+- Simulator Instruments observation remains open: the intervals did not appear in an ordinary
+  unified-log query, which is not a substitute for a Points of Interest trace.
+- Local S-medium/S-stress paths and checksums, flag-on/off overhead, Release-local latency/frame/
+  memory/energy traces, and physical-device contention evidence remain open.
+- The unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Capture a simulator Points of Interest trace, then register local medium/stress songs and collect
+  the first Release-local physical baseline before implementing any candidate from `findings.md`.
 
 ### 2026-10-30 — Fix the shuffle-journey flake and repair the signpost native build
 
@@ -357,37 +393,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Reconcile the active UI edits, finish task 2.1/2.2 instrumentation without mixing ownership, then
   select S-medium/S-stress files and capture the first Release-local baseline before optimising.
-
-### 2026-10-29 — Complete and archive the local music library
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`, `825fe7c`, `81cd94c`
-**Kanban moved:** `local-music-library-queue` physical acceptance → Done
-
-**Changed:**
-
-- Closed Phase 0 and the final Task 44 gate after physical Files/third-party Open_In, restore/relink,
-  near-full storage, interruptions/routes/force-quit, large text, rapid queue navigation, and the
-  generated 107,604,078-byte WAV all passed on iPhone 15 Pro Max / iOS 27.0.1.
-- Finalized `LSSupportsOpeningDocumentsInPlace = false`, updated iOS/product steering, and archived
-  the completed specification under `docs/context/archive/specs/local-music-library-queue/`.
-- Recorded VoiceOver spoken-output testing as deliberately waived for this V1 pass; retained
-  simulator accessibility-tree and browser keyboard coverage remain the available evidence.
-
-**Verified:**
-
-- No unchecked task remains in the archived `tasks.md`; Markdown lint and diff hygiene pass.
-- Human physical acceptance confirms Repeat, shuffled natural completion, and the >100 MB import.
-
-**Not verified / known gaps:**
-
-- The raw incoming Open_In URL string was not separately instrumented on hardware; simulator logs
-  establish Inbox delivery and physical end-to-end app-owned import passed.
-- VoiceOver spoken output remains intentionally untested. Release/TestFlight performance evidence
-  belongs to the separate performance backlog.
-
-**Next agent should:**
-
-- Continue automatic-BPM real-song/browser performance acceptance, then collect Release-build app
-  performance baselines from the existing optimization spec.
 
 <!-- end handover log -->

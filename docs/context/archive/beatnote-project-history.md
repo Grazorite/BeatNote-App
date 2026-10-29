@@ -4017,3 +4017,35 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - [x] Raise the landscape loop overview above the home-indicator gesture zone and make dance-count
       guidance a persisted, default-off Settings option
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-10-29 — Complete and archive the local music library
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`, `825fe7c`, `81cd94c`
+**Kanban moved:** `local-music-library-queue` physical acceptance → Done
+
+**Changed:**
+
+- Closed Phase 0 and the final Task 44 gate after physical Files/third-party Open_In, restore/relink,
+  near-full storage, interruptions/routes/force-quit, large text, rapid queue navigation, and the
+  generated 107,604,078-byte WAV all passed on iPhone 15 Pro Max / iOS 27.0.1.
+- Finalized `LSSupportsOpeningDocumentsInPlace = false`, updated iOS/product steering, and archived
+  the completed specification under `docs/context/archive/specs/local-music-library-queue/`.
+- Recorded VoiceOver spoken-output testing as deliberately waived for this V1 pass; retained
+  simulator accessibility-tree and browser keyboard coverage remain the available evidence.
+
+**Verified:**
+
+- No unchecked task remains in the archived `tasks.md`; Markdown lint and diff hygiene pass.
+- Human physical acceptance confirms Repeat, shuffled natural completion, and the >100 MB import.
+
+**Not verified / known gaps:**
+
+- The raw incoming Open_In URL string was not separately instrumented on hardware; simulator logs
+  establish Inbox delivery and physical end-to-end app-owned import passed.
+- VoiceOver spoken output remains intentionally untested. Release/TestFlight performance evidence
+  belongs to the separate performance backlog.
+
+**Next agent should:**
+
+- Continue automatic-BPM real-song/browser performance acceptance, then collect Release-build app
+  performance baselines from the existing optimization spec.
