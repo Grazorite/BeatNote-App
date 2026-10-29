@@ -89,6 +89,7 @@ export const playbackSpeedControlStyles = StyleSheet.create({
   sliderTouchArea: {
     height: 38,
     justifyContent: 'center',
+    marginHorizontal: 12,
   },
   sliderTrack: {
     height: 5,
@@ -114,6 +115,7 @@ export const playbackSpeedControlStyles = StyleSheet.create({
   rangeLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginHorizontal: 12,
     marginTop: -3,
     marginBottom: 10,
   },

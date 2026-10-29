@@ -447,6 +447,18 @@ The implementation follows the product decisions resolved in the requirements an
     `src/styles/components/controls/controlDock.ts`, `tests/ui-components.spec.ts`.
   - _Requirements: 3.4, 14.4, 14.9_
 
+- [x] 18d. Add precise step buttons beside the slider
+  - [x] Add 44×44 decrement and increment buttons on the slider's left and right sides, applying one
+    normalized 0.05× step per press and disabling at 0.5× and 2× respectively.
+  - [x] Keep the chooser open for repeated stepping, expose explicit accessible labels and disabled
+    state, and retain the existing delayed dismissal after interaction.
+  - [x] Inset the slider interaction track and endpoint labels so the thumb cannot overlap either
+    step button at 0.5× or 2×.
+  - [x] Extend the retained responsive dock journey to cover both directions and bound behavior.
+  - Files: `src/components/ui/controls/PlaybackSpeedControl.tsx`,
+    `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`.
+  - _Requirements: 14.2–14.4, 14.7, 14.9_
+
 ### Phase 10 — Accessibility metadata and announcements
 
 - [x] 19. Add accessibility semantics across the dock

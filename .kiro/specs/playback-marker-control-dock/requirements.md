@@ -481,8 +481,11 @@ tempo without changing the music's pitch.
 2. THE Playback_Speed_Control SHALL support every 0.05× step from `0.5×` through `2×`, with `1×` as
    the default, and SHALL clamp and quantize invalid input to that contract.
 3. WHEN activated, THE Playback_Speed_Control SHALL present a popup containing an adjustable slider,
-   the current value, range endpoints, Reset to 1×, and the common presets `0.5×`, `0.75×`, `0.8×`,
-   `0.9×`, `1×`, `1.25×`, `1.5×`, and `2×`.
+   decrement and increment buttons on the slider's left and right sides, the current value, range
+   endpoints, Reset to 1×, and the common presets `0.5×`, `0.75×`, `0.8×`, `0.9×`, `1×`, `1.25×`,
+   `1.5×`, and `2×`. Each decrement or increment press SHALL apply exactly one 0.05× step and SHALL
+   become disabled at the corresponding 0.5× or 2× bound. THE slider track and thumb SHALL remain
+   visually separated from both buttons, including when the thumb is centered on either endpoint.
 4. WHEN the user moves the slider, selects a preset, resets, or invokes an accessibility increment or
    decrement, THE displayed value and global `playbackSpeed` SHALL update immediately without a
    redundant Dock_Toast because the dock button and popup already display the applied multiplier.

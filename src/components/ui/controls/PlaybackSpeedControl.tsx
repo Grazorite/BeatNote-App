@@ -242,7 +242,10 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
               >
                 <View pointerEvents="none" style={styles.sliderTrack}>
                   <View style={[styles.sliderFill, { width: `${progress * 100}%` }]} />
-                  <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                  <View
+                    testID="playback-speed-slider-thumb"
+                    style={[styles.sliderThumb, { left: `${progress * 100}%` }]}
+                  />
                 </View>
               </View>
               <View style={styles.rangeLabels}>
