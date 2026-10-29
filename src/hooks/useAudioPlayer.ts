@@ -28,6 +28,7 @@ const PLAYBACK_RATE_DEBOUNCE_MS = 120;
  */
 export const useCustomAudioPlayer = () => {
   const [error, setError] = useState<ErrorState>({ visible: false, title: '', message: '' });
+  const [audioModeReady, setAudioModeReady] = useState(Platform.OS === 'web');
   const wasPlayingBeforeScrubRef = useRef(false);
   const previousSampleRef = useRef<number | null>(null);
   const loopDecisionSuspendedRef = useRef(false);
@@ -160,17 +161,22 @@ export const useCustomAudioPlayer = () => {
   }, [currentAudioUri, isPlaying, player, playbackSpeed, showError]);
 
   useEffect(() => {
+    let mounted = true;
     setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+    }).then(() => {
+      if (mounted) setAudioModeReady(true);
     }).catch((audioModeError: unknown) => {
       console.error('Audio mode configuration error:', audioModeError);
       showError('Audio Setup Error', 'BeatNote could not configure audio playback. Please restart the app and try again.');
     });
+    return () => { mounted = false; };
   }, [showError]);
 
   useEffect(() => {
-    if (Platform.OS === 'web' || currentAudioUri === null || !playerIsLoaded) return;
+    if (Platform.OS === 'web' || !audioModeReady || currentAudioUri === null || !playerIsLoaded) return;
     try {
       player.setActiveForLockScreen(true, {
         title: lockScreenTitle,
@@ -185,7 +191,7 @@ export const useCustomAudioPlayer = () => {
     // Expo releases and unregisters the previous native player when its source changes or the hook
     // unmounts. Calling clearLockScreenControls from React cleanup races that release and can address
     // an already-disposed SharedObject on iOS.
-  }, [currentAudioUri, lockScreenTitle, player, playerIsLoaded]);
+  }, [audioModeReady, currentAudioUri, lockScreenTitle, player, playerIsLoaded]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;

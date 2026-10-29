@@ -164,8 +164,9 @@ eas submit --platform ios --profile preview
 ### Background audio
 
 - Implemented for playback: `useCustomAudioPlayer` configures `expo-audio` with
-  `shouldPlayInBackground: true` and `playsInSilentMode: true`; `app.json` declares
-  `UIBackgroundModes: ["audio"]`.
+  `shouldPlayInBackground: true`, `playsInSilentMode: true`, and `interruptionMode: "doNotMix"`;
+  the exclusive interruption mode is required by Expo Audio for iOS to associate the player with
+  Now Playing. `app.json` declares `UIBackgroundModes: ["audio"]`.
 - While a local song is loaded, the player is registered with `setActiveForLockScreen`, publishes
   its library display title to iOS Now Playing, and mirrors remote play/pause/seek status back into
   the studio store. V1 exposes play/pause and timeline seeking; queue Previous/Next remain in-app
