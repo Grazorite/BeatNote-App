@@ -271,7 +271,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-29 — Stabilise physical-iPhone editing and playback rendering
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`
+**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`, `6299b66`
 **Kanban moved:** physical-iPhone crash, latency, and layout polish → In Progress (implementation verified locally; hardware retest pending)
 
 **Changed:**
@@ -298,6 +298,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Forced landscape rail rows to a zero flex basis with explicit 1:2 ordinary/play proportions so
   marker buttons cannot absorb surplus height; retained coverage now requires all twelve ordinary
   controls to match within one pixel.
+- Corrected the playback-visual suppression boundary from touch-down to activated pan, so pressing
+  and holding a loop range without moving no longer freezes the playhead.
 
 **Verified:**
 
@@ -317,6 +319,10 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   during playback and showed over-tall landscape marker rows. The final focused journeys and full
   retained Playwright gate passed again (7/7); device relaunch was deferred because iOS reported the
   connected phone locked.
+- Long-press regression coverage now plays audio while holding a stationary loop range and requires
+  the time probe to continue advancing. Landscape coverage also requires Play to stay within
+  1.9–2.1× ordinary height and share the rail's vertical centre. Both focused journeys passed, and
+  the corrected bundle was relaunched successfully on the physical iPhone.
 
 **Not verified / known gaps:**
 
@@ -324,14 +330,13 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   confirmation. Debug/Metro latency must not be treated as Release/TestFlight performance evidence.
 - Broader Instruments/Hermes profiling, long-song memory evidence, and RN/Expo upgrade evaluation
   remain suitable for a dedicated performance specification rather than speculative V1 rewrites.
-- The shared tree still contains unrelated staged spec-archive moves and uncommitted BPM,
-  performance-spec, speed-control, and project-manager work; `ec4d9c1` and `46bacc7` isolate the
-  completed physical-iPhone changes from that concurrent state.
+- The shared tree still contains unrelated uncommitted BPM/native-test, agent-state, and app-icon
+  work; the listed commits isolate the completed physical-iPhone changes from that concurrent state.
 
 **Next agent should:**
 
-- Unlock the iPhone, load the waiting Metro bundle, and retest loop editing during playback plus
-  landscape row heights; then collect Release/TestFlight evidence separately from Metro overhead.
+- Retest stationary loop holds, loop editing during playback, and the exact 1:2 centred landscape
+  rail geometry; then collect Release/TestFlight evidence separately from Metro overhead.
 
 ### 2026-10-29 — Add precise playback-speed step buttons
 
