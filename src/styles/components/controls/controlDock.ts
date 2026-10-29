@@ -42,7 +42,10 @@ export const controlDockStyles = StyleSheet.create({
   landscapeRow: {
     flexDirection: 'row',
     width: '100%',
-    flex: 1,
+    height: 0,
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
     minHeight: 0,
     gap: 3,
   },
@@ -65,7 +68,10 @@ export const controlDockStyles = StyleSheet.create({
   },
   landscapePlayBlock: {
     width: '100%',
-    flex: 2,
+    height: 0,
+    flexBasis: 0,
+    flexGrow: 2,
+    flexShrink: 1,
     minHeight: 0,
   },
   toast: {

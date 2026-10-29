@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 
+import { setLoopRangeGestureActive } from '../features/playback/interactionActivity';
 import { useStudioStore } from './useStudioStore';
 import {
   isValidLoopRange,
@@ -58,6 +59,7 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
   };
 
   useEffect(() => () => {
+    setLoopRangeGestureActive(false);
     if (provisionalFrameRef.current !== null) {
       cancelAnimationFrame(provisionalFrameRef.current);
     }
@@ -69,6 +71,7 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
     .failOffsetY([-12, 12])
     .maxPointers(1)
     .onBegin(event => {
+      setLoopRangeGestureActive(true);
       const store = useStudioStore.getState();
       startRef.current = {
         anchorX: event.x,
@@ -129,6 +132,7 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
         }
       }
       clearProvisionalRange();
+      setLoopRangeGestureActive(false);
       startRef.current.mode = null;
     }), [width]);
 

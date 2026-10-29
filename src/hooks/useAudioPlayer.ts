@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
 import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
+import { isLoopRangeGestureActive } from '../features/playback/interactionActivity';
 
 interface ErrorState {
   visible: boolean;
@@ -357,7 +358,7 @@ export const useCustomAudioPlayer = () => {
             setCurrentTime(songDuration); // Set to exact end for consistent UI
           }
         } else {
-          setCurrentTime(currentTimeMs);
+          if (!isLoopRangeGestureActive()) setCurrentTime(currentTimeMs);
         }
       }
     }, PLAYBACK_UPDATE_INTERVAL_MS);

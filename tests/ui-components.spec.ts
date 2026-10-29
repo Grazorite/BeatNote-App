@@ -432,6 +432,9 @@ test.describe('UI Components & Layout', () => {
         title: title ? { left: title.left } : null,
         settings: settings ? { right: settings.right } : null,
         waveform: waveform ? { left: waveform.left } : null,
+        ordinaryHeights: [previousMarker?.height, nextMarker?.height, addMarker?.height, removePrevious?.height,
+          innerLoop?.height, annotation?.height, repeat?.height, speed?.height, firstTrack?.height,
+          shuffle?.height, previousTrack?.height, nextTrack?.height],
       };
     });
     expect(new Set(landscape.leftColumn).size).toBe(1);
@@ -446,6 +449,9 @@ test.describe('UI Components & Layout', () => {
     expect(landscape.rail?.width).toBeLessThanOrEqual(110);
     expect(landscape.ordinary?.height).toBeGreaterThanOrEqual(38);
     expect((landscape.ordinary?.width ?? 0) / (landscape.ordinary?.height ?? 1)).toBeLessThanOrEqual(1.2);
+    landscape.ordinaryHeights.forEach(height => {
+      expect(Math.abs((height ?? 0) - (landscape.ordinary?.height ?? 0))).toBeLessThanOrEqual(1);
+    });
     expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeGreaterThanOrEqual(4);
     expect((landscape.rail?.bottom ?? 0) - (landscape.lastControlBottom ?? 0)).toBeLessThanOrEqual(8);
     expect(landscape.overview?.right).toBeLessThanOrEqual((landscape.rail?.left ?? 0) + 1);
