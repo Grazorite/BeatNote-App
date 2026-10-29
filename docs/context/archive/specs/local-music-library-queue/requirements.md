@@ -1288,12 +1288,13 @@ the design phase should adopt unless the user decides otherwise.
    Expo Module over `UISheetPresentationController`. **Recommended default:** custom sheet on the
    installed libraries, for web parity and no new dependency, accepting that native iOS sheet
    physics are approximated.
-4. **OQ-4 Open_In delivery and in-place access.** `LSSupportsOpeningDocumentsInPlace` is `true`, so
-   iOS may deliver security-scoped URLs to originals in Files rather than inbox copies. Options:
-   keep in-place and add security-scoped access (may need an Expo Module); or set it to `false` so
-   iOS copies into `Documents/Inbox`. **Recommended default:** run a short spike; prefer `false` if
-   it does not affect `.beatnote` handling, since the Import_Pipeline copies the file anyway and must
-   then delete the Inbox copy (Requirement 3 criterion 11).
+4. **OQ-4 Open_In delivery and in-place access.** At the start of the spec,
+   `LSSupportsOpeningDocumentsInPlace` was `true`, so iOS could deliver security-scoped URLs to
+   originals in Files rather than inbox copies. The spike considered keeping in-place access versus
+   setting the key to `false` so iOS copies into `Documents/Inbox`. **Final decision:** `false`;
+   simulator delivery used Inbox copies, and physical Files/third-party Open_In plus the preserved
+   `.beatnote` declaration passed acceptance. The Import_Pipeline copies audio into app-owned
+   storage and deletes the consumed Inbox copy (Requirement 3 criterion 11).
 5. **OQ-5 Content_Hash method.** Hashing large files in JavaScript is slow. Options: the MD5
    digest available from `expo-file-system` file info; adding `expo-crypto` for SHA-256 over a
    streamed read; or a native module. **Recommended default:** platform-provided MD5 on native and
