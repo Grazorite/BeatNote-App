@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import type { Layer } from '../../../hooks/useStudioStore';
@@ -41,6 +40,7 @@ interface WrappedWaveformProps {
   onScrubEnd: () => void;
   onSelectForDetail: (rowIndex: number) => void;
   isMobile?: boolean;
+  isLandscape: boolean;
 }
 
 const MOBILE_TARGET_ROW_HEIGHT = 56;
@@ -55,9 +55,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   onScrubEnd,
   onSelectForDetail,
   isMobile = false,
+  isLandscape: requestedLandscape,
 }) => {
-  const window = useWindowDimensions();
-  const isLandscape = window.width > window.height;
   const songDuration = useStudioStore(state => state.songDuration);
   const songLoaded = useStudioStore(state => state.songLoaded);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
@@ -71,12 +70,18 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   const setRowDensity = useStudioStore(state => state.setRowDensity);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const selectedRowIndex = useStudioStore(state => state.selectedRowIndex);
-  const [availableWidth, setAvailableWidth] = useState(Math.max(1, window.width - 16));
+  const [viewportLayout, setViewportLayout] = useState({
+    width: 1,
+    height: requestedLandscape ? 288 : 336,
+    isLandscape: requestedLandscape,
+  });
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(isLandscape ? 288 : 336);
   const [followSuspended, setFollowSuspended] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const suspendedSawActiveOutside = useRef(false);
+  const availableWidth = viewportLayout.width;
+  const containerHeight = viewportLayout.height;
+  const isLandscape = viewportLayout.isLandscape;
   const fittedRowCount = isMobile
     ? Math.max(1, Math.ceil(containerHeight / MOBILE_TARGET_ROW_HEIGHT))
     : undefined;
@@ -151,8 +156,13 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
-    setAvailableWidth(current => Math.abs(current - width) > 1 ? width : current);
-    setContainerHeight(current => Math.abs(current - height) > 1 ? height : current);
+    setViewportLayout(current => {
+      const nextLandscape = width > height;
+      if (Math.abs(current.width - width) <= 1
+        && Math.abs(current.height - height) <= 1
+        && current.isLandscape === nextLandscape) return current;
+      return { width: Math.max(1, width), height: Math.max(1, height), isLandscape: nextLandscape };
+    });
   }, []);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {

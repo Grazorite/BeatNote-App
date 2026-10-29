@@ -75,6 +75,7 @@ const WaveformWorkspace: React.FC<WaveformWorkspaceProps> = ({
             onScrubEnd={onScrubEnd}
             onSelectForDetail={selectRowForDetail}
             isMobile={isMobile}
+            isLandscape={isLandscape}
           />
         </View>
       )}

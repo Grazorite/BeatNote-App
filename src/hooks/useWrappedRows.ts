@@ -58,7 +58,6 @@ export function useWrappedRows(
       density.mode,
       density.phrasesPerRow ?? 'default',
       density.rowDurationMs ?? 'default',
-      Math.max(0, Math.floor(toFiniteNumber(availableWidth))),
       isLandscape ? 'landscape' : 'portrait',
       fittedRowCount ?? 'density',
     ];
@@ -78,7 +77,6 @@ export function useWrappedRows(
     bpm,
     countSize,
     rowDensity,
-    availableWidth,
     isLandscape,
     viewport?.fittedRowCount,
   ]);

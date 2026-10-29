@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 
-import { useStudioStore, type LoopRestoreSnapshot } from './useStudioStore';
+import { useStudioStore } from './useStudioStore';
 import {
+  isValidLoopRange,
   MIN_LOOP_DURATION_MS,
   type LoopGestureMode,
   type LoopRange,
@@ -23,8 +24,6 @@ interface GestureStartState {
   anchorX: number;
   anchorMs: number;
   range: LoopRange;
-  enabled: boolean;
-  restoreSnapshot: LoopRestoreSnapshot | null;
   mode: LoopGestureMode | null;
 }
 
@@ -32,27 +31,37 @@ interface GestureStartState {
 export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
   const [provisionalRange, setProvisionalRange] = useState<LoopRange | null>(null);
   const provisionalRef = useRef<LoopRange | null>(null);
+  const provisionalFrameRef = useRef<number | null>(null);
   const startRef = useRef<GestureStartState>({
     anchorX: 0,
     anchorMs: 0,
     range: { loopStartMs: null, loopEndMs: null },
-    enabled: false,
-    restoreSnapshot: null,
     mode: null,
   });
 
-  const restorePreGestureRange = (): void => {
-    const start = startRef.current;
-    const store = useStudioStore.getState();
-    store.setLoopRange(start.range.loopStartMs, start.range.loopEndMs);
-    store.setLoopRangeEnabled(start.enabled);
-    useStudioStore.setState({ loopRestoreSnapshot: start.restoreSnapshot });
+  const clearProvisionalRange = (): void => {
+    if (provisionalFrameRef.current !== null) {
+      cancelAnimationFrame(provisionalFrameRef.current);
+      provisionalFrameRef.current = null;
+    }
+    provisionalRef.current = null;
+    setProvisionalRange(null);
   };
 
   const updateProvisionalRange = (range: LoopRange | null): void => {
     provisionalRef.current = range;
-    setProvisionalRange(range);
+    if (provisionalFrameRef.current !== null) return;
+    provisionalFrameRef.current = requestAnimationFrame(() => {
+      provisionalFrameRef.current = null;
+      setProvisionalRange(provisionalRef.current);
+    });
   };
+
+  useEffect(() => () => {
+    if (provisionalFrameRef.current !== null) {
+      cancelAnimationFrame(provisionalFrameRef.current);
+    }
+  }, []);
 
   const gesture = useMemo(() => Gesture.Pan()
     .runOnJS(true)
@@ -65,11 +74,9 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
         anchorX: event.x,
         anchorMs: overviewXToMs(event.x, store.songDuration, width),
         range: { loopStartMs: store.loopStartMs, loopEndMs: store.loopEndMs },
-        enabled: store.isLoopRangeEnabled,
-        restoreSnapshot: store.loopRestoreSnapshot,
         mode: null,
       };
-      updateProvisionalRange(null);
+      clearProvisionalRange();
     })
     .onStart(event => {
       const store = useStudioStore.getState();
@@ -90,36 +97,38 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
       const pointerMs = overviewXToMs(pointerX, store.songDuration, width);
       if (start.mode === 'create') {
         const candidate = normalizeLoopRange(start.anchorMs, pointerMs, store.songDuration);
-        if (candidate.loopStartMs === null || candidate.loopEndMs === null) {
-          updateProvisionalRange({
-            loopStartMs: Math.min(start.anchorMs, pointerMs),
-            loopEndMs: Math.max(start.anchorMs, pointerMs),
-          });
-          restorePreGestureRange();
-        } else {
-          updateProvisionalRange(null);
-          store.setLoopRange(candidate.loopStartMs, candidate.loopEndMs);
-        }
+        updateProvisionalRange(
+          candidate.loopStartMs === null || candidate.loopEndMs === null
+            ? {
+                loopStartMs: Math.min(start.anchorMs, pointerMs),
+                loopEndMs: Math.max(start.anchorMs, pointerMs),
+              }
+            : candidate,
+        );
         return;
       }
       const deltaMs = overviewXToMs(start.anchorX + event.translationX, store.songDuration, width)
         - start.anchorMs;
       if (start.mode === 'move') {
-        const moved = moveLoopRange(start.range, deltaMs, store.songDuration);
-        store.setLoopRange(moved.loopStartMs, moved.loopEndMs);
+        updateProvisionalRange(moveLoopRange(start.range, deltaMs, store.songDuration));
       } else if (start.mode === 'resize-start' || start.mode === 'resize-end') {
         const bound = start.mode === 'resize-start' ? 'start' : 'end';
         const base = bound === 'start' ? start.range.loopStartMs : start.range.loopEndMs;
         if (base === null) return;
-        const resized = resizeLoopBound(start.range, bound, base + deltaMs, store.songDuration);
-        store.setLoopRange(resized.loopStartMs, resized.loopEndMs);
+        updateProvisionalRange(
+          resizeLoopBound(start.range, bound, base + deltaMs, store.songDuration),
+        );
       }
     })
-    .onFinalize(() => {
-      if (startRef.current.mode === 'create' && provisionalRef.current !== null) {
-        restorePreGestureRange();
+    .onFinalize((_event, success) => {
+      const candidate = provisionalRef.current;
+      if (success && candidate !== null) {
+        const store = useStudioStore.getState();
+        if (isValidLoopRange(candidate, store.songDuration)) {
+          store.setLoopRange(candidate.loopStartMs, candidate.loopEndMs);
+        }
       }
-      updateProvisionalRange(null);
+      clearProvisionalRange();
       startRef.current.mode = null;
     }), [width]);
 

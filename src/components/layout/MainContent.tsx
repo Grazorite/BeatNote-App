@@ -323,11 +323,10 @@ const MainContent: React.FC<MainContentProps> = ({
     return (
       <View style={styles.mobileWorkspace}>
         {projectControls}
-        {isLandscapePhone ? (
-          <View style={styles.landscapeBody}>{mobileCanvas}{controlDock}</View>
-        ) : (
-          <>{mobileCanvas}{controlDock}</>
-        )}
+        <View style={[styles.mobileBody, isLandscapePhone && styles.landscapeBody]}>
+          {mobileCanvas}
+          {controlDock}
+        </View>
         <AnnotationEditorModal
           visible={editingMarker !== null}
           marker={editingMarker}

@@ -258,10 +258,24 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('playback-speed')).toContainText('1×');
     await page.getByRole('button', { name: 'Select 0.5× playback speed' }).click();
     await expect(decrementSpeed).toBeDisabled();
+    const minimumThumbBox = await page.getByTestId('playback-speed-slider-thumb').boundingBox();
+    const decrementBox = await decrementSpeed.boundingBox();
+    expect(minimumThumbBox).not.toBeNull();
+    expect(decrementBox).not.toBeNull();
+    if (minimumThumbBox && decrementBox) {
+      expect(minimumThumbBox.x - (decrementBox.x + decrementBox.width)).toBeGreaterThanOrEqual(4);
+    }
     await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
     await page.getByTestId('playback-speed').click();
     await page.getByRole('button', { name: 'Select 2× playback speed' }).click();
     await expect(incrementSpeed).toBeDisabled();
+    const maximumThumbBox = await page.getByTestId('playback-speed-slider-thumb').boundingBox();
+    const incrementBox = await incrementSpeed.boundingBox();
+    expect(maximumThumbBox).not.toBeNull();
+    expect(incrementBox).not.toBeNull();
+    if (maximumThumbBox && incrementBox) {
+      expect(incrementBox.x - (maximumThumbBox.x + maximumThumbBox.width)).toBeGreaterThanOrEqual(4);
+    }
     await expect(page.getByTestId('playback-speed-chooser')).toHaveCount(0, { timeout: 1000 });
     await page.getByTestId('playback-speed').click();
     await page.getByRole('button', { name: 'Select 0.75× playback speed' }).click();
@@ -361,8 +375,13 @@ test.describe('UI Components & Layout', () => {
     expect(overviewBox).not.toBeNull();
     if (toastBox && overviewBox) expect(toastBox.y + toastBox.height).toBeLessThanOrEqual(overviewBox.y + 1);
 
+    const waveformContainer = page.getByTestId('waveform-container');
+    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]').first()).toBeVisible();
+    await waveformContainer.evaluate(element => element.setAttribute('data-rotation-identity', 'retained'));
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
+    await expect(waveformContainer).toHaveAttribute('data-rotation-identity', 'retained');
+    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]').first()).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
     await expect(page.getByTestId('playback-speed')).toContainText('1.55×');
     await page.getByTestId('playback-speed').click();
@@ -740,8 +759,11 @@ test.describe('UI Components & Layout', () => {
     await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2, { steps: 8 });
+    await expect(page.getByTestId('loop-overview-range-provisional')).toBeVisible();
+    await expect(page.getByTestId(/^wrapped-row-loop-\d+$/)).toHaveCount(0);
     await page.mouse.up();
 
+    await expect(page.getByTestId('loop-overview-range-provisional')).toHaveCount(0);
     await expect(page.getByTestId('loop-overview-range')).toBeVisible();
     await expect(page.getByTestId('loop-overview-clear')).toBeEnabled();
     await expect(page.getByTestId('loop-overview-outside-start')).toHaveCount(0);

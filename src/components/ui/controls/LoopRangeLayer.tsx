@@ -84,7 +84,12 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
     return (
       <View
         pointerEvents="none"
-        style={[styles.fill, styles.fillDisabled, { left: bodyLeft, width: bodyWidth }]}
+        testID="loop-overview-range-provisional"
+        style={[
+          styles.fill,
+          isEnabled ? styles.fillEnabled : styles.fillDisabled,
+          { left: bodyLeft, width: bodyWidth },
+        ]}
       />
     );
   }

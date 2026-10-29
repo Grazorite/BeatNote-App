@@ -11,11 +11,13 @@ export const mainContentStyles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.background,
   },
-  landscapeBody: {
+  mobileBody: {
     flex: 1,
-    flexDirection: 'row',
-    width: '100%',
     minHeight: 0,
+    width: '100%',
+  },
+  landscapeBody: {
+    flexDirection: 'row',
   },
   mobileCanvas: {
     flex: 1,
