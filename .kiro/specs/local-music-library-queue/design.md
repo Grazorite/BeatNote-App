@@ -13,9 +13,10 @@ and existing projects are migrated through a journaled, idempotent migration.
 
 This design satisfies [`requirements.md`](./requirements.md), which the user approved together with
 every Open Question default (OQ-1…OQ-8) and these product decisions: no Recently Deleted; deleting a
-song keeps its projects and draft in a relinkable missing-audio state; no queue auto-advance;
-Previous restarts the track after 3 seconds; relaunch reopens the last song paused at 0 ms; and a
-same-song project switch with a dirty draft offers Save & Open, Discard Changes & Open, and Cancel.
+song keeps its projects and draft in a relinkable missing-audio state; ordinary queue playback does
+not auto-advance, while Shuffle advances through its randomized order; Previous restarts the track
+after 3 seconds; relaunch reopens the last song paused at 0 ms; and a same-song project switch with
+a dirty draft offers Save & Open, Discard Changes & Open, and Cancel.
 
 It is a **spec-only** document. It proposes modules, types, storage, and behaviour; it changes no
 code, tests, steering, or `AGENTS.md`.
@@ -26,8 +27,8 @@ In scope: local audio import (Files picker, Open_In, Relink), the Music_Director
 sheet, drafts and autosave, Saved_Project storage v1.2.0, the queue and its four dock controls, the
 Project Manager restructure, CSV replace-import with undo, migration, web parity, and one minimal
 Expo Module for platform gaps. Out of scope: streaming providers, a Share Extension, user-created
-Collections, auto-advance, Recently Deleted, stem separation, and edits to the generated `ios/`
-directory. All global state stays in `useStudioStore` (ADR-001); timestamps stay integer
+Collections, ordinary-order auto-advance, Recently Deleted, stem separation, and edits to the
+generated `ios/` directory. All global state stays in `useStudioStore` (ADR-001); timestamps stay integer
 milliseconds (ADR-009); colours come from `src/styles/common.ts`; icons come from `BeatNoteIcon`.
 
 ### Current-state analysis
@@ -1430,8 +1431,11 @@ Successful navigation raises no toast; the title change is announced once (Requi
 
 ### Repeat and loops
 
-End of track keeps the existing `useAudioPlayer` behaviour: repeat on seeks to 0 and continues,
-otherwise pause at the end; the queue index never changes (no auto-advance, Requirement 19.10).
+End of track is driven by the native `didJustFinish` event rather than depending on the visual
+position poll. Repeat on seeks to 0 and continues. Otherwise, Shuffle advances to the next entry in
+its randomized order and continues playback when one exists; ordinary-order playback and the last
+shuffled entry pause at the end (Requirement 19.10). A per-source completion guard prevents repeated
+native completion callbacks or stale callbacks during source replacement from acting twice.
 Inner loops do not disable queue controls; a switch turns marker looping off and takes the loop
 range from the destination (Requirement 19.11, 15.13). The loop-wrap engine is unchanged.
 
@@ -1704,7 +1708,7 @@ Numbering starts at 012 because ADR-011 is taken.
 | Expo Module over `UISheetPresentationController` | Rejected: no web path; two implementations to maintain. |
 | A second Zustand store for the library | Rejected by ADR-001; cross-slice coordination (switch, draft, editor) is the point of this feature. |
 | Projects as queue entries | Rejected: a queue of songs with project choice resolved per song keeps "what plays" separate from "which annotations"; projects in the queue would duplicate audio and confuse Next. |
-| Auto-advance at end of track | Rejected for V1 (user decision): a switch can need a guard prompt, which cannot interrupt playback sensibly. Future F-4. |
+| Auto-advance at end of track | Ordinary-order auto-advance remains deferred. On 2026-10-29 the user approved the narrow Shuffle exception: a completed track advances through the already-randomized order, while Repeat takes precedence and a dirty saved project can still raise the normal switch guard. |
 | `File.md5` from `expo-file-system` | Rejected for large files: loads the whole file into memory. Same MD5 digest is computed in chunks by the module. |
 | `expo-crypto` for UUID and SHA-256 | Not needed: the required module provides UUIDs; web has Web Crypto. |
 | `expo-linking` | Not needed: React Native core `Linking` already receives opened URLs through the generated AppDelegate. |

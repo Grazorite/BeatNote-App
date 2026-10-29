@@ -870,8 +870,9 @@ can move through my songs without opening the library.
    Next Track control SHALL be disabled with the description "End of queue", except that the
    description of criterion 16 takes precedence when both apply.
 10. WHEN playback reaches the end of the track, THE application SHALL repeat the whole track if
-    whole-track repeat is on, otherwise pause at the end, and SHALL keep the current queue index
-    unchanged (no auto-advance).
+    whole-track repeat is on. Otherwise, if Shuffle is on and a later shuffled entry exists, THE
+    application SHALL switch to that entry and continue playback; if not, it SHALL pause at the
+    end. Whole-track repeat SHALL take precedence over shuffled advancement.
 11. WHILE an inner loop (markers or range) is active, THE queue controls SHALL remain operable, and
     switching SHALL apply Requirement 15 criterion 13.
 12. WHEN the user turns Shuffle on with more than one queue entry, THE application SHALL persist a

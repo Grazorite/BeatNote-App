@@ -23,7 +23,7 @@ function in `src/utils/`.
 ### Scope boundary
 
 In scope: everything in the design's scope boundary. Out of scope: streaming providers, a
-Share_Extension, user-created Collections, auto-advance, Recently Deleted, stem separation, and
+Share_Extension, user-created Collections, ordinary-order auto-advance, Recently Deleted, stem separation, and
 edits to the generated `ios/` directory. Loop-wrap and end-of-track logic in `useAudioPlayer.ts`
 does not change beyond reading the audio source from the store.
 
@@ -943,7 +943,9 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - `firstTrack`, `previousTrack`, `nextTrack`, and `toggleShuffle` call `queueTarget` and
       `setShuffle`, then `requestTrackSwitch`, or seek to 0 keeping play state. Toggling shuffle
       persists the queue and raises "Shuffle on" or "Shuffle off". Successful navigation raises no
-      toast. End of track keeps the existing behaviour (no auto-advance).
+      toast. End of track is handled from the native completion event: Repeat restarts the current
+      track, otherwise Shuffle advances through its randomized order when a later entry exists;
+      ordinary-order playback and the last shuffled entry stop.
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 19.2, 19.3, 19.4, 19.5, 19.6, 19.7, 19.8, 19.10, 19.11, 19.12, 19.13, 19.14, 19.15, 19.17_
 
@@ -1478,6 +1480,12 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       - Rapid Next/Previous during playback.
     - This gate is required before the feature is called done.
     - Verification evidence: a device/iOS-version note and a per-item result.
+    - Physical iPhone 15 Pro Max / iOS 27.0.1 Debug+Metro acceptance reported 2026-10-29:
+      Files and third-party Open_In, backup exclusion/restore/relink, near-full storage,
+      interruptions/routes/force-quit flushing, sheet and queue touch comfort with Reduce Motion,
+      200% text in both orientations, and rapid Next/Previous all pass. The only unverified item is
+      a file over 100 MB because no suitable fixture was available. Keep this task open for that one
+      size case.
     - _Requirements: 6.2, 7.4, 7.9, 12.7, 12.11, 29.2, 29.5, 30.10_
 
 ### Phase 11 — Documentation and handover

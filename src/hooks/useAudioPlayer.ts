@@ -34,6 +34,7 @@ export const useCustomAudioPlayer = () => {
   const loopDecisionSuspendedRef = useRef(false);
   const loopSeekInFlightRef = useRef(false);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
+  const completionHandledRef = useRef(false);
   const playbackRateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackRateSourceRef = useRef<string | null>(null);
   const appliedPlaybackSpeedRef = useRef<number | null>(null);
@@ -83,6 +84,68 @@ export const useCustomAudioPlayer = () => {
     setError(prev => prev.visible ? { visible: false, title: '', message: '' } : prev);
   }, []);
 
+  const handleTrackCompletion = useCallback((durationMs: number): void => {
+    if (completionHandledRef.current) return;
+    completionHandledRef.current = true;
+
+    const state = useStudioStore.getState();
+    const queue = state.queue;
+    const hasShuffledNext = queue?.shuffle === true
+      && queue.currentIndex !== null
+      && queue.currentIndex + 1 < queue.order.length;
+
+    previousSampleRef.current = durationMs;
+    failedLoopRangeKeyRef.current = null;
+
+    if (state.isRepeatActive) {
+      void Promise.resolve(player.seekTo(0))
+        .then(() => {
+          previousSampleRef.current = 0;
+          state.setCurrentTime(0);
+          player.play();
+          state.setIsPlaying(true);
+        })
+        .catch((repeatError: unknown) => {
+          console.error('Track repeat failed:', repeatError);
+          player.pause();
+          state.setCurrentTime(durationMs);
+          state.setIsPlaying(false);
+        });
+      return;
+    }
+
+    if (hasShuffledNext) {
+      state.setCurrentTime(durationMs);
+      // Preserve the playing intent so an unguarded Track_Switch_Transaction starts the shuffled
+      // destination. A dirty saved project can still raise the normal switch guard; in that case
+      // the completed source remains paused while the user decides.
+      state.setIsPlaying(true);
+      const switchPromise = state.nextTrack();
+      void Promise.resolve().then(() => {
+        const pendingState = useStudioStore.getState();
+        if (pendingState.switchPhase === 'guard') pendingState.setIsPlaying(false);
+      });
+      void switchPromise.then(result => {
+        if (result.kind === 'committed' || result.kind === 'superseded') return;
+        const currentState = useStudioStore.getState();
+        if (currentState.currentAudioUri === currentAudioUri) {
+          player.pause();
+          currentState.setCurrentTime(durationMs);
+          currentState.setIsPlaying(false);
+        }
+      });
+      return;
+    }
+
+    player.pause();
+    state.setCurrentTime(durationMs);
+    state.setIsPlaying(false);
+  }, [currentAudioUri, player]);
+
+  useEffect(() => {
+    completionHandledRef.current = false;
+  }, [currentAudioUri]);
+
   useEffect(() => {
     playerStatusRef.current = player.currentStatus;
     setPlayerIsLoaded(player.isLoaded);
@@ -90,6 +153,16 @@ export const useCustomAudioPlayer = () => {
       playerStatusRef.current = status;
       setPlayerIsLoaded(previous => previous === status.isLoaded ? previous : status.isLoaded);
       const currentState = useStudioStore.getState();
+      const durationMs = status.duration * 1000;
+      if (status.playing && status.currentTime * 1000 < durationMs - END_OF_TRACK_TOLERANCE_MS) {
+        completionHandledRef.current = false;
+      }
+      if (status.didJustFinish && currentState.switchPhase === 'idle' && currentState.isPlaying) {
+        handleTrackCompletion(Number.isFinite(durationMs) && durationMs > 0
+          ? durationMs
+          : currentState.songDuration);
+        return;
+      }
       if (currentState.switchPhase === 'idle' && currentState.isPlaying !== status.playing) {
         currentState.setIsPlaying(status.playing);
       }
@@ -101,14 +174,13 @@ export const useCustomAudioPlayer = () => {
           previousSampleRef.current = reportedPositionMs;
         }
       }
-      const durationMs = status.duration * 1000;
       if (Number.isFinite(durationMs) && durationMs > 0
         && useStudioStore.getState().songDuration !== durationMs) {
         setSongDuration(durationMs);
       }
     });
     return () => subscription.remove();
-  }, [player, setSongDuration]);
+  }, [handleTrackCompletion, player, setSongDuration]);
 
   useEffect(() => {
     updateTrackSwitchPlayer({
@@ -321,7 +393,6 @@ export const useCustomAudioPlayer = () => {
           loopStartMs,
           loopEndMs,
           songDuration,
-          isRepeatActive,
           layerSpecificNavigation,
           activeLayerId,
           allLayersData,
@@ -417,18 +488,7 @@ export const useCustomAudioPlayer = () => {
 
         // Check if reached end of track
         if (currentTimeMs >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
-          if (isRepeatActive) {
-            // Restart from beginning when repeat is active
-            setCurrentTime(0);
-            player.seekTo(0);
-            player.play(); // Continue playing
-            previousSampleRef.current = 0;
-            failedLoopRangeKeyRef.current = null;
-          } else {
-            player.pause();
-            setIsPlaying(false);
-            setCurrentTime(songDuration); // Set to exact end for consistent UI
-          }
+          handleTrackCompletion(songDuration);
         } else {
           if (!isLoopRangeGestureActive()) setCurrentTime(currentTimeMs);
         }
@@ -436,7 +496,7 @@ export const useCustomAudioPlayer = () => {
     }, PLAYBACK_UPDATE_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [player, isPlaying, setCurrentTime, setIsPlaying]);
+  }, [handleTrackCompletion, player, isPlaying, setCurrentTime, setIsPlaying]);
 
   return {
     sound: player,

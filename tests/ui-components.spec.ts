@@ -510,6 +510,60 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
   });
 
+  test('track completion repeats or advances through the shuffled queue', async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.goto('/');
+    await page.evaluate(() => {
+      const monitoredWindow = window as typeof window & {
+        __beatNoteActiveAudio?: HTMLMediaElement;
+      };
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'playbackRate');
+      if (!descriptor?.get || !descriptor.set) return;
+      Object.defineProperty(HTMLMediaElement.prototype, 'playbackRate', {
+        configurable: true,
+        get: descriptor.get,
+        set(value: number) {
+          monitoredWindow.__beatNoteActiveAudio = this as HTMLMediaElement;
+          descriptor.set?.call(this, value);
+        },
+      });
+    });
+
+    await loadTestAudio(page);
+    await loadTestAudio(page, 'background-audio.wav', 'test-audio.wav');
+    await loadTestAudio(page, 'long-test-track.wav', 'test-audio.wav');
+
+    const title = page.getByTestId('song-title-control');
+    const repeat = page.getByTestId('repeat-toggle');
+    const shuffle = page.getByTestId('shuffle-control');
+    const finishActiveTrack = async () => {
+      await page.evaluate(async () => {
+        const monitoredWindow = window as typeof window & {
+          __beatNoteActiveAudio?: HTMLMediaElement;
+        };
+        const audio = monitoredWindow.__beatNoteActiveAudio;
+        if (!(audio instanceof HTMLMediaElement) || !Number.isFinite(audio.duration)) {
+          throw new Error('Active audio element is unavailable');
+        }
+        audio.currentTime = Math.max(0, audio.duration - 0.05);
+        await audio.play();
+      });
+    };
+
+    await expect(title).toContainText('long-test-track');
+    await repeat.click();
+    await finishActiveTrack();
+    await expect(title).toContainText('long-test-track');
+    await expect.poll(async () => page.getByTestId('playback-current-time').textContent())
+      .toMatch(/^Current: 0:0[0-2]$/);
+
+    await repeat.click();
+    await shuffle.click();
+    await finishActiveTrack();
+    await expect.poll(async () => title.textContent()).not.toContain('long-test-track');
+    await expect(page.getByTestId('track-switch-transition')).toHaveCount(0, { timeout: 1000 });
+  });
+
   test('annotation suggestions append cues without replacing free-form editing', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
