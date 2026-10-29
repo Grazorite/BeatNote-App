@@ -260,6 +260,48 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-29 — Close out library-queue spec bookkeeping and archive wrapped-waveform-canvas
+
+**Agent:** orchestrator subagent (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** `local-music-library-queue` Task 13.4 and spec bookkeeping → Done (only physical acceptance 1.2/44.4 remains in In Progress)
+
+**Changed:**
+
+- `src/utils/projectManager.ts`: removed the legacy whole-value writers `setStoredProjects`,
+  `saveProject`, `deleteProject`, and `renameProject`, so nothing writes `beatnote_projects`. The
+  read-only accessors, `withProjectDefaults`, `normalizePersistedLoop`, and `compareProjectVersion`
+  remain.
+- `.kiro/specs/local-music-library-queue/tasks.md`: reconciled against the audit by ticking 13.4,
+  14.1, 13, 14, 15, 3, 7, and 10, marking the 28 optional `*` test tasks as dropped per the testing
+  strategy, and correcting task 44.1 to seven Playwright journeys and ten XCTest cases.
+- `wrapped-waveform-canvas` now lives in `docs/context/archive/specs/` (staged `git mv`).
+- Rotated the 2026-10-28 automatic-BPM entry verbatim into
+  `docs/context/archive/beatnote-project-history.md`.
+
+**Verified:**
+
+- Repo-wide search found no caller of the removed writers; `ProjectManager` has no importer and
+  `compareProjectVersion` is the only export used elsewhere.
+- `npx tsc --noEmit` → passed. `PLAYWRIGHT_PORT=8082 npm test` → 7/7 journeys passed.
+- Search for `beatnote_projects` in `src/`, `tests/`, and `modules/` → only the read-path constants
+  in `repositories.ts` and `projectManager.ts`, plus a test fixture seeding the legacy key.
+- `mdlint.py` on `tasks.md` → clean.
+
+**Not verified / known gaps:**
+
+- Physical-device acceptance (Tasks 1.2 and 44.4) is still open, so tasks 1, 2, 44, and 44.4
+  remain unticked and the `LSSupportsOpeningDocumentsInPlace` decision is still provisional.
+- Historical entries in `docs/context/archive/beatnote-project-history.md` still cite the old
+  `.kiro/specs/wrapped-waveform-canvas` path; they were left verbatim.
+- iOS XCTest was not rerun; the change touches only JavaScript legacy-storage code.
+
+**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`
+
+**Next agent should:**
+
+- Run the Task 44.4 physical-device matrix (Files and third-party Open In, backup/restore and
+  relink, near-full storage, interruptions, VoiceOver); then close the spec.
+
 ### 2026-10-29 — Verify physical iOS 27 launch
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`

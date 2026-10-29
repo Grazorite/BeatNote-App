@@ -59,16 +59,16 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Retest iOS Now Playing/Control Centre play-pause-seek, the atomic song-switch veil, and rapid
-   playback-speed stepping on the physical iPhone; queue switching, rename, annotation, loop, dock,
-   and portrait/landscape geometry have passed the current Debug/Metro device pass.
+1. Retest whole-track Repeat and shuffled end-of-track advancement on the physical iPhone; Control
+   Centre play/pause, timeline seek, and ±10-second skip now pass alongside queue switching, rename,
+   annotation, loop, dock, and portrait/landscape geometry in the current Debug/Metro device pass.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
-3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
-   third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
-   near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
+3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): every reported
+   iPhone 15 Pro Max / iOS 27.0.1 case passes except importing a file over 100 MB, for which no
+   suitable fixture was available.
 4. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
@@ -103,7 +103,7 @@ potentially adding a hybrid path later.
 
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
-      command/state synchronization, audible switching, and Release-build latency remain open
+      Repeat/Shuffle end-of-track behavior, audible switching, and Release-build latency remain open
 - [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
       exports, retained browser flow, octave-resolved native synthetic XCTest, cancellation/retry,
@@ -111,7 +111,7 @@ potentially adding a hybrid path later.
       and physical acceptance remain
 - [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
       temporary durability/property checks, all seven browser journeys, the isolated ten-case native
-      suite, simulator rotation, and maximum Dynamic Type review are complete
+      suite, simulator rotation, and all reported physical cases pass; only a >100 MB import remains
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
 ### ⏸ Deferred — V2/V3
@@ -216,6 +216,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Fix Repeat and shuffled track completion
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `e785a85`
+**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
+
+**Changed:**
+
+- Moved whole-track completion onto Expo Audio's native `didJustFinish` signal so iOS cannot clear
+  the playing state and tear down the polling effect before Repeat seeks to zero.
+- Added guarded shuffled completion: Repeat takes precedence; otherwise Shuffle switches to the next
+  entry in its randomized order and continues playback. Stale or repeated completion callbacks
+  during source replacement are ignored.
+- Updated the approved queue contract and recorded the physical library acceptance report: every
+  Task 44.4 case passes on iPhone 15 Pro Max / iOS 27.0.1 except the unavailable >100 MB fixture.
+
+**Verified:**
+
+- Focused retained completion journey → Repeat restarted the same title near zero and Shuffle moved
+  to another queued title; the pre-existing dock journey passed after the stale-event guard.
+- `npx tsc --noEmit`, empty permanent unit gate, version consistency, `git diff --check`, and the
+  full retained Playwright gate → passed, now 8/8 journeys.
+- Markdown lint and the orchestrator contract checker → passed; the updated bundle launched on the
+  connected physical iPhone through the active wired Metro server.
+
+**Not verified / known gaps:**
+
+- Physical Repeat and shuffled natural completion still need the user's hands-on confirmation.
+- The >100 MB import remains the sole open Task 44.4 case. VoiceOver remains deliberately deferred
+  by the product owner, and Debug/Metro performance is not Release evidence.
+
+**Next agent should:**
+
+- Ask the user to let one short track complete with Repeat on, then with Repeat off and Shuffle on;
+  after both pass, source or generate a >100 MB audio fixture to close Task 44.4.
 
 ### 2026-10-29 — Complete native BPM runtime automation
 
@@ -354,47 +389,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Run `npx expo prebuild -p ios` and check the icon and splash on a simulator.
-
-### 2026-10-29 — Close out library-queue spec bookkeeping and archive wrapped-waveform-canvas
-
-**Agent:** orchestrator subagent (Kiro) · **Commit(s):** `uncommitted`
-**Kanban moved:** `local-music-library-queue` Task 13.4 and spec bookkeeping → Done (only physical acceptance 1.2/44.4 remains in In Progress)
-
-**Changed:**
-
-- `src/utils/projectManager.ts`: removed the legacy whole-value writers `setStoredProjects`,
-  `saveProject`, `deleteProject`, and `renameProject`, so nothing writes `beatnote_projects`. The
-  read-only accessors, `withProjectDefaults`, `normalizePersistedLoop`, and `compareProjectVersion`
-  remain.
-- `.kiro/specs/local-music-library-queue/tasks.md`: reconciled against the audit by ticking 13.4,
-  14.1, 13, 14, 15, 3, 7, and 10, marking the 28 optional `*` test tasks as dropped per the testing
-  strategy, and correcting task 44.1 to seven Playwright journeys and ten XCTest cases.
-- `wrapped-waveform-canvas` now lives in `docs/context/archive/specs/` (staged `git mv`).
-- Rotated the 2026-10-28 automatic-BPM entry verbatim into
-  `docs/context/archive/beatnote-project-history.md`.
-
-**Verified:**
-
-- Repo-wide search found no caller of the removed writers; `ProjectManager` has no importer and
-  `compareProjectVersion` is the only export used elsewhere.
-- `npx tsc --noEmit` → passed. `PLAYWRIGHT_PORT=8082 npm test` → 7/7 journeys passed.
-- Search for `beatnote_projects` in `src/`, `tests/`, and `modules/` → only the read-path constants
-  in `repositories.ts` and `projectManager.ts`, plus a test fixture seeding the legacy key.
-- `mdlint.py` on `tasks.md` → clean.
-
-**Not verified / known gaps:**
-
-- Physical-device acceptance (Tasks 1.2 and 44.4) is still open, so tasks 1, 2, 44, and 44.4
-  remain unticked and the `LSSupportsOpeningDocumentsInPlace` decision is still provisional.
-- Historical entries in `docs/context/archive/beatnote-project-history.md` still cite the old
-  `.kiro/specs/wrapped-waveform-canvas` path; they were left verbatim.
-- iOS XCTest was not rerun; the change touches only JavaScript legacy-storage code.
-
-**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`
-
-**Next agent should:**
-
-- Run the Task 44.4 physical-device matrix (Files and third-party Open In, backup/restore and
-  relink, near-full storage, interruptions, VoiceOver); then close the spec.
 
 <!-- end handover log -->
