@@ -423,7 +423,14 @@ test.describe('UI Components & Layout', () => {
         rightColumn: [nextMarker?.x, removePrevious?.x, annotation?.x, speed?.x, shuffle?.x, nextTrack?.x],
         rows: [previousMarker?.y ?? 0, addMarker?.y ?? 0, innerLoop?.y ?? 0, play?.y ?? 0, repeat?.y ?? 0, firstTrack?.y ?? 0, previousTrack?.y ?? 0],
         ordinary: previousMarker ? { width: previousMarker.width, height: previousMarker.height } : null,
-        play: play ? { left: play.left, right: play.right, width: play.width, height: play.height } : null,
+        play: play ? {
+          left: play.left,
+          right: play.right,
+          top: play.top,
+          bottom: play.bottom,
+          width: play.width,
+          height: play.height,
+        } : null,
         overview: overview ? { right: overview.right, bottom: overview.bottom } : null,
         annotation: annotation ? { y: annotation.y, left: annotation.left, right: annotation.right } : null,
         lastControlBottom: previousTrack?.bottom,
@@ -444,6 +451,11 @@ test.describe('UI Components & Layout', () => {
     }
     expect(landscape.play?.width).toBeGreaterThanOrEqual((landscape.ordinary?.width ?? 0) * 1.9);
     expect(landscape.play?.height).toBeGreaterThanOrEqual((landscape.ordinary?.height ?? 0) * 1.9);
+    expect(landscape.play?.height).toBeLessThanOrEqual((landscape.ordinary?.height ?? 0) * 2.1);
+    expect(Math.abs(
+      (((landscape.play?.top ?? 0) + (landscape.play?.bottom ?? 0)) / 2)
+      - (((landscape.rail?.top ?? 0) + (landscape.rail?.bottom ?? 0)) / 2),
+    )).toBeLessThanOrEqual(1);
     expect(landscape.play?.left).toBeGreaterThanOrEqual((landscape.rail?.left ?? 0) - 1);
     expect(landscape.play?.right).toBeLessThanOrEqual((landscape.rail?.right ?? 0) + 1);
     expect(landscape.rail?.width).toBeLessThanOrEqual(110);
@@ -776,6 +788,20 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('loop-overview-outside-end')).toHaveCount(0);
     await expect(page.getByTestId('loop-overview-handle-start')).toBeVisible();
     await expect(page.getByTestId('loop-overview-handle-end')).toBeVisible();
+    const holdRangeBox = await page.getByTestId('loop-overview-range').boundingBox();
+    expect(holdRangeBox).not.toBeNull();
+    if (holdRangeBox) {
+      await page.getByTestId('play-pause').click();
+      const beforeHold = await currentTime.textContent();
+      await page.mouse.move(
+        holdRangeBox.x + holdRangeBox.width / 2,
+        holdRangeBox.y + holdRangeBox.height / 2,
+      );
+      await page.mouse.down();
+      await expect(currentTime).not.toHaveText(beforeHold ?? '', { timeout: 2500 });
+      await page.mouse.up();
+      await page.getByTestId('play-pause').click();
+    }
     const startHandle = page.getByTestId('loop-overview-handle-start');
     const endHandle = page.getByTestId('loop-overview-handle-end');
     await expect(startHandle).toHaveAttribute('role', 'slider');

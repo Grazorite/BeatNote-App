@@ -71,7 +71,6 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
     .failOffsetY([-12, 12])
     .maxPointers(1)
     .onBegin(event => {
-      setLoopRangeGestureActive(true);
       const store = useStudioStore.getState();
       startRef.current = {
         anchorX: event.x,
@@ -82,6 +81,7 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
       clearProvisionalRange();
     })
     .onStart(event => {
+      setLoopRangeGestureActive(true);
       const store = useStudioStore.getState();
       startRef.current.mode = resolveGestureMode(
         startRef.current.anchorX,
