@@ -117,6 +117,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const insets = useSafeAreaInsets();
   const titleRef = useRef<Text>(null);
   const listRef = useRef<SectionList<ProjectListRow, ProjectListSection>>(null);
+  const nativePickerActiveRef = useRef(false);
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
@@ -316,6 +317,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   }, [currentMusicItemId, interactionsDisabled, onClose, projectSummaries]);
 
   const pickCsv = useCallback(async () => {
+    nativePickerActiveRef.current = true;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: Platform.OS === 'web' ? ['text/csv', 'text/comma-separated-values', '.csv'] : ['text/csv', 'text/comma-separated-values'],
@@ -332,6 +334,10 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       previewCsvImport(content, asset.name);
     } catch (error) {
       Alert.alert('Import Failed', error instanceof Error ? error.message : 'Unable to read this CSV file.');
+    } finally {
+      // iOS can deliver the page-sheet dismissal request just after the document picker resolves.
+      // Keep the project sheet mounted long enough for the CSV preview to become visible.
+      setTimeout(() => { nativePickerActiveRef.current = false; }, 500);
     }
   }, [previewCsvImport]);
 
@@ -436,6 +442,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     returnFocusRef?: React.RefObject<unknown>,
   ) => {
     setActionBusyId(item.id);
+    nativePickerActiveRef.current = true;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: AUDIO_PICKER_TYPES,
@@ -461,6 +468,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       notify(error instanceof Error ? error.message : "BeatNote couldn't relink this song");
     } finally {
       setActionBusyId(null);
+      setTimeout(() => { nativePickerActiveRef.current = false; }, 500);
     }
   }, [notify]);
 
@@ -580,7 +588,9 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       animationType="slide"
       presentationStyle="pageSheet"
       supportedOrientations={['portrait', 'portrait-upside-down', 'landscape-left', 'landscape-right']}
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        if (!nativePickerActiveRef.current) onClose();
+      }}
       onShow={() => {
         const handle = findNodeHandle(titleRef.current);
         if (handle !== null) AccessibilityInfo.setAccessibilityFocus(handle);

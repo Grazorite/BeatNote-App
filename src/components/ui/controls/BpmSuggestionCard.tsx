@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { retryAnalysis } from '../../../features/analysis/bpmAnalysisService';
+import { cancelAnalysis, retryAnalysis } from '../../../features/analysis/bpmAnalysisService';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { bpmSuggestionCardStyles as styles } from '../../../styles/components/controls/bpmSuggestionCard';
@@ -27,9 +27,40 @@ const BpmSuggestionCard: React.FC = () => {
 
   if (job.status === 'queued' || job.status === 'running') {
     return (
-      <View style={styles.container} testID="bpm-suggestion-card" accessibilityLiveRegion="polite">
-        <Text style={styles.title}>Analyzing tempo…</Text>
+      <View style={styles.container} testID="bpm-suggestion-card">
+        <Text style={styles.title} accessibilityLiveRegion="polite">Analyzing tempo…</Text>
         <Text style={styles.detail}>{Math.round(job.progress * 100)}% · playback stays available</Text>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => cancelAnalysis(musicItemId)}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel tempo analysis"
+            testID="bpm-analysis-cancel"
+          >
+            <Text style={styles.buttonText}>Cancel Analysis</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (job.status === 'cancelled') {
+    return (
+      <View style={styles.container} testID="bpm-suggestion-card">
+        <Text style={styles.title} accessibilityLiveRegion="polite">Tempo analysis cancelled</Text>
+        <Text style={styles.detail}>No BPM or beat anchor changes were applied.</Text>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => retryAnalysis(musicItemId)}
+            accessibilityRole="button"
+            accessibilityLabel="Retry tempo analysis"
+            testID="bpm-analysis-retry"
+          >
+            <Text style={styles.buttonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }

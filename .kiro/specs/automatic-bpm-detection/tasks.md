@@ -203,12 +203,12 @@
 
 ## Phase 9 — Browser and native automation
 
-- [ ] 9. Retained automation for the complete workflow
-  - 2026-10-28: the existing seven-journey browser suite now retains synthetic worker detection,
-    preview/apply/restore, Set Count 1, and both nudge sizes. An eighth retained iOS journey covers
-    synthetic native detection with octave resolution, alternatives, preview/apply/restore, the
-    preview overlay, Set Count 1, and both nudge sizes. Native cancellation and long-fixture memory
-    coverage remain open.
+- [x] 9. Retained automation for the complete workflow
+  - 2026-10-29: the seven-journey browser suite retains synthetic worker detection,
+    preview/apply/restore, Set Count 1, and both nudge sizes. The ten-case native suite now includes
+    synthetic detection with octave resolution, cancellation/retry with queue-release proof, and a
+    measured 150-second long-track memory journey. All ten native cases passed in focused runs; the
+    retained browser gate passed 7/7 after the final native-picker regression fix.
   - Extend the existing library/project Playwright journey with
     suggest → apply → alternatives → Set Count 1 → nudge → restore, plus "analysis failure keeps
     annotation usable" and "`showDanceCounts` toggle does not trigger/erase analysis".

@@ -44,6 +44,25 @@ private final class CancellationRegistry: @unchecked Sendable {
   }
 }
 
+#if DEBUG
+private final class TestDelayRegistry: @unchecked Sendable {
+  static let shared = TestDelayRegistry()
+  private let lock = NSLock()
+  private var consumed = false
+
+  func consumeMilliseconds() -> Int {
+    lock.lock()
+    defer { lock.unlock() }
+    guard !consumed else { return 0 }
+    consumed = true
+    let arguments = ProcessInfo.processInfo.arguments
+    guard let keyIndex = arguments.firstIndex(of: "-BEATNOTE_TEMPO_TEST_DELAY_MS"),
+          arguments.indices.contains(keyIndex + 1) else { return 0 }
+    return max(0, Int(arguments[keyIndex + 1]) ?? 0)
+  }
+}
+#endif
+
 private struct AnalysisWindow {
   let startSeconds: Double
   let durationSeconds: Double
@@ -69,6 +88,8 @@ public final class BeatNoteTempoModule: Module {
       (audioURL: URL, requestId: String, minBpm: Double, maxBpm: Double) async throws -> [String: Any] in
       CancellationRegistry.shared.begin(requestId)
       defer { CancellationRegistry.shared.end(requestId) }
+
+      try await Self.applyTestDelay(requestId)
 
       let asset = AVURLAsset(url: audioURL)
       let duration = try await asset.load(.duration)
@@ -132,6 +153,18 @@ public final class BeatNoteTempoModule: Module {
     if Task.isCancelled || CancellationRegistry.shared.isCancelled(requestId) {
       throw TempoAnalysisError.cancelled
     }
+  }
+
+  private static func applyTestDelay(_ requestId: String) async throws {
+#if DEBUG
+    var remainingMilliseconds = TestDelayRegistry.shared.consumeMilliseconds()
+    while remainingMilliseconds > 0 {
+      try checkCancellation(requestId)
+      let slice = min(remainingMilliseconds, 10)
+      try await Task.sleep(nanoseconds: UInt64(slice) * 1_000_000)
+      remainingMilliseconds -= slice
+    }
+#endif
   }
 
   private static func decode(

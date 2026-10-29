@@ -27,6 +27,33 @@ function capture(command, args) {
   return result.stdout.trim();
 }
 
+function runXcodeTest(args, resultBundle) {
+  const result = spawnSync('xcodebuild', args, {
+    cwd: root,
+    env: environment,
+    stdio: 'inherit',
+    timeout: 180_000,
+  });
+  if (result.error && result.error.code !== 'ETIMEDOUT') throw result.error;
+  if (result.status === 0) return;
+  if (result.status === null && fs.existsSync(resultBundle)) {
+    const testResults = JSON.parse(capture('xcrun', [
+      'xcresulttool', 'get', 'test-results', 'tests', '--path', resultBundle,
+    ]));
+    if (testResults.testNodes?.length > 0
+      && testResults.testNodes.every((node) => node.result === 'Passed')) {
+      console.warn(
+        `xcodebuild ended with ${result.signal || 'no process status'} after writing a passing result bundle; continuing.`,
+      );
+      return;
+    }
+  }
+  if (result.error) throw result.error;
+  throw new Error(
+    `xcodebuild failed with exit code ${result.status}${result.signal ? ` (${result.signal})` : ''}`,
+  );
+}
+
 async function runWithOpenUrl(command, args, simulatorId, url) {
   const child = spawn(command, args, {
     cwd: root,
@@ -181,9 +208,28 @@ function stagePickerFixtures(simulatorId, simulatorDataPath) {
     fs.copyFileSync(fixture, path.join(documents, filename));
     fs.copyFileSync(fixture, path.join(pickerStorage, filename));
   }
+  // Keep the CSV journey independent of Files' icon-grid pagination as the fixture set grows.
+  // The prefixed copy contains the same canonical CSV and sorts onto the first visible page.
+  const csvFixture = path.join(root, 'tests', 'fixtures', 'valid-import.csv');
+  fs.copyFileSync(csvFixture, path.join(documents, '00-valid-import.csv'));
+  fs.copyFileSync(csvFixture, path.join(pickerStorage, '00-valid-import.csv'));
+  for (const suffix of ['warmup', 'measured']) {
+    const filename = `long-test-track-memory-${suffix}.m4a`;
+    const fixture = path.join(root, 'tests', 'fixtures', 'long-test-track.m4a');
+    for (const destinationRoot of [documents, pickerStorage]) {
+      const destination = path.join(destinationRoot, filename);
+      fs.copyFileSync(fixture, destination);
+      // AVFoundation ignores trailing bytes, while the import pipeline treats each performance
+      // invocation as a distinct Music Item instead of reusing the warm-up analysis cache.
+      fs.appendFileSync(destination, `beatnote-memory-${suffix}`);
+    }
+  }
   const clickTrack = syntheticClickWav();
   fs.writeFileSync(path.join(documents, 'bpm-click-track.wav'), clickTrack);
   fs.writeFileSync(path.join(pickerStorage, 'bpm-click-track.wav'), clickTrack);
+  const cancellationTrack = syntheticClickWav(120, 30);
+  fs.writeFileSync(path.join(documents, 'bpm-cancel-click-track.wav'), cancellationTrack);
+  fs.writeFileSync(path.join(pickerStorage, 'bpm-cancel-click-track.wav'), cancellationTrack);
   // Restart Files once more after staging so the freshly populated BeatNote folder is discoverable.
   spawnSync('xcrun', ['simctl', 'terminate', simulatorId, 'com.apple.DocumentsApp'], {
     cwd: root,
@@ -229,6 +275,8 @@ async function main() {
       'testStudioLaunchesAndDocumentPickerOpens',
       'testAudioAnnotationAndProjectRestore',
       'testAutomaticBpmSuggestionAndAnchorControls',
+      'testAutomaticBpmCancellationAndRetry',
+      'testAutomaticBpmLongTrackMemory',
       'testLoopRangeToggleAndTransportFits',
       'testCsvImportAndShareSheetExport',
       'testAudioContinuesWhileAppIsInBackground',
@@ -241,12 +289,12 @@ async function main() {
         'build',
         `BeatNoteUITests-${testName}-${Date.now()}.xcresult`,
       );
-      run('xcodebuild', [
+      runXcodeTest([
         ...testBaseArgs,
         'test-without-building',
         '-resultBundlePath', resultBundle,
         '-only-testing:BeatNoteUITests/BeatNoteUITests/' + testName,
-      ]);
+      ], resultBundle);
       console.log(`${testName} UI test result bundle: ${resultBundle}`);
     };
     const runOpenInTest = async () => {

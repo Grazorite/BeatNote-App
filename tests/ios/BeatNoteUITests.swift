@@ -56,8 +56,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-page").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-help").waitForExistence(timeout: 5))
-    XCTAssertFalse(element("settings-bpm").exists)
-    XCTAssertFalse(app.staticTexts["Project BPM"].exists)
+    XCTAssertTrue(element("settings-bpm").exists)
+    XCTAssertTrue(app.staticTexts["Project BPM"].exists)
     XCTAssertFalse(app.staticTexts["Stem Separation"].exists)
     XCTAssertFalse(app.staticTexts["View Mode"].exists)
     for hiddenSetting in [
@@ -219,6 +219,88 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(element("beat-anchor-value").label, "0.000s")
   }
 
+  func testAutomaticBpmCancellationAndRetry() {
+    app.terminate()
+    app.launchArguments += ["-BEATNOTE_TEMPO_TEST_DELAY_MS", "10000"]
+    app.launch()
+    openDevelopmentServerIfNeeded()
+    closeMobileSidebar()
+
+    loadBundledSimulatorAudio("bpm-cancel-click-track.wav")
+    element("sidebar-open-toggle").tap()
+    XCTAssertTrue(app.staticTexts["Analyzing tempo…"].waitForExistence(timeout: 10))
+
+    let cancel = element("bpm-analysis-cancel")
+    if !cancel.waitForExistence(timeout: 1) {
+      element("settings-page").swipeUp()
+    }
+    XCTAssertTrue(cancel.waitForExistence(timeout: 3))
+    cancel.tap()
+    XCTAssertTrue(app.staticTexts["Tempo analysis cancelled"].waitForExistence(timeout: 2))
+    XCTAssertTrue(app.staticTexts["No BPM or beat anchor changes were applied."].exists)
+    XCTAssertFalse(app.buttons["Restore Previous"].exists)
+
+    let retryStarted = Date()
+    element("bpm-analysis-retry").tap()
+    let suggested = app.staticTexts.matching(
+      NSPredicate(format: "label BEGINSWITH %@", "Suggested:")
+    ).firstMatch
+    XCTAssertTrue(
+      suggested.waitForExistence(timeout: 10),
+      "Retry should start only after the cancelled native request releases the single-flight worker."
+    )
+    XCTAssertLessThan(
+      Date().timeIntervalSince(retryStarted),
+      8,
+      "Native cancellation should unblock retry before the injected ten-second analysis delay expires."
+    )
+    XCTAssertFalse(app.buttons["Restore Previous"].exists)
+  }
+
+  func testAutomaticBpmLongTrackMemory() {
+    let options = XCTMeasureOptions()
+    options.iterationCount = 1
+    options.invocationOptions = [.manuallyStart, .manuallyStop]
+    var invocation = 0
+
+    measure(
+      metrics: [XCTMemoryMetric(application: app), XCTClockMetric()],
+      options: options
+    ) {
+      invocation += 1
+      let filename = invocation == 1
+        ? "long-test-track-memory-warmup.m4a"
+        : "long-test-track-memory-measured.m4a"
+      let openSettings = element("sidebar-toggle")
+      if openSettings.exists { openSettings.tap() }
+      element("song-title-control").tap()
+      XCTAssertTrue(element("music-library-import").waitForExistence(timeout: 5))
+      element("music-library-import").tap()
+      XCTAssertTrue(waitForPicker(timeout: 15))
+
+      startMeasuring()
+      defer { stopMeasuring() }
+      selectDocument(filename)
+      dismissAlertIfPresent()
+
+      let title = element("song-title-control")
+      let expectedTitle = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent
+      let loadedTitle = XCTNSPredicateExpectation(
+        predicate: NSPredicate(format: "label CONTAINS %@", "current song \(expectedTitle)"),
+        object: title
+      )
+      XCTAssertEqual(XCTWaiter.wait(for: [loadedTitle], timeout: 30), .completed)
+      element("sidebar-open-toggle").tap()
+      let suggested = app.staticTexts.matching(
+        NSPredicate(format: "label BEGINSWITH %@", "Suggested:")
+      ).firstMatch
+      XCTAssertTrue(
+        suggested.waitForExistence(timeout: 30),
+        "The 150-second fixture should complete native tempo analysis without exhausting memory."
+      )
+    }
+  }
+
   func testLoopRangeToggleAndTransportFits() {
     loadBundledSimulatorAudio("long-test-track.m4a")
 
@@ -317,7 +399,7 @@ final class BeatNoteUITests: XCTestCase {
     element("load-project").tap()
     XCTAssertTrue(element("current-project-import-csv").waitForExistence(timeout: 5))
     element("current-project-import-csv").tap()
-    selectDocument("valid-import.csv")
+    selectDocument("00-valid-import.csv")
     XCTAssertTrue(element("csv-replace-confirm").waitForExistence(timeout: 5))
     XCTAssertEqual(element("csv-existing-counts").label, "Existing: 1 marker, 0 annotations")
     XCTAssertEqual(element("csv-imported-counts").label, "Imported: 1 marker, 1 annotation")
@@ -331,7 +413,7 @@ final class BeatNoteUITests: XCTestCase {
     element("current-project-export-csv").tap()
     XCTAssertTrue(app.staticTexts["1 marker ready to export"].waitForExistence(timeout: 5))
     XCTAssertTrue(
-      element("export-csv").label.contains("Includes timestamps, BPM-derived bar:beat timing, and annotations")
+      element("export-csv").label.contains("Includes timestamps, bar:beat and phrase:count timing, and annotations")
     )
     XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
@@ -342,6 +424,12 @@ final class BeatNoteUITests: XCTestCase {
       shareSheet.waitForExistence(timeout: 10) || copyAction.waitForExistence(timeout: 2),
       "CSV export should present the iOS share sheet.\n\(app.debugDescription)"
     )
+    // Dismiss the system activity controller so Xcode can close the UI-test session cleanly.
+    if shareSheet.exists {
+      shareSheet.swipeDown()
+    } else {
+      app.swipeDown()
+    }
   }
 
   func testOpenInAudioImportsIntoLibrary() {
@@ -435,7 +523,11 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.height, element("navigate-left-marker").frame.height * 1.9)
     XCTAssertGreaterThanOrEqual(element("play-pause").frame.minX, rail.frame.minX - 2)
     XCTAssertLessThanOrEqual(element("play-pause").frame.maxX, rail.frame.maxX + 2)
-    XCTAssertLessThanOrEqual(rail.frame.maxY - element("previous-track-control").frame.maxY, 2)
+    XCTAssertLessThanOrEqual(
+      rail.frame.maxY - element("previous-track-control").frame.maxY,
+      7,
+      "The last rail control should stay within the intentional 6-point bottom inset."
+    )
 
     let waveform = element("wrapped-row-gesture-area-0")
     scrollIntoView(waveform)
@@ -612,7 +704,7 @@ final class BeatNoteUITests: XCTestCase {
       tapPickerLocation("On My iPhone")
     }
 
-    tapPickerItem(fileLabel, timeout: 10)
+    tapPickerItem(filename, timeout: 10)
   }
 
   private func tapPickerLocation(_ label: String) {
@@ -634,23 +726,42 @@ final class BeatNoteUITests: XCTestCase {
     return picker.waitForExistence(timeout: timeout) || recents.waitForExistence(timeout: 1)
   }
 
-  private func tapPickerItem(_ label: String, timeout: TimeInterval) {
-    let predicate = NSPredicate(format: "label BEGINSWITH %@", label)
-    let matches = app.descendants(matching: .any).matching(predicate)
-    XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: timeout), "Could not find '\(label)' in Files picker.\n\(app.debugDescription)")
-    for attempt in 0..<5 {
-      for index in 0..<matches.count {
-        let item = matches.element(boundBy: index)
-        if item.isHittable {
-          item.tap()
+  private func tapPickerItem(_ filename: String, timeout: TimeInterval) {
+    let label = (filename as NSString).deletingPathExtension
+    let deadline = Date().addingTimeInterval(timeout)
+    let fileView = app.collectionViews["File View"].firstMatch
+    var scrollAttempts = 0
+    repeat {
+      let cells = app.cells
+      for index in 0..<cells.count {
+        let candidate = cells.element(boundBy: index)
+        guard candidate.label.hasPrefix(label) else { continue }
+        if candidate.isHittable {
+          candidate.tap()
+          return
+        }
+        let frame = candidate.frame
+        if frame.width > 0, frame.height > 0, frame.intersects(app.frame) {
+          candidate.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
           return
         }
       }
-      if attempt < 4 {
-        app.swipeUp()
+
+      // Static text is a reliable signal that the target row has scrolled into view, but tapping
+      // it can merely select the title in Files icon mode. Re-query the owning cell on the next
+      // loop instead of activating the title directly.
+      let titleIsVisible = app.staticTexts[label].firstMatch.exists
+
+      if !titleIsVisible, fileView.exists, scrollAttempts < 4 {
+        fileView.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+          .press(forDuration: 0.05, thenDragTo: fileView.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)
+          ))
+        scrollAttempts += 1
       }
-    }
-    XCTFail("'\(label)' has no hittable match in Files picker.\n\(app.debugDescription)")
+      Thread.sleep(forTimeInterval: 0.25)
+    } while Date() < deadline
+    XCTFail("Could not activate visible Files cell '\(label)'.\n\(app.debugDescription)")
   }
 
   private func dismissAlertIfPresent() {
