@@ -59,25 +59,19 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Retest whole-track Repeat and shuffled end-of-track advancement on the physical iPhone; Control
-   Centre play/pause, timeline seek, and ±10-second skip now pass alongside queue switching, rename,
-   annotation, loop, dock, and portrait/landscape geometry in the current Debug/Metro device pass.
-2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
+1. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
-3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): every reported
-   iPhone 15 Pro Max / iOS 27.0.1 case passes except importing a file over 100 MB, for which no
-   suitable fixture was available.
-4. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+3. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-6. Keep the completed local choreography workflow stable while physical-device acceptance and the
+4. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -103,15 +97,12 @@ potentially adding a hybrid path later.
 
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
-      Repeat/Shuffle end-of-track behavior, audible switching, and Release-build latency remain open
+      Repeat/Shuffle now pass; audible switching and Release-build latency remain open
 - [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
       exports, retained browser flow, octave-resolved native synthetic XCTest, cancellation/retry,
       and 150-second simulator memory are implemented; browser measurements, real-song accuracy,
       and physical acceptance remain
-- [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
-      temporary durability/property checks, all seven browser journeys, the isolated ten-case native
-      suite, simulator rotation, and all reported physical cases pass; only a >100 MB import remains
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
 ### ⏸ Deferred — V2/V3
@@ -121,6 +112,11 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Complete and archive `local-music-library-queue`, including Files/third-party Open_In,
+      app-owned storage, per-song drafts/projects, queue controls, Repeat/Shuffle completion,
+      restore/relink, low-storage behavior, and a 107,604,078-byte physical-device import
+      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `src/features/library/`, `src/hooks/useAudioPlayer.ts`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Complete simulator runtime automation for automatic BPM cancellation and 150-second memory,
       and keep the iOS project sheet mounted across Files picker callbacks
@@ -135,10 +131,6 @@ potentially adding a hybrid path later.
 
 - [x] Retire the legacy `beatnote_projects` writers, reconcile the `local-music-library-queue` task list, and archive the completed `wrapped-waveform-canvas` spec
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
-
-- [x] Add bounded 0.05× decrement/increment buttons beside an inset playback-speed slider with 44×44
-      targets, clear endpoint separation, accessible states, repeated-step dwell, and responsive coverage
-      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/requirements.md`, `docs/context/archive/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -216,6 +208,38 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Complete and archive the local music library
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`
+**Kanban moved:** `local-music-library-queue` physical acceptance → Done
+
+**Changed:**
+
+- Closed Phase 0 and the final Task 44 gate after physical Files/third-party Open_In, restore/relink,
+  near-full storage, interruptions/routes/force-quit, large text, rapid queue navigation, and the
+  generated 107,604,078-byte WAV all passed on iPhone 15 Pro Max / iOS 27.0.1.
+- Finalized `LSSupportsOpeningDocumentsInPlace = false`, updated iOS/product steering, and archived
+  the completed specification under `docs/context/archive/specs/local-music-library-queue/`.
+- Recorded VoiceOver spoken-output testing as deliberately waived for this V1 pass; retained
+  simulator accessibility-tree and browser keyboard coverage remain the available evidence.
+
+**Verified:**
+
+- No unchecked task remains in the archived `tasks.md`; Markdown lint and diff hygiene pass.
+- Human physical acceptance confirms Repeat, shuffled natural completion, and the >100 MB import.
+
+**Not verified / known gaps:**
+
+- The raw incoming Open_In URL string was not separately instrumented on hardware; simulator logs
+  establish Inbox delivery and physical end-to-end app-owned import passed.
+- VoiceOver spoken output remains intentionally untested. Release/TestFlight performance evidence
+  belongs to the separate performance backlog.
+
+**Next agent should:**
+
+- Continue automatic-BPM real-song/browser performance acceptance, then collect Release-build app
+  performance baselines from the existing optimization spec.
 
 ### 2026-10-29 — Fix Repeat and shuffled track completion
 
@@ -356,38 +380,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue the remaining physical acceptance: Task 44.4 (library queue), BPM runtime evidence, and
   audio/background/share checks.
-
-### 2026-10-29 — Adopt the BeatNote app icon
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: adopt BeatNote app icon`)
-**Kanban moved:** app icon and splash artwork → Done
-
-**Changed:**
-
-- Renamed the Recraft export to `assets/beatnote-icon-source.svg` (untouched original); derived a
-  clean full-bleed `beatnote-icon.svg` (no rounded corners, no C2PA metadata), a transparent
-  `beatnote-mark.svg`, and an alternate `beatnote-icon-shield.svg` using the in-app marker shield.
-- Centred the artwork optically: group scaled to 92% and lifted 12 px. The bars carry the mass
-  below the bounding-box centre, so moving down would have looked bottom-heavy.
-- Regenerated `icon.png`, `adaptive-icon.png` (mark at 68%, inside the Android safe zone),
-  `splash-icon.png` (mark at 70%), and a 48-px `favicon.png`.
-- `app.json`: splash and Android adaptive-icon backgrounds changed from `#000000` to `#1E1C1D`.
-- `.kiro/steering/ios-testflight.md`: documented the brand-asset pipeline.
-
-**Verified:**
-
-- Viewed `icon.png` (final) plus diamond/shield renders at 400, 120, 60, and 29 px; the diamond
-  was kept for its cleaner silhouette. Earlier renders of the adaptive and splash PNGs looked right.
-
-**Not verified / known gaps:**
-
-- No iOS or Android rebuild; the icon is not yet seen on a device or simulator home screen.
-- The final `adaptive-icon.png`, `splash-icon.png`, and `favicon.png` were not re-inspected after
-  the centring change; 18–29 px legibility is a dot at best.
-- The shield alternate was compared but not shipped; the final choice is the product owner's.
-
-**Next agent should:**
-
-- Run `npx expo prebuild -p ios` and check the icon and splash on a simulator.
 
 <!-- end handover log -->

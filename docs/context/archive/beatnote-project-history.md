@@ -5,6 +5,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Add bounded 0.05× decrement/increment buttons beside an inset playback-speed slider with 44×44
+      targets, clear endpoint separation, accessible states, repeated-step dwell, and responsive coverage
+      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/requirements.md`, `docs/context/archive/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add the built-in choreography vocabulary as accessible suggestion chips in the desktop
       annotation field and iPhone editor while preserving free-form annotation entry
       <sub>**Key Artifacts:** `src/components/ui/controls/AnnotationField.tsx`, `src/components/ui/controls/AnnotationSuggestionChips.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/utils/annotationSuggestions.ts`, `tests/ui-components.spec.ts`</sub>
@@ -259,6 +263,39 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-29 — Adopt the BeatNote app icon
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: adopt BeatNote app icon`)
+**Kanban moved:** app icon and splash artwork → Done
+
+**Changed:**
+
+- Renamed the Recraft export to `assets/beatnote-icon-source.svg` (untouched original); derived a
+  clean full-bleed `beatnote-icon.svg` (no rounded corners, no C2PA metadata), a transparent
+  `beatnote-mark.svg`, and an alternate `beatnote-icon-shield.svg` using the in-app marker shield.
+- Centred the artwork optically: group scaled to 92% and lifted 12 px. The bars carry the mass
+  below the bounding-box centre, so moving down would have looked bottom-heavy.
+- Regenerated `icon.png`, `adaptive-icon.png` (mark at 68%, inside the Android safe zone),
+  `splash-icon.png` (mark at 70%), and a 48-px `favicon.png`.
+- `app.json`: splash and Android adaptive-icon backgrounds changed from `#000000` to `#1E1C1D`.
+- `.kiro/steering/ios-testflight.md`: documented the brand-asset pipeline.
+
+**Verified:**
+
+- Viewed `icon.png` (final) plus diamond/shield renders at 400, 120, 60, and 29 px; the diamond
+  was kept for its cleaner silhouette. Earlier renders of the adaptive and splash PNGs looked right.
+
+**Not verified / known gaps:**
+
+- No iOS or Android rebuild; the icon is not yet seen on a device or simulator home screen.
+- The final `adaptive-icon.png`, `splash-icon.png`, and `favicon.png` were not re-inspected after
+  the centring change; 18–29 px legibility is a dot at best.
+- The shield alternate was compared but not shipped; the final choice is the product owner's.
+
+**Next agent should:**
+
+- Run `npx expo prebuild -p ios` and check the icon and splash on a simulator.
 
 ### 2026-10-29 — Close out library-queue spec bookkeeping and archive wrapped-waveform-canvas
 
