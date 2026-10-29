@@ -13,6 +13,10 @@ export type { ThemeColors, ThemeName, ThemeScheme } from './theme';
  * export after styles have been converted to theme-aware factories. */
 export const colors = darkTheme;
 
+/** Stroke opacity for the already-played part of a waveform. Mutes the layer colour so it sits
+ * calmly beside the violet markers and the orange playhead instead of competing with them. */
+export const PLAYED_WAVEFORM_OPACITY = 0.7;
+
 // Responsive breakpoints
 export const breakpoints = {
   mobile: 768,

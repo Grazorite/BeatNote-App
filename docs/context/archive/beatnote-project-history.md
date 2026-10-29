@@ -264,6 +264,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-29 — Pass physical acceptance for control dock and loop range; archive both specs
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** `playback-marker-control-dock` and `loop-range-overview` physical acceptance → Done
+
+**Changed:**
+
+- `playback-marker-control-dock` and `loop-range-overview` `tasks.md`: ticked the final regression
+  and physical-device acceptance tasks (27, 27.2, 25, 25.2) on the human's report that the
+  physical-iPhone QA passed, with a note that VoiceOver was skipped.
+- Moved both specs to `docs/context/archive/specs/`.
+- Rotated the 2026-10-29 physical iOS 27 launch entry into the history archive.
+
+**Verified:**
+
+- Human reported physical-iPhone QA complete and passing for both features. No open checkbox
+  remains in either archived `tasks.md`.
+
+**Not verified / known gaps:**
+
+- VoiceOver announcements and adjustment for the tri-state inner-loop value, reserved controls, and
+  loop handles were deliberately skipped by the product owner and remain unverified.
+- Specific physical results (frame rate, contrast, boundary audibility) were reported verbally and
+  are not recorded as measurements.
+- Historical log entries still cite the old `.kiro/specs/` paths for these two specs.
+
+**Next agent should:**
+
+- Continue the remaining physical acceptance: Task 44.4 (library queue), BPM runtime evidence, and
+  audio/background/share checks.
+
 ### 2026-10-29 — Adopt the BeatNote app icon
 
 **Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: adopt BeatNote app icon`)
@@ -416,6 +447,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Run the focused native cancellation/long-fixture memory checks, then the full native suite with
   Open_In before the physical-iPhone scene-lifecycle and automatic-BPM acceptance pass.
+
+### 2026-10-29 — Wire Control Centre and smooth native track changes
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `0987b7a`
+**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
+
+**Changed:**
+
+- Registered the loaded Expo Audio player with iOS Now Playing, published the library display title,
+  and mirrored remote play/pause/seek status into BeatNote's playback state.
+- Kept the previous waveform mounted beneath a destination-labelled loading veil during an atomic
+  track switch, blocked conflicting canvas/dock input, and faded in the committed song while
+  respecting Reduce Motion.
+- Debounced native playback-rate reconfiguration while audio is playing so a burst of speed-button
+  taps applies only the final value instead of repeatedly interrupting the engine.
+
+**Verified:**
+
+- Human physical-iPhone feedback confirmed queue audio, title, waveform, markers, and most-recent
+  project all switch to the correct song; the abrupt presentation motivated the transition polish.
+- `npx tsc --noEmit`, `git diff --check`, the focused phone-dock journey, and the full retained
+  Playwright gate (7/7) passed. The journey proves the loading veil appears and six rapid speed
+  increments produce one native playback-rate assignment.
+
+**Not verified / known gaps:**
+
+- Control Centre visibility/metadata, remote play/pause/seek synchronization, audible rapid-speed
+  behavior, and transition comfort still require the connected physical iPhone.
+- Debug/Metro landscape latency is not Release/TestFlight performance evidence; VoiceOver remains
+  deliberately deferred by the product owner.
+
+**Next agent should:**
+
+- Relaunch the current bundle on the iPhone, play a local song, and verify Control Centre metadata,
+  remote commands, the switch veil, and uninterrupted rapid speed stepping.
 
 ### 2026-10-28 — Implement automatic BPM detection and authored grid
 

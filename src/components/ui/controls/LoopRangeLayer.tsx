@@ -34,6 +34,9 @@ interface WebKeyEvent {
   nativeEvent?: { key?: string; shiftKey?: boolean };
 }
 
+/** Must match `handleVisual.width` in styles/components/controls/loopRangeLayer.ts. */
+const LOOP_HANDLE_VISUAL_WIDTH = 6;
+
 const handleCursorStyle = Platform.OS === 'web'
   ? ({ cursor: 'ew-resize' } as unknown as ViewStyle)
   : undefined;
@@ -68,7 +71,7 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
   const bodyWidth = Math.max(2, computedWidth);
   const bodyLeft = computedWidth < 2 ? Math.max(0, (startX + endX) / 2 - 1) : startX;
   const hitWidth = Platform.OS === 'web' ? 16 : 44;
-  const visualWidth = 8;
+  const visualWidth = LOOP_HANDLE_VISUAL_WIDTH;
   const handleLeft = (center: number): number => Math.max(0, Math.min(center - hitWidth / 2, width - hitWidth));
   const valueText = isEnabled ? 'enabled' : 'disabled';
 
@@ -176,7 +179,9 @@ const LoopRangeLayer: React.FC<LoopRangeLayerProps> = ({
             !isEnabled && styles.handleVisualDisabled,
             { transform: [{ translateX: visualOffsetX }] },
           ]}
-        />
+        >
+          <View style={[styles.handleGrip, !isEnabled && styles.handleGripDisabled]} />
+        </View>
       </Pressable>
     );
   };

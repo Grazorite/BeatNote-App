@@ -8,13 +8,14 @@ export const loopRangeLayerStyles = StyleSheet.create({
     top: 1,
     bottom: 1,
     borderWidth: 1,
+    borderRadius: 5,
   },
   fillEnabled: {
-    backgroundColor: 'rgba(0, 212, 199, 0.24)',
-    borderColor: colors.loopEnabled,
+    backgroundColor: colors.loopFill,
+    borderColor: colors.loopBorder,
   },
   fillDisabled: {
-    backgroundColor: 'rgba(71, 122, 118, 0.08)',
+    backgroundColor: colors.loopFillDisabled,
     borderColor: colors.loopDisabled,
     borderStyle: 'dashed',
   },
@@ -37,16 +38,27 @@ export const loopRangeLayerStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.text,
   },
+  // Slim capsule echoing the rounded bars of the app icon. Its width must equal
+  // LOOP_HANDLE_VISUAL_WIDTH in LoopRangeLayer.tsx, which insets the grip at the track edges.
   handleVisual: {
-    width: 8,
-    height: 36,
+    width: 6,
+    height: 30,
     borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.loopHandle,
-    borderColor: colors.loopEnabled,
-    borderWidth: 1,
   },
   handleVisualDisabled: {
     backgroundColor: colors.loopDisabled,
-    borderColor: colors.loopDisabled,
+  },
+  handleGrip: {
+    width: 2,
+    height: 10,
+    borderRadius: 1,
+    backgroundColor: colors.loopEnabled,
+  },
+  handleGripDisabled: {
+    backgroundColor: colors.loopOutside,
+    opacity: 0.45,
   },
 });

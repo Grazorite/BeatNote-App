@@ -83,6 +83,23 @@ inclusion: always
 - Annotation indicators use the shared violet marker colour without a dark outline. On phones,
   annotation editing is an explicit marker-gated modal draft with Save/Cancel; the selected marker's
   read-only callout is bounded to two lines and truncates at the tail above the overview.
+- Waveform markers are a 2-point rounded violet line topped by the in-app marker shield (the same
+  silhouette as the toolbar marker icon). A solid shield means annotated and an outlined shield means
+  plain, so the distinction never rests on colour alone; the selected marker gets a soft glow, and
+  clustered annotations collapse into a quiet glass pill containing a small shield and a count. Keep
+  the `wrapped-row-marker-*` and `wrapped-row-annotation-*` test IDs; heads use `wrapped-row-head-*`.
+  The overview strip uses a simplified solid shield on a hairline. Shield geometry is shared via
+  `src/utils/markerShape.ts`. In the strip, layer order is fixed: base peaks, played waveform,
+  markers, playhead, so the played-waveform tint never recolours markers.
+- The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
+  be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
+  teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.
+  Teal stays the single cool hue so loop state reads at a glance. The disabled loop keeps its dashed
+  border. Handle touch targets stay at least 44 points; only the visual capsule is slim, and its
+  width must match `LOOP_HANDLE_VISUAL_WIDTH` in `LoopRangeLayer.tsx`.
+- The already-played waveform stroke is muted with `PLAYED_WAVEFORM_OPACITY` from
+  `src/styles/common.ts` so the layer colour does not compete with markers or the playhead. Adjust
+  that one constant rather than recolouring the layer.
 
 ## Icon design
 

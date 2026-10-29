@@ -1,11 +1,17 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Circle, ClipPath, Defs, G, Line, Path, Polygon, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
 import { clusterAnnotationIndicators } from '../../../utils/annotationClusters';
+import {
+  MARKER_SHIELD_LINE_START,
+  MARKER_SHIELD_OUTLINE_PATH,
+  MARKER_SHIELD_PATH,
+  markerHeadTransform,
+} from '../../../utils/markerShape';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
 import {
   clipRowProgress,
@@ -14,7 +20,7 @@ import {
 } from '../../../utils/timelineMapping';
 import RowGutter from './RowGutter';
 import { wrappedRowStyles as styles } from '../../../styles/components/waveform/wrappedRow';
-import { colors } from '../../../styles/common';
+import { colors, PLAYED_WAVEFORM_OPACITY } from '../../../styles/common';
 
 export interface WrappedLayerMarkers {
   layerId: LayerId;
@@ -48,9 +54,23 @@ const MARKER_LANE_HEIGHT = 44;
 const MARKER_LANE_HEIGHT_RATIO = 0.45;
 const MARKER_HIT_RADIUS_PX = 22;
 const ANNOTATION_CLUSTER_THRESHOLD_PX = 8;
-const ANNOTATION_INDICATOR_Y = 12;
-const ANNOTATION_BADGE_WIDTH = 28;
-const ANNOTATION_BADGE_HEIGHT = 18;
+const ANNOTATION_BADGE_WIDTH = 38;
+const ANNOTATION_BADGE_HEIGHT = 20;
+
+// Solid heads mean annotated and outlined heads mean plain, so the distinction never depends on
+// colour alone. Geometry lives in utils/markerShape.
+const MARKER_HEAD_MAX_SCALE = 0.9;
+const MARKER_HEAD_MIN_SCALE = 0.5;
+const MARKER_HEAD_TOP = 2;
+const MARKER_LINE_WIDTH = 2;
+const MARKER_LINE_OPACITY = 0.75;
+const MARKER_GLOW_OPACITY = 0.22;
+// Playhead: round-capped line with a rounded head and a soft dark shadow instead of a hard halo.
+const PLAYHEAD_HEAD_Y = 5;
+const PLAYHEAD_HEAD_RADIUS = 3.5;
+const PLAYHEAD_SHADOW_WIDTH = 6;
+const PLAYHEAD_SHADOW_OPACITY = 0.5;
+const LOOP_RANGE_RADIUS = 4;
 
 const formatAccessibleTime = (milliseconds: number): string => {
   const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
@@ -120,6 +140,13 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
 }) => {
   const scrubStartedRef = useRef(false);
   const progress = useStudioStore(state => clipRowProgress(row, state.currentTime));
+  // Reduced to a string so only the row holding the selection re-renders when it changes.
+  const selectedMarkerKey = useStudioStore(state => {
+    const selected = state.selectedMarker;
+    return selected && selected.timestamp >= row.startMs && selected.timestamp <= row.endMs
+      ? `${selected.layerId}-${selected.timestamp}`
+      : null;
+  });
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
   const safeProgress = Math.max(0, Math.min(1, progress));
@@ -129,6 +156,12 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
     : rowPixelWidth / 2;
   const waveformHeight = Math.max(1, rowHeight - 2);
   const markerLaneHeight = Math.min(MARKER_LANE_HEIGHT, waveformHeight * MARKER_LANE_HEIGHT_RATIO);
+  const headScale = Math.max(
+    MARKER_HEAD_MIN_SCALE,
+    Math.min(MARKER_HEAD_MAX_SCALE, (markerLaneHeight - MARKER_HEAD_TOP - 2) / 16),
+  );
+  const markerLineTop = MARKER_HEAD_TOP + MARKER_SHIELD_LINE_START * headScale;
+  const headCenterY = MARKER_HEAD_TOP + 7.5 * headScale;
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
   const outsideLoopRects = outsideLoopSegments
@@ -276,6 +309,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               y={0}
               width={loopRect.width}
               height={waveformHeight}
+              rx={LOOP_RANGE_RADIUS}
               fill={isLoopRangeEnabled ? colors.loopEnabled : 'transparent'}
               opacity={isLoopRangeEnabled ? 0.15 : 0.85}
               stroke={isLoopRangeEnabled ? colors.loopEnabled : colors.loopDisabled}
@@ -323,6 +357,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                   <Path
                     d={path}
                     stroke={activeLayerColor}
+                    strokeOpacity={PLAYED_WAVEFORM_OPACITY}
                     strokeWidth={1.5}
                     fill="none"
                     clipPath={`url(#${clipId})`}
@@ -362,28 +397,60 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                 layer.annotatedTimestamps.includes(timestamp) ? 'annotated' : 'not annotated'
               }`}
               x1={markerX(row, timestamp, rowPixelWidth)}
-              y1={0}
+              y1={markerLineTop}
               x2={markerX(row, timestamp, rowPixelWidth)}
               y2={waveformHeight}
               stroke={colors.marker}
-              strokeWidth={4}
-              opacity={0.9}
+              strokeWidth={MARKER_LINE_WIDTH}
+              strokeLinecap="round"
+              opacity={MARKER_LINE_OPACITY}
               testID={`wrapped-row-marker-${layer.layerId}-${timestamp}`}
             />
           )))}
+
+          {selectedMarkerKey && markersByLayer.flatMap(layer => layer.timestamps
+            .filter(timestamp => `${layer.layerId}-${timestamp}` === selectedMarkerKey)
+            .map(timestamp => (
+              <Circle
+                key={`glow-${layer.layerId}-${timestamp}`}
+                cx={markerX(row, timestamp, rowPixelWidth)}
+                cy={headCenterY}
+                r={8 * headScale}
+                fill={colors.marker}
+                opacity={MARKER_GLOW_OPACITY}
+                pointerEvents="none"
+                testID={`wrapped-row-marker-glow-${layer.layerId}-${timestamp}`}
+              />
+            )))}
+
+          {markersByLayer.flatMap(layer => layer.timestamps
+            .filter(timestamp => !layer.annotatedTimestamps.includes(timestamp))
+            .map(timestamp => (
+              <Path
+                key={`head-${layer.layerId}-${timestamp}`}
+                d={MARKER_SHIELD_OUTLINE_PATH}
+                transform={markerHeadTransform(markerX(row, timestamp, rowPixelWidth), MARKER_HEAD_TOP, headScale)}
+                fill={colors.background}
+                stroke={colors.marker}
+                strokeWidth={1.6}
+                strokeLinejoin="round"
+                pointerEvents="none"
+                testID={`wrapped-row-head-${layer.layerId}-${timestamp}`}
+              />
+            )))}
 
           {annotationClusters.map((cluster, clusterIndex) => {
             const first = cluster.members[0];
             if (cluster.members.length === 1) {
               return (
-                <Circle
+                <Path
                   key={`${first.layerId}-${first.timestamp}`}
-                  cx={cluster.x}
-                  cy={ANNOTATION_INDICATOR_Y}
-                  r={6}
+                  d={MARKER_SHIELD_PATH}
+                  transform={markerHeadTransform(cluster.x, MARKER_HEAD_TOP, headScale)}
                   fill={colors.marker}
-                  stroke="none"
-                  strokeWidth={0}
+                  stroke={colors.marker}
+                  strokeWidth={1.5}
+                  strokeLinejoin="round"
                   testID={`wrapped-row-annotation-${first.layerId}-${first.timestamp}`}
                 />
               );
@@ -397,18 +464,27 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               <G key={`cluster-${clusterIndex}`}>
                 <Rect
                   x={badgeX}
-                  y={ANNOTATION_INDICATOR_Y - ANNOTATION_BADGE_HEIGHT / 2}
+                  y={MARKER_HEAD_TOP}
                   width={ANNOTATION_BADGE_WIDTH}
                   height={ANNOTATION_BADGE_HEIGHT}
                   rx={ANNOTATION_BADGE_HEIGHT / 2}
-                  fill={colors.surface}
-                  stroke={colors.marker}
-                  strokeWidth={2}
+                  fill={colors.surfaceGlass}
+                  stroke={colors.borderEmphasis}
+                  strokeWidth={1}
                   testID={`wrapped-row-annotation-cluster-${row.index}-${clusterIndex}`}
                 />
+                <Path
+                  d={MARKER_SHIELD_PATH}
+                  transform={`translate(${badgeX + ANNOTATION_BADGE_WIDTH / 2 - 15} ${MARKER_HEAD_TOP + 3}) scale(0.6)`}
+                  fill={colors.marker}
+                  stroke={colors.marker}
+                  strokeWidth={1.5}
+                  strokeLinejoin="round"
+                  pointerEvents="none"
+                />
                 <SvgText
-                  x={badgeX + ANNOTATION_BADGE_WIDTH / 2}
-                  y={ANNOTATION_INDICATOR_Y + 4}
+                  x={badgeX + ANNOTATION_BADGE_WIDTH / 2 + 7}
+                  y={MARKER_HEAD_TOP + 14}
                   fill={colors.text}
                   fontSize={10}
                   fontWeight="700"
@@ -438,25 +514,29 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             <>
               <Line
                 x1={playheadX}
-                y1={0}
+                y1={PLAYHEAD_HEAD_Y}
                 x2={playheadX}
                 y2={waveformHeight}
                 stroke={colors.background}
-                strokeWidth={5}
-                opacity={0.9}
+                strokeWidth={PLAYHEAD_SHADOW_WIDTH}
+                strokeLinecap="round"
+                opacity={PLAYHEAD_SHADOW_OPACITY}
                 testID={`wrapped-row-playhead-underlay-${row.index}`}
               />
               <Line
                 x1={playheadX}
-                y1={0}
+                y1={PLAYHEAD_HEAD_Y}
                 x2={playheadX}
                 y2={waveformHeight}
                 stroke={colors.loopPlayhead}
                 strokeWidth={2}
+                strokeLinecap="round"
                 testID={`wrapped-row-playhead-${row.index}`}
               />
-              <Polygon
-                points={`${playheadX - 4},1 ${playheadX + 4},1 ${playheadX},7`}
+              <Circle
+                cx={playheadX}
+                cy={PLAYHEAD_HEAD_Y}
+                r={PLAYHEAD_HEAD_RADIUS}
                 fill={colors.loopPlayhead}
                 stroke={colors.background}
                 strokeWidth={1.5}

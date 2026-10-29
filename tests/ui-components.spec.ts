@@ -952,10 +952,10 @@ test.describe('UI Components & Layout', () => {
     await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]').first()).toBeVisible();
     await expect(page.getByTestId('loop-overview-range')).toHaveCSS(
       'background-color',
-      'rgba(0, 212, 199, 0.24)',
+      'rgba(43, 189, 178, 0.18)',
     );
     await expect(page.getByTestId(/^wrapped-row-loop-\d+$/).first())
-      .toHaveAttribute('fill', '#00d4c7');
+      .toHaveAttribute('fill', '#2bbdb2');
 
     await page.keyboard.press('Shift+l');
     await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'true');

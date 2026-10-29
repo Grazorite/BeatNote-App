@@ -33,6 +33,9 @@ export interface ThemeColors {
   readonly loopHandle: string;
   readonly loopOutside: string;
   readonly loopPlayhead: string;
+  readonly loopFill: string;
+  readonly loopFillDisabled: string;
+  readonly loopBorder: string;
   readonly glassTop: string;
   readonly glassMiddle: string;
   readonly glassBottom: string;
@@ -70,11 +73,16 @@ export const darkTheme: Readonly<ThemeColors> = Object.freeze({
   iconPositive: '#3a8f5b',
   iconDestructive: '#b54a45',
   loopTrack: '#222222',
-  loopEnabled: '#00d4c7',
+  // Teal stays the only cool hue so loop state reads at a glance, but it is muted to sit calmly
+  // beside the orange playhead and violet markers.
+  loopEnabled: '#2bbdb2',
   loopDisabled: '#477a76',
-  loopHandle: '#e8fffd',
+  loopHandle: '#dcf3f0',
   loopOutside: '#000000',
   loopPlayhead: '#ff8c00',
+  loopFill: 'rgba(43, 189, 178, 0.18)',
+  loopFillDisabled: 'rgba(71, 122, 118, 0.08)',
+  loopBorder: 'rgba(43, 189, 178, 0.6)',
   glassTop: '#464650',
   glassMiddle: '#202027',
   glassBottom: '#0b0b0f',

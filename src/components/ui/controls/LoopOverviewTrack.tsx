@@ -1,27 +1,45 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { ClipPath, Defs, Line, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect } from 'react-native-svg';
 
+import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath, useWaveformData } from '../../../hooks/useWaveformData';
-import { colors } from '../../../styles/common';
+import { colors, PLAYED_WAVEFORM_OPACITY } from '../../../styles/common';
 import { loopOverviewTrackStyles as styles } from '../../../styles/components/controls/loopOverviewTrack';
 import { msToOverviewX, overviewPlayheadX } from '../../../utils/loopRange';
+import { MARKER_SHIELD_LINE_START, MARKER_SHIELD_PATH, markerHeadTransform } from '../../../utils/markerShape';
+
+const OVERVIEW_HEIGHT = 34;
+const PLAYHEAD_HEAD_Y = 5;
+// Simplified marker for the strip: a small solid shield on a hairline, with no annotated/plain
+// distinction because the heads are too small for an outline to stay legible.
+const OVERVIEW_MARKER_HEAD_SCALE = 0.55;
+const OVERVIEW_MARKER_HEAD_TOP = 2;
+const OVERVIEW_MARKER_LINE_TOP = OVERVIEW_MARKER_HEAD_TOP + MARKER_SHIELD_LINE_START * OVERVIEW_MARKER_HEAD_SCALE;
 
 interface LoopOverviewTrackProps {
   audioUri: string | null;
   width: number;
 }
 
-interface PlaybackOverlayProps {
-  activeLayerColor: string;
+interface LayerBaseProps {
   drawable: boolean;
   songDuration: number;
-  waveformPath: string;
   width: number;
 }
 
-const PlaybackOverlay: React.FC<PlaybackOverlayProps> = ({
+interface ProgressLayerProps extends LayerBaseProps {
+  activeLayerColor: string;
+  waveformPath: string;
+}
+
+interface MarkersLayerProps extends LayerBaseProps {
+  layers: Layer[];
+}
+
+/** Played portion of the waveform. Re-renders with playback time. */
+const ProgressLayer: React.FC<ProgressLayerProps> = ({
   activeLayerColor,
   drawable,
   songDuration,
@@ -30,53 +48,114 @@ const PlaybackOverlay: React.FC<PlaybackOverlayProps> = ({
 }) => {
   const currentTime = useStudioStore(state => state.currentTime);
   const playheadX = overviewPlayheadX(currentTime, songDuration, width);
+  if (!drawable || !waveformPath || playheadX <= 0) return null;
+
+  return (
+    <Svg
+      width={Math.max(0, width)}
+      height={OVERVIEW_HEIGHT}
+      style={StyleSheet.absoluteFillObject}
+      pointerEvents="none"
+    >
+      <Defs>
+        <ClipPath id="loop-overview-progress-clip">
+          <Rect x={0} y={0} width={playheadX} height={OVERVIEW_HEIGHT} />
+        </ClipPath>
+      </Defs>
+      <Path
+        d={waveformPath}
+        stroke={activeLayerColor}
+        strokeOpacity={PLAYED_WAVEFORM_OPACITY}
+        strokeWidth={1.5}
+        fill="none"
+        clipPath="url(#loop-overview-progress-clip)"
+        testID="loop-overview-progress"
+      />
+    </Svg>
+  );
+};
+
+/** Marker shields. Drawn above the played waveform so its tint never recolours them. */
+const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, songDuration, width }) => {
   if (!drawable) return null;
 
   return (
     <Svg
       width={Math.max(0, width)}
-      height={34}
+      height={OVERVIEW_HEIGHT}
       style={StyleSheet.absoluteFillObject}
       pointerEvents="none"
     >
-      {waveformPath && playheadX > 0 && (
-        <>
-          <Defs>
-            <ClipPath id="loop-overview-progress-clip">
-              <Rect x={0} y={0} width={playheadX} height={34} />
-            </ClipPath>
-          </Defs>
-          <Path
-            d={waveformPath}
-            stroke={activeLayerColor}
-            strokeWidth={1.5}
-            fill="none"
-            clipPath="url(#loop-overview-progress-clip)"
-            testID="loop-overview-progress"
-          />
-        </>
-      )}
+      {layers.flatMap(layer => layer.isVisible
+        ? layer.markers.filter(marker => Number.isFinite(marker) && marker >= 0 && marker <= songDuration)
+            .map((marker, index) => {
+              const x = msToOverviewX(marker, songDuration, width);
+              return (
+                <G key={`${layer.id}-${marker}-${index}`}>
+                  <Line
+                    x1={x}
+                    x2={x}
+                    y1={OVERVIEW_MARKER_LINE_TOP}
+                    y2={OVERVIEW_HEIGHT - 3}
+                    stroke={colors.marker}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    opacity={0.75}
+                  />
+                  <Path
+                    d={MARKER_SHIELD_PATH}
+                    transform={markerHeadTransform(x, OVERVIEW_MARKER_HEAD_TOP, OVERVIEW_MARKER_HEAD_SCALE)}
+                    fill={colors.marker}
+                    stroke={colors.marker}
+                    strokeWidth={1.5}
+                    strokeLinejoin="round"
+                  />
+                </G>
+              );
+            })
+        : [])}
+    </Svg>
+  );
+};
+
+/** Live playhead. Topmost layer so it is never covered by markers. */
+const PlayheadLayer: React.FC<LayerBaseProps> = ({ drawable, songDuration, width }) => {
+  const currentTime = useStudioStore(state => state.currentTime);
+  const playheadX = overviewPlayheadX(currentTime, songDuration, width);
+  if (!drawable) return null;
+
+  return (
+    <Svg
+      width={Math.max(0, width)}
+      height={OVERVIEW_HEIGHT}
+      style={StyleSheet.absoluteFillObject}
+      pointerEvents="none"
+    >
       <Line
         x1={playheadX}
         x2={playheadX}
-        y1={1}
+        y1={PLAYHEAD_HEAD_Y}
         y2={33}
         stroke={colors.background}
-        strokeWidth={5}
-        opacity={0.9}
+        strokeWidth={6}
+        strokeLinecap="round"
+        opacity={0.5}
         testID="loop-overview-playhead-underlay"
       />
       <Line
         x1={playheadX}
         x2={playheadX}
-        y1={1}
+        y1={PLAYHEAD_HEAD_Y}
         y2={33}
         stroke={colors.loopPlayhead}
         strokeWidth={2}
+        strokeLinecap="round"
         testID="loop-overview-playhead"
       />
-      <Polygon
-        points={`${playheadX - 4},1 ${playheadX + 4},1 ${playheadX},7`}
+      <Circle
+        cx={playheadX}
+        cy={PLAYHEAD_HEAD_Y}
+        r={3.5}
         fill={colors.loopPlayhead}
         stroke={colors.background}
         strokeWidth={1.5}
@@ -86,7 +165,9 @@ const PlaybackOverlay: React.FC<PlaybackOverlayProps> = ({
   );
 };
 
-const MemoizedPlaybackOverlay = React.memo(PlaybackOverlay);
+const MemoizedProgressLayer = React.memo(ProgressLayer);
+const MemoizedMarkersLayer = React.memo(MarkersLayer);
+const MemoizedPlayheadLayer = React.memo(PlayheadLayer);
 
 /** Render full-song timing content, visible markers, and the live playhead. */
 const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }) => {
@@ -102,7 +183,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
     return generateWaveformPath(
       waveformData.peaks,
       width,
-      34,
+      OVERVIEW_HEIGHT,
       0,
       songDuration,
       waveformData.duration,
@@ -111,44 +192,35 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
 
   return (
     <View testID="loop-overview-track" style={styles.track} pointerEvents="none">
-      <Svg width={Math.max(0, width)} height={34}>
-        <Rect x={0} y={0} width={Math.max(0, width)} height={34} fill={colors.loopTrack} />
+      <Svg width={Math.max(0, width)} height={OVERVIEW_HEIGHT}>
+        <Rect x={0} y={0} width={Math.max(0, width)} height={OVERVIEW_HEIGHT} fill={colors.loopTrack} />
         {waveformPath ? (
-          <>
-            <Path
-              d={waveformPath}
-              stroke={colors.gridMinor}
-              strokeWidth={1}
-              fill="none"
-              opacity={0.75}
-              testID="loop-overview-peaks"
-            />
-          </>
+          <Path
+            d={waveformPath}
+            stroke={colors.gridMinor}
+            strokeWidth={1}
+            fill="none"
+            opacity={0.75}
+            testID="loop-overview-peaks"
+          />
         ) : (
           <Rect x={0} y={15} width={Math.max(0, width)} height={4} fill={colors.border} />
         )}
-        {drawable && layers.flatMap(layer => layer.isVisible
-          ? layer.markers.filter(marker => Number.isFinite(marker) && marker >= 0 && marker <= songDuration)
-              .map((marker, index) => (
-                <Line
-                  key={`${layer.id}-${marker}-${index}`}
-                  x1={msToOverviewX(marker, songDuration, width)}
-                  x2={msToOverviewX(marker, songDuration, width)}
-                  y1={7}
-                  y2={27}
-                  stroke={colors.marker}
-                  strokeWidth={3}
-                />
-              ))
-          : [])}
       </Svg>
-      <MemoizedPlaybackOverlay
+      <MemoizedProgressLayer
         activeLayerColor={activeLayerColor}
         drawable={drawable}
         songDuration={songDuration}
         waveformPath={waveformPath}
         width={width}
       />
+      <MemoizedMarkersLayer
+        drawable={drawable}
+        layers={layers}
+        songDuration={songDuration}
+        width={width}
+      />
+      <MemoizedPlayheadLayer drawable={drawable} songDuration={songDuration} width={width} />
     </View>
   );
 };

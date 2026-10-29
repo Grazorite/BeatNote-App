@@ -59,19 +59,22 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
+1. Establish `app-performance-optimization` Phase 0 instrumentation and Release-local physical
+   baselines before applying any optimisation; deterministic project fixtures, scenario/profiling
+   guides, the results register, and the gated JS interval buffer are now in place.
+2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
-2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-3. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+4. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-4. Keep the completed local choreography workflow stable while physical-device acceptance and the
+5. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -80,7 +83,7 @@ potentially adding a hybrid path later.
 | Agent / Role | Owns | Current assignment |
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
-| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Reviewed native runtime-test options in `session-4c09729c-9534-4122-a787-b1af8277f26a`; the orchestrator retained end-to-end XCTest because the Expo Module definition is not a typed direct-call test API |
+| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Task 2.2 native signposts in `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; edits limited to the three native modules and LibraryStorage JS stubs |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -89,12 +92,13 @@ potentially adding a hybrid path later.
 
 ### 🔜 To Do
 
-- [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation (spec drafted 2026-10-29, awaiting review)
 - [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
 
 ### 🚧 In Progress
 
+- [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
+      Release-local baselines before any optimisation; measurement foundation is now being implemented,
+      while device baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -209,6 +213,79 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-29 — Restyle waveform markers, playhead, and loop range
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: restyle waveform markers, playhead, and loop range`)
+**Kanban moved:** waveform visual consistency polish → Done (physical-device review pending)
+
+**Changed:**
+
+- Wrapped rows: markers are now a 2-pt rounded line topped by the in-app shield (solid = annotated,
+  outlined = plain, glow = selected); clusters are a glass pill with a shield and count.
+- Overview strip: simplified solid-shield markers; fixed layering so the played-waveform tint no
+  longer recolours them (peaks, played waveform, markers, playhead).
+- Playhead (rows and strip): round-capped line, rounded head, soft shadow.
+- Loop range: rounded fill, slimmer capsule handles with a grip notch, muted teal via new theme roles
+  `loopFill`, `loopFillDisabled`, `loopBorder`; `loopEnabled` is now `#2bbdb2`.
+- Played waveform muted through `PLAYED_WAVEFORM_OPACITY` (0.7) in `src/styles/common.ts`.
+- Shared shield geometry in `src/utils/markerShape.ts`; conventions recorded in `coding-standards.md`.
+- Tests: annotation-dot assertion now expects the shield head; loop colour assertions updated.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed. Real browser screenshots of rows and strip reviewed.
+- Full retained Playwright run → 7/8 on the first parallel pass; the shuffled-queue journey failed
+  once under parallel load and passed 3/3 when run alone (not touched by this change).
+
+**Not verified / known gaps:**
+
+- No iOS simulator or physical-iPhone review; handle drag comfort and 44-pt targets are unchanged
+  by design but were not hand-tested. Screenshots used a dense synthetic test clip, not real music.
+- The shuffled-queue journey looks timing-sensitive under load; the cause was not investigated.
+- Desktop `WaveformCanvas.tsx` playhead and loop styling were deliberately left as is.
+- This commit deliberately excludes the performance agent's `incrementPerfCounter` lines in
+  `WrappedRow.tsx` and `LoopOverviewTrack.tsx`; they remain in the working tree and must be committed
+  together with their `src/utils/perfCounters.ts`.
+
+**Next agent should:**
+
+- Review the new look on the simulator and iPhone.
+
+### 2026-10-29 — Start the measurement-first performance foundation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress
+
+**Changed:**
+
+- Added the redistributable 45-second S-short AAC fixture, deterministic 0/50/500-marker descriptor
+  and CSV generator, scenario script, profiling guide, results register, and initial static findings.
+- Added the build-gated JS performance interval ring buffer; handler/commit wiring remains open so
+  the instrumentation does not overlap the user's existing waveform and annotation edits.
+- Dispatched read-only DSH-Qwen audit `session-b21ea04d-e305-4b1a-802f-d1b8934c426a`; it remained
+  active at handover and was not authorized to edit files.
+
+**Verified:**
+
+- Deterministic generator produced 0/50/500-marker descriptors with 0/10/100 annotations;
+  fixture checksums and metadata were captured; `npx tsc --noEmit` and `git diff --check` passed.
+- Focused rerun of the two initially failing retained browser journeys passed 2/2.
+
+**Not verified / known gaps:**
+
+- Full `npm test` passed 8/9 on the final run; the shuffled-completion journey timed out only in the
+  parallel suite and passed focused. The untracked temporary marker-screenshot test also ran and is
+  part of pre-existing user work, not this performance slice.
+- S-medium/S-stress local metadata, native signposts, JS handler/commit brackets, simulator
+  signpost visibility, signpost overhead, and every physical Release-local measurement remain open.
+- Existing unrelated edits/deletions in `.kiro/hooks/`, waveform/annotation UI, styles, steering,
+  tests, and marker-shape utility were preserved and are not part of this handover.
+
+**Next agent should:**
+
+- Reconcile the active UI edits, finish task 2.1/2.2 instrumentation without mixing ownership, then
+  select S-medium/S-stress files and capture the first Release-local baseline before optimising.
+
 ### 2026-10-29 — Complete and archive the local music library
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `11714c7`
@@ -314,71 +391,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Collect the browser performance measurements, then run representative real-song BPM and playback
   coexistence acceptance on the physical iPhone.
-
-### 2026-10-29 — Wire Control Centre and smooth native track changes
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `0987b7a`
-**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
-
-**Changed:**
-
-- Registered the loaded Expo Audio player with iOS Now Playing, published the library display title,
-  and mirrored remote play/pause/seek status into BeatNote's playback state.
-- Kept the previous waveform mounted beneath a destination-labelled loading veil during an atomic
-  track switch, blocked conflicting canvas/dock input, and faded in the committed song while
-  respecting Reduce Motion.
-- Debounced native playback-rate reconfiguration while audio is playing so a burst of speed-button
-  taps applies only the final value instead of repeatedly interrupting the engine.
-
-**Verified:**
-
-- Human physical-iPhone feedback confirmed queue audio, title, waveform, markers, and most-recent
-  project all switch to the correct song; the abrupt presentation motivated the transition polish.
-- `npx tsc --noEmit`, `git diff --check`, the focused phone-dock journey, and the full retained
-  Playwright gate (7/7) passed. The journey proves the loading veil appears and six rapid speed
-  increments produce one native playback-rate assignment.
-
-**Not verified / known gaps:**
-
-- Control Centre visibility/metadata, remote play/pause/seek synchronization, audible rapid-speed
-  behavior, and transition comfort still require the connected physical iPhone.
-- Debug/Metro landscape latency is not Release/TestFlight performance evidence; VoiceOver remains
-  deliberately deferred by the product owner.
-
-**Next agent should:**
-
-- Relaunch the current bundle on the iPhone, play a local song, and verify Control Centre metadata,
-  remote commands, the switch veil, and uninterrupted rapid speed stepping.
-
-### 2026-10-29 — Pass physical acceptance for control dock and loop range; archive both specs
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
-**Kanban moved:** `playback-marker-control-dock` and `loop-range-overview` physical acceptance → Done
-
-**Changed:**
-
-- `playback-marker-control-dock` and `loop-range-overview` `tasks.md`: ticked the final regression
-  and physical-device acceptance tasks (27, 27.2, 25, 25.2) on the human's report that the
-  physical-iPhone QA passed, with a note that VoiceOver was skipped.
-- Moved both specs to `docs/context/archive/specs/`.
-- Rotated the 2026-10-29 physical iOS 27 launch entry into the history archive.
-
-**Verified:**
-
-- Human reported physical-iPhone QA complete and passing for both features. No open checkbox
-  remains in either archived `tasks.md`.
-
-**Not verified / known gaps:**
-
-- VoiceOver announcements and adjustment for the tri-state inner-loop value, reserved controls, and
-  loop handles were deliberately skipped by the product owner and remain unverified.
-- Specific physical results (frame rate, contrast, boundary audibility) were reported verbally and
-  are not recorded as measurements.
-- Historical log entries still cite the old `.kiro/specs/` paths for these two specs.
-
-**Next agent should:**
-
-- Continue the remaining physical acceptance: Task 44.4 (library queue), BPM runtime evidence, and
-  audio/background/share checks.
 
 <!-- end handover log -->

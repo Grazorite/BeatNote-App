@@ -42,7 +42,8 @@ test.describe('Critical annotation workflow', () => {
 
     const annotationDot = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]').first();
     await expect(annotationDot).toHaveAttribute('fill', '#c084fc');
-    await expect(annotationDot).toHaveAttribute('stroke', 'none');
+    // The solid shield head carries no dark outline; its stroke matches its fill.
+    await expect(annotationDot).toHaveAttribute('stroke', '#c084fc');
     await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
 
     await page.mouse.move(box.x + box.width * 0.2, box.y + box.height - 12);
