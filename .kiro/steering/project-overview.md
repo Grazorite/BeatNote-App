@@ -80,8 +80,8 @@ All global state lives in `src/hooks/useStudioStore.ts` (Zustand). Do not introd
   needs physical-device acceptance.
 - Native and web waveform extraction decode real audio through platform providers. Physical-device
   performance and audible playback quality still need acceptance on representative files.
-- Open In and backup exclusion are implemented and simulator-tested; third-party delivery, files
-  over 100 MB, restore behavior, and near-full-disk handling remain physical-device checks.
+- Open In, backup exclusion, third-party delivery, >100 MB import, restore/relink behavior, and
+  near-full-disk handling passed the V1 physical-device acceptance matrix.
 - Stem separation is deliberately deferred to V3. The existing foundation is preserved under
   `src/features/stemSeparation/`; release sequencing and resumption gates live in
   `release-roadmap.md`.

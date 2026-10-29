@@ -245,9 +245,9 @@ Uses `withInfoPlist` to append, without touching the existing `BeatNote Project`
 - `UTImportedTypeDeclarations` for `org.xiph.ogg-audio` (`.ogg`, `audio/ogg`) and `org.xiph.flac`
   (`.flac`, `audio/flac`), conforming to `public.audio`, because iOS does not declare both on every
   supported version.
-- The provisional OQ-4 decision is `LSSupportsOpeningDocumentsInPlace = false`; the plugin owns the
-  key so `app.json` stops setting it directly. Physical-device acceptance must confirm this before
-  the decision is treated as final.
+- The final OQ-4 decision is `LSSupportsOpeningDocumentsInPlace = false`; the plugin owns the key so
+  `app.json` stops setting it directly. Simulator evidence established the URL form, and physical
+  Files/third-party Open_In acceptance confirmed the end-to-end delivery contract.
 
 **OQ-4 spike (first implementation task):** on the simulator and one physical device, open a
 `.mp3` and a `.beatnote` from Files and from a third-party app with the key `true` and `false`, and
@@ -271,11 +271,12 @@ The simulator result does **not** distinguish true in-place access from Inbox de
 rather than the app under both launch states, so its delivery path was not validated; prebuild did
 preserve its declaration byte-for-byte apart from normal plist serialisation.
 
-Adopt `false` provisionally because audio delivery through Linking works, it avoids requiring
-security-scoped access in the expected device path, and the application must copy imports anyway.
-The physical-iPhone pass from Files and one third-party app remains blocked on signing/Apple
-Developer access. It must verify MP3/M4A Inbox URLs, `.beatnote` Files presentation, and the absence
-of a delivery regression before the setting is final. The generated AppDelegate still uses
+Adopt `false` because audio delivery through Linking works, it avoids requiring security-scoped
+access in the expected device path, and the application must copy imports anyway. Physical iPhone
+15 Pro Max / iOS 27.0.1 acceptance subsequently passed Files and third-party Open_In, durable
+app-owned import, the preserved `.beatnote` declaration, and a 107,604,078-byte WAV. The raw
+incoming URL string was not separately instrumented on hardware; the successful end-to-end copy
+pipeline is the final product evidence. The generated AppDelegate still uses
 `super.application(…) || RCTLinkingManager.application(…)`; effective Linking delivery is proven,
 but the individual `super` return value was not separately instrumented.
 
@@ -291,7 +292,8 @@ import does not yet exist.
 
 The integrated iPhone 17 Pro / iOS 26.2 simulator case proved the subscriber path end to end: the
 system placed an M4A in `Documents/Inbox`, the app imported and loaded it, the dock toast confirmed
-the import, and the item remained in the Music Library. Physical-device delivery remains provisional.
+the import, and the item remained in the Music Library. The physical-device acceptance above then
+confirmed the same user-visible delivery and durability behavior from Files and a third-party app.
 
 **Why no Share Extension (Requirement 7.10):** Open_In through document types already places
 BeatNote in the share sheet's app row and "Open in…" for every supported audio type. A Share
@@ -2049,7 +2051,7 @@ Errors are never swallowed: every catch either surfaces through the matrix above
 
 ## Testing Strategy
 
-Aligned with [`testing-strategy.md`](../../steering/testing-strategy.md): TypeScript plus the six
+Aligned with [`testing-strategy.md`](../../../../../.kiro/steering/testing-strategy.md): TypeScript plus the six
 retained Playwright journeys and the retained native cases are the permanent gates. No new
 Playwright spec file is added (Requirement 30.6). Committed tests contain no `test.only` or
 `test.skip` (Requirement 30.8).

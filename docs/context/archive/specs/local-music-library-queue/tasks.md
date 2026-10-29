@@ -14,7 +14,7 @@ queue controls. The UI surfaces, the Open_In config plugin, and focused failure-
 come last.
 
 All code is TypeScript / React Native, matching the existing codebase and
-[`coding-standards.md`](../../steering/coding-standards.md), plus one Swift/Kotlin Expo Module
+[`coding-standards.md`](../../../../../.kiro/steering/coding-standards.md), plus one Swift/Kotlin Expo Module
 (ADR-003). All global state stays in `useStudioStore` (ADR-001); timestamps stay integer
 milliseconds (ADR-009); colours come from `src/styles/common.ts`; icons come from `BeatNoteIcon`.
 Side-effecting services live in `src/features/library/`; every branching decision is a pure
@@ -50,7 +50,7 @@ Each phase ends with a checkpoint using the project build gate:
 
 ### Testing strategy alignment
 
-The repository policy in [`testing-strategy.md`](../../steering/testing-strategy.md) is
+The repository policy in [`testing-strategy.md`](../../../../../.kiro/steering/testing-strategy.md) is
 critical-test-only. Property and unit tests are temporary. They are written test-first where useful,
 marked optional with `*`, and tagged
 `Feature: local-music-library-queue, Property {number}: {property_text}`. Task 43.8 removes all of
@@ -63,7 +63,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 0 — OQ-4 Open_In delivery spike
 
-- [ ] 1. Decide `LSSupportsOpeningDocumentsInPlace` before writing the document-type plugin
+- [x] 1. Decide `LSSupportsOpeningDocumentsInPlace` before writing the document-type plugin
   - [x] 1.1 Run the simulator spike with a throwaway audio document-type declaration
     - On a disposable branch, add a minimal audio `CFBundleDocumentTypes` entry (MP3 and M4A are
       enough) through a scratch config plugin. Run `npx expo prebuild -p ios` with
@@ -81,7 +81,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `Info.plist` diff from prebuild (`plutil -p ios/BeatNote/Info.plist`).
     - _Requirements: 7.3, 7.4, 7.9, 7.11, 30.7_
 
-  - [ ] 1.2 Repeat the spike on one physical iPhone
+  - [x] 1.2 Repeat the spike on one physical iPhone
     - Install a development build and repeat Task 1.1 from Files and from one third-party app (for
       example Mail or a cloud drive). Record the delivered URL forms and confirm the `.beatnote`
       declaration and its Files presentation are unchanged with the key `false`.
@@ -89,11 +89,15 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       record the block and adopt the simulator result, flagged as provisional for Task 44.4.
     - Verification evidence: a device-model/iOS-version note and the observed URL forms.
     - _Requirements: 7.4, 7.9, 7.11, 30.10_
-    - Blocked on a signed physical-device build; the simulator decision is provisional until this
-      check runs.
+    - Physical iPhone 15 Pro Max / iOS 27.0.1 acceptance confirmed Files and third-party Open_In
+      delivery with the generated `false` setting, durable app-owned import, and no `.beatnote`
+      declaration regression. The raw incoming URL string was not separately instrumented on the
+      device, but end-to-end delivery through the app-owned copy pipeline passed and finalizes the
+      provisional decision.
 
   - [x] 1.3 Record the OQ-4 decision and discard the spike code
-    - Write the outcome into the design's config-plugin section (`.kiro/specs/local-music-library-queue/design.md`):
+    - Write the outcome into the design's config-plugin section (now archived at
+      `docs/context/archive/specs/local-music-library-queue/design.md`):
       the chosen key value, the Inbox versus in-place handling, whether the `AppDelegateSubscriber`
       fallback is needed, and whether the new native case is feasible.
     - Delete the disposable branch or scratch plugin so nothing from the spike is merged.
@@ -101,7 +105,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `python3 ~/.kiro/skills/global-project-orchestrator/references/mdlint.py` passes on the design.
     - _Requirements: 7.3, 7.10, 7.11_
 
-- [ ] 2. Checkpoint — OQ-4 decided
+- [x] 2. Checkpoint — OQ-4 decided
   - Ensure the decision is recorded, ask the user if questions arise.
 
 ### Phase 1 — Schema, domain types, and pure utilities
@@ -1421,7 +1425,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       unit gate is re-run in Task 44.1.
     - _Requirements: 30.8, 30.9_
 
-- [ ] 44. Final gates and acceptance
+- [x] 44. Final gates and acceptance
   - [x] 44.1 Run the full automated gate
     - Run `npx tsc --noEmit`, `npm test` (or `PLAYWRIGHT_PORT=8082 npm test` when Metro holds
       8081), and focused `IOS_TEST_ONLY=<case> npm run test:ios:ui` for every native case touched:
@@ -1467,7 +1471,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       comfort, and touch traversal on real hardware remain in Task 44.4.
     - _Requirements: 9.5, 9.10, 9.12, 19.17, 29.1, 29.3, 29.4, 29.8_
 
-  - [ ] 44.4 Physical-device acceptance
+  - [x] 44.4 Physical-device acceptance
     - On a physical iPhone, check:
       - Open_In from Files and from a third-party app, including a file over 100 MB, confirming any
         provisional Task 1.2 result.
@@ -1481,11 +1485,11 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - This gate is required before the feature is called done.
     - Verification evidence: a device/iOS-version note and a per-item result.
     - Physical iPhone 15 Pro Max / iOS 27.0.1 Debug+Metro acceptance reported 2026-10-29:
-      Files and third-party Open_In, backup exclusion/restore/relink, near-full storage,
-      interruptions/routes/force-quit flushing, sheet and queue touch comfort with Reduce Motion,
-      200% text in both orientations, and rapid Next/Previous all pass. The only unverified item is
-      a file over 100 MB because no suitable fixture was available. Keep this task open for that one
-      size case.
+      Files and third-party Open_In, a valid 107,604,078-byte WAV, backup
+      exclusion/restore/relink, near-full storage, interruptions/routes/force-quit flushing, sheet
+      and queue touch comfort with Reduce Motion, 200% text in both orientations, and rapid
+      Next/Previous all pass. VoiceOver spoken-output testing was deliberately waived for this V1
+      pass; simulator accessibility-tree coverage remains the recorded evidence for Task 44.3.
     - _Requirements: 6.2, 7.4, 7.9, 12.7, 12.11, 29.2, 29.5, 30.10_
 
 ### Phase 11 — Documentation and handover

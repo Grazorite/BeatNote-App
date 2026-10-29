@@ -141,9 +141,10 @@ eas submit --platform ios --profile preview
   WAV, M4A/MPEG-4, AAC, OGG, and FLAC document types. It also supplies imported OGG/FLAC UTIs.
 - Open In URLs are retained by the `library-storage` app-delegate subscriber until JavaScript and
   library boot are ready, then pass through the same serialized import/switch pipeline as the picker.
-- `LSSupportsOpeningDocumentsInPlace` is provisionally `false`. iPhone 17 Pro / iOS 26.2 simulator
-  testing delivered Inbox URLs and preserved the `.beatnote` declaration under both values; the
-  final choice still requires the physical-device Task 1.2 matrix.
+- `LSSupportsOpeningDocumentsInPlace` is `false`. iPhone 17 Pro / iOS 26.2 simulator testing
+  delivered Inbox URLs and preserved the `.beatnote` declaration under both values. Physical
+  iPhone 15 Pro Max / iOS 27.0.1 acceptance then passed Files and third-party Open_In, durable
+  app-owned import, and a valid 107,604,078-byte WAV.
 - CSV export uses the existing iOS activity sheet. Completing a share to an external app remains a
   physical-device acceptance item.
 
@@ -207,7 +208,7 @@ to the icon's charcoal.
 
 `app.json` owns `UIFileSharingEnabled`, `UIBackgroundModes`, and the BeatNote Project document
 declaration. `plugins/withAudioDocumentTypes.js` idempotently owns the audio declarations,
-OGG/FLAC imported UTIs, and provisional `LSSupportsOpeningDocumentsInPlace = false`. Never edit the
+  OGG/FLAC imported UTIs, and final `LSSupportsOpeningDocumentsInPlace = false`. Never edit the
 generated `ios/BeatNote/Info.plist` directly.
 
 ## Native modules
