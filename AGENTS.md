@@ -216,7 +216,7 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-10-30 — Commit the performance measurement foundation
 
-**Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`
+**Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`, `a9f9e18`
 **Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress (desk foundation complete; simulator/device evidence pending)
 
 **Changed:**
@@ -227,6 +227,9 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   scenarios, profiling guide, results register, and the 201-subscription Zustand audit.
 - Incorporated Kiro's Swift/API, pod-dependency, and Android no-op repairs; wired signposts at app
   bootstrap and wrapped the actual tempo-analysis operation rather than only defining helpers.
+- Made all new JS-to-native profiling calls capability-checked after a physical device running an
+  older native binary reported `enableSignposts is not a function`; profiling now skips safely until
+  that device receives a rebuilt binary instead of crashing app startup.
 
 **Verified:**
 
@@ -239,7 +242,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:**
 
 - Simulator Instruments observation remains open: the intervals did not appear in an ordinary
-  unified-log query, which is not a substitute for a Points of Interest trace.
+  unified-log query. A Logging trace confirmed JS `track.switch` and `draft.write` intervals, but
+  did not show the waveform/BPM native labels, so Task 2.2 remains open.
 - Local S-medium/S-stress paths and checksums, flag-on/off overhead, Release-local latency/frame/
   memory/energy traces, and physical-device contention evidence remain open.
 - The unrelated deleted `.kiro/hooks/` files remain unstaged user work.
