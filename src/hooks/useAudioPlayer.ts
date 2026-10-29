@@ -181,15 +181,10 @@ export const useCustomAudioPlayer = () => {
       });
     } catch (lockScreenError) {
       console.error('Lock screen controls setup error:', lockScreenError);
-      return;
     }
-    return () => {
-      try {
-        player.clearLockScreenControls();
-      } catch (lockScreenError) {
-        console.error('Lock screen controls cleanup error:', lockScreenError);
-      }
-    };
+    // Expo releases and unregisters the previous native player when its source changes or the hook
+    // unmounts. Calling clearLockScreenControls from React cleanup races that release and can address
+    // an already-disposed SharedObject on iOS.
   }, [currentAudioUri, lockScreenTitle, player, playerIsLoaded]);
 
   const togglePlayback = useCallback(async () => {
