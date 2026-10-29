@@ -16,11 +16,11 @@ export interface LibraryStorageModule {
   /** Return the cache-purge XCTest flag in development builds only. */
   shouldPurgeTestCaches(): boolean;
   /** Enable or disable native os_signpost intervals. Disabled by default. */
-  enableSignposts(enabled: boolean): void;
+  enableSignposts?(enabled: boolean): void;
   /** Begin a named native signpost interval keyed by interval id. No-op when disabled. */
-  beginSignpost(intervalID: string, name: string): void;
+  beginSignpost?(intervalID: string, name: string): void;
   /** End a previously begun signpost interval, if any is active for this id. No-op when disabled. */
-  endSignpost(intervalID: string): void;
+  endSignpost?(intervalID: string): void;
   /** Subscribe to file URLs delivered while the app is running. */
   addListener(eventName: 'onOpenURL', listener: (event: { url: string }) => void): EventSubscription;
 }

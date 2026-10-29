@@ -30,10 +30,10 @@ type PerfGlobal = typeof globalThis & {
 export function installPerfDiagnostics(): void {
   const perfGlobal = globalThis as PerfGlobal;
   const nativeSignpostsEnabled = perfMarksEnabled && Platform.OS === 'ios';
-  LibraryStorage.enableSignposts(nativeSignpostsEnabled);
+  LibraryStorage.enableSignposts?.(nativeSignpostsEnabled);
   setPerfMarkSink(nativeSignpostsEnabled ? {
-    begin: (name, id) => LibraryStorage.beginSignpost(id, name),
-    end: (_name, id) => LibraryStorage.endSignpost(id),
+    begin: (name, id) => LibraryStorage.beginSignpost?.(id, name),
+    end: (_name, id) => LibraryStorage.endSignpost?.(id),
   } : null);
   if (!perfMarksEnabled) {
     delete perfGlobal.__BEATNOTE_PERF__;
