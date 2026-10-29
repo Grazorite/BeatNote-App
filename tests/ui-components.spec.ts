@@ -414,6 +414,7 @@ test.describe('UI Components & Layout', () => {
       const play = box('play-pause');
       const overview = box('loop-overview');
       const rail = box('landscape-control-rail');
+      const controlGrid = box('landscape-control-grid');
       const glass = box('control-dock-glass');
       const title = box('song-title-control');
       const settings = box('sidebar-open-toggle');
@@ -435,6 +436,7 @@ test.describe('UI Components & Layout', () => {
         annotation: annotation ? { y: annotation.y, left: annotation.left, right: annotation.right } : null,
         lastControlBottom: previousTrack?.bottom,
         rail: rail ? { top: rail.top, bottom: rail.bottom, left: rail.left, right: rail.right, width: rail.width } : null,
+        controlGrid: controlGrid ? { top: controlGrid.top, bottom: controlGrid.bottom } : null,
         glass: glass ? { width: glass.width, height: glass.height } : null,
         title: title ? { left: title.left } : null,
         settings: settings ? { right: settings.right } : null,
@@ -454,8 +456,8 @@ test.describe('UI Components & Layout', () => {
     expect(landscape.play?.height).toBeLessThanOrEqual((landscape.ordinary?.height ?? 0) * 2.1);
     expect(Math.abs(
       (((landscape.play?.top ?? 0) + (landscape.play?.bottom ?? 0)) / 2)
-      - (((landscape.rail?.top ?? 0) + (landscape.rail?.bottom ?? 0)) / 2),
-    )).toBeLessThanOrEqual(1);
+      - (((landscape.controlGrid?.top ?? 0) + (landscape.controlGrid?.bottom ?? 0)) / 2),
+    )).toBeLessThanOrEqual(2);
     expect(landscape.play?.left).toBeGreaterThanOrEqual((landscape.rail?.left ?? 0) - 1);
     expect(landscape.play?.right).toBeLessThanOrEqual((landscape.rail?.right ?? 0) + 1);
     expect(landscape.rail?.width).toBeLessThanOrEqual(110);

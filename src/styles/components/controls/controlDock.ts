@@ -7,7 +7,6 @@ export const controlDockStyles = StyleSheet.create({
     width: '100%',
   },
   landscapeRoot: {
-    flex: 1,
     minHeight: 0,
   },
   grid: {
@@ -18,9 +17,9 @@ export const controlDockStyles = StyleSheet.create({
   landscapeGrid: {
     position: 'relative',
     width: '100%',
-    flex: 1,
     minHeight: 0,
     gap: 3,
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
@@ -43,9 +42,6 @@ export const controlDockStyles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     height: 0,
-    flexBasis: 0,
-    flexGrow: 1,
-    flexShrink: 1,
     minHeight: 0,
     gap: 3,
   },
@@ -69,9 +65,6 @@ export const controlDockStyles = StyleSheet.create({
   landscapePlayBlock: {
     width: '100%',
     height: 0,
-    flexBasis: 0,
-    flexGrow: 2,
-    flexShrink: 1,
     minHeight: 0,
   },
   toast: {

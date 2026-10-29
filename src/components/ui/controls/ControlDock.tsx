@@ -14,6 +14,7 @@ import QueueTrackButton from './QueueTrackButton';
 
 interface ControlDockProps {
   isLandscape: boolean;
+  landscapeHeight?: number;
   onTogglePlayback: () => void;
   onSeek: (position: number) => void;
   onAddMarker: () => void;
@@ -24,6 +25,10 @@ interface ControlDockProps {
   onAnnotate: () => void;
   onToast: (message: string, action?: DockToastAction | null) => void;
 }
+
+const LANDSCAPE_GAP = 3;
+const LANDSCAPE_GAP_COUNT = 6;
+const LANDSCAPE_HEIGHT_UNITS = 8;
 
 const Spacer = () => <View style={styles.cell} pointerEvents="none" />;
 
@@ -38,8 +43,14 @@ const ControlDock: React.FC<ControlDockProps> = ({
   onAnnotate,
   onToast,
   isLandscape,
+  landscapeHeight = 0,
 }) => {
   const songLoaded = useStudioStore(state => state.songLoaded);
+  const ordinaryLandscapeHeight = landscapeHeight > 0
+    ? Math.max(1,
+      (landscapeHeight - LANDSCAPE_GAP * LANDSCAPE_GAP_COUNT) / LANDSCAPE_HEIGHT_UNITS,
+    )
+    : 0;
   const cellStyle = isLandscape ? [styles.cell, styles.landscapeCell] : styles.cell;
   const queueControl = (action: 'first' | 'previous' | 'next' | 'shuffle') => (
     <View style={cellStyle}><QueueTrackButton compact={isLandscape} action={action} /></View>
@@ -75,15 +86,21 @@ const ControlDock: React.FC<ControlDockProps> = ({
 
   if (isLandscape) {
     return (
-      <View testID="control-dock" style={[styles.root, styles.landscapeRoot]}>
-        <View style={styles.landscapeGrid}>
-          <View style={styles.landscapeRow}>{marker('previous')}{marker('next')}</View>
-          <View style={styles.landscapeRow}>{marker('add')}{marker('removePrevious')}</View>
-          <View style={styles.landscapeRow}>{innerLoop}{annotation}</View>
-          <View style={styles.landscapePlayBlock}><PlayPauseControl onTogglePlayback={onTogglePlayback} /></View>
-          <View style={[styles.landscapeRow, styles.popupRow]} pointerEvents="box-none">{repeat}{speed}</View>
-          <View style={styles.landscapeRow}>{firstTrack}{shuffle}</View>
-          <View style={styles.landscapeRow}>{previousTrack}{nextTrack}</View>
+      <View
+        testID="control-dock"
+        style={[styles.root, styles.landscapeRoot, { height: landscapeHeight }]}
+      >
+        <View
+          style={[styles.landscapeGrid, { height: landscapeHeight }]}
+          testID="landscape-control-grid"
+        >
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{marker('previous')}{marker('next')}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{marker('add')}{marker('removePrevious')}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{innerLoop}{annotation}</View>
+          <View style={[styles.landscapePlayBlock, { height: ordinaryLandscapeHeight * 2 }]}><PlayPauseControl onTogglePlayback={onTogglePlayback} /></View>
+          <View style={[styles.landscapeRow, styles.popupRow, { height: ordinaryLandscapeHeight }]} pointerEvents="box-none">{repeat}{speed}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{firstTrack}{shuffle}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{previousTrack}{nextTrack}</View>
         </View>
         <PlaybackTimeProbe />
       </View>

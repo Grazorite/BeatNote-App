@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   InteractionManager,
   Keyboard,
+  LayoutChangeEvent,
   View,
   Text,
   ScrollView,
@@ -59,6 +60,8 @@ const markerKey = (marker: SelectedMarker | null): string => (
   marker === null ? '' : `${marker.layerId}:${marker.timestamp}`
 );
 
+const LANDSCAPE_TOOLBAR_FALLBACK_HEIGHT = 55;
+
 const markerFromKey = (key: string): SelectedMarker | null => {
   if (key === '') return null;
   const separator = key.lastIndexOf(':');
@@ -93,6 +96,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const pendingAnnotationSaveRef = useRef<{ marker: SelectedMarker; text: string } | null>(null);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
+  const [landscapeRailHeight, setLandscapeRailHeight] = useState(0);
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
   const hasLoadedSong = useStudioStore(state => state.songLoaded);
@@ -300,6 +304,12 @@ const MainContent: React.FC<MainContentProps> = ({
           isLandscapePhone && styles.landscapeControlRail,
         ]}
         testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}
+        onLayout={isLandscapePhone ? (event: LayoutChangeEvent) => {
+          const nextHeight = event.nativeEvent.layout.height;
+          setLandscapeRailHeight(current => (
+            Math.abs(current - nextHeight) > 1 ? nextHeight : current
+          ));
+        } : undefined}
       >
         <GlassBackdrop
           testID="control-dock-glass"
@@ -308,6 +318,10 @@ const MainContent: React.FC<MainContentProps> = ({
         />
         <ControlDock
           isLandscape={isLandscapePhone}
+          landscapeHeight={isLandscapePhone ? Math.max(
+            0,
+            (landscapeRailHeight || screenData.height - LANDSCAPE_TOOLBAR_FALLBACK_HEIGHT) - 12,
+          ) : undefined}
           onTogglePlayback={togglePlayback}
           onSeek={seekToPosition}
           onAddMarker={tapToBeat}
