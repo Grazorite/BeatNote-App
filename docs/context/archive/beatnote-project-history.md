@@ -260,6 +260,47 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-29 — Verify native BPM and restore scene launch
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`
+**Kanban moved:** automatic-BPM native runtime coverage → In Progress (synthetic workflow verified; performance and hardware acceptance remain)
+
+**Changed:**
+
+- Retained an eighth iOS UI journey that generates and imports a 12-second 120-BPM WAV, accepts
+  either the direct estimate or its octave-resolved alternative, and exercises preview, overlay,
+  apply, restore, Set Count 1, and both anchor-nudge sizes.
+- Added the reproducible iOS 27 scene-lifecycle config plugin. It keeps Expo's React Native/dev-
+  launcher bootstrap in `didFinishLaunching`, attaches that window to the connected scene, and
+  forwards scene lifecycle, URLs, and user activities through the app delegate.
+- Updated the automatic-BPM plan and iOS steering with measured native evidence and the remaining
+  cancellation, memory, real-song, Open_In, and physical-device gaps.
+
+**Verified:**
+
+- Focused iPhone 17 Pro / iOS 26.2 simulator journey
+  `testAutomaticBpmSuggestionAndAnchorControls` → passed; the native provider returned 60.09 BPM
+  with a 120.19 BPM double-tempo alternative, both within the spec's octave-resolved ±0.5-BPM band.
+- The same journey verified Expo Dev Launcher no longer crashes under scene adoption, then imported
+  audio and completed the full BPM/anchor interaction flow.
+- `npx tsc --noEmit`, version consistency, the intentionally empty unit gate, JavaScript syntax,
+  Swift parse, config-plugin idempotence, and `git diff --check` → passed.
+
+**Not verified / known gaps:**
+
+- Native cancellation latency, 150-second peak memory, representative real-song accuracy,
+  downbeat estimation, and physical-device behavior remain open.
+- The complete eight-case native suite and Open_In case were not rerun after scene adoption; only
+  the focused launch/import/BPM journey passed. The retained Playwright gate could not start in the
+  sandbox because Expo's port scan overflowed to 65536, and the unsandboxed retry was rejected when
+  the approval reviewer hit its usage limit; the prior feature commit's full 7/7 gate remains the
+  latest browser evidence.
+
+**Next agent should:**
+
+- Run the focused native cancellation/long-fixture memory checks, then the full native suite with
+  Open_In before the physical-iPhone scene-lifecycle and automatic-BPM acceptance pass.
+
 ### 2026-10-28 — Implement automatic BPM detection and authored grid
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1d88ee7`

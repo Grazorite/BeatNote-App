@@ -174,6 +174,24 @@ eas submit --platform ios --profile preview
 - Use `expo-haptics` for light impact feedback on marker placement
 - Keep it optional — add a toggle in settings
 
+## App icon and splash assets
+
+`assets/beatnote-icon-source.svg` is the untouched Recraft export and is never edited. The shipped
+artwork derives from its bar and diamond paths:
+
+| File | Purpose |
+| --- | --- |
+| `assets/beatnote-icon.svg` | Full-bleed `#1E1C1D` square; source for `icon.png` and `favicon.png`. No rounded corners, because iOS applies its own mask. |
+| `assets/beatnote-mark.svg` | Transparent mark only, for reuse. |
+| `assets/beatnote-icon-shield.svg` | Alternate using the in-app marker shield instead of the diamond; not shipped. |
+| `assets/adaptive-icon.png` | Transparent mark at 68% so Android masks cannot clip it; background `#1E1C1D` in `app.json`. |
+| `assets/splash-icon.png` | Transparent mark at 70%; splash background `#1E1C1D` in `app.json`. |
+
+The artwork is scaled to 92% and lifted 12 px for optical centring, because the bars hold most of
+the visual mass below the bounding-box centre. Regenerate PNGs from the SVGs (Inkscape or
+ImageMagick) rather than editing them by hand, and keep the splash and adaptive backgrounds equal
+to the icon's charcoal.
+
 ## Bundle identifier
 
 `com.beatnote.app` — set in `app.json`. Do not change without updating the Apple Developer portal.

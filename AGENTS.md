@@ -130,6 +130,9 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
+      <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
+
 - [x] Retire the legacy `beatnote_projects` writers, reconcile the `local-music-library-queue` task list, and archive the completed `wrapped-waveform-canvas` spec
       <sub>**Key Artifacts:** `.kiro/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
 
@@ -226,6 +229,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Adopt the BeatNote app icon
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: adopt BeatNote app icon`)
+**Kanban moved:** app icon and splash artwork → Done
+
+**Changed:**
+
+- Renamed the Recraft export to `assets/beatnote-icon-source.svg` (untouched original); derived a
+  clean full-bleed `beatnote-icon.svg` (no rounded corners, no C2PA metadata), a transparent
+  `beatnote-mark.svg`, and an alternate `beatnote-icon-shield.svg` using the in-app marker shield.
+- Centred the artwork optically: group scaled to 92% and lifted 12 px. The bars carry the mass
+  below the bounding-box centre, so moving down would have looked bottom-heavy.
+- Regenerated `icon.png`, `adaptive-icon.png` (mark at 68%, inside the Android safe zone),
+  `splash-icon.png` (mark at 70%), and a 48-px `favicon.png`.
+- `app.json`: splash and Android adaptive-icon backgrounds changed from `#000000` to `#1E1C1D`.
+- `.kiro/steering/ios-testflight.md`: documented the brand-asset pipeline.
+
+**Verified:**
+
+- Viewed `icon.png` (final) plus diamond/shield renders at 400, 120, 60, and 29 px; the diamond
+  was kept for its cleaner silhouette. Earlier renders of the adaptive and splash PNGs looked right.
+
+**Not verified / known gaps:**
+
+- No iOS or Android rebuild; the icon is not yet seen on a device or simulator home screen.
+- The final `adaptive-icon.png`, `splash-icon.png`, and `favicon.png` were not re-inspected after
+  the centring change; 18–29 px legibility is a dot at best.
+- The shield alternate was compared but not shipped; the final choice is the product owner's.
+
+**Next agent should:**
+
+- Run `npx expo prebuild -p ios` and check the icon and splash on a simulator.
 
 ### 2026-10-29 — Close out library-queue spec bookkeeping and archive wrapped-waveform-canvas
 
@@ -411,46 +447,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Continue Task 44.4 with physical Files import and third-party Open In, then exercise playback,
   backgrounding, and force-quit draft restoration with a representative song.
-
-### 2026-10-29 — Verify native BPM and restore scene launch
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`
-**Kanban moved:** automatic-BPM native runtime coverage → In Progress (synthetic workflow verified; performance and hardware acceptance remain)
-
-**Changed:**
-
-- Retained an eighth iOS UI journey that generates and imports a 12-second 120-BPM WAV, accepts
-  either the direct estimate or its octave-resolved alternative, and exercises preview, overlay,
-  apply, restore, Set Count 1, and both anchor-nudge sizes.
-- Added the reproducible iOS 27 scene-lifecycle config plugin. It keeps Expo's React Native/dev-
-  launcher bootstrap in `didFinishLaunching`, attaches that window to the connected scene, and
-  forwards scene lifecycle, URLs, and user activities through the app delegate.
-- Updated the automatic-BPM plan and iOS steering with measured native evidence and the remaining
-  cancellation, memory, real-song, Open_In, and physical-device gaps.
-
-**Verified:**
-
-- Focused iPhone 17 Pro / iOS 26.2 simulator journey
-  `testAutomaticBpmSuggestionAndAnchorControls` → passed; the native provider returned 60.09 BPM
-  with a 120.19 BPM double-tempo alternative, both within the spec's octave-resolved ±0.5-BPM band.
-- The same journey verified Expo Dev Launcher no longer crashes under scene adoption, then imported
-  audio and completed the full BPM/anchor interaction flow.
-- `npx tsc --noEmit`, version consistency, the intentionally empty unit gate, JavaScript syntax,
-  Swift parse, config-plugin idempotence, and `git diff --check` → passed.
-
-**Not verified / known gaps:**
-
-- Native cancellation latency, 150-second peak memory, representative real-song accuracy,
-  downbeat estimation, and physical-device behavior remain open.
-- The complete eight-case native suite and Open_In case were not rerun after scene adoption; only
-  the focused launch/import/BPM journey passed. The retained Playwright gate could not start in the
-  sandbox because Expo's port scan overflowed to 65536, and the unsandboxed retry was rejected when
-  the approval reviewer hit its usage limit; the prior feature commit's full 7/7 gate remains the
-  latest browser evidence.
-
-**Next agent should:**
-
-- Run the focused native cancellation/long-fixture memory checks, then the full native suite with
-  Open_In before the physical-iPhone scene-lifecycle and automatic-BPM acceptance pass.
 
 <!-- end handover log -->
