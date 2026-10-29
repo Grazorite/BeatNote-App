@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { useStudioStore } from './useStudioStore';
+import { incrementPerfCounter } from '../utils/perfCounters';
 
 const MIN_PIXELS_PER_SECOND = 5; // Max zoom out (4 minutes visible)
 const MAX_PIXELS_PER_SECOND = 800; // Max zoom in (1 second visible)
@@ -20,6 +21,7 @@ export const useZoomGesture = () => {
     setViewportDuration(newDuration);
   };
 
+  incrementPerfCounter('gesture.zoom');
   const pinchGesture = Gesture.Pinch()
     .onBegin(() => {
       basePixelsPerSecond.current = pixelsPerSecond;

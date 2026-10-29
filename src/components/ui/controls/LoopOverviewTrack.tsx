@@ -10,6 +10,7 @@ import { colors, PLAYED_WAVEFORM_OPACITY } from '../../../styles/common';
 import { loopOverviewTrackStyles as styles } from '../../../styles/components/controls/loopOverviewTrack';
 import { msToOverviewX, overviewPlayheadX } from '../../../utils/loopRange';
 import { MARKER_SHIELD_LINE_START, MARKER_SHIELD_PATH, markerHeadTransform } from '../../../utils/markerShape';
+import { incrementPerfCounter } from '../../../utils/perfCounters';
 
 const OVERVIEW_HEIGHT = 34;
 const PLAYHEAD_HEAD_Y = 5;
@@ -200,6 +201,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color ?? colors.accent;
   const waveformPath = useMemo(() => {
     if (!drawable || waveformData?.source !== 'decoded' || waveformData.peaks.length === 0) return '';
+    incrementPerfCounter('path.loopOverview');
     return generateWaveformPath(
       waveformData.peaks,
       width,

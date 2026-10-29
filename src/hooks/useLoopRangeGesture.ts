@@ -15,6 +15,7 @@ import {
   resizeLoopBound,
   resolveGestureMode,
 } from '../utils/loopRange';
+import { incrementPerfCounter } from '../utils/perfCounters';
 
 interface UseLoopRangeGestureResult {
   gesture: ReturnType<typeof Gesture.Pan>;
@@ -65,8 +66,10 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
     }
   }, []);
 
-  const gesture = useMemo(() => Gesture.Pan()
-    .runOnJS(true)
+  const gesture = useMemo(() => {
+    incrementPerfCounter('gesture.loopRange');
+    return Gesture.Pan()
+      .runOnJS(true)
     .activeOffsetX([-6, 6])
     .failOffsetY([-12, 12])
     .maxPointers(1)
@@ -134,7 +137,8 @@ export function useLoopRangeGesture(width: number): UseLoopRangeGestureResult {
       clearProvisionalRange();
       setLoopRangeGestureActive(false);
       startRef.current.mode = null;
-    }), [width]);
+    });
+  }, [width]);
 
   return { gesture, provisionalRange };
 }

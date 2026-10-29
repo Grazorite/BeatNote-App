@@ -16,6 +16,8 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
+  # Opt-in os_signpost intervals live in LibraryStorage; declaring it keeps `canImport` deterministic.
+  s.dependency 'LibraryStorage'
   s.frameworks = 'Accelerate', 'AVFoundation', 'CoreMedia'
   s.source_files = '**/*.swift'
 end

@@ -21,6 +21,7 @@ import {
 import RowGutter from './RowGutter';
 import { wrappedRowStyles as styles } from '../../../styles/components/waveform/wrappedRow';
 import { colors, PLAYED_WAVEFORM_OPACITY } from '../../../styles/common';
+import { incrementPerfCounter } from '../../../utils/perfCounters';
 
 export interface WrappedLayerMarkers {
   layerId: LayerId;
@@ -193,6 +194,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   ), [markersByLayer, row, rowPixelWidth]);
   const path = useMemo(() => {
     if (!peaks?.length || rowPixelWidth <= 0 || totalDuration <= 0) return '';
+    incrementPerfCounter('path.wrappedRow');
     return generateWaveformPath(
       peaks,
       rowPixelWidth,
@@ -219,6 +221,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   }, [markersByLayer, row, rowPixelWidth]);
 
   const composedGesture = useMemo(() => {
+    incrementPerfCounter('gesture.wrappedRow');
     const tapGesture = Gesture.Tap()
       .runOnJS(true)
       .maxDuration(250)

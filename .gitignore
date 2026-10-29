@@ -137,6 +137,7 @@ temp/
 *.ogg
 *.wma
 !tests/fixtures/long-test-track.m4a
+!tests/fixtures/performance/s-short-120bpm.m4a
 !assets/audio/samples/*.wav
 !assets/audio/samples/*.mp3
 

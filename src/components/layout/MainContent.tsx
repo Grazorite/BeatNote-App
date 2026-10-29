@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   InteractionManager,
@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
+import { useRenderCounter } from '../../hooks/useRenderCounter';
 import {
   findMarkerNearTime,
   findTimedAnnotationMarker,
@@ -43,6 +44,7 @@ import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featur
 import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 import { capabilitiesForLoadedItem } from '../../features/library/sourceResolver';
 import { getLayerDisplayName } from '../../utils/layers';
+import { perfBegin, perfEnd } from '../../utils/perfMarks';
 
 interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
@@ -97,6 +99,7 @@ const MainContent: React.FC<MainContentProps> = ({
   onFocusTextInput,
   safeAreaBottom,
 }) => {
+  useRenderCounter('render.MainContent');
   const opacity = useSharedValue(1);
   const switchContentOpacity = useSharedValue(1);
   const switchOverlayOpacity = useSharedValue(0);
@@ -104,6 +107,8 @@ const MainContent: React.FC<MainContentProps> = ({
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const pendingAnnotationSaveRef = useRef<{ marker: SelectedMarker; text: string } | null>(null);
+  const annotationOpenPerfRef = useRef<string | null>(null);
+  const annotationSavePerfRef = useRef<string | null>(null);
   const [editingMarker, setEditingMarker] = useState<SelectedMarker | null>(null);
   const [landscapeRailHeight, setLandscapeRailHeight] = useState(0);
   const [switchTransitionVisible, setSwitchTransitionVisible] = useState(false);
@@ -145,6 +150,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
   const openAnnotationEditor = (marker: SelectedMarker | null = currentMarker) => {
     if (!marker) return;
+    annotationOpenPerfRef.current = perfBegin('annotation.open');
     setSelectedMarker(marker);
     setEditingMarker(marker);
   };
@@ -155,9 +161,13 @@ const MainContent: React.FC<MainContentProps> = ({
     pendingAnnotationSaveRef.current = null;
     updateMarkerAnnotation(pending.marker.layerId, pending.marker.timestamp, pending.text);
     toast.show(pending.text.trim() ? 'Annotation saved' : 'Annotation removed');
+    const intervalId = annotationSavePerfRef.current;
+    annotationSavePerfRef.current = null;
+    if (intervalId !== null) requestAnimationFrame(() => perfEnd(intervalId));
   }, [toast.show, updateMarkerAnnotation]);
   const saveAnnotation = (text: string) => {
     if (!editingMarker) return;
+    annotationSavePerfRef.current = perfBegin('annotation.save');
     pendingAnnotationSaveRef.current = { marker: editingMarker, text };
     Keyboard.dismiss();
     setEditingMarker(null);
@@ -165,6 +175,12 @@ const MainContent: React.FC<MainContentProps> = ({
       InteractionManager.runAfterInteractions(commitPendingAnnotationSave);
     }
   };
+
+  useLayoutEffect(() => {
+    if (editingMarker === null || annotationOpenPerfRef.current === null) return;
+    perfEnd(annotationOpenPerfRef.current);
+    annotationOpenPerfRef.current = null;
+  }, [editingMarker]);
   
   // Pass focus function to parent
   useEffect(() => {

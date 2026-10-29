@@ -14,6 +14,7 @@ import { waveformCanvasStyles as styles } from '../../../styles/components/wavef
 import { colors } from '../../../styles/common';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
 import { isValidLoopRange } from '../../../utils/loopRange';
+import { countPerfConstruction } from '../../../utils/perfCounters';
 
 interface WaveformCanvasProps {
   audioUri?: string;
@@ -377,14 +378,14 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
             <Svg width={VIEWPORT_WIDTH} height={WAVEFORM_HEIGHT} style={styles.waveformSvg}>
               {waveformData ? (
                 <Path
-                  d={generateWaveformPath(
+                  d={countPerfConstruction('path.waveformDetail', () => generateWaveformPath(
                     waveformData.peaks, 
                     VIEWPORT_WIDTH, 
                     WAVEFORM_HEIGHT,
                     viewportStartTime, 
                     viewportDuration, 
                     waveformData.duration
-                  )}
+                  ))}
                   stroke={colors.success}
                   strokeWidth={1}
                   fill="none"

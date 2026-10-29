@@ -1,6 +1,9 @@
 import AVFoundation
 import CoreMedia
 import ExpoModulesCore
+#if canImport(LibraryStorage)
+import LibraryStorage
+#endif
 
 private enum WaveformExtractionError: Error {
   case audioTrackMissing
@@ -37,8 +40,23 @@ public final class BeatNoteWaveformModule: Module {
     AsyncFunction("extractPeaksAsync") {
       (audioURL: URL, requestedSamplesPerSecond: Int) async throws -> [String: Any] in
       let samplesPerSecond = min(max(requestedSamplesPerSecond, 25), 200)
+      let signpostID = String(UUID().uuidString.prefix(8))
+      Self.signpostBegin(signpostID, name: "waveform.decode")
+      defer { Self.signpostEnd(signpostID) }
       return try await Self.extractPeaks(from: audioURL, samplesPerSecond: samplesPerSecond)
     }
+  }
+
+  private static func signpostBegin(_ intervalID: String, name: String) {
+    #if canImport(LibraryStorage)
+    LibraryStorageModule.beginSignpost(intervalID, name: name)
+    #endif
+  }
+
+  private static func signpostEnd(_ intervalID: String) {
+    #if canImport(LibraryStorage)
+    LibraryStorageModule.endSignpost(intervalID)
+    #endif
   }
 
   private static func extractPeaks(

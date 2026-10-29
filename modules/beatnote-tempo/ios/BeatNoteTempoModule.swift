@@ -2,6 +2,9 @@ import Accelerate
 import AVFoundation
 import CoreMedia
 import ExpoModulesCore
+#if canImport(LibraryStorage)
+import LibraryStorage
+#endif
 
 private enum TempoAnalysisError: Error {
   case audioTrackMissing
@@ -87,7 +90,11 @@ public final class BeatNoteTempoModule: Module {
     AsyncFunction("analyzeTempoAsync") {
       (audioURL: URL, requestId: String, minBpm: Double, maxBpm: Double) async throws -> [String: Any] in
       CancellationRegistry.shared.begin(requestId)
-      defer { CancellationRegistry.shared.end(requestId) }
+      Self.signpostBegin(requestId, name: "bpm.analysis")
+      defer {
+        Self.signpostEnd(requestId)
+        CancellationRegistry.shared.end(requestId)
+      }
 
       try await Self.applyTestDelay(requestId)
 
@@ -129,6 +136,19 @@ public final class BeatNoteTempoModule: Module {
 
       return try Self.combine(estimates: estimates, minBpm: minBpm, maxBpm: maxBpm)
     }
+
+  }
+
+  private static func signpostBegin(_ intervalID: String, name: String) {
+    #if canImport(LibraryStorage)
+    LibraryStorageModule.beginSignpost(intervalID, name: name)
+    #endif
+  }
+
+  private static func signpostEnd(_ intervalID: String) {
+    #if canImport(LibraryStorage)
+    LibraryStorageModule.endSignpost(intervalID)
+    #endif
   }
 
   private static func defaultWindows(durationSeconds: Double) -> [AnalysisWindow] {

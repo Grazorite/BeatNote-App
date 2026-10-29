@@ -7,6 +7,8 @@ import {
   DRAFT_FLUSH_TIMEOUT_MS,
 } from '../../utils/libraryConstants';
 import { extractPersistedContent } from '../../utils/persistedContent';
+import { incrementPerfCounter } from '../../utils/perfCounters';
+import { perfBegin, perfEnd } from '../../utils/perfMarks';
 import type { PersistenceIssue } from './persistencePipeline';
 import { writeDraftSnapshot, type RepositoryOptions } from './repositories';
 
@@ -167,6 +169,8 @@ export function createDraftAutosave(
     if (writeInFlight !== null) return writeInFlight;
     const requestedItemId = dependencies.getState().currentMusicItemId;
     if (requestedItemId === null) return Promise.resolve('skipped');
+    const perfIntervalId = perfBegin('draft.write');
+    incrementPerfCounter('draft.write');
 
     let writtenFingerprint: string | null = null;
     let snapshotSequence = -1;
@@ -235,6 +239,7 @@ export function createDraftAutosave(
       return 'failed' as const;
     }).finally(() => {
       writeInFlight = null;
+      perfEnd(perfIntervalId);
       if (active && snapshotSequence >= 0 && changeSequence > snapshotSequence) armTimer();
     });
     return writeInFlight;

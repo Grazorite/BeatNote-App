@@ -10,24 +10,29 @@ section references are to [`design.md`](./design.md).
 - [ ] 1. Fixtures, scripts, and tooling
   - [ ] 1.1 `[desk]` Create `fixtures.md` with the S-short/S-medium/S-long/S-stress metadata,
         checksums, and local paths; generate the redistributable short track. _Req 1.1_
-  - [ ] 1.2 `[desk]` Add a temporary, development-only project generator for 0/50/500-marker
+    - Added the tracked S-short fixture and registered S-long; local S-medium and S-stress metadata
+      and checksums are still required before the first physical baseline.
+  - [x] 1.2 `[desk]` Add a temporary, development-only project generator for 0/50/500-marker
         projects from a fixed seed. _Req 1.2_
-  - [ ] 1.3 `[desk]` Write the scenario script (exact steps, repetitions, device preparation) for
+  - [x] 1.3 `[desk]` Write the scenario script (exact steps, repetitions, device preparation) for
         every interaction in Req 2.1 and the session mix in Req 7.1. _Req 1.3–1.4, 6.3_
-  - [ ] 1.4 `[desk]` Write `profiling-guide.md`: Release-local build/install, Instruments
+  - [x] 1.4 `[desk]` Write `profiling-guide.md`: Release-local build/install, Instruments
         templates, Hermes sampling in Debug and Release, React DevTools on device, 240-fps video
         method. _Req 5.1, 6.1–6.2, §5_
-  - [ ] 1.5 `[desk]` Create `results.md` with the §9 register header. _Req 11_
+  - [x] 1.5 `[desk]` Create `results.md` with the §9 register header. _Req 11_
 
 - [ ] 2. Instrumentation
-  - [ ] 2.1 `[desk]` Add `src/utils/perfMarks.ts` behind `BEATNOTE_PERF`; bracket tap seek, scrub,
+  - [x] 2.1 `[desk]` Add `src/utils/perfMarks.ts` behind `BEATNOTE_PERF`; bracket tap seek, scrub,
         marker add/remove, play/pause, annotation open/save, and track switch. _§4.1_
   - [ ] 2.2 `[sim]` Add `OSSignposter` helper to `modules/library-storage/` and signposts in
         `BeatNoteWaveform` and `BeatNoteTempo`; forward JS marks on iOS. Verify intervals appear in
         Instruments on the simulator. _Req 5.2, §4.2_
+    - The opt-in bridge, native intervals, pod dependencies, JS forwarding, simulator build, and
+      focused BPM journey pass. Direct Instruments observation remains required to close the task;
+      the intervals are not expected to appear as ordinary unified-log messages.
   - [ ] 2.3 `[device]` Measure signpost overhead flag-on vs flag-off in a 60 s playback trace;
         must be ≤ 1% CPU. _Req 5.3_
-  - [ ] 2.4 `[desk]` Add temporary render, path-regeneration, and gesture-construction counters.
+  - [x] 2.4 `[desk]` Add temporary render, path-regeneration, and gesture-construction counters.
         Remove before Phase 1 completes. _§4.3_
   - Verify: `npx tsc --noEmit`, `npm test`, focused `testAudioAnnotationAndProjectRestore`.
   - Rollback: revert if any retained journey fails or overhead exceeds 1%.
@@ -47,7 +52,7 @@ section references are to [`design.md`](./design.md).
         as development-only. Resolves H-1. _Req 6.4_
 
 - [ ] 4. Render and native profiling
-  - [ ] 4.1 `[desk]` Zustand subscription audit table in `findings.md`. _Req 4.1, §6.1_
+  - [x] 4.1 `[desk]` Zustand subscription audit table in `findings.md`. _Req 4.1, §6.1_
   - [ ] 4.2 `[device]` React Profiler commit counts for the five scenarios in Req 4.2; list
         unstable props. Resolves H-2. _Req 4.2–4.4_
   - [ ] 4.3 `[device]` Path-regeneration and gesture-reconstruction counts during playback.

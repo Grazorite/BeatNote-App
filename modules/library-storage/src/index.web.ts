@@ -13,6 +13,9 @@ const LibraryStorageWeb: LibraryStorageModule = {
   randomUUID: () => crypto.randomUUID().toLocaleLowerCase('en-US'),
   consumePendingOpenURLs: () => [],
   shouldPurgeTestCaches: () => false,
+  enableSignposts: () => undefined,
+  beginSignpost: () => undefined,
+  endSignpost: () => undefined,
   addListener: () => ({ remove: () => undefined }) as EventSubscription,
 };
 

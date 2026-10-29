@@ -36,6 +36,13 @@ class LibraryStorageModule : Module() {
     Function("randomUUID") {
       UUID.randomUUID().toString().lowercase()
     }
+
+    // os_signpost profiling is iOS-only; these no-ops keep the shared JS interface safe to call.
+    Function("enableSignposts") { _: Boolean -> }
+
+    Function("beginSignpost") { _: String, _: String -> }
+
+    Function("endSignpost") { _: String -> }
   }
 
   private fun musicDirectory(): File {

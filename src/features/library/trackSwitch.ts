@@ -32,6 +32,7 @@ import { resolveSource } from './sourceResolver';
 import type { SaveResult } from './projectService';
 import { buildQueue, nextSkipCandidate } from '../../utils/queueOrder';
 import type { PlaybackQueue } from '../../types/queue';
+import { perfBegin, perfEndAfterFrame } from '../../utils/perfMarks';
 
 const PLAYER_LOAD_TIMEOUT_MS = 10_000;
 
@@ -735,9 +736,11 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
 
 const defaultTrackSwitch = createTrackSwitch(defaultDependencies);
 
-export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult> => (
-  defaultTrackSwitch.requestTrackSwitch(request)
-);
+export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult> => {
+  const intervalId = perfBegin('track.switch');
+  return defaultTrackSwitch.requestTrackSwitch(request)
+    .finally(() => perfEndAfterFrame(intervalId));
+};
 
 export const resolveSwitchGuard = (
   choice: SwitchGuardChoice,

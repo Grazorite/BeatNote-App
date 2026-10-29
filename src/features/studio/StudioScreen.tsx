@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useRenderCounter } from '../../hooks/useRenderCounter';
 import Sidebar from '../../components/layout/Sidebar';
 import MainContent from '../../components/layout/MainContent';
 import HelpScreen from '../../components/ui/screens/HelpScreen';
@@ -14,6 +15,7 @@ import { useLibraryLifecycle } from '../library/useLibraryLifecycle';
 import SwitchGuardDialog from '../../components/ui/modals/SwitchGuardDialog';
 
 export default function StudioScreen() {
+  useRenderCounter('render.StudioScreen');
   useLibraryLifecycle();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();

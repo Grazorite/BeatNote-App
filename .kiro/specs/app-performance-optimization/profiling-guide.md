@@ -1,0 +1,76 @@
+# Profiling Guide
+
+Large `.trace`, video, and sampling-profile files stay outside Git. Put their absolute path or an
+agreed shared-storage reference in `results.md` together with commit, device, iOS, and build type.
+
+## Debug+Metro
+
+1. Start `npm start -- --dev-client --localhost --port 8081`.
+2. Open `ios/BeatNote.xcworkspace`, select the BeatNote scheme and physical iPhone, choose the Debug
+   configuration, then Product > Run. Keep the wired Metro route described in iOS steering active.
+3. Open React Native DevTools from Metro. Use Components/Profiler for commit reasons and the Hermes
+   CPU profiler for JS samples. Record the exact DevTools version with the output.
+4. Run the scenario once for diagnosis. Never use this build to pass a threshold.
+
+## Release-local without Metro
+
+1. In Xcode, duplicate the Release configuration as `Release-Performance` only if profiling flags
+   are needed; do not change the store Release configuration. Ensure the bundle is embedded and the
+   app does not request Metro.
+2. Select the locally signed development team and physical phone. Product > Scheme > Edit Scheme:
+   set Run and Profile to Release (or `Release-Performance`).
+3. Product > Build, install/run once, disconnect Metro, force-quit, relaunch, and confirm the studio
+   opens. A Metro dependency invalidates the run.
+4. Record the installed commit and configuration. Only Release-local/TestFlight rows can pass.
+
+The generated `ios/` project is not durable configuration. Any lasting build flag must be expressed
+through Expo config or a config plugin before task completion.
+
+## Instruments
+
+Use Product > Profile or Xcode > Open Developer Tool > Instruments, select the physical process,
+and save one trace per scenario/configuration.
+
+- Animation Hitches / Core Animation: interaction frame time, hitch ratio, and longest hitch.
+- Points of Interest: BeatNote intervals such as seek, modal, track switch, decode, BPM, and draft.
+- Time Profiler: main/JS/native worker hot paths; enable thread-state and QoS views.
+- Allocations: mark generations immediately before each track switch and at minutes 5/15/30.
+- Leaks: run after the full 30-minute session, not only after launch.
+- Energy Log: CPU, wakeups, and energy impact during steady/background playback.
+
+For signpost overhead, build the identical bundle once with `EXPO_PUBLIC_BEATNOTE_PERF=1` and once
+with `EXPO_PUBLIC_BEATNOTE_PERF=0`. This is the Expo bundle-facing form of the spec's
+`BEATNOTE_PERF` flag. Compare average CPU on the same build/device/thermal preparation;
+the difference must be no more than one percentage point and no more than 1% relative overhead.
+
+## React render and path accounting
+
+In Debug, profile ten seconds of playback plus one seek, marker add, annotation save, and track
+switch. Export the profile and record commit counts and render reasons in `findings.md`. In the
+internal Release profiling configuration, use the temporary render/path/gesture counters added by
+task 2.4. Remove those counters after evidence is captured; do not convert counts into permanent
+tests.
+
+With `EXPO_PUBLIC_BEATNOTE_PERF=1`, the Hermes/React Native DevTools console exposes
+`globalThis.__BEATNOTE_PERF__.clear()` and `globalThis.__BEATNOTE_PERF__.snapshot()`. Clear before
+each scripted scenario and copy the resulting interval/counter snapshot into the trace notes. This
+diagnostic global is absent when the flag is off.
+
+## Hermes sampling
+
+Debug uses the CPU profiler exposed by React Native DevTools. For Release, use a dedicated internal
+profiling configuration with Hermes sampling-profiler support enabled; never ship that flag in the
+store configuration. Start capture immediately before a scripted scenario, stop immediately after,
+export the `.cpuprofile`, and open it in React Native DevTools or Chrome DevTools Performance. Record
+the exact Xcode/React Native command or UI used on the first successful run because availability can
+change with the installed RN/Hermes build.
+
+If the installed Release runtime does not expose Hermes sampling, record that gap and rely on Time
+Profiler plus signposts. Do not silently substitute a Debug Hermes profile for Release evidence.
+
+## 240-fps video
+
+Mount a second device so BeatNote's full screen and the testing finger are visible. Lock focus and
+exposure, record at 240 fps, and include a clap/flash at the start for timing sanity. Count from the
+frame containing touch contact (or release for release-committed actions) to the first changed frame.
+One frame is about 4.17 ms. Keep the original video outside Git and record its path and frame count.

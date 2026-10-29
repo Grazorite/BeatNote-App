@@ -6,6 +6,8 @@ import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
 import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
 import { isLoopRangeGestureActive } from '../features/playback/interactionActivity';
+import { incrementPerfCounter } from '../utils/perfCounters';
+import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 
 interface ErrorState {
   visible: boolean;
@@ -267,7 +269,7 @@ export const useCustomAudioPlayer = () => {
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;
-    
+    const intervalId = perfBegin('playback.toggle');
     try {
       if (isPlaying) {
         player.pause();
@@ -292,12 +294,17 @@ export const useCustomAudioPlayer = () => {
     } catch (error) {
       console.error('Playback error:', error);
       Alert.alert('Playback Error', 'Failed to control audio playback');
+    } finally {
+      perfEndAfterFrame(intervalId);
     }
   }, [player, isPlaying, setIsPlaying, setCurrentTime]);
 
   const seekToPosition = useCallback(async (position: number) => {
     if (!player) return;
 
+    const intervalId = perfBegin(
+      loopDecisionSuspendedRef.current ? 'seek.scrub' : 'seek.tap',
+    );
     loopDecisionSuspendedRef.current = true;
     try {
       const { songDuration } = useStudioStore.getState();
@@ -326,10 +333,12 @@ export const useCustomAudioPlayer = () => {
       setCurrentTime(reportedPosition);
     } finally {
       loopDecisionSuspendedRef.current = false;
+      perfEndAfterFrame(intervalId);
     }
   }, [player, isPlaying, setIsPlaying, setCurrentTime]);
 
   const startWaveformScrub = useCallback(async () => {
+    perfBegin('seek.scrub', 'seek.scrub:session');
     loopDecisionSuspendedRef.current = true;
     if (player && isPlaying) {
       wasPlayingBeforeScrubRef.current = true;
@@ -360,6 +369,7 @@ export const useCustomAudioPlayer = () => {
     }
     wasPlayingBeforeScrubRef.current = false;
     loopDecisionSuspendedRef.current = false;
+    perfEndAfterFrame('seek.scrub:session');
   }, [player, setCurrentTime, setIsPlaying]);
 
   const tapToBeat = useCallback(async () => {
@@ -372,12 +382,13 @@ export const useCustomAudioPlayer = () => {
     
     const activeLayer = layers.find(layer => layer.id === activeLayerId);
     const existingMarker = activeLayer?.markers.find(marker => Math.abs(marker - currentTime) <= 100);
-    
+    const intervalId = perfBegin(existingMarker === undefined ? 'marker.add' : 'marker.remove');
     if (existingMarker !== undefined) {
       removeMarker(existingMarker);
     } else {
       addMarker(currentTime);
     }
+    perfEndAfterFrame(intervalId);
   }, [activeLayerId, addMarker, isPlaying, layers, player, removeMarker]);
 
   // Handle playback position updates and end-of-track detection
@@ -385,6 +396,7 @@ export const useCustomAudioPlayer = () => {
     if (!player || !isPlaying) return;
 
     const interval = setInterval(() => {
+      incrementPerfCounter('playback.sampleTick');
       if (player.currentTime !== undefined) {
         const currentTimeMs = player.currentTime * 1000; // Convert to milliseconds
         const {
