@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-10-29
-**Branch:** `codex/automatic-bpm-detection` · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -68,20 +68,15 @@ potentially adding a hybrid path later.
 3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
    third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
    near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
-4. Complete physical-device acceptance for `playback-marker-control-dock`; its portrait 2×8 dock,
-   landscape two-column/central-2×2-play rail, marker actions, tri-state looping, shared overview toast, reserved controls,
-   speed contract, safe-area/keyboard handling, and simulator acceptance are implemented.
-5. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+4. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-6. Complete physical-device acceptance for the loop-range editor: drag/playback performance,
-   VoiceOver adjustment, contrast, and audible boundary quality.
-7. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+5. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-8. Keep the completed local choreography workflow stable while physical-device acceptance and the
+6. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -115,12 +110,7 @@ potentially adding a hybrid path later.
 - [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
       temporary durability/property checks, all six browser journeys, the isolated seven-case native
       suite, simulator rotation, and maximum Dynamic Type review are complete
-- [ ] Complete `playback-marker-control-dock` physical acceptance — implementation, simulator visual
-      review, focused native checks, and web/unit gates pass; VoiceOver and real-device touch/keyboard
-      comfort remain
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
-- [ ] Complete loop-range overview physical-device acceptance — implementation and retained critical
-      browser/native flows pass; physical performance, VoiceOver, contrast, and audible-boundary checks remain
 
 ### ⏸ Deferred — V2/V3
 
@@ -130,6 +120,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Pass physical-iPhone acceptance for `playback-marker-control-dock` and `loop-range-overview`
+      (VoiceOver deliberately skipped) and archive both specs
+      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/`, `docs/context/archive/specs/loop-range-overview/`, `AGENTS.md`</sub>
+
 - [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
       <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
 
@@ -138,7 +132,7 @@ potentially adding a hybrid path later.
 
 - [x] Add bounded 0.05× decrement/increment buttons beside an inset playback-speed slider with 44×44
       targets, clear endpoint separation, accessible states, repeated-step dwell, and responsive coverage
-      <sub>**Key Artifacts:** `.kiro/specs/playback-marker-control-dock/requirements.md`, `.kiro/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
+      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/requirements.md`, `docs/context/archive/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Restore physical-iPhone launch under the iOS 27 SDK with a reproducible UIKit scene-lifecycle
       bridge while preserving Expo's launch bootstrap and local dev-client URL delivery
@@ -194,6 +188,9 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### Non-negotiables
 
+- **Do not create, switch, or push branches (including `codex/*`) or worktrees unless the user
+  explicitly asks.** Work on the current branch, which is `master`. Never force-push, and never
+  push to the remote unless asked.
 - Static knowledge never goes in this file; volatile state never goes in `.kiro/steering/`.
 - No new Markdown files in the repo root beyond `README.md` and `AGENTS.md`.
 - State plainly what was verified and what was not. A command exiting 0 is not proof of correctness.
@@ -229,6 +226,37 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Pass physical acceptance for control dock and loop range; archive both specs
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** `playback-marker-control-dock` and `loop-range-overview` physical acceptance → Done
+
+**Changed:**
+
+- `playback-marker-control-dock` and `loop-range-overview` `tasks.md`: ticked the final regression
+  and physical-device acceptance tasks (27, 27.2, 25, 25.2) on the human's report that the
+  physical-iPhone QA passed, with a note that VoiceOver was skipped.
+- Moved both specs to `docs/context/archive/specs/`.
+- Rotated the 2026-10-29 physical iOS 27 launch entry into the history archive.
+
+**Verified:**
+
+- Human reported physical-iPhone QA complete and passing for both features. No open checkbox
+  remains in either archived `tasks.md`.
+
+**Not verified / known gaps:**
+
+- VoiceOver announcements and adjustment for the tri-state inner-loop value, reserved controls, and
+  loop handles were deliberately skipped by the product owner and remain unverified.
+- Specific physical results (frame rate, contrast, boundary audibility) were reported verbally and
+  are not recorded as measurements.
+- Historical log entries still cite the old `.kiro/specs/` paths for these two specs.
+
+**Next agent should:**
+
+- Continue the remaining physical acceptance: Task 44.4 (library queue), BPM runtime evidence, and
+  audio/background/share checks.
 
 ### 2026-10-29 — Adopt the BeatNote app icon
 
@@ -412,42 +440,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Exercise repeated −/+ presses with VoiceOver on the physical iPhone, then continue the active
   Fabric/Yoga crash and interaction-latency investigation.
-
-### 2026-10-29 — Verify physical iOS 27 launch
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`
-**Kanban moved:** physical-iPhone iOS 27 scene launch → Done
-
-**Changed:**
-
-- Closed the scene-lifecycle launch task after validating the generated config-plugin output on an
-  iPhone 15 Pro Max running iOS 27.0.1.
-- Documented the locally signed Xcode/CLI workflow and the wired local Metro payload path used when
-  the phone is not on the Mac's Wi-Fi network.
-
-**Verified:**
-
-- Signed Debug device build with Xcode 27.1 and the iOS 27.1 SDK → succeeded for
-  `com.beatnote.app`; installation and `devicectl` launch both succeeded on the connected phone.
-- Native shell → reached Expo Development Build without the former UIScene runtime failure.
-- Local wired payload URL → Metro bundled 1,370 modules and the physical phone rendered the
-  BeatNote studio UI; startup also completed the library orphan sweep.
-- Background/foreground scene cycle → after foregrounding iOS Settings, BeatNote reactivated with
-  its loaded song, waveform, markers, playhead, and loop state intact.
-- Version consistency, `npx tsc --noEmit`, the intentionally empty unit gate, JavaScript syntax,
-  full retained Playwright gate (7/7), `git diff --check`, and orchestrator close-contract
-  validation → passed.
-
-**Not verified / known gaps:**
-
-- Physical Files/third-party Open In, background audio continuity, interruptions,
-  Bluetooth, and the remainder of the existing device acceptance matrix are still open.
-- The public-tunnel option was deliberately not used; the verified development path stays local to
-  the Mac/iPhone wired connection.
-
-**Next agent should:**
-
-- Continue Task 44.4 with physical Files import and third-party Open In, then exercise playback,
-  backgrounding, and force-quit draft restoration with a representative song.
 
 <!-- end handover log -->

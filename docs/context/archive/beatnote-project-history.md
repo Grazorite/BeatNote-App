@@ -260,6 +260,43 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-29 — Verify physical iOS 27 launch
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`
+**Kanban moved:** physical-iPhone iOS 27 scene launch → Done
+
+**Changed:**
+
+- Closed the scene-lifecycle launch task after validating the generated config-plugin output on an
+  iPhone 15 Pro Max running iOS 27.0.1.
+- Documented the locally signed Xcode/CLI workflow and the wired local Metro payload path used when
+  the phone is not on the Mac's Wi-Fi network.
+
+**Verified:**
+
+- Signed Debug device build with Xcode 27.1 and the iOS 27.1 SDK → succeeded for
+  `com.beatnote.app`; installation and `devicectl` launch both succeeded on the connected phone.
+- Native shell → reached Expo Development Build without the former UIScene runtime failure.
+- Local wired payload URL → Metro bundled 1,370 modules and the physical phone rendered the
+  BeatNote studio UI; startup also completed the library orphan sweep.
+- Background/foreground scene cycle → after foregrounding iOS Settings, BeatNote reactivated with
+  its loaded song, waveform, markers, playhead, and loop state intact.
+- Version consistency, `npx tsc --noEmit`, the intentionally empty unit gate, JavaScript syntax,
+  full retained Playwright gate (7/7), `git diff --check`, and orchestrator close-contract
+  validation → passed.
+
+**Not verified / known gaps:**
+
+- Physical Files/third-party Open In, background audio continuity, interruptions,
+  Bluetooth, and the remainder of the existing device acceptance matrix are still open.
+- The public-tunnel option was deliberately not used; the verified development path stays local to
+  the Mac/iPhone wired connection.
+
+**Next agent should:**
+
+- Continue Task 44.4 with physical Files import and third-party Open In, then exercise playback,
+  backgrounding, and force-quit draft restoration with a representative song.
+
 ### 2026-10-29 — Verify native BPM and restore scene launch
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `32a3161`

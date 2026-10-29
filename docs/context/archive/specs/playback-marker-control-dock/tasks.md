@@ -14,7 +14,7 @@ single phone-only `ControlDock` that replaces the former `AudioControls` + `Mark
 the desktop branch keeps those two components unchanged.
 
 All code is TypeScript / React Native, matching the existing codebase and
-[`coding-standards.md`](../../steering/coding-standards.md). All timestamps are integer milliseconds
+[`coding-standards.md`](../../../../../.kiro/steering/coding-standards.md). All timestamps are integer milliseconds
 (ADR-009); all global state stays in the single store `useStudioStore` (ADR-001); all colours come
 from `src/styles/common.ts` (ADR-006). The speed phase adds one isolated rate-setting effect to
 `useAudioPlayer.ts` without changing its loop decisions. No playlist or shuffle engine work is
@@ -39,7 +39,7 @@ Each phase ends with an explicit checkpoint using the project build gate:
 
 ### Testing strategy alignment
 
-Per [`testing-strategy.md`](../../steering/testing-strategy.md): unit-test the net-new store action
+Per [`testing-strategy.md`](../../../../../.kiro/steering/testing-strategy.md): unit-test the net-new store action
 and the pure derivations against a fresh `create()` store; cover dock geometry, interaction, toast,
 and responsive reflow as cohesive Playwright and XCTest workflows. Do NOT add trivial render-only or
 implementation-detail assertions, and remove any superseded tests rather than keeping them for
@@ -575,17 +575,19 @@ The implementation follows the product decisions resolved in the requirements an
 
 ### Phase 14 — Regression and physical-device acceptance
 
-- [ ] 27. Final regression and manual acceptance
+- [x] 27. Final regression and manual acceptance
   - [x] 27.1 Run the full automated gate
     - Run `npx tsc --noEmit`, `npx jest --testPathPatterns=unit`, `PLAYWRIGHT_PORT=8082 npm test`,
       and the `npm run test:ios:ui` aggregate; fix any regression before proceeding.
     - _Requirements: 1.7, 16.1, 17.7_
 
-  - [ ] 27.2 Run physical-device acceptance
+  - [x] 27.2 Run physical-device acceptance
     - On a physical iPhone, verify comfortable 44 pt touch targets across the dock, VoiceOver
       announcement of the tri-state inner-loop value and the reserved controls' in-development state,
       and toast legibility over the waveform. This gate is required before the feature is called
       done.
+    - Passed on a physical iPhone on 2026-10-29. VoiceOver checks were deliberately skipped (out of
+      scope for now) and remain unverified.
     - _Requirements: 7.5, 8.9, 15.1, 17.2, 17.5_
 
 ### Phase 15 — Steering doc update (optional)
@@ -593,7 +595,7 @@ The implementation follows the product decisions resolved in the requirements an
 - [x] 28. Record the testID collapse if a rule changed
   - [x]* 28.1 Update the testing steering if the collapsed testIDs change a documented rule
     - If the phone collapse of `loop-region-toggle` / `loop-marker-toggle` into `inner-loop-cycle`
-      changes a rule recorded in [`testing-strategy.md`](../../steering/testing-strategy.md) or an
+      changes a rule recorded in [`testing-strategy.md`](../../../../../.kiro/steering/testing-strategy.md) or an
       iOS/E2E convention doc, update that steering file in the same change. Make no doc edit if no
       documented rule changed.
     - No steering edit was required: the existing behavior-first testing rule already covers the

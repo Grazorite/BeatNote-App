@@ -10,9 +10,10 @@
 ## Phase 1 — Research spike and architecture decision
 
 - [ ] 1. Tempo-analysis spike: confirm or amend design decisions D-2 (web) and D-3 (iOS)
-  - 2026-10-27: web synthetic benchmark and package/licence comparison completed; D-2 confirmed.
-    Native 150-second peak-memory/cancellation measurements, browser decode/long-task metrics, and
-    representative real-song evidence remain before this task can be checked.
+  - 2026-10-29: web synthetic benchmark and package/licence comparison completed; D-2 confirmed.
+    Native synthetic accuracy, cancellation/retry, and the 150-second simulator measurement now
+    pass. Browser decode/long-task metrics and representative real-song evidence remain before this
+    task can be checked.
   - Prototype the self-contained web detector (decode → mono ~11.025 kHz downsample → ACF tempo +
     onset-peak anchor) and, for comparison, measure `realtime-bpm-analyzer` and `essentia.js` on the
     synthetic click-track set; record BPM accuracy, bundle size, licence, memory, and cancellation.
@@ -81,14 +82,14 @@
 
 ## Phase 4 — Platform provider prototype → production
 
-- [ ] 4. Implement the analysis providers behind the boundary
+- [x] 4. Implement the analysis providers behind the boundary
   - [x] 4.1 Web provider `bpmAnalysis.web.ts` per the approved spike decision. Add a shared decode
         helper so `waveformExtraction.web.ts` and analysis use one `decodeAudioData` pass; emit
         waveform peaks first, then mono-downsample to ~11.025 kHz and release the `AudioBuffer`.
         Transfer the samples to `bpmAnalysis.worker.ts`, which computes tempo, anchor, and
         half/double alternatives over the D-5 windows, posts progress, and is terminated on cancel.
         Default `bpmAnalysis.ts` returns `null`. (Req 14.2, 14.4, 14.5)
-  - [ ] 4.2 Native `modules/beatnote-tempo` (`BeatNoteTempoModule.swift`) + `bpmAnalysis.ios.ts`:
+  - [x] 4.2 Native `modules/beatnote-tempo` (`BeatNoteTempoModule.swift`) + `bpmAnalysis.ios.ts`:
         streaming `AVAssetReader` decode restricted to the D-5 windows via `timeRange`, Accelerate
         tempo/anchor, `.utility` QoS, progress callbacks, cancel token (Req 14.1, 14.5). Register via
         `modules/` autolinking (package.json `expo.autolinking`).
@@ -97,8 +98,10 @@
     separate 9.75-kB bundle. The iOS module is implemented, autolinked, windowed, cancellable, and
     compiles with `.utility` tasks. A focused iPhone 17 Pro simulator journey resolved its 60.09 BPM
     primary estimate to the offered 120.19 BPM double-tempo alternative (both within ±0.5 BPM), then
-    previewed, applied, and restored it. 4.2 remains unchecked pending long-fixture memory and
-    cancellation measurements.
+    previewed, applied, and restored it. On 2026-10-29 the retained cancellation journey cancelled
+    an injected ten-second native delay, exposed the explicit no-change state, and completed retry
+    before eight seconds. The 150-second fixture produced a visible suggestion in 9.414 seconds at
+    261,950.992 kB peak physical app memory on the same simulator.
   - **Dependencies:** 1, 2. **Affected:** `src/services/bpmAnalysis.*`, `modules/beatnote-tempo/*`.
   - **Acceptance:** each provider returns a well-formed `AnalysisResult` on a fixture; `null`/throw
     maps cleanly to `unavailable`/`failed`; cancellation leaves no partial state; web waveform appears
@@ -146,7 +149,8 @@
     `applyAnalysisSuggestion`, `setBpmManual`, `restoreGridSnapshot`, `gridRestoreSnapshot`.
   - Route the existing BPM control through `setBpmManual` so manual edits set `manuallyOverriddenBpm`.
   - Gate visibility by product capability `analysis.autoBpm` (preview provider grants it) and show the
-    unavailable/low-confidence/failed/cancelled states.
+    unavailable/low-confidence/failed/cancelled states. The running state exposes an accessible
+    Cancel action and the cancelled state exposes Retry with explicit no-change copy.
   - **Dependencies:** 5. **Affected:** new UI + styles, store actions, BPM control wiring,
     `entitlements/types.ts` + `capabilityService.ts` (`analysis.autoBpm`).
   - **Acceptance:** suggestion shows confidence band; Apply updates grid/counts/snaps; Keep Current

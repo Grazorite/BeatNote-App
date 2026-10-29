@@ -479,16 +479,18 @@ documented defaults and must be revisited if a default changes:
 
 ### Phase 13 — Full regression and physical-device acceptance
 
-- [ ] 25. Final regression and manual acceptance (direct)
+- [x] 25. Final regression and manual acceptance (direct)
   - [x] 25.1 Run the full automated gate (direct)
     - Run `npx tsc --noEmit`, `npx jest --testPathPatterns=unit`, `PLAYWRIGHT_PORT=8082 npm test`,
       and the `npm run test:ios:ui` aggregate; fix any regression before proceeding.
     - _Requirements: 15.1, 19.1, 19.2_
 
-  - [ ] 25.2 Run physical-device acceptance (direct)
+  - [x] 25.2 Run physical-device acceptance (direct)
     - On a physical iPhone, verify ~60fps range drag and playback, VoiceOver handle adjustment with
       value announcements, contrast of the rendered token pairs in every state, and audibility of
       the loop boundary during rehearsal. This gate is required before the feature is called done.
+    - Passed on a physical iPhone on 2026-10-29. VoiceOver checks were deliberately skipped (out of
+      scope for now) and remain unverified.
     - _Requirements: 17.4, 17.5_
 
 ### Phase 14 — Simulator-review refinements

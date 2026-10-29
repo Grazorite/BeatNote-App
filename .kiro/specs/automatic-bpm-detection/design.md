@@ -259,7 +259,7 @@ Candidates considered:
 best-effort/low-confidence. Reconsider `essentia.js` only if the spike shows our accuracy misses the
 real-song threshold and the licence/size are acceptable. Record the spike result in this file.
 
-#### Phase 1 evidence — 2026-10-27 (web decision confirmed; native measurements pending)
+#### Phase 1 evidence — 2026-10-29 (web decision confirmed; native simulator measurements complete)
 
 The disposable `scripts/spikes/tempo/benchmark.mjs` prototype generated 30-second click tracks at
 60, 90, 120, 150, and 180 BPM with 347 ms of leading silence, downsampled them from 44.1 kHz to
@@ -282,9 +282,9 @@ distribution without separate licensing.
 **Decision:** confirm D-2's self-contained web detector. Keep half/double alternatives explicit and
 run analysis in a worker; do not adopt either evaluated package. This evidence is synthetic only.
 Browser `decodeAudioData` time, real-song band B accuracy, main-thread long tasks, and import-to-
-suggestion latency remain unverified. D-3's separate streaming iOS module remains approved on
-architecture grounds, but its 150-second peak memory and cancellation latency still require the
-native prototype before Phase 1 is complete.
+suggestion latency remain unverified. D-3's separate streaming iOS module is confirmed by the
+simulator evidence below; physical-device performance and representative real-song accuracy remain
+open before Phase 1 is complete.
 
 Production integration evidence on 2026-10-28 retained a generated 12-second, 120-BPM WAV in the
 Playwright workflow. Chromium decoded it once for waveform plus analysis, ran the detector in the
@@ -345,9 +345,14 @@ measurements; see proposed ADR-018.
 On 2026-10-28 the production module was implemented with bounded `AVAssetReader.timeRange` windows,
 11.025-kHz mono streaming, Accelerate autocorrelation, explicit cancellation checks, progress events,
 and per-window `Task.detached(priority: .utility)` execution. The autolinked `BeatNoteTempo` pod
-compiles for the arm64 iOS Simulator. That is compile evidence only: native result accuracy,
-150-second peak memory, cancellation latency, and playback coexistence still require runtime XCTest
-and physical-device measurement.
+compiles for the arm64 iOS Simulator. Runtime XCTest on 2026-10-29 then resolved a synthetic
+120-BPM track from the 60.09-BPM primary to the offered 120.19-BPM double-tempo alternative, within
+band A. A retained cancellation/retry journey cancelled a request during a DEBUG-only ten-second
+delay, reached the no-change state, and completed retry in under eight seconds, proving the native
+request released the single-flight queue before the delay expired. The 150-second fixture reached a
+visible suggestion in 9.414 seconds with 261,950.992 kB peak physical app memory (about 255.8 MiB)
+on an iPhone 17 Pro iOS 26.2 simulator. These measurements confirm the bounded provider design on
+the simulator; playback coexistence, physical-device heat/battery, and real-song accuracy remain open.
 
 ### D-4 — Android
 

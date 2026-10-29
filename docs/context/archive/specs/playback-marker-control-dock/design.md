@@ -655,7 +655,7 @@ toast and the control staying in its prior state.
 
 ## Testing Strategy
 
-Aligned with [`testing-strategy.md`](../../steering/testing-strategy.md): unit-test the net-new store
+Aligned with [`testing-strategy.md`](../../../../../.kiro/steering/testing-strategy.md): unit-test the net-new store
 action and the pure derivations; cover dock geometry/behaviour/toast/responsive reflow as cohesive
 Playwright workflows; cover geometry, interaction, and accessibility exposure in XCTest. No trivial
 render-only or implementation-detail assertions.
