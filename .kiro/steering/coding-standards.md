@@ -97,6 +97,11 @@ inclusion: always
   Teal stays the single cool hue so loop state reads at a glance. The disabled loop keeps its dashed
   border. Handle touch targets stay at least 44 points; only the visual capsule is slim, and its
   width must match `LOOP_HANDLE_VISUAL_WIDTH` in `LoopRangeLayer.tsx`.
+- "Loop between markers" is drawn in the marker violet, never teal, so it stays distinct from the
+  range loop (the two are mutually exclusive, so only one is ever visible). Rows show a very faint
+  violet wash plus a slim underline across the looped segment; the overview strip shows only the
+  underline, with no fill and no outside dimming. The segment comes from `useMarkerLoopSegment`,
+  which mirrors the playback engine and changes only when the playhead crosses a marker.
 - The already-played waveform stroke is muted with `PLAYED_WAVEFORM_OPACITY` from
   `src/styles/common.ts` so the layer colour does not compete with markers or the playhead. Adjust
   that one constant rather than recolouring the layer.

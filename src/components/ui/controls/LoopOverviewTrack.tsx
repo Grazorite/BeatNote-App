@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect } from 'react-native-svg';
 
+import { type MarkerLoopSegment, useMarkerLoopSegment } from '../../../hooks/useMarkerLoopSegment';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath, useWaveformData } from '../../../hooks/useWaveformData';
@@ -12,6 +13,7 @@ import { MARKER_SHIELD_LINE_START, MARKER_SHIELD_PATH, markerHeadTransform } fro
 
 const OVERVIEW_HEIGHT = 34;
 const PLAYHEAD_HEAD_Y = 5;
+const MARKER_LOOP_BAR_HEIGHT = 3;
 // Simplified marker for the strip: a small solid shield on a hairline, with no annotated/plain
 // distinction because the heads are too small for an outline to stay legible.
 const OVERVIEW_MARKER_HEAD_SCALE = 0.55;
@@ -36,6 +38,7 @@ interface ProgressLayerProps extends LayerBaseProps {
 
 interface MarkersLayerProps extends LayerBaseProps {
   layers: Layer[];
+  markerLoop: MarkerLoopSegment | null;
 }
 
 /** Played portion of the waveform. Re-renders with playback time. */
@@ -76,8 +79,10 @@ const ProgressLayer: React.FC<ProgressLayerProps> = ({
 };
 
 /** Marker shields. Drawn above the played waveform so its tint never recolours them. */
-const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, songDuration, width }) => {
+const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, markerLoop, songDuration, width }) => {
   if (!drawable) return null;
+  const loopStartX = markerLoop ? msToOverviewX(markerLoop.loopStartMs, songDuration, width) : 0;
+  const loopEndX = markerLoop ? msToOverviewX(markerLoop.loopEndMs, songDuration, width) : 0;
 
   return (
     <Svg
@@ -86,6 +91,20 @@ const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, songDurat
       style={StyleSheet.absoluteFillObject}
       pointerEvents="none"
     >
+      {markerLoop && loopEndX > loopStartX && (
+        // "Loop between markers": a slim violet underline, deliberately without a fill so it does
+        // not compete with the waveform or the teal range loop.
+        <Rect
+          x={loopStartX}
+          y={OVERVIEW_HEIGHT - MARKER_LOOP_BAR_HEIGHT - 1}
+          width={loopEndX - loopStartX}
+          height={MARKER_LOOP_BAR_HEIGHT}
+          rx={MARKER_LOOP_BAR_HEIGHT / 2}
+          fill={colors.marker}
+          opacity={0.85}
+          testID="loop-overview-marker-loop"
+        />
+      )}
       {layers.flatMap(layer => layer.isVisible
         ? layer.markers.filter(marker => Number.isFinite(marker) && marker >= 0 && marker <= songDuration)
             .map((marker, index) => {
@@ -175,6 +194,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const songLoaded = useStudioStore(state => state.songLoaded);
   const layers = useStudioStore(state => state.allLayersData);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
+  const markerLoop = useMarkerLoopSegment();
   const { waveformData } = useWaveformData(audioUri);
   const drawable = songLoaded && Number.isFinite(songDuration) && songDuration > 0 && width > 0;
   const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color ?? colors.accent;
@@ -217,6 +237,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
       <MemoizedMarkersLayer
         drawable={drawable}
         layers={layers}
+        markerLoop={markerLoop}
         songDuration={songDuration}
         width={width}
       />

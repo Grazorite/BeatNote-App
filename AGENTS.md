@@ -213,6 +213,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-10-29 — Show the "Loop between markers" segment
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: show the loop-between-markers segment`)
+**Kanban moved:** marker-loop visual indication → Done (user confirmed on device after a full reload)
+
+**Changed:**
+
+- New `src/hooks/useMarkerLoopSegment.ts`: resolves the looped segment with the same rule as the
+  playback engine (`markerLoopRangeAtTime`, active-layer or all-layer markers); re-renders only when
+  the playhead crosses a marker.
+- Wrapped rows: faint violet wash plus a slim underline across the segment (`markerLoopSegment`
+  prop, included in the row memo comparator).
+- Overview strip: slim violet underline between the bounding markers, no fill or dimming.
+- Retained loop journey now asserts the marker-loop overlay is absent for range loop and present
+  for marker loop.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed; real browser screenshots of rows and strip reviewed.
+- Loop overview journey → passed with the new assertions.
+
+**Not verified / known gaps:**
+
+- No simulator or physical-iPhone review; wash opacity (7%) and bar weight were tuned on a dense
+  synthetic clip and may need adjusting on real music and device brightness.
+- The performance agent's `incrementPerfCounter` lines in `WrappedRow.tsx` and
+  `LoopOverviewTrack.tsx` are still uncommitted in the working tree; commit them with their
+  `perfCounters.ts`, or strip them from a staged blob as the previous commit did.
+
+**Next agent should:**
+
+- Review the marker-loop look on device and adjust the two opacity constants in `WrappedRow.tsx` if needed.
+
 ### 2026-10-29 — Restyle waveform markers, playhead, and loop range
 
 **Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: restyle waveform markers, playhead, and loop range`)
@@ -352,44 +385,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Ask the user to let one short track complete with Repeat on, then with Repeat off and Shuffle on;
   after both pass, source or generate a >100 MB audio fixture to close Task 44.4.
-
-### 2026-10-29 — Complete native BPM runtime automation
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b12b240`, `3ce9025`
-**Kanban moved:** automatic-BPM simulator runtime automation → Done; hardware/browser acceptance remains In Progress
-
-**Changed:**
-
-- Added an explicit accessible cancel/retry state and a DEBUG-only cancellable delay so the retained
-  UI journey proves a cancelled native request releases the single-flight queue without changing BPM
-  or anchor state.
-- Added a measured 150-second native journey with distinct warm-up/measured fixtures and bounded
-  XCTest memory/clock metrics; hardened the Files fixture picker as the retained suite grew to ten.
-- Kept the iOS project page sheet mounted while CSV/relink document pickers resolve, repaired stale
-  launch/export/landscape assertions, and dismissed the share sheet so XCTest finalizes cleanly.
-- Retained the concurrent Now Playing cleanup fix that avoids clearing controls on an already
-  released Expo Audio shared object.
-
-**Verified:**
-
-- Native cancellation/retry → passed; cancellation exposed an explicit no-change state and retry
-  produced a suggestion before the injected ten-second delay could expire.
-- 150-second fixture → suggestion in 9.414 seconds at 261,950.992 kB peak physical app memory
-  (about 255.8 MiB); a repeat measured 252,726.752 kB in 9.430 seconds.
-- All ten retained native cases have passing focused result bundles, including CSV/share,
-  background playback, landscape controls, and Open In. Full retained Playwright gate → 7/7.
-- `npx tsc --noEmit`, JavaScript syntax, Swift parse, and `git diff --check` → passed.
-
-**Not verified / known gaps:**
-
-- Browser long-task/long-song/import-latency measurements, representative real-song accuracy,
-  physical-device heat/battery/background/Bluetooth behavior, and downbeat estimation remain open.
-- Now Playing cleanup has static/browser evidence only; the current Control Centre and physical
-  command/state retest remains the top hardware task.
-
-**Next agent should:**
-
-- Collect the browser performance measurements, then run representative real-song BPM and playback
-  coexistence acceptance on the physical iPhone.
 
 <!-- end handover log -->

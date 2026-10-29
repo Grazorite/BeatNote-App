@@ -26,6 +26,7 @@ import {
   type RowLoopSegment,
 } from '../../../utils/timelineMapping';
 import { isValidLoopRange, outsideLoopSegmentsForRow } from '../../../utils/loopRange';
+import { useMarkerLoopSegment } from '../../../hooks/useMarkerLoopSegment';
 import WrappedRow, { type WrappedLayerMarkers } from './WrappedRow';
 import RowDensityControls from './RowDensityControls';
 import { wrappedWaveformStyles as styles } from '../../../styles/components/waveform/wrappedWaveform';
@@ -122,6 +123,14 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         .map(segment => [segment.rowIndex, segment] as const),
     );
   }, [loopEndMs, loopStartMs, rows, songDuration]);
+  const markerLoop = useMarkerLoopSegment();
+  const markerLoopSegmentsByRow = useMemo(() => {
+    if (!markerLoop) return new Map<number, RowLoopSegment>();
+    return new Map(
+      loopSegmentsForRows(rows, markerLoop.loopStartMs, markerLoop.loopEndMs)
+        .map(segment => [segment.rowIndex, segment] as const),
+    );
+  }, [markerLoop, rows]);
   const outsideLoopSegmentsByRow = useMemo(() => {
     const range = { loopStartMs, loopEndMs };
     if (!isLoopRangeEnabled || !isValidLoopRange(range, songDuration)) {
@@ -265,6 +274,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       peaks={realPeaks}
       totalDuration={peakDuration}
       loopSegment={loopSegmentsByRow.get(row.index)}
+      markerLoopSegment={markerLoopSegmentsByRow.get(row.index)}
       outsideLoopSegments={outsideLoopSegmentsByRow.get(row.index)}
       isLoopRangeEnabled={isLoopRangeEnabled}
       onSeek={onSeek}

@@ -483,6 +483,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - Relaunch the current bundle on the iPhone, play a local song, and verify Control Centre metadata,
   remote commands, the switch veil, and uninterrupted rapid speed stepping.
 
+### 2026-10-29 — Complete native BPM runtime automation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b12b240`, `3ce9025`
+**Kanban moved:** automatic-BPM simulator runtime automation → Done; hardware/browser acceptance remains In Progress
+
+**Changed:**
+
+- Added an explicit accessible cancel/retry state and a DEBUG-only cancellable delay so the retained
+  UI journey proves a cancelled native request releases the single-flight queue without changing BPM
+  or anchor state.
+- Added a measured 150-second native journey with distinct warm-up/measured fixtures and bounded
+  XCTest memory/clock metrics; hardened the Files fixture picker as the retained suite grew to ten.
+- Kept the iOS project page sheet mounted while CSV/relink document pickers resolve, repaired stale
+  launch/export/landscape assertions, and dismissed the share sheet so XCTest finalizes cleanly.
+- Retained the concurrent Now Playing cleanup fix that avoids clearing controls on an already
+  released Expo Audio shared object.
+
+**Verified:**
+
+- Native cancellation/retry → passed; cancellation exposed an explicit no-change state and retry
+  produced a suggestion before the injected ten-second delay could expire.
+- 150-second fixture → suggestion in 9.414 seconds at 261,950.992 kB peak physical app memory
+  (about 255.8 MiB); a repeat measured 252,726.752 kB in 9.430 seconds.
+- All ten retained native cases have passing focused result bundles, including CSV/share,
+  background playback, landscape controls, and Open In. Full retained Playwright gate → 7/7.
+- `npx tsc --noEmit`, JavaScript syntax, Swift parse, and `git diff --check` → passed.
+
+**Not verified / known gaps:**
+
+- Browser long-task/long-song/import-latency measurements, representative real-song accuracy,
+  physical-device heat/battery/background/Bluetooth behavior, and downbeat estimation remain open.
+- Now Playing cleanup has static/browser evidence only; the current Control Centre and physical
+  command/state retest remains the top hardware task.
+
+**Next agent should:**
+
+- Collect the browser performance measurements, then run representative real-song BPM and playback
+  coexistence acceptance on the physical iPhone.
+
 ### 2026-10-28 — Implement automatic BPM detection and authored grid
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `1d88ee7`

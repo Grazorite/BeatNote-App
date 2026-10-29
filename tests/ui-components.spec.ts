@@ -957,10 +957,16 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId(/^wrapped-row-loop-\d+$/).first())
       .toHaveAttribute('fill', '#2bbdb2');
 
+    // The range loop and the marker loop are mutually exclusive, and only one is ever drawn.
+    await expect(page.getByTestId('loop-overview-marker-loop')).toHaveCount(0);
+    await expect(page.locator('[data-testid^="wrapped-row-marker-loop-"]')).toHaveCount(0);
+
     await page.keyboard.press('Shift+l');
     await expect(page.getByTestId('loop-marker-toggle')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('loop-region-toggle')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.locator('[data-testid^="wrapped-row-loop-outside-"]')).toHaveCount(0);
+    await expect(page.getByTestId('loop-overview-marker-loop')).toBeVisible();
+    await expect(page.getByTestId('wrapped-row-marker-loop-bar-0')).toBeVisible();
 
     await endHandle.focus();
     await page.keyboard.press('End');

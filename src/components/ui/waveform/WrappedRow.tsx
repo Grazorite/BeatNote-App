@@ -41,6 +41,7 @@ interface WrappedRowProps {
   peaks?: number[];
   totalDuration: number;
   loopSegment?: RowLoopSegment;
+  markerLoopSegment?: RowLoopSegment;
   outsideLoopSegments?: RowLoopSegment[];
   isLoopRangeEnabled: boolean;
   onSeek: (positionMs: number) => void;
@@ -71,6 +72,11 @@ const PLAYHEAD_HEAD_RADIUS = 3.5;
 const PLAYHEAD_SHADOW_WIDTH = 6;
 const PLAYHEAD_SHADOW_OPACITY = 0.5;
 const LOOP_RANGE_RADIUS = 4;
+// "Loop between markers": a faint violet wash plus a slim underline, so it stays visually distinct
+// from the teal range loop and never relies on colour alone.
+const MARKER_LOOP_WASH_OPACITY = 0.07;
+const MARKER_LOOP_BAR_HEIGHT = 2;
+const MARKER_LOOP_BAR_OPACITY = 0.7;
 
 const formatAccessibleTime = (milliseconds: number): string => {
   const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
@@ -130,6 +136,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   peaks,
   totalDuration,
   loopSegment,
+  markerLoopSegment,
   outsideLoopSegments = [],
   isLoopRangeEnabled,
   onSeek,
@@ -164,6 +171,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   const headCenterY = MARKER_HEAD_TOP + 7.5 * headScale;
   const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
+  const markerLoopRect = loopGeometry(row, rowPixelWidth, markerLoopSegment);
   const outsideLoopRects = outsideLoopSegments
     .map(segment => loopGeometry(row, rowPixelWidth, segment))
     .filter((geometry): geometry is LoopGeometry => geometry !== null);
@@ -318,6 +326,31 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
               pointerEvents="none"
               testID={`wrapped-row-loop-${row.index}`}
             />
+          )}
+          {markerLoopRect && (
+            <>
+              <Rect
+                x={markerLoopRect.x}
+                y={0}
+                width={markerLoopRect.width}
+                height={waveformHeight}
+                fill={colors.marker}
+                opacity={MARKER_LOOP_WASH_OPACITY}
+                pointerEvents="none"
+                testID={`wrapped-row-marker-loop-${row.index}`}
+              />
+              <Rect
+                x={markerLoopRect.x}
+                y={waveformHeight - MARKER_LOOP_BAR_HEIGHT}
+                width={markerLoopRect.width}
+                height={MARKER_LOOP_BAR_HEIGHT}
+                rx={MARKER_LOOP_BAR_HEIGHT / 2}
+                fill={colors.marker}
+                opacity={MARKER_LOOP_BAR_OPACITY}
+                pointerEvents="none"
+                testID={`wrapped-row-marker-loop-bar-${row.index}`}
+              />
+            </>
           )}
           <Rect
             x={0}
@@ -577,6 +610,7 @@ const areWrappedRowPropsEqual = (previous: WrappedRowProps, next: WrappedRowProp
   && previous.peaks === next.peaks
   && previous.totalDuration === next.totalDuration
   && sameLoopSegment(previous.loopSegment, next.loopSegment)
+  && sameLoopSegment(previous.markerLoopSegment, next.markerLoopSegment)
   && sameLoopSegments(previous.outsideLoopSegments, next.outsideLoopSegments)
   && previous.isLoopRangeEnabled === next.isLoopRangeEnabled
   && previous.onSeek === next.onSeek
