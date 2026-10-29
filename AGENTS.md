@@ -59,8 +59,9 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Retest the physical-iPhone crash and latency fixes: annotation save, library rename, canvas seek,
-   transport controls, portrait/landscape alignment, dock spacing, and Import Audio icon geometry.
+1. Retest iOS Now Playing/Control Centre play-pause-seek, the atomic song-switch veil, and rapid
+   playback-speed stepping on the physical iPhone; queue switching, rename, annotation, loop, dock,
+   and portrait/landscape geometry have passed the current Debug/Metro device pass.
 2. Finish `automatic-bpm-detection` runtime acceptance: native cancellation latency, 150-second
    peak memory, browser long-task/long-song measurements, and representative real-song/physical-
    device evidence. Web production wiring, synthetic native accuracy, and Phases 2–7 are
@@ -100,9 +101,9 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Stabilise and polish the physical-iPhone workflow: eliminate the Fabric/Yoga crashes when
-      saving annotations or renaming songs, reduce interaction latency, align portrait/landscape
-      chrome and dock spacing, and correct the Import Audio icon geometry
+- [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
+      transitions, and coalesced rapid speed changes are implemented and locally verified; physical
+      command/state synchronization, audible switching, and Release-build latency remain open
 - [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
       exports, retained browser flow, and octave-resolved native synthetic XCTest are implemented;
@@ -137,18 +138,6 @@ potentially adding a hybrid path later.
 - [x] Restore physical-iPhone launch under the iOS 27 SDK with a reproducible UIKit scene-lifecycle
       bridge while preserving Expo's launch bootstrap and local dev-client URL delivery
       <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `app.json`, `plugins/withIosSceneLifecycle.js`</sub>
-
-- [x] Reconcile the completed waveform progress/playhead visuals and approve the requirements,
-      architecture, and phased plan for automatic BPM, beat-anchor, and phrase-start assistance
-      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/`, `docs/context/archive/specs/wrapped-waveform-canvas/requirements.md`, `docs/context/archive/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Polish the V1 iPhone single-lane workflow by presenting the fixed `vocals` annotation lane
-      honestly without exposing misleading multi-layer naming controls
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/utils/exportEngineCore.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Raise the landscape loop overview above the home-indicator gesture zone and make dance-count
-      guidance a persisted, default-off Settings option
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -226,6 +215,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Wire Control Centre and smooth native track changes
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `0987b7a`
+**Kanban moved:** physical-iPhone playback polish → In Progress (implementation verified locally; hardware retest pending)
+
+**Changed:**
+
+- Registered the loaded Expo Audio player with iOS Now Playing, published the library display title,
+  and mirrored remote play/pause/seek status into BeatNote's playback state.
+- Kept the previous waveform mounted beneath a destination-labelled loading veil during an atomic
+  track switch, blocked conflicting canvas/dock input, and faded in the committed song while
+  respecting Reduce Motion.
+- Debounced native playback-rate reconfiguration while audio is playing so a burst of speed-button
+  taps applies only the final value instead of repeatedly interrupting the engine.
+
+**Verified:**
+
+- Human physical-iPhone feedback confirmed queue audio, title, waveform, markers, and most-recent
+  project all switch to the correct song; the abrupt presentation motivated the transition polish.
+- `npx tsc --noEmit`, `git diff --check`, the focused phone-dock journey, and the full retained
+  Playwright gate (7/7) passed. The journey proves the loading veil appears and six rapid speed
+  increments produce one native playback-rate assignment.
+
+**Not verified / known gaps:**
+
+- Control Centre visibility/metadata, remote play/pause/seek synchronization, audible rapid-speed
+  behavior, and transition comfort still require the connected physical iPhone.
+- Debug/Metro landscape latency is not Release/TestFlight performance evidence; VoiceOver remains
+  deliberately deferred by the product owner.
+
+**Next agent should:**
+
+- Relaunch the current bundle on the iPhone, play a local song, and verify Control Centre metadata,
+  remote commands, the switch veil, and uninterrupted rapid speed stepping.
 
 ### 2026-10-29 — Pass physical acceptance for control dock and loop range; archive both specs
 
@@ -403,42 +427,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Retest stationary loop holds, loop editing during playback, and the exact 1:2 centred landscape
   rail geometry; then collect Release/TestFlight evidence separately from Metro overhead.
-
-### 2026-10-29 — Add precise playback-speed step buttons
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`
-**Kanban moved:** playback-speed decrement/increment controls → Done
-
-**Changed:**
-
-- Added 44×44 minus and plus controls on either side of the existing speed slider, reusing the
-  established 0.05× normalization so each press updates pitch-preserved playback immediately.
-- Inset the slider track, thumb, and range labels by 12 points inside their column so the thumb no
-  longer spills into either button's visual space at the 0.5× or 2× endpoint.
-- Disabled the controls at 0.5× and 2×, added explicit accessible labels/hints/states, and retained
-  the popup's interruptible 700-millisecond dwell so repeated stepping remains comfortable.
-- Updated the playback-speed contract and retained responsive dock journey for both directions and
-  lower/upper bound behavior.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → passed with the concurrent physical-iPhone work present.
-- Focused responsive dock journey → passed, including 1×→0.95×→1× stepping, disabled controls at
-  0.5× and 2×, measured thumb/button separation at both endpoints, presets, slider dragging,
-  dismissal/reopen, and portrait/landscape geometry.
-- Full retained Playwright gate → 7/7 critical journeys passed after one earlier unrelated
-  library-menu/server retry.
-
-**Not verified / known gaps:**
-
-- Physical-iPhone touch comfort, VoiceOver pronunciation, and maximum Dynamic Type remain part of
-  the existing playback-control acceptance backlog.
-- The wider dirty tree belongs to the concurrent physical-iPhone/runtime work and remains uncommitted;
-  this task changed only the documented speed-control files and their shared retained journey.
-
-**Next agent should:**
-
-- Exercise repeated −/+ presses with VoiceOver on the physical iPhone, then continue the active
-  Fabric/Yoga crash and interaction-latency investigation.
 
 <!-- end handover log -->

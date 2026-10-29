@@ -1297,7 +1297,11 @@ the Session_State reset, and sets `isLoopMarkerActive: false` while leaving `isR
 untouched (Requirement 15.13). Because `useCustomAudioPlayer` derives its `AudioSource` from
 `currentAudioUri`, React renders the new markers and the new player source in the same commit; no
 frame pairs one song's markers with the other's audio (Requirement 15.2). While the player loads,
-`switchPhase === 'committing'` disables play/pause and the waveform shows the existing loading state.
+the whole non-guard switch transaction exposes its destination through `loadingMusicItemId`. The
+phone canvas keeps the old waveform mounted, dims it under a small "Loading <title>…" veil, blocks
+editing and transport, then fades the atomically applied destination into view. Reduce Motion makes
+the opacity transition immediate. This masks the necessary source swap without adding an artificial
+minimum delay or rendering one song's markers over another song's audio.
 
 The source snapshot needed for rollback (`currentMusicItemId`, URI, Persisted_Content, baseline
 fields, queue index, `currentTime`) is captured in memory before the commit. The queue and

@@ -1526,6 +1526,23 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       Markdown lint and Kanban contract checks pass.
     - _Requirements: 30.1_
 
+## Phase 12 — Post-acceptance physical polish
+
+- [x] 46. Make native playback transitions coherent
+  - [x] 46.1 Register the loaded Expo Audio player with iOS Now Playing, publish the library display
+    title, and synchronize remote play/pause/seek status back into BeatNote state.
+  - [x] 46.2 Keep the previous waveform mounted beneath a destination-labelled loading veil through
+    the atomic track-switch transaction, then fade in the committed song; honour Reduce Motion and
+    block canvas/dock interaction only while the transaction is active.
+  - [x] 46.3 Coalesce rapid playback-rate changes into one trailing native engine update while audio
+    is playing, but continue applying the persisted rate immediately for a new or paused source.
+  - [x] 46.4 Extend the retained phone journey to require the switch transition and to prove six
+    rapid speed increments result in one native playback-rate assignment.
+  - Verification evidence: `npx tsc --noEmit`, `git diff --check`, the focused phone journey, and
+    the full retained Playwright gate (7/7) pass. Physical Control Centre, audible rate switching,
+    and transition comfort remain to be checked on the iPhone.
+  - _Requirements: 15.2, 15.8, 18.5, 19.17, 25.2, 29.5, 30.10_
+
 ## Notes
 
 - Tasks marked with `*` are temporary test sub-tasks. They can be skipped for a faster path; when
@@ -1629,7 +1646,8 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     { "id": 79, "tasks": ["44.2", "44.3"] },
     { "id": 80, "tasks": ["44.4"] },
     { "id": 81, "tasks": ["45.1", "45.2", "45.3", "45.4"] },
-    { "id": 82, "tasks": ["45.5"] }
+    { "id": 82, "tasks": ["45.5"] },
+    { "id": 83, "tasks": ["46.1", "46.2", "46.3", "46.4"] }
   ]
 }
 ```

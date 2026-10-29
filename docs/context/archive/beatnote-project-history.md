@@ -3672,3 +3672,54 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Guide the human through physical-iPhone signing, installation, and the ordered V1 acceptance pass.
+
+### 2026-10-29 — Add precise playback-speed step buttons
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`
+**Kanban moved:** playback-speed decrement/increment controls → Done
+
+**Changed:**
+
+- Added 44×44 minus and plus controls on either side of the existing speed slider, reusing the
+  established 0.05× normalization so each press updates pitch-preserved playback immediately.
+- Inset the slider track, thumb, and range labels by 12 points inside their column so the thumb no
+  longer spills into either button's visual space at the 0.5× or 2× endpoint.
+- Disabled the controls at 0.5× and 2×, added explicit accessible labels/hints/states, and retained
+  the popup's interruptible 700-millisecond dwell so repeated stepping remains comfortable.
+- Updated the playback-speed contract and retained responsive dock journey for both directions and
+  lower/upper bound behavior.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed with the concurrent physical-iPhone work present.
+- Focused responsive dock journey → passed, including 1×→0.95×→1× stepping, disabled controls at
+  0.5× and 2×, measured thumb/button separation at both endpoints, presets, slider dragging,
+  dismissal/reopen, and portrait/landscape geometry.
+- Full retained Playwright gate → 7/7 critical journeys passed after one earlier unrelated
+  library-menu/server retry.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone touch comfort, VoiceOver pronunciation, and maximum Dynamic Type remain part of
+  the existing playback-control acceptance backlog.
+- The wider dirty tree belongs to the concurrent physical-iPhone/runtime work and remains uncommitted;
+  this task changed only the documented speed-control files and their shared retained journey.
+
+**Next agent should:**
+
+- Exercise repeated −/+ presses with VoiceOver on the physical iPhone, then continue the active
+  Fabric/Yoga crash and interaction-latency investigation.
+
+## Archived Done checklist items — 2026-10-29 rotation
+
+- [x] Reconcile the completed waveform progress/playhead visuals and approve the requirements,
+      architecture, and phased plan for automatic BPM, beat-anchor, and phrase-start assistance
+      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/`, `docs/context/archive/specs/wrapped-waveform-canvas/requirements.md`, `docs/context/archive/specs/wrapped-waveform-canvas/tasks.md`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Polish the V1 iPhone single-lane workflow by presenting the fixed `vocals` annotation lane
+      honestly without exposing misleading multi-layer naming controls
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/utils/exportEngineCore.ts`, `src/utils/layers.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Raise the landscape loop overview above the home-indicator gesture zone and make dance-count
+      guidance a persisted, default-off Settings option
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `tests/ui-components.spec.ts`</sub>
