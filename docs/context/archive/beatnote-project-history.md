@@ -3710,7 +3710,82 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - Exercise repeated −/+ presses with VoiceOver on the physical iPhone, then continue the active
   Fabric/Yoga crash and interaction-latency investigation.
 
+### 2026-10-29 — Stabilise physical-iPhone editing and playback rendering
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`, `6299b66`, `4f1b4da`
+**Kanban moved:** physical-iPhone crash, latency, and layout polish → In Progress (implementation verified locally; hardware retest pending)
+
+**Changed:**
+
+- Deferred annotation and library-rename store publication until their native iOS modals fully
+  dismiss, and removed the redundant whole-studio keyboard-avoidance layout mutation implicated by
+  three physical-device Fabric/Yoga ownership assertion crashes.
+- Reduced playback-driven React work to the active wrapped row, playhead overlay, and time probe;
+  made viewport following imperative, memoized row gestures, slowed visual sampling to 10 Hz, and
+  stopped audio-status events from re-rendering the complete studio tree.
+- Aligned the portrait/landscape toolbar with the waveform and control rail, restored bottom rail
+  breathing room without shrinking touch targets, and moved the Import Audio arrow inward.
+- Retained browser coverage for annotation persistence, rename/rename-back, toolbar geometry, dock
+  clearance, and icon geometry; the concurrent speed-step implementation was included so its
+  already-added retained assertions remain self-contained at this commit.
+- Kept one stable mobile body/waveform tree across rotation so decoded peaks are no longer discarded
+  and replaced by placeholder lines while the landscape hierarchy remounts; waveform sizing now
+  follows one batched measured-layout update instead of transient screen dimensions.
+- Moved loop drag/resize previews out of the global project store, coalesced them to animation
+  frames, and commit the valid range once on release so wrapped-row geometry and persistence do not
+  rebuild for every finger-move event.
+- Suppressed only React playhead/time publication while a loop gesture is active so audio playback
+  and loop-boundary decisions continue without competing SVG renders, then catch up on release.
+- Measure the outer landscape rail and assign explicit equal heights to all ordinary control rows,
+  with Play exactly twice that height and vertically centred; retained coverage now requires all
+  twelve ordinary controls to match within one pixel.
+- Corrected the playback-visual suppression boundary from touch-down to activated pan, so pressing
+  and holding a loop range without moving no longer freezes the playhead.
+
+**Verified:**
+
+- Three iPhone crash reports symbolicated to the same
+  `YogaLayoutableShadowNode::layout` owner assertion during modal/text-input tree changes.
+- `npx tsc --noEmit`, version consistency, empty permanent unit gate, and `git diff --check` → passed.
+- Full retained Playwright gate → 7/7 journeys passed after the final audio-status optimization.
+- Physical iPhone 15 Pro Max → song rename completed without exit; marker annotation saved and
+  reopened with its text intact. No new BeatNote crash report was produced afterward.
+- A later reopen failure was traced to Metro no longer listening on port 8081, not an app crash;
+  Metro was restarted, the wired payload was relaunched, 1,478 modules bundled, and both the app
+  process and packager were confirmed live.
+- Physical follow-up found ordinary waveform and transport response improved, while loop dragging
+  and rotation still exposed lag; the follow-up implementation passed the two focused responsive
+  journeys and the full retained Playwright gate (7/7), then bundled and launched on the iPhone.
+- A second physical follow-up confirmed loop management was substantially better but still lagged
+  during playback and showed over-tall landscape marker rows. The final focused journeys and full
+  retained Playwright gate passed again (7/7); device relaunch was deferred because iOS reported the
+  connected phone locked.
+- Long-press regression coverage now plays audio while holding a stationary loop range and requires
+  the time probe to continue advancing. Landscape coverage also requires Play to stay within
+  1.9–2.1× ordinary height and share the rail's vertical centre. Both focused journeys passed, and
+  the corrected bundle was relaunched successfully on the physical iPhone.
+- The follow-up exact-height implementation passed the focused phone-dock journey, TypeScript,
+  `git diff --check`, and the full retained Playwright gate (7/7); physical inspection remains open.
+
+**Not verified / known gaps:**
+
+- Physical input-to-visual latency and final portrait/landscape comfort still require hands-on
+  confirmation. Debug/Metro latency must not be treated as Release/TestFlight performance evidence.
+- Broader Instruments/Hermes profiling, long-song memory evidence, and RN/Expo upgrade evaluation
+  remain suitable for a dedicated performance specification rather than speculative V1 rewrites.
+- The shared tree still contains unrelated uncommitted BPM/native-test, agent-state, and app-icon
+  work; the listed commits isolate the completed physical-iPhone changes from that concurrent state.
+
+**Next agent should:**
+
+- Retest stationary loop holds, loop editing during playback, and the exact 1:2 centred landscape
+  rail geometry; then collect Release/TestFlight evidence separately from Metro overhead.
+
 ## Archived Done checklist items — 2026-10-29 rotation
+
+- [x] Restore physical-iPhone launch under the iOS 27 SDK with a reproducible UIKit scene-lifecycle
+      bridge while preserving Expo's launch bootstrap and local dev-client URL delivery
+      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `app.json`, `plugins/withIosSceneLifecycle.js`</sub>
 
 - [x] Reconcile the completed waveform progress/playhead visuals and approve the requirements,
       architecture, and phased plan for automatic BPM, beat-anchor, and phrase-start assistance

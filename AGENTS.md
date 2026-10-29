@@ -53,7 +53,7 @@ potentially adding a hybrid path later.
 | Stem separation | Deferred; types, store fields, and cache preserved |
 | Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
-| iOS UI tests | 8 critical native integrations retained; focused V1 launch/settings, Open_In, and native BPM checks pass |
+| iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
 | E2E spec files | 2 (Playwright, 7 critical journeys) |
 | Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
 
@@ -62,10 +62,10 @@ potentially adding a hybrid path later.
 1. Retest iOS Now Playing/Control Centre play-pause-seek, the atomic song-switch veil, and rapid
    playback-speed stepping on the physical iPhone; queue switching, rename, annotation, loop, dock,
    and portrait/landscape geometry have passed the current Debug/Metro device pass.
-2. Finish `automatic-bpm-detection` runtime acceptance: native cancellation latency, 150-second
-   peak memory, browser long-task/long-song measurements, and representative real-song/physical-
-   device evidence. Web production wiring, synthetic native accuracy, and Phases 2–7 are
-   implemented; downbeat estimation remains deliberately open.
+2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
+   and representative real-song/physical-device evidence remain. Native cancellation/retry,
+   150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
+   downbeat estimation remains deliberately open.
 3. Complete `local-music-library-queue` physical-device acceptance (Task 44.4): Files and
    third-party Open_In, the provisional in-place-opening decision, backup/restore and relink,
    near-full storage, interruptions, force-quit flushing, VoiceOver, large text, and rapid queue use.
@@ -86,7 +86,7 @@ potentially adding a hybrid path later.
 | Agent / Role | Owns | Current assignment |
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
-| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Drafted the Phase 4.1 detector/test in `session-7adcd112-5f2d-43cf-9763-4af6440a1441`; the turn exhausted its token limit, then the orchestrator reviewed and repaired the implementation |
+| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Reviewed native runtime-test options in `session-4c09729c-9534-4122-a787-b1af8277f26a`; the orchestrator retained end-to-end XCTest because the Expo Module definition is not a typed direct-call test API |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -106,10 +106,11 @@ potentially adding a hybrid path later.
       command/state synchronization, audible switching, and Release-build latency remain open
 - [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
-      exports, retained browser flow, and octave-resolved native synthetic XCTest are implemented;
-      measured long-song memory/cancellation, real-song accuracy, and physical acceptance remain
+      exports, retained browser flow, octave-resolved native synthetic XCTest, cancellation/retry,
+      and 150-second simulator memory are implemented; browser measurements, real-song accuracy,
+      and physical acceptance remain
 - [ ] Complete `local-music-library-queue` physical-device acceptance (Task 44.4); implementation,
-      temporary durability/property checks, all six browser journeys, the isolated seven-case native
+      temporary durability/property checks, all seven browser journeys, the isolated ten-case native
       suite, simulator rotation, and maximum Dynamic Type review are complete
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
@@ -120,6 +121,10 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Complete simulator runtime automation for automatic BPM cancellation and 150-second memory,
+      and keep the iOS project sheet mounted across Files picker callbacks
+      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/tasks.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `scripts/ios-ui-test.js`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 - [x] Pass physical-iPhone acceptance for `playback-marker-control-dock` and `loop-range-overview`
       (VoiceOver deliberately skipped) and archive both specs
@@ -134,10 +139,6 @@ potentially adding a hybrid path later.
 - [x] Add bounded 0.05× decrement/increment buttons beside an inset playback-speed slider with 44×44
       targets, clear endpoint separation, accessible states, repeated-step dwell, and responsive coverage
       <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/requirements.md`, `docs/context/archive/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Restore physical-iPhone launch under the iOS 27 SDK with a reproducible UIKit scene-lifecycle
-      bridge while preserving Expo's launch bootstrap and local dev-client URL delivery
-      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `app.json`, `plugins/withIosSceneLifecycle.js`</sub>
 
 ---
 
@@ -215,6 +216,45 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-29 — Complete native BPM runtime automation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `b12b240`, `3ce9025`
+**Kanban moved:** automatic-BPM simulator runtime automation → Done; hardware/browser acceptance remains In Progress
+
+**Changed:**
+
+- Added an explicit accessible cancel/retry state and a DEBUG-only cancellable delay so the retained
+  UI journey proves a cancelled native request releases the single-flight queue without changing BPM
+  or anchor state.
+- Added a measured 150-second native journey with distinct warm-up/measured fixtures and bounded
+  XCTest memory/clock metrics; hardened the Files fixture picker as the retained suite grew to ten.
+- Kept the iOS project page sheet mounted while CSV/relink document pickers resolve, repaired stale
+  launch/export/landscape assertions, and dismissed the share sheet so XCTest finalizes cleanly.
+- Retained the concurrent Now Playing cleanup fix that avoids clearing controls on an already
+  released Expo Audio shared object.
+
+**Verified:**
+
+- Native cancellation/retry → passed; cancellation exposed an explicit no-change state and retry
+  produced a suggestion before the injected ten-second delay could expire.
+- 150-second fixture → suggestion in 9.414 seconds at 261,950.992 kB peak physical app memory
+  (about 255.8 MiB); a repeat measured 252,726.752 kB in 9.430 seconds.
+- All ten retained native cases have passing focused result bundles, including CSV/share,
+  background playback, landscape controls, and Open In. Full retained Playwright gate → 7/7.
+- `npx tsc --noEmit`, JavaScript syntax, Swift parse, and `git diff --check` → passed.
+
+**Not verified / known gaps:**
+
+- Browser long-task/long-song/import-latency measurements, representative real-song accuracy,
+  physical-device heat/battery/background/Bluetooth behavior, and downbeat estimation remain open.
+- Now Playing cleanup has static/browser evidence only; the current Control Centre and physical
+  command/state retest remains the top hardware task.
+
+**Next agent should:**
+
+- Collect the browser performance measurements, then run representative real-song BPM and playback
+  coexistence acceptance on the physical iPhone.
 
 ### 2026-10-29 — Wire Control Centre and smooth native track changes
 
@@ -356,76 +396,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Run the Task 44.4 physical-device matrix (Files and third-party Open In, backup/restore and
   relink, near-full storage, interruptions, VoiceOver); then close the spec.
-
-### 2026-10-29 — Stabilise physical-iPhone editing and playback rendering
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `ec4d9c1`, `46bacc7`, `28dcbb9`, `6299b66`, `4f1b4da`
-**Kanban moved:** physical-iPhone crash, latency, and layout polish → In Progress (implementation verified locally; hardware retest pending)
-
-**Changed:**
-
-- Deferred annotation and library-rename store publication until their native iOS modals fully
-  dismiss, and removed the redundant whole-studio keyboard-avoidance layout mutation implicated by
-  three physical-device Fabric/Yoga ownership assertion crashes.
-- Reduced playback-driven React work to the active wrapped row, playhead overlay, and time probe;
-  made viewport following imperative, memoized row gestures, slowed visual sampling to 10 Hz, and
-  stopped audio-status events from re-rendering the complete studio tree.
-- Aligned the portrait/landscape toolbar with the waveform and control rail, restored bottom rail
-  breathing room without shrinking touch targets, and moved the Import Audio arrow inward.
-- Retained browser coverage for annotation persistence, rename/rename-back, toolbar geometry, dock
-  clearance, and icon geometry; the concurrent speed-step implementation was included so its
-  already-added retained assertions remain self-contained at this commit.
-- Kept one stable mobile body/waveform tree across rotation so decoded peaks are no longer discarded
-  and replaced by placeholder lines while the landscape hierarchy remounts; waveform sizing now
-  follows one batched measured-layout update instead of transient screen dimensions.
-- Moved loop drag/resize previews out of the global project store, coalesced them to animation
-  frames, and commit the valid range once on release so wrapped-row geometry and persistence do not
-  rebuild for every finger-move event.
-- Suppressed only React playhead/time publication while a loop gesture is active so audio playback
-  and loop-boundary decisions continue without competing SVG renders, then catch up on release.
-- Measure the outer landscape rail and assign explicit equal heights to all ordinary control rows,
-  with Play exactly twice that height and vertically centred; retained coverage now requires all
-  twelve ordinary controls to match within one pixel.
-- Corrected the playback-visual suppression boundary from touch-down to activated pan, so pressing
-  and holding a loop range without moving no longer freezes the playhead.
-
-**Verified:**
-
-- Three iPhone crash reports symbolicated to the same
-  `YogaLayoutableShadowNode::layout` owner assertion during modal/text-input tree changes.
-- `npx tsc --noEmit`, version consistency, empty permanent unit gate, and `git diff --check` → passed.
-- Full retained Playwright gate → 7/7 journeys passed after the final audio-status optimization.
-- Physical iPhone 15 Pro Max → song rename completed without exit; marker annotation saved and
-  reopened with its text intact. No new BeatNote crash report was produced afterward.
-- A later reopen failure was traced to Metro no longer listening on port 8081, not an app crash;
-  Metro was restarted, the wired payload was relaunched, 1,478 modules bundled, and both the app
-  process and packager were confirmed live.
-- Physical follow-up found ordinary waveform and transport response improved, while loop dragging
-  and rotation still exposed lag; the follow-up implementation passed the two focused responsive
-  journeys and the full retained Playwright gate (7/7), then bundled and launched on the iPhone.
-- A second physical follow-up confirmed loop management was substantially better but still lagged
-  during playback and showed over-tall landscape marker rows. The final focused journeys and full
-  retained Playwright gate passed again (7/7); device relaunch was deferred because iOS reported the
-  connected phone locked.
-- Long-press regression coverage now plays audio while holding a stationary loop range and requires
-  the time probe to continue advancing. Landscape coverage also requires Play to stay within
-  1.9–2.1× ordinary height and share the rail's vertical centre. Both focused journeys passed, and
-  the corrected bundle was relaunched successfully on the physical iPhone.
-- The follow-up exact-height implementation passed the focused phone-dock journey, TypeScript,
-  `git diff --check`, and the full retained Playwright gate (7/7); physical inspection remains open.
-
-**Not verified / known gaps:**
-
-- Physical input-to-visual latency and final portrait/landscape comfort still require hands-on
-  confirmation. Debug/Metro latency must not be treated as Release/TestFlight performance evidence.
-- Broader Instruments/Hermes profiling, long-song memory evidence, and RN/Expo upgrade evaluation
-  remain suitable for a dedicated performance specification rather than speculative V1 rewrites.
-- The shared tree still contains unrelated uncommitted BPM/native-test, agent-state, and app-icon
-  work; the listed commits isolate the completed physical-iPhone changes from that concurrent state.
-
-**Next agent should:**
-
-- Retest stationary loop holds, loop editing during playback, and the exact 1:2 centred landscape
-  rail geometry; then collect Release/TestFlight evidence separately from Metro overhead.
 
 <!-- end handover log -->
