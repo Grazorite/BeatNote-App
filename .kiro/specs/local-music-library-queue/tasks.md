@@ -106,7 +106,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
 
 ### Phase 1 — Schema, domain types, and pure utilities
 
-- [ ] 3. Define the typed domain model
+- [x] 3. Define the typed domain model
   - [x] 3.1 Create the new type modules and constants
     - Create `src/types/library.ts` (`SourceProviderId`, `SourceIdentity`, `PlaybackCapabilities`,
       `Collection`, `IMPORTED_MUSIC_COLLECTION_ID`, `MusicItem` with `removed` and `legacy`,
@@ -149,12 +149,12 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 11.4, 11.6_
 
-  - [ ]* 4.3 Write property test for fingerprint canonicity
+  - [x]* 4.3 Write property test for fingerprint canonicity — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 1: Fingerprint is canonical and ignores session state**
     - **Validates: Requirements 11.1, 11.2, 11.4, 11.6**
     - Temporary: `tests/unit/contentFingerprint.test.ts`.
 
-  - [ ]* 4.4 Write property test for persisted-content round-trip
+  - [x]* 4.4 Write property test for persisted-content round-trip — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 2: Persisted content round-trips with unknown fields**
     - **Validates: Requirements 1.8, 11.5, 16.15**
     - Temporary: `tests/unit/contentFingerprint.test.ts`.
@@ -167,7 +167,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 1.9_
 
-  - [ ]* 5.2 Write property test for invalid-record isolation
+  - [x]* 5.2 Write property test for invalid-record isolation — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 3: Invalid records are isolated**
     - **Validates: Requirements 1.9**
     - Temporary: `tests/unit/recordValidation.test.ts`.
@@ -185,22 +185,22 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 12.15, 13.1, 13.2, 13.3, 13.4, 13.7, 14.1, 14.2, 14.3, 16.1, 16.2, 16.8, 16.9, 16.12, 17.4, 17.5_
 
-  - [ ]* 6.2 Write property test for song-load resolution precedence
+  - [x]* 6.2 Write property test for song-load resolution precedence — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 14: Song-load resolution precedence**
     - **Validates: Requirements 12.15, 13.1, 13.2, 13.3, 13.4, 13.7**
     - Temporary: `tests/unit/draftResolution.test.ts`.
 
-  - [ ]* 6.3 Write property test for the guard decision
+  - [x]* 6.3 Write property test for the guard decision — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 15: Guard prompts only for dirty drafts**
     - **Validates: Requirements 14.1, 14.2, 14.3**
     - Temporary: `tests/unit/draftResolution.test.ts`.
 
-  - [ ]* 6.4 Write property test for save routing and revisions
+  - [x]* 6.4 Write property test for save routing and revisions — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 19: Save routing and revisions**
     - **Validates: Requirements 16.1, 16.2, 16.4, 16.8, 16.9, 16.12**
     - Temporary: `tests/unit/draftResolution.test.ts` (it targets `planSave`).
 
-- [ ] 7. Queue order, shuffle, navigation, and library sort/search
+- [x] 7. Queue order, shuffle, navigation, and library sort/search
   - [x] 7.1 Implement `src/utils/queueOrder.ts`
     - `compareLibraryItems` / `sortLibraryItems` cover Title (`Intl.Collator`, base sensitivity),
       Recently Added, Recently Played (nulls last), and Duration (unknown last), with a Music_Item_ID
@@ -217,32 +217,32 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 10.7, 10.8, 15.5, 18.1, 18.2, 18.3, 18.7, 19.2, 19.3, 19.4, 19.5, 19.6, 19.7, 19.8, 19.9, 19.12, 19.13, 19.14, 19.16, 20.1, 20.5, 20.6_
 
-  - [ ]* 7.2 Write property test for sort and search determinism
+  - [x]* 7.2 Write property test for sort and search determinism — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 11: Sort and search are deterministic**
     - **Validates: Requirements 10.7, 10.8**
     - Temporary: `tests/unit/librarySort.test.ts`.
 
-  - [ ]* 7.3 Write property test for queue snapshot construction
+  - [x]* 7.3 Write property test for queue snapshot construction — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 21: Queue build captures a snapshot**
     - **Validates: Requirements 18.1, 18.2, 18.3**
     - Temporary: `tests/unit/queueOrder.test.ts`.
 
-  - [ ]* 7.4 Write property test for queue maintenance
+  - [x]* 7.4 Write property test for queue maintenance — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 22: Queue maintenance preserves order and the current item**
     - **Validates: Requirements 18.7, 20.1, 20.5**
     - Temporary: `tests/unit/queueOrder.test.ts`.
 
-  - [ ]* 7.5 Write property test for navigation targets
+  - [x]* 7.5 Write property test for navigation targets — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 23: Navigation targets**
     - **Validates: Requirements 19.2, 19.3, 19.4, 19.5, 19.6, 19.7, 19.8, 19.9, 19.16**
     - Temporary: `tests/unit/queueOrder.test.ts`.
 
-  - [ ]* 7.6 Write property test for pinned shuffle
+  - [x]* 7.6 Write property test for pinned shuffle — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 24: Shuffle pins the current item and restores the snapshot**
     - **Validates: Requirements 19.12, 19.13, 19.14**
     - Temporary: `tests/unit/queueOrder.test.ts`, using a seeded `random`.
 
-  - [ ]* 7.7 Write property test for Skip traversal
+  - [x]* 7.7 Write property test for Skip traversal — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 18: Skip visits each entry at most once**
     - **Validates: Requirements 15.5, 20.6**
     - Temporary: `tests/unit/queueOrder.test.ts` (it targets `nextSkipCandidate`; Task 28.3
@@ -263,17 +263,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 10.13, 10.14, 16.5, 16.6, 16.7, 21.1, 21.2, 21.3, 23.3, 24.5_
 
-  - [ ]* 8.2 Write property test for name validation and suggestions
+  - [x]* 8.2 Write property test for name validation and suggestions — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 20: Name validation and unique suggestions**
     - **Validates: Requirements 10.13, 10.14, 16.5, 16.6, 16.7**
     - Temporary: `tests/unit/projectNames.test.ts`.
 
-  - [ ]* 8.3 Write property test for Project_Manager grouping
+  - [x]* 8.3 Write property test for Project_Manager grouping — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 25: Project Manager grouping**
     - **Validates: Requirements 21.1, 21.2, 21.3**
     - Temporary: `tests/unit/projectSections.test.ts`.
 
-  - [ ]* 8.4 Write property test for export filenames
+  - [x]* 8.4 Write property test for export filenames — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 27: Export filenames are safe**
     - **Validates: Requirements 23.3**
     - Temporary: `tests/unit/projectNames.test.ts`.
@@ -290,12 +290,12 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 22.1, 22.3, 22.4, 22.5, 22.7, 22.9, 22.12_
 
-  - [ ]* 9.2 Write property test for replace then undo
+  - [x]* 9.2 Write property test for replace then undo — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 26: CSV replace then undo restores exactly**
     - **Validates: Requirements 22.7, 22.9, 22.12**
     - Temporary: `tests/unit/csvReplace.test.ts`.
 
-- [ ] 10. Import and migration decisions
+- [x] 10. Import and migration decisions
   - [x] 10.1 Implement `src/utils/importDecisions.ts`
     - `validateImportRequest(name, reportedBytes, availableBytes)` checks only the final extension
       (case-insensitive), the 0 < size ≤ 500 MB range, and the free-space margin. It skips the
@@ -320,27 +320,27 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 28.2, 28.3, 28.4, 28.5, 28.8, 28.9, 28.10, 28.11, 28.13, 27.6_
 
-  - [ ]* 10.3 Write property test for pre-copy validation
+  - [x]* 10.3 Write property test for pre-copy validation — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 5: Import validation rejects before copying**
     - **Validates: Requirements 3.2, 3.3, 3.5, 3.6, 7.8**
     - Temporary: `tests/unit/importPipeline.test.ts`.
 
-  - [ ]* 10.4 Write property test for the duplicate decision
+  - [x]* 10.4 Write property test for the duplicate decision — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 7: Duplicate decision**
     - **Validates: Requirements 4.1, 4.4, 4.5**
     - Temporary: `tests/unit/importPipeline.test.ts`.
 
-  - [ ]* 10.5 Write property test for the relink decision table
+  - [x]* 10.5 Write property test for the relink decision table — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 8: Relink decision table**
     - **Validates: Requirements 5.6, 5.7, 5.8, 5.9, 28.6**
     - Temporary: `tests/unit/relinkDecision.test.ts`.
 
-  - [ ]* 10.6 Write property test for orphan selection
+  - [x]* 10.6 Write property test for orphan selection — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 9: Orphan sweep never deletes referenced files**
     - **Validates: Requirements 6.3**
     - Temporary: `tests/unit/orphanSweep.test.ts`.
 
-  - [ ]* 10.7 Write property test for non-destructive migration planning
+  - [x]* 10.7 Write property test for non-destructive migration planning — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 29: Migration is non-destructive and associates correctly**
     - **Validates: Requirements 28.2, 28.3, 28.4, 28.5, 28.9, 28.10, 28.11, 28.13**
     - Temporary: `tests/unit/migrationPlan.test.ts`.
@@ -377,17 +377,17 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 26.5, 26.6_
 
-  - [ ]* 12.4 Write property test for write serialisation
+  - [x]* 12.4 Write property test for write serialisation — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 13: Persistence and import queues are serialised** (write-queue half)
     - **Validates: Requirements 12.8**
     - Temporary: `tests/unit/persistencePipeline.test.ts` with a fake AsyncStorage.
 
-  - [ ]* 12.5 Write property test for read-failure write blocking
+  - [x]* 12.5 Write property test for read-failure write blocking — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 28: Read failures block writes**
     - **Validates: Requirements 26.2, 26.3, 26.5**
     - Temporary: `tests/unit/persistencePipeline.test.ts`.
 
-- [ ] 13. Implement typed repositories in `src/features/library/repositories.ts`
+- [x] 13. Implement typed repositories in `src/features/library/repositories.ts`
   - [x] 13.1 Add the library, prefs, queue, and journal repositories
     - Read and write `beatnote.library.v1`, `beatnote.library.prefs.v1`, `beatnote.queue.v1`, and
       `beatnote.migration.v1`, each through `recordValidation` and the pipeline. Invalid records are
@@ -410,7 +410,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 2.3, 26.1, 26.3, 26.4, 27.5_
 
-  - [ ] 13.4 Freeze the legacy `beatnote_projects` value and retire its whole-value writers
+  - [x] 13.4 Freeze the legacy `beatnote_projects` value and retire its whole-value writers
     - Add a read-only legacy reader for migration. In `src/utils/projectManager.ts`, retire the
       `setStoredProjects`-based save, rename, and delete paths so V1.2 never writes
       `beatnote_projects`. Keep `withProjectDefaults`, `normalizePersistedLoop`, and
@@ -420,15 +420,18 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       Save, Rename, and Delete actions remain functional between implementation commits.
     - Verification evidence: `npx tsc --noEmit` clean; a project-wide search finds no remaining
       writer of `beatnote_projects`.
+    - Removed `setStoredProjects`, `saveProject`, `deleteProject`, and `renameProject` from
+      `ProjectManager`; the read-only accessors and normalisers remain. `tsc` and the 7 retained
+      Playwright journeys pass.
     - _Requirements: 26.3, 28.11_
 
-  - [ ]* 13.5 Write unit tests for index reconcile and legacy freeze
+  - [x]* 13.5 Write unit tests for index reconcile and legacy freeze — dropped per testing-strategy.md (no permanent unit tests)
     - A crash between project and index writes self-heals. The legacy key is byte-identical after
       every V1.2 operation. Temporary: `tests/unit/repositories.test.ts`.
     - _Requirements: 26.3, 26.4_
 
-- [ ] 14. Implement the journaled migration runner
-  - [ ] 14.1 Implement `src/features/library/migration.ts` with an injected importer
+- [x] 14. Implement the journaled migration runner
+  - [x] 14.1 Implement `src/features/library/migration.ts` with an injected importer
     - Follow the design's algorithm: read the legacy value (blocking on read failure), create or
       resume the journal, and assign and persist each entry's `projectId` before any dependent
       write. Skip newer versions as `skippedNewer`. Import resolvable URIs through an injected
@@ -440,6 +443,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - _Requirements: 28.1, 28.2, 28.3, 28.4, 28.5, 28.9, 28.10, 28.11, 28.13, 28.15_
     - Runner implementation and focused interruption checks are complete. Keep this checkbox open
       until Task 13.4 freezes `beatnote_projects` during Task 26.7's replacement-service cutover.
+    - Closed with Task 13.4: the legacy writers are removed.
 
   - [x] 14.2 Add interruption-safe resume
     - On resume, `importing` entries delete their `stagedRelativePath` when no Music_Item
@@ -455,13 +459,13 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
     - Verification evidence: `npx tsc --noEmit` clean.
     - _Requirements: 28.10, 28.12_
 
-  - [ ]* 14.4 Write property test for migration idempotence and resume
+  - [x]* 14.4 Write property test for migration idempotence and resume — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 30: Migration is idempotent and resumable**
     - **Validates: Requirements 28.7, 28.8**
     - Temporary: `tests/unit/migrationPlan.test.ts`, with a fake importer and interruption injected
       at every step.
 
-- [ ] 15. Checkpoint — persistence and migration
+- [x] 15. Checkpoint — persistence and migration
   - Run `npx tsc --noEmit`, `npm run test:unit`, `PLAYWRIGHT_PORT=8082 npm test`, and
     `git diff --check`. The existing journeys must still pass, because no UI has changed yet.
   - Ensure all tests pass, ask the user if questions arise.
@@ -576,12 +580,12 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       Blob-backed adapter path.
     - _Requirements: 28.2, 28.4, 28.15_
 
-  - [ ]* 19.5 Write property test for pre-commit failure cleanup
+  - [x]* 19.5 Write property test for pre-commit failure cleanup — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 6: Pre-commit failure or cancellation leaves no trace**
     - **Validates: Requirements 3.4, 3.7, 3.8, 3.10, 4.6, 6.5**
     - Temporary: `tests/unit/importPipeline.test.ts` with a fake `AudioStoreAdapter`.
 
-  - [ ]* 19.6 Write property test for import serialisation
+  - [x]* 19.6 Write property test for import serialisation — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 13: Persistence and import queues are serialised** (import-queue half)
     - **Validates: Requirements 3.17**
     - Temporary: `tests/unit/importPipeline.test.ts`.
@@ -649,7 +653,7 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       picker/project loaders write URI and filename through the temporary store-backed shim.
     - _Requirements: 1.7, 15.2_
 
-  - [ ]* 21.6 Write property test for the library identity and retention invariant
+  - [x]* 21.6 Write property test for the library identity and retention invariant — dropped per testing-strategy.md (no permanent unit tests)
     - **Property 4: Library identity and retention invariant**
     - **Validates: Requirements 1.10, 2.1, 2.2, 2.3, 2.4, 2.5, 5.11, 24.1, 24.7**
     - Temporary: `tests/unit/libraryReducer.test.ts` against a fresh `create()` store.
@@ -1427,9 +1431,11 @@ new native case `testOpenInAudioImportsIntoLibrary`. No new Playwright spec file
       `python3 ~/.kiro/skills/global-project-orchestrator/references/mdlint.py` on every changed
       Markdown file.
     - Verification evidence: each command's result recorded in the handover log.
-    - Version `1.0.0`, TypeScript, the empty permanent unit gate, and all six Playwright journeys
+    - Version `1.0.0`, TypeScript, the empty permanent unit gate, and all seven Playwright journeys
       pass. All five touched focused native cases pass. The aggregate runner now reinstalls and
-      restages before each retained journey to isolate Files/provider state; all seven cases pass.
+      restages before each retained journey to isolate Files/provider state; the retained suite
+      has ten XCTest cases (seven at the time of this run; the additional automatic-BPM,
+      background-audio, and landscape cases are tracked by their own specs).
     - _Requirements: 30.1, 30.2, 30.3, 30.4, 30.5, 30.8_
 
   - [x] 44.2 Simulator visual review
