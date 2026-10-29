@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import { errorModalStyles as styles } from '../../../styles/components/common/errorModal';
+import AppModal from './AppModal';
 
 interface ErrorModalProps {
   visible: boolean;
@@ -12,7 +13,7 @@ interface ErrorModalProps {
 
 const ErrorModal: React.FC<ErrorModalProps> = ({ visible, title, message, onClose }) => {
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -29,7 +30,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({ visible, title, message, onClos
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

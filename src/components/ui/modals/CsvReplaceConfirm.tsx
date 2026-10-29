@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -13,6 +12,7 @@ import { csvReplaceConfirmStyles as styles } from '../../../styles/components/mo
 import type { CsvImportPreview } from '../../../types/csvImport';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 
 interface CsvReplaceConfirmProps {
   visible: boolean;
@@ -78,7 +78,7 @@ const CsvReplaceConfirm: React.FC<CsvReplaceConfirmProps> = ({
   const targetName = projectName?.trim() || 'Unsaved draft';
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -189,7 +189,7 @@ const CsvReplaceConfirm: React.FC<CsvReplaceConfirmProps> = ({
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

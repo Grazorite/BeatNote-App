@@ -44,16 +44,35 @@ export const annotationEditorModalStyles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  draftMeta: {
+    minHeight: dimensions.touchTarget.minHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  clearButton: {
+    minHeight: dimensions.touchTarget.minHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 4,
+  },
+  clearButtonText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   count: {
+    marginLeft: 'auto',
     color: colors.textSecondary,
     fontSize: 11,
     textAlign: 'right',
-    marginTop: 6,
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 14,
+    marginTop: 6,
   },
   button: {
     flex: 1,

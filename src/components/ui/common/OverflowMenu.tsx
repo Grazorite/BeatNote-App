@@ -4,7 +4,6 @@ import {
   AccessibilityActionInfo,
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -20,6 +19,7 @@ import { dimensions } from '../../../styles/common';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { BeatNoteIcon } from '../../icons';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from './AppModal';
 
 export interface OverflowMenuAction {
   name: string;
@@ -156,7 +156,7 @@ const OverflowMenu: React.FC<OverflowMenuProps> = ({
       >
         <BeatNoteIcon name="more" size={20} />
       </TouchableOpacity>
-      <Modal
+      <AppModal
         visible={visible}
         transparent
         animationType="none"
@@ -214,7 +214,7 @@ const OverflowMenu: React.FC<OverflowMenuProps> = ({
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </AppModal>
     </>
   );
 };

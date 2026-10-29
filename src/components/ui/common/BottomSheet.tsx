@@ -4,7 +4,6 @@ import {
   findNodeHandle,
   Keyboard,
   KeyboardEvent,
-  Modal,
   Platform,
   Text,
   TouchableOpacity,
@@ -27,6 +26,7 @@ import {
   bottomSheetKeyboardStyle,
   bottomSheetStyles as styles,
 } from '../../../styles/components/common/bottomSheet';
+import AppModal from './AppModal';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { resolveSheetRelease, type SheetReleaseTarget } from '../../../utils/sheetDetent';
 import { BeatNoteIcon } from '../../icons';
@@ -250,17 +250,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="none"
       presentationStyle="overFullScreen"
-      supportedOrientations={[
-        'portrait',
-        'portrait-upside-down',
-        'landscape-left',
-        'landscape-right',
-      ]}
       onRequestClose={requestClose}
       onShow={() => requestAnimationFrame(() => focusNode(titleRef.current))}
       accessibilityViewIsModal
@@ -335,7 +329,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           </Animated.View>
         </View>
       </GestureHandlerRootView>
-    </Modal>
+    </AppModal>
   );
 };
 

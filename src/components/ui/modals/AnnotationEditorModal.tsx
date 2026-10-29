@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { SelectedMarker } from '../../../hooks/useStudioStore';
 import { annotationEditorModalStyles as styles } from '../../../styles/components/modals/annotationEditorModal';
 import { colors } from '../../../styles/common';
+import BeatNoteIcon from '../../icons/BeatNoteIcon';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import AnnotationSuggestionChips from '../controls/AnnotationSuggestionChips';
+import AppModal from '../common/AppModal';
 
 interface AnnotationEditorModalProps {
   visible: boolean;
@@ -38,7 +40,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
   }, [initialText, visible]);
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -70,7 +72,22 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
             testID="annotation-editor-input"
           />
           <AnnotationSuggestionChips value={draft} onChange={setDraft} maxLength={500} />
-          <Text style={styles.count}>{draft.length}/500</Text>
+          <View style={styles.draftMeta}>
+            {draft.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setDraft('')}
+                accessibilityRole="button"
+                accessibilityLabel="Clear annotation text"
+                accessibilityHint="Clears the draft. Save to remove the annotation from this marker."
+                testID="clear-annotation-text"
+              >
+                <BeatNoteIcon name="clear" size={15} color={colors.textSecondary} />
+                <Text style={styles.clearButtonText}>Clear text</Text>
+              </TouchableOpacity>
+            )}
+            <Text style={styles.count}>{draft.length}/500</Text>
+          </View>
           <View style={styles.actions}>
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel}>
               <Text style={styles.buttonText}>Cancel</Text>
@@ -81,7 +98,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
           </View>
         </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </AppModal>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
@@ -25,6 +25,7 @@ import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
+import AppModal from '../ui/common/AppModal';
 
 const Sidebar: React.FC = () => {
   const isSidebarCollapsed = useStudioStore(state => state.isSidebarCollapsed);
@@ -84,7 +85,7 @@ const Sidebar: React.FC = () => {
 
   if (isMobile) {
     return (
-      <Modal
+      <AppModal
         visible={!isSidebarCollapsed}
         transparent
         animationType="none"
@@ -163,7 +164,7 @@ const Sidebar: React.FC = () => {
             />
           </Animated.View>
         </Animated.View>
-      </Modal>
+      </AppModal>
     );
   }
 

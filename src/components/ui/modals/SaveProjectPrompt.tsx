@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Text,
   TextInput,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import { colors } from '../../../styles/common';
 import { saveProjectPromptStyles as styles } from '../../../styles/components/modals/saveProjectPrompt';
 import { validateProjectName } from '../../../utils/projectNames';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 
 interface SaveProjectPromptProps {
   visible: boolean;
@@ -68,7 +68,7 @@ const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
   }, [onConfirm, submitting, validation]);
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -136,7 +136,7 @@ const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

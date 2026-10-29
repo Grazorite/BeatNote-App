@@ -3,7 +3,6 @@ import {
   AccessibilityInfo,
   Alert,
   findNodeHandle,
-  Modal,
   Text,
   TouchableOpacity,
   View,
@@ -16,6 +15,7 @@ import {
 import { saveAsNew, saveCurrent, type SaveResult } from '../../../features/library/projectService';
 import { switchGuardDialogStyles as styles } from '../../../styles/components/modals/switchGuardDialog';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 import ConfirmDialog from './ConfirmDialog';
 import SaveProjectPrompt from './SaveProjectPrompt';
 
@@ -102,7 +102,7 @@ const SwitchGuardDialog: React.FC = () => {
 
   return (
     <>
-      <Modal
+      <AppModal
         visible={!showNamePrompt && !showRevisionConflict}
         transparent
         animationType="fade"
@@ -147,7 +147,7 @@ const SwitchGuardDialog: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </AppModal>
 
       <SaveProjectPrompt
         visible={showNamePrompt}

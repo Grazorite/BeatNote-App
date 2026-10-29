@@ -1,10 +1,11 @@
 import React from 'react';
-import { Modal, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BeatNoteIcon } from '../../icons';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import { colors } from '../../../styles/common';
+import AppModal from '../common/AppModal';
 
 interface HelpScreenProps {
   visible: boolean;
@@ -165,7 +166,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
   if (isMobile) return null;
 
   return (
-    <Modal
+    <AppModal
       visible
       transparent
       animationType="fade"
@@ -173,7 +174,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
       onRequestClose={onClose}
     >
       {content}
-    </Modal>
+    </AppModal>
   );
 };
 

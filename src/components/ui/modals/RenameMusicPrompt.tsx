@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,6 +12,7 @@ import { colors } from '../../../styles/common';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { normalizeDisplayTitle } from '../../../utils/projectNames';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 
 export interface RenameMusicPromptProps {
   visible: boolean;
@@ -66,7 +66,7 @@ const RenameMusicPrompt: React.FC<RenameMusicPromptProps> = ({
   }, [normalized, onConfirm, submitting]);
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -160,7 +160,7 @@ const RenameMusicPrompt: React.FC<RenameMusicPromptProps> = ({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

@@ -582,6 +582,13 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('annotation-editor')).toHaveCount(0);
     await page.getByTestId('annotation-control').click();
     await expect(page.getByTestId('annotation-editor-input')).toHaveValue('Turn left into diagonal');
+    await page.getByTestId('clear-annotation-text').click();
+    await expect(page.getByTestId('annotation-editor-input')).toHaveValue('');
+    await expect(page.getByTestId('clear-annotation-text')).toHaveCount(0);
+    await page.getByTestId('save-annotation').click();
+    await expect(page.getByTestId('annotation-editor')).toHaveCount(0);
+    await page.getByTestId('annotation-control').click();
+    await expect(page.getByTestId('annotation-editor-input')).toHaveValue('');
   });
 
   test('custom menus and submenus share the liquid-glass surface', async ({ page }) => {

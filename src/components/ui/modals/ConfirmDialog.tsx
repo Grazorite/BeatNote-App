@@ -2,13 +2,13 @@ import React, { useCallback, useRef } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { confirmDialogStyles as styles } from '../../../styles/components/modals/confirmDialog';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 
 export interface ConfirmDialogAction {
   label: string;
@@ -51,7 +51,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   }, [onCancel, returnFocusRef]);
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -89,7 +89,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

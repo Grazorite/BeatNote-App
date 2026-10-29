@@ -5,7 +5,6 @@ import {
   AccessibilityInfo,
   Alert,
   findNodeHandle,
-  Modal,
   Platform,
   SectionList,
   Text,
@@ -37,6 +36,7 @@ import { changedMarkerCount, changedSettingNames } from '../../../utils/draftRes
 import { groupProjectSections } from '../../../utils/projectNames';
 import { extractPersistedContent } from '../../../utils/persistedContent';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 import CurrentProjectSection, {
   type CurrentProjectDraftState,
 } from '../projects/CurrentProjectSection';
@@ -583,11 +583,10 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   ]);
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      supportedOrientations={['portrait', 'portrait-upside-down', 'landscape-left', 'landscape-right']}
       onRequestClose={() => {
         if (!nativePickerActiveRef.current) onClose();
       }}
@@ -735,7 +734,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           markerCount={exportTarget?.markerCount ?? 0}
         />
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

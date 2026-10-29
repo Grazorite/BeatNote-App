@@ -20,6 +20,9 @@ inclusion: always
 - Use `useCallback` and `useMemo` only for referential stability (e.g. passed to memoised children or deps arrays) — not as a default.
 - Avoid inline styles in JSX. All styles live in `src/styles/` mirroring the component path.
 - Platform-specific code uses `Platform.OS` checks or `.ios.ts` / `.android.ts` / `.web.ts` file extensions.
+- Custom popups and full-page overlays use `AppModal`, never React Native's `Modal` directly. The
+  shared host opts into portrait and both landscape directions so a presented surface cannot rotate
+  the app back to portrait; layouts inside it must still respond to `useWindowDimensions` and safe areas.
 
 ## State (Zustand)
 

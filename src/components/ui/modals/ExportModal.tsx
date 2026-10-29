@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
 import { exportProjectCsv, exportProjectPdf } from '../../../features/library/projectService';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import AppModal from '../common/AppModal';
 
 interface ExportModalProps {
   visible: boolean;
@@ -71,7 +72,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
   };
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -161,7 +162,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

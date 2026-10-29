@@ -6,6 +6,7 @@ export { default as AnimatedSegmentedControl } from './AnimatedSegmentedControl'
 export { default as PersistenceBanner } from './PersistenceBanner';
 export { default as BottomSheet } from './BottomSheet';
 export type { BottomSheetProps } from './BottomSheet';
+export { default as AppModal, APP_MODAL_ORIENTATIONS } from './AppModal';
 export { default as OverflowMenu } from './OverflowMenu';
 export {
   handleOverflowAccessibilityAction,
