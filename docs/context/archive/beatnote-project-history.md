@@ -262,7 +262,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - [x] Migrated the 5 agent hooks from legacy `.kiro.hook` (v1) to v2 JSON; refined stale test command and scoped `update-live-docs` away from AGENTS.md
       <sub>**Key Artifacts:** `.kiro/hooks/coding-standards-check.json`, `.kiro/hooks/style-file-reminder.json`, `.kiro/hooks/ts-check-on-save.json`, `.kiro/hooks/test-file-check.json`, `.kiro/hooks/update-live-docs.json`</sub>
 
+- [x] Retire the legacy `beatnote_projects` writers, reconcile the `local-music-library-queue` task list, and archive the completed `wrapped-waveform-canvas` spec
+      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
+
 ## Archived Handover Log
+
+### 2026-10-29 — Start the measurement-first performance foundation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress
+
+**Changed:**
+
+- Added the redistributable 45-second S-short AAC fixture, deterministic 0/50/500-marker descriptor
+  and CSV generator, scenario script, profiling guide, results register, and initial static findings.
+- Added the build-gated JS performance interval ring buffer; handler/commit wiring remains open so
+  the instrumentation does not overlap the user's existing waveform and annotation edits.
+- Dispatched read-only DSH-Qwen audit `session-b21ea04d-e305-4b1a-802f-d1b8934c426a`; it remained
+  active at handover and was not authorized to edit files.
+
+**Verified:**
+
+- Deterministic generator produced 0/50/500-marker descriptors with 0/10/100 annotations;
+  fixture checksums and metadata were captured; `npx tsc --noEmit` and `git diff --check` passed.
+- Focused rerun of the two initially failing retained browser journeys passed 2/2.
+
+**Not verified / known gaps:**
+
+- Full `npm test` passed 8/9 on the final run; the shuffled-completion journey timed out only in the
+  parallel suite and passed focused. The untracked temporary marker-screenshot test also ran and is
+  part of pre-existing user work, not this performance slice.
+- S-medium/S-stress local metadata, native signposts, JS handler/commit brackets, simulator
+  signpost visibility, signpost overhead, and every physical Release-local measurement remain open.
+- Existing unrelated edits/deletions in `.kiro/hooks/`, waveform/annotation UI, styles, steering,
+  tests, and marker-shape utility were preserved and are not part of this handover.
+
+**Next agent should:**
+
+- Reconcile the active UI edits, finish task 2.1/2.2 instrumentation without mixing ownership, then
+  select S-medium/S-stress files and capture the first Release-local baseline before optimising.
 
 ### 2026-10-29 — Pass physical acceptance for control dock and loop range; archive both specs
 

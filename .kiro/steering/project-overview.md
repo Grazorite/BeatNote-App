@@ -43,6 +43,10 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Annotation** — a text note attached to a marker.
 - **Music Item** — a stable UUID and metadata record for one imported song. Native imports are
   copied into BeatNote's backup-excluded Music directory; web audio bytes live in IndexedDB.
+  Removing the active item switches to an adjacent queued song when one exists; otherwise the
+  editor returns to its clean unloaded “Choose Music / Load a song” state. Saved projects and the
+  song draft may retain a hidden removed record for later relinking, but that record is not kept
+  selected and must not expose missing-source capability diagnostics in the unloaded editor.
 - **Song draft** — the latest autosaved markers, annotations, and editor settings for one Music
   Item. It survives song switches and app restarts.
 - **Saved Project** — a named, revisioned snapshot associated with one Music Item. A song may have

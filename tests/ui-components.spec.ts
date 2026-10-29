@@ -735,6 +735,14 @@ test.describe('UI Components & Layout', () => {
 
     await loadTestAudio(page, 'second-song.wav', 'test-audio.wav');
     await page.getByTestId('song-title-control').click();
+    const mediumLibraryList = page.getByTestId('music-library-list');
+    await expect.poll(() => mediumLibraryList.evaluate(element => (
+      element.scrollHeight > element.clientHeight
+    ))).toBe(true);
+    await mediumLibraryList.hover();
+    await page.mouse.wheel(0, 240);
+    await expect.poll(() => mediumLibraryList.evaluate(element => element.scrollTop))
+      .toBeGreaterThan(0);
     await page.getByRole('button', { name: /^test-audio,/ }).click();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await page.getByTestId('load-project').click();
@@ -841,6 +849,31 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('project-relink-confirm')).toBeVisible();
     await page.getByTestId('confirm-relink-use-file').click();
     await expect(legacyRow).not.toContainText('Audio missing');
+    await page.getByText('Close', { exact: true }).click();
+
+    await page.getByTestId('song-title-control').click();
+    const onlyLibraryRow = page.locator('[data-testid^="music-library-row-"]')
+      .filter({ has: page.locator('[data-testid^="music-library-row-overflow-"]') });
+    await expect(onlyLibraryRow).toHaveCount(1);
+    await onlyLibraryRow.click();
+    await expect(page.getByTestId('song-title-control')).not.toContainText('Choose Music');
+    await page.getByTestId('song-title-control').click();
+    await page.locator('[data-testid^="music-library-row-overflow-"]').click();
+    await page.getByText('Delete from BeatNote', { exact: true }).click();
+    await page.getByTestId('confirm-delete-music-item').click();
+    await page.keyboard.press('Escape');
+
+    await expect(page.getByTestId('song-title-control')).toContainText('Choose Music');
+    await expect(page.getByText('Load a song', { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Not available for this source:/)).toHaveCount(0);
+    for (const id of [
+      'navigate-left-marker', 'add-marker', 'navigate-right-marker', 'play-pause',
+      'repeat-toggle', 'inner-loop-cycle', 'shuffle-control', 'first-track-control',
+      'previous-track-control', 'next-track-control', 'playback-speed', 'remove-last-marker',
+      'annotation-control',
+    ]) {
+      await expect(page.getByTestId(id)).toBeDisabled();
+    }
   });
 
   test('loop overview creates, toggles, clears, restores, and never seeks on tap', async ({ page }) => {

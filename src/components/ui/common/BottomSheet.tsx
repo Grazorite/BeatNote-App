@@ -21,7 +21,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  bottomSheetHeightStyle,
   bottomSheetInsetStyle,
   bottomSheetKeyboardStyle,
   bottomSheetStyles as styles,
@@ -244,7 +243,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   }, [requestClose]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    height: Math.max(0, sheetHeight - translateY.value),
   }));
   const webKeyProps = Platform.OS === 'web' ? { onKeyDown: handleWebKeyDown } : {};
   const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
@@ -274,7 +273,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           <Animated.View
             ref={sheetRef}
             testID={testID}
-            style={[styles.sheet, bottomSheetHeightStyle(sheetHeight), animatedStyle]}
+            style={[styles.sheet, animatedStyle]}
             {...webKeyProps}
           >
             <GlassBackdrop gradientId={`${testID}-glass`} radius={22} testID={`${testID}-glass`} />

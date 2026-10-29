@@ -118,6 +118,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
+      scrolling inside the half-height Music Library sheet
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Complete and archive `local-music-library-queue`, including Files/third-party Open_In,
       app-owned storage, per-song drafts/projects, queue controls, Repeat/Shuffle completion,
       restore/relink, low-storage behavior, and a 107,604,078-byte physical-device import
@@ -133,9 +137,6 @@ potentially adding a hybrid path later.
 
 - [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
       <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
-
-- [x] Retire the legacy `beatnote_projects` writers, reconcile the `local-music-library-queue` task list, and archive the completed `wrapped-waveform-canvas` spec
-      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
 
 ---
 
@@ -213,6 +214,37 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Reset the editor after deleting its only song
+
+**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: restore unloaded music state`)
+**Kanban moved:** active-song deletion reset → Done
+
+**Changed:**
+
+- `libraryActions.ts`: deleting the current song with no adjacent queue destination now clears the
+  active selection and resets the authored/editor session to the same unloaded state as first launch.
+- `BottomSheet.tsx`: detents now resize the bottom-anchored sheet instead of translating a
+  full-height list below the viewport, so the Music Library can scroll while half open.
+- Hidden removed records, saved projects, and song drafts remain available for relinking; only the
+  stale active selection and capability-gated editor state are cleared.
+- The retained library/project journey now verifies “Choose Music”, “Load a song”, disabled
+  controls, the absence of missing-source diagnostic text, and medium-detent list scrolling.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused library/project journey → passed; full retained Playwright gate → 8/8 passed.
+
+**Not verified / known gaps:**
+
+- The corrected delete flow has not yet been rerun on the physical iPhone shown in the report.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Reload the current development build on the iPhone, import one song, delete it, and confirm the
+  clean unloaded canvas and dock without capability descriptions.
 
 ### 2026-10-30 — Commit the performance measurement foundation
 
@@ -362,40 +394,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Review the new look on the simulator and iPhone.
-
-### 2026-10-29 — Start the measurement-first performance foundation
-
-**Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`
-**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress
-
-**Changed:**
-
-- Added the redistributable 45-second S-short AAC fixture, deterministic 0/50/500-marker descriptor
-  and CSV generator, scenario script, profiling guide, results register, and initial static findings.
-- Added the build-gated JS performance interval ring buffer; handler/commit wiring remains open so
-  the instrumentation does not overlap the user's existing waveform and annotation edits.
-- Dispatched read-only DSH-Qwen audit `session-b21ea04d-e305-4b1a-802f-d1b8934c426a`; it remained
-  active at handover and was not authorized to edit files.
-
-**Verified:**
-
-- Deterministic generator produced 0/50/500-marker descriptors with 0/10/100 annotations;
-  fixture checksums and metadata were captured; `npx tsc --noEmit` and `git diff --check` passed.
-- Focused rerun of the two initially failing retained browser journeys passed 2/2.
-
-**Not verified / known gaps:**
-
-- Full `npm test` passed 8/9 on the final run; the shuffled-completion journey timed out only in the
-  parallel suite and passed focused. The untracked temporary marker-screenshot test also ran and is
-  part of pre-existing user work, not this performance slice.
-- S-medium/S-stress local metadata, native signposts, JS handler/commit brackets, simulator
-  signpost visibility, signpost overhead, and every physical Release-local measurement remain open.
-- Existing unrelated edits/deletions in `.kiro/hooks/`, waveform/annotation UI, styles, steering,
-  tests, and marker-shape utility were preserved and are not part of this handover.
-
-**Next agent should:**
-
-- Reconcile the active UI edits, finish task 2.1/2.2 instrumentation without mixing ownership, then
-  select S-medium/S-stress files and capture the first Release-local baseline before optimising.
 
 <!-- end handover log -->

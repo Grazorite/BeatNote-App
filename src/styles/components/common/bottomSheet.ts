@@ -75,6 +75,4 @@ export const bottomSheetInsetStyle = (
   paddingRight: right,
 });
 
-export const bottomSheetHeightStyle = (height: number): ViewStyle => ({ height });
-
 export const bottomSheetKeyboardStyle = (bottom: number): ViewStyle => ({ paddingBottom: bottom });

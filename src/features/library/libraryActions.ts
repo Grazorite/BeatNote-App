@@ -1,5 +1,9 @@
-import { useStudioStore } from '../../hooks/useStudioStore';
+import { useStudioStore, type StudioStore } from '../../hooks/useStudioStore';
 import type { LibraryRecord } from '../../types/library';
+import {
+  applyPersistedContent,
+  createEmptyPersistedContent,
+} from '../../utils/persistedContent';
 import { normalizeDisplayTitle } from '../../utils/projectNames';
 import audioStore from './audioStore';
 import {
@@ -98,6 +102,43 @@ const deletionSwitchDestination = (musicItemId: string) => {
   return { musicItemId: queue.order[targetIndex], queueIndex: targetIndex };
 };
 
+const initialUnloadedEditorPatch = (): Partial<StudioStore> => ({
+  ...applyPersistedContent(createEmptyPersistedContent()),
+  currentMusicItemId: null,
+  currentAudioUri: null,
+  currentAudioFilename: null,
+  draftBaseline: null,
+  draftBaselineFingerprint: null,
+  draftBaselineName: null,
+  lastWrittenFingerprint: null,
+  draftUiState: 'emptyUnnamed',
+  switchPhase: 'idle',
+  switchGuard: null,
+  librarySwitchFailure: null,
+  pendingSwitchTargetId: null,
+  loadingMusicItemId: null,
+  isPlaying: false,
+  currentTime: 0,
+  ghostPlayheadTime: null,
+  viewportStartTime: 0,
+  songDuration: 180000,
+  songLoaded: false,
+  selectedRowIndex: null,
+  selectedMarker: null,
+  lastRemovedMarker: null,
+  markerDeletionHistory: [],
+  loopRestoreSnapshot: null,
+  gridRestoreSnapshot: null,
+  gridPreview: null,
+  pendingLoopRangeEnabled: false,
+  isLoopMarkerActive: false,
+  isRepeatActive: false,
+  loadedProjectSource: null,
+  csvPreview: null,
+  csvUndo: null,
+  isTextInputFocused: false,
+});
+
 /** Delete only BeatNote's managed copy while retaining project and draft references. */
 export async function deleteMusicItem(musicItemId: string): Promise<DeleteMusicItemResult> {
   const initial = useStudioStore.getState();
@@ -182,12 +223,7 @@ export async function deleteMusicItem(musicItemId: string): Promise<DeleteMusicI
         libraryItems: committed.library.items,
         queue: committed.queue,
         ...(deletingCurrent && state.currentMusicItemId === musicItemId ? {
-          currentAudioUri: null,
-          isPlaying: false,
-          currentTime: 0,
-          songLoaded: true,
-          switchPhase: 'idle' as const,
-          loadingMusicItemId: null,
+          ...initialUnloadedEditorPatch(),
         } : {}),
       }));
     });
