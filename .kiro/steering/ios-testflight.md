@@ -169,8 +169,9 @@ eas submit --platform ios --profile preview
   Now Playing. `app.json` declares `UIBackgroundModes: ["audio"]`.
 - While a local song is loaded, the player is registered with `setActiveForLockScreen`, publishes
   its library display title to iOS Now Playing, and mirrors remote play/pause/seek status back into
-  the studio store. V1 exposes play/pause and timeline seeking; queue Previous/Next remain in-app
-  because the installed Expo Audio API does not expose those remote-command mappings.
+  the studio store. V1 exposes play/pause, timeline seeking, and ±10-second skip controls; queue
+  Previous/Next remain in-app because the installed Expo Audio API does not expose those
+  remote-command mappings.
 - The simulator verifies that playback time advances while backgrounded and that the UI recovers
   when foregrounded. Test Control Centre metadata/commands, calls, route changes, and real-device
   audio interruptions before release.

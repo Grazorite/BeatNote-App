@@ -182,8 +182,8 @@ export const useCustomAudioPlayer = () => {
         title: lockScreenTitle,
         artist: 'BeatNote',
       }, {
-        showSeekBackward: false,
-        showSeekForward: false,
+        showSeekBackward: true,
+        showSeekForward: true,
       });
     } catch (lockScreenError) {
       console.error('Lock screen controls setup error:', lockScreenError);
