@@ -43,6 +43,13 @@ with `EXPO_PUBLIC_BEATNOTE_PERF=0`. This is the Expo bundle-facing form of the s
 `BEATNOTE_PERF` flag. Compare average CPU on the same build/device/thermal preparation;
 the difference must be no more than one percentage point and no more than 1% relative overhead.
 
+On Xcode/Instruments 27 physical-device Logging captures, the modeled `OSSignpostIntervals` table
+can omit overlapping BeatNote intervals even when the begin/end events were emitted. Internal
+flag-on builds therefore also emit `BeatNotePerf <name> <duration> ms` after each interval ends.
+Export the `os-log` table and reconcile its count against the scripted repetitions; this fallback
+is post-end, disabled with the same flag, and must not be interpreted as external-video first
+feedback or audible-position evidence.
+
 ## React render and path accounting
 
 In Debug, profile ten seconds of playback plus one seek, marker add, annotation save, and track

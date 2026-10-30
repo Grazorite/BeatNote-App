@@ -4090,6 +4090,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-30 — Commit the performance measurement foundation
+
+**Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`, `a9f9e18`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress (desk foundation complete; simulator/device evidence pending)
+
+**Changed:**
+
+- Added gated JS interaction intervals, native iOS Points of Interest forwarding, waveform/BPM
+  intervals, temporary render/path/gesture/write counters, and a DevTools diagnostics snapshot API.
+- Added the short audio fixture, deterministic 0/50/500-marker project generator, repeatable
+  scenarios, profiling guide, results register, and the 201-subscription Zustand audit.
+- Incorporated Kiro's Swift/API, pod-dependency, and Android no-op repairs; wired signposts at app
+  bootstrap and wrapped the actual tempo-analysis operation rather than only defining helpers.
+- Made all new JS-to-native profiling calls capability-checked after a physical device running an
+  older native binary reported `enableSignposts is not a function`; profiling now skips safely until
+  that device receives a rebuilt binary instead of crashing app startup.
+
+**Verified:**
+
+- `npx tsc --noEmit`, JavaScript syntax, Swift parsing, and `git diff --check` → passed.
+- Full retained Playwright gate → 9/9 passed; focused iOS automatic-BPM journey → passed with the
+  repaired native modules (`BeatNoteUITests-testAutomaticBpmSuggestionAndAnchorControls-1793305333377.xcresult`).
+- DSH-Qwen's read-only audit independently identified the 10 Hz playback sampling and broad derived
+  selector as profiling candidates; no optimisation has been applied before physical baselines.
+
+**Not verified / known gaps:**
+
+- Simulator Instruments observation remains open: the intervals did not appear in an ordinary
+  unified-log query. A Logging trace confirmed JS `track.switch` and `draft.write` intervals, but
+  did not show the waveform/BPM native labels, so Task 2.2 remains open.
+- Local S-medium/S-stress paths and checksums, flag-on/off overhead, Release-local latency/frame/
+  memory/energy traces, and physical-device contention evidence remain open.
+- The unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Capture a simulator Points of Interest trace, then register local medium/stress songs and collect
+  the first Release-local physical baseline before implementing any candidate from `findings.md`.
+
 ### 2026-10-30 — Fix the shuffle-journey flake and repair the signpost native build
 
 **Agent:** orchestrator (Kiro) · **Commit(s):** shuffle fix in `git log` (`test: make the shuffled-queue journey deterministic`); native repairs `uncommitted`

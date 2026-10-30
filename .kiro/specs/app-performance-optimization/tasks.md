@@ -49,8 +49,17 @@ section references are to [`design.md`](./design.md).
 - [ ] 3. Physical baselines on `ec4d9c1` or its pre-optimisation successor
   - [ ] 3.1 `[device]` Latency baselines (Req 2.1 list) for S-medium/50 and S-long/500 in
         `Debug+Metro` and `Release-local`, n ≥ 20, video plus trace. _Req 1.5–1.6, 2_
+    - First Release-local S-medium/50 wrapped-seek sample: final 20 gated intervals measured
+      p50 46.77 ms, p90 51.20 ms, and max 54.01 ms from handler entry through player seek
+      completion and the following animation frame. It passes the instrumented completion target,
+      but external first-frame video, audible-position timing, accuracy, Debug+Metro, S-long/500,
+      and every other interaction remain open.
   - [ ] 3.2 `[device]` Frame-time and hitch baselines for playback, scrubbing, library sheet, and
         annotation with keyboard. _Req 3_
+    - A diagnostic slow-then-rapid wrapped-seek trace recorded 32.30 ms/s hitch time and a
+      550.12 ms longest hitch at Nominal thermal state; the user also observed rapid-tap lag. This
+      fails the nearest interactive target as a proxy, but does not replace the four scripted 3.2
+      scenarios.
   - [ ] 3.3 `[device]` 5/15/30-minute memory, CPU, energy, and thermal runs with S-long and
         S-stress; ten-switch memory test; Leaks; 15-minute background run. _Req 7_
   - [ ] 3.4 `[device]` Contention runs: interactions during waveform decode, BPM analysis, 500-marker

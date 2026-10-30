@@ -17,12 +17,27 @@ and the object-returning capability selector in `MainContent.tsx` as a high-sign
 Both now have temporary counters/marks; neither is approved for optimisation until device profiler
 counts and IVL traces establish its contribution.
 
+## First physical baseline evidence
+
+On the iPhone 15 Pro Max Release-local build, the final 20 paced S-medium/50 wrapped-waveform taps
+completed the instrumented seek path at p50 46.77 ms, p90 51.20 ms, and max 54.01 ms. The interval
+starts at the JS seek handler and ends after the native player seek promise plus the following
+animation frame, so it passes the 100 ms playhead target as an instrumented completion measure. It
+does not replace external-video first-feedback, audible-position, or ±20 ms accuracy evidence.
+
+The slow-then-rapid interaction trace told a different story: six Animation Hitches totalled
+1,658.698 ms over 51.348242 seconds (32.30 ms/s), with a 550.12 ms longest hitch, and the user saw
+lag while tapping rapidly. Instruments' modeled signpost table retained only two overlapping seek
+intervals, while the gated post-end unified-log fallback retained all 25. This confirms a physical
+smoothness problem under rapid input, but not H-5's cause; task 4.4 must split touch delivery, JS,
+store, React/Fabric, and frame time before O-5 or O-6 is authorised.
+
 ## Current interpretation
 
-The most actionable physical-iPhone sequence is: complete signposts/counters, capture Release-local
-memory and path-generation traces, then choose between bounded waveform-cache cleanup (O-11),
-detail-path separation (O-3), or autosave scheduling (O-7/O-8). Immediate pressed feedback (O-5)
-can improve perceived latency, but its ≥10% p90 benefit still needs the first-feedback baseline.
+The most actionable physical-iPhone sequence is now: capture task 4.4's rapid-seek IVL breakdown,
+then complete the scripted playback/scrub/sheet/keyboard hitch baselines and memory/path-generation
+traces. The paced completion distribution alone does not authorise optimistic seeking (O-6), and
+the rapid-input hitches do not yet distinguish JS/store work from Fabric or render-server stalls.
 
 ## Zustand subscription audit (task 4.1)
 

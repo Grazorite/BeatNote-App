@@ -61,8 +61,10 @@ potentially adding a hybrid path later.
 
 1. Complete `app-performance-optimization` Phase 1 before applying any optimisation. Phase 0 is
    complete: reference fixtures, deterministic projects, instrumentation/counters, guides, audit,
-   simulator signpost visibility, and physical overhead are verified. Repeated Release-local
-   latency/frame/memory/energy and contention baselines remain.
+   simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
+   seek sample passes its instrumented completion target, while rapid tapping produces failing
+   proxy hitch evidence; IVL diagnosis and repeated latency/frame/memory/energy/contention baselines
+   remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -99,7 +101,8 @@ potentially adding a hybrid path later.
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
-      while repeated physical latency/frame/memory/energy and contention baselines remain pending
+      the first paced seek sample is registered, and rapid-input hitch diagnosis plus repeated
+      latency/frame/memory/energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -215,6 +218,43 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Quantify paced seek completion and rapid-input hitches
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `36a266f`
+**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
+
+**Changed:**
+
+- Added a flag-gated, post-signpost unified-log duration fallback because Xcode 27's physical
+  modeled interval table omitted overlapping seek intervals even though the app emitted them.
+- Registered the first physical S-medium/50 wrapped-waveform latency sample and the separate
+  slow-then-rapid Animation Hitches evidence without promoting either to a full Phase 1 baseline.
+- Updated the findings and profiling guide so future captures reconcile modeled intervals with the
+  fallback count and do not confuse the instrumented completion endpoint with audible timing.
+
+**Verified:**
+
+- Final 20 paced taps: p50 46.77 ms, p90 51.20 ms, max 54.01 ms from handler entry through player
+  seek completion and the following animation frame; the instrumented endpoint passes 100 ms.
+- Slow-then-rapid trace: six hitches, 1,658.698 ms total over 51.348242 seconds (32.30 ms/s), longest
+  550.12 ms, Nominal thermal state; user confirmed visible lag during rapid tapping.
+- Signed Release-local build installed and launched on iPhone 15 Pro Max; Swift parse,
+  `npx tsc --noEmit`, and retained Playwright gate (8/8) passed.
+
+**Not verified / known gaps:**
+
+- External-video first feedback, audible-position timing, ±20 ms seek accuracy, and the other
+  Debug/Release, S-long/500, frame, memory, energy, and contention scenarios remain open.
+- The focused iOS annotation/project test reached the app but failed while waiting for the Music
+  Library sheet to close under a manually staged simulator run; the official clean staging path was
+  not rerun, so this native-touch verification gap remains explicit.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Capture the rapid wrapped-seek IVL breakdown in task 4.4, then run the scripted continuous-scrub
+  hitch baseline before choosing any optimisation.
 
 ### 2026-10-30 — Complete the performance measurement foundation
 
@@ -352,44 +392,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Reload the current development build on the iPhone, import one song, delete it, and confirm the
   clean unloaded canvas and dock without capability descriptions.
-
-### 2026-10-30 — Commit the performance measurement foundation
-
-**Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`, `a9f9e18`
-**Kanban moved:** `app-performance-optimization` Phase 0–1 → In Progress (desk foundation complete; simulator/device evidence pending)
-
-**Changed:**
-
-- Added gated JS interaction intervals, native iOS Points of Interest forwarding, waveform/BPM
-  intervals, temporary render/path/gesture/write counters, and a DevTools diagnostics snapshot API.
-- Added the short audio fixture, deterministic 0/50/500-marker project generator, repeatable
-  scenarios, profiling guide, results register, and the 201-subscription Zustand audit.
-- Incorporated Kiro's Swift/API, pod-dependency, and Android no-op repairs; wired signposts at app
-  bootstrap and wrapped the actual tempo-analysis operation rather than only defining helpers.
-- Made all new JS-to-native profiling calls capability-checked after a physical device running an
-  older native binary reported `enableSignposts is not a function`; profiling now skips safely until
-  that device receives a rebuilt binary instead of crashing app startup.
-
-**Verified:**
-
-- `npx tsc --noEmit`, JavaScript syntax, Swift parsing, and `git diff --check` → passed.
-- Full retained Playwright gate → 9/9 passed; focused iOS automatic-BPM journey → passed with the
-  repaired native modules (`BeatNoteUITests-testAutomaticBpmSuggestionAndAnchorControls-1793305333377.xcresult`).
-- DSH-Qwen's read-only audit independently identified the 10 Hz playback sampling and broad derived
-  selector as profiling candidates; no optimisation has been applied before physical baselines.
-
-**Not verified / known gaps:**
-
-- Simulator Instruments observation remains open: the intervals did not appear in an ordinary
-  unified-log query. A Logging trace confirmed JS `track.switch` and `draft.write` intervals, but
-  did not show the waveform/BPM native labels, so Task 2.2 remains open.
-- Local S-medium/S-stress paths and checksums, flag-on/off overhead, Release-local latency/frame/
-  memory/energy traces, and physical-device contention evidence remain open.
-- The unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Capture a simulator Points of Interest trace, then register local medium/stress songs and collect
-  the first Release-local physical baseline before implementing any candidate from `findings.md`.
 
 <!-- end handover log -->
