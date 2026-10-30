@@ -7,11 +7,12 @@ section references are to [`design.md`](./design.md).
 
 ## Phase 0 — Measurement foundation
 
-- [ ] 1. Fixtures, scripts, and tooling
-  - [ ] 1.1 `[desk]` Create `fixtures.md` with the S-short/S-medium/S-long/S-stress metadata,
+- [x] 1. Fixtures, scripts, and tooling
+  - [x] 1.1 `[desk]` Create `fixtures.md` with the S-short/S-medium/S-long/S-stress metadata,
         checksums, and local paths; generate the redistributable short track. _Req 1.1_
-    - Added the tracked S-short fixture and registered S-long; local S-medium and S-stress metadata
-      and checksums are still required before the first physical baseline.
+    - Added tracked/generated S-short and S-long fixtures plus ignored local representative
+      S-medium AAC/MP3 and ten-minute S-stress WAV/AAC derivatives with measured metadata,
+      absolute paths, and SHA-256 checksums.
   - [x] 1.2 `[desk]` Add a temporary, development-only project generator for 0/50/500-marker
         projects from a fixed seed. _Req 1.2_
   - [x] 1.3 `[desk]` Write the scenario script (exact steps, repetitions, device preparation) for

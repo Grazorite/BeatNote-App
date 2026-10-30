@@ -59,11 +59,10 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Complete `app-performance-optimization` Phase 0–1 before applying any optimisation. The JS/native
-   intervals, temporary counters, audit, deterministic projects, short fixture, guides, and results
-   register are committed, simulator Instruments shows the waveform/BPM intervals, and the paired
-   physical signpost-overhead check passes. Local medium/stress fixture metadata and the repeated
-   Release-local latency/frame/memory/energy baselines remain.
+1. Complete `app-performance-optimization` Phase 1 before applying any optimisation. Phase 0 is
+   complete: reference fixtures, deterministic projects, instrumentation/counters, guides, audit,
+   simulator signpost visibility, and physical overhead are verified. Repeated Release-local
+   latency/frame/memory/energy and contention baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -99,9 +98,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation; simulator instrumentation and physical
-      signpost overhead are verified, while local fixture registration and device baselines remain
-      pending
+      Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
+      while repeated physical latency/frame/memory/energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -218,10 +216,10 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-10-30 — Pass the physical signpost-overhead gate
+### 2026-10-30 — Complete the performance measurement foundation
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build); see `git log` (`docs: record physical signpost overhead`)
-**Kanban moved:** `app-performance-optimization` Task 2.3 → Done; Phase 0–1 remains In Progress
+**Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build), `0b60092`; see `git log` (`docs: register local performance fixtures`)
+**Kanban moved:** `app-performance-optimization` Tasks 1.1 and 2.3 → Done; Phase 0 → Done; Phase 1 remains In Progress
 
 **Changed:**
 
@@ -230,6 +228,11 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
   Profiler traces on the reference iPhone.
 - Recorded the raw trace paths, bundle checksums, sampling windows, CPU result, and thermal state in
   the performance results register; raw Instruments artifacts remain outside Git.
+- Generated ignored local-only medium AAC/MP3 and ten-minute stress WAV/AAC derivatives from one
+  representative source, then registered their absolute paths, measured metadata, and SHA-256
+  checksums. No copyrighted audio is tracked by Git.
+- Generated and checksummed the deterministic S-medium and S-long 0/50/500-marker descriptor/CSV
+  pairs under the ignored local performance directory, ready for device import.
 
 **Verified:**
 
@@ -238,19 +241,23 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Flag off averaged 46.97% process CPU; flag on averaged 42.95%. The on-minus-off delta was -4.02
   percentage points (-8.57% relative), so positive instrumentation overhead was 0; both traces
   remained in the Fair thermal state.
+- `ffprobe` verified both 233.433-second medium encodes and both 600-second stress encodes at
+  44.1 kHz stereo; `shasum -a 256` recorded a stable identity for each local file.
+- The project generator produced all six expected descriptor/CSV pairs with fixed seed `20261029`;
+  their checksums are recorded in `fixtures.md`.
 
 **Not verified / known gaps:**
 
 - This was one same-song pair, and the song metadata/marker count was not captured. The negative
   delta shows no added CPU in this pair but also exposes run-to-run variance; it is not a Phase 1
   latency, frame, memory, or energy baseline.
-- Local S-medium/S-stress metadata and checksums remain open, as do all repeated physical baselines.
+- All repeated physical latency, frame, memory, energy, contention, and render baselines remain open.
 - Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
 
 **Next agent should:**
 
-- Register reproducible local S-medium/S-stress songs, then collect the first repeated Release-local
-  physical baseline before implementing any candidate from `findings.md`.
+- Generate the fixed S-medium/50 project, then collect the first repeated Release-local physical
+  latency/frame baseline before implementing any candidate from `findings.md`.
 
 ### 2026-10-30 — Verify native waveform and BPM signposts
 

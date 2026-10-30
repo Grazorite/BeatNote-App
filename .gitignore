@@ -65,6 +65,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+.local/
 
 # Cache directories
 .npm
