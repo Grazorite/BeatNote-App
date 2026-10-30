@@ -5,7 +5,9 @@ pass. Raw traces, videos, and profiler exports stay outside the repository.
 
 | Date | Commit | Device | iOS | Build | Song (duration/format) | Markers | Scenario | Metric | Method | n | p50 | p90 | Max | Threshold | Pass | Trace / note |
 |---|---|---|---|---|---|---:|---|---|---|---:|---:|---:|---:|---|---|---|
-| — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | No baseline captured yet |
+| 2026-10-30 | `e4f1900` | iPhone 17 Pro Simulator | 26.2 | Debug+XCTest | Generated click WAV, 12 s/44.1 kHz mono | 0 | Import + automatic BPM | Required signpost interval presence | Instruments Logging / `os-signpost` export | 1 | — | — | — | JS + waveform + BPM labels present | n/a (simulator) | `/private/tmp/beatnote-signposts-local-gates.trace`; observed `track.switch`, `waveform.decode`, `bpm.analysis`, `draft.write` |
+
+No physical baseline has been captured yet; simulator evidence cannot pass an acceptance threshold.
 
 ## Optimisation decisions
 

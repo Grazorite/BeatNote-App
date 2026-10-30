@@ -24,12 +24,13 @@ section references are to [`design.md`](./design.md).
 - [ ] 2. Instrumentation
   - [x] 2.1 `[desk]` Add `src/utils/perfMarks.ts` behind `BEATNOTE_PERF`; bracket tap seek, scrub,
         marker add/remove, play/pause, annotation open/save, and track switch. _§4.1_
-  - [ ] 2.2 `[sim]` Add `OSSignposter` helper to `modules/library-storage/` and signposts in
+  - [x] 2.2 `[sim]` Add `OSSignposter` helper to `modules/library-storage/` and signposts in
         `BeatNoteWaveform` and `BeatNoteTempo`; forward JS marks on iOS. Verify intervals appear in
         Instruments on the simulator. _Req 5.2, §4.2_
-    - The opt-in bridge, native intervals, pod dependencies, JS forwarding, simulator build, and
-      focused BPM journey pass. Direct Instruments observation remains required to close the task;
-      the intervals are not expected to appear as ordinary unified-log messages.
+    - Simulator Logging trace `/private/tmp/beatnote-signposts-local-gates.trace` on `e4f1900`
+      contains `track.switch`, `waveform.decode`, `bpm.analysis`, and `draft.write`. Waveform and
+      tempo use module-local opt-in gates because static Expo modules did not share LibraryStorage's
+      in-process gate; older installed binaries remain safe through optional JS capability checks.
   - [ ] 2.3 `[device]` Measure signpost overhead flag-on vs flag-off in a 60 s playback trace;
         must be ≤ 1% CPU. _Req 5.3_
   - [x] 2.4 `[desk]` Add temporary render, path-regeneration, and gesture-construction counters.

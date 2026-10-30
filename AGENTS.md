@@ -61,8 +61,8 @@ potentially adding a hybrid path later.
 
 1. Complete `app-performance-optimization` Phase 0–1 before applying any optimisation. The JS/native
    intervals, temporary counters, audit, deterministic projects, short fixture, guides, and results
-   register are committed; simulator Instruments observation, local medium/stress fixture metadata,
-   signpost overhead, and Release-local physical baselines remain.
+   register are committed, and simulator Instruments now shows the waveform/BPM intervals. Local
+   medium/stress fixture metadata, physical signpost overhead, and Release-local baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -98,8 +98,8 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation; measurement foundation is committed, while
-      simulator Instruments observation and device baselines remain pending
+      Release-local baselines before any optimisation; simulator instrumentation is verified, while
+      local fixture registration, signpost overhead, and device baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -215,6 +215,40 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Verify native waveform and BPM signposts
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `e4f1900`
+**Kanban moved:** `app-performance-optimization` Task 2.2 → Done; Phase 0–1 remains In Progress
+
+**Changed:**
+
+- Gave `BeatNoteWaveform` and `BeatNoteTempo` independent, thread-safe opt-in signpost gates and
+  enabled each gate immediately before its native operation. This avoids relying on mutable static
+  state crossing static Expo-module boundaries.
+- Kept the new native methods optional in JS so Metro can still load against an older installed
+  binary; removed the now-unnecessary cross-pod LibraryStorage dependency.
+- Recorded the simulator trace and interval labels in the performance task ledger and results
+  register; raw Instruments output remains outside Git.
+
+**Verified:**
+
+- Instruments Logging trace `/private/tmp/beatnote-signposts-local-gates.trace` on iPhone 17 Pro
+  Simulator / iOS 26.2 contains `track.switch`, `waveform.decode`, `bpm.analysis`, and `draft.write`.
+- `npx tsc --noEmit`, Swift parse, and `git diff --check` → passed; retained Playwright gate → 8/8.
+- Focused `testAutomaticBpmSuggestionAndAnchorControls` → passed in 55.608 seconds; focused
+  `testAudioAnnotationAndProjectRestore` → passed in 71.147 seconds.
+
+**Not verified / known gaps:**
+
+- Physical flag-on/flag-off overhead, local medium/stress fixture metadata, and every Release-local
+  physical baseline remain open; simulator evidence cannot pass an acceptance threshold.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Register local S-medium/S-stress fixture paths and checksums, then measure 60-second physical
+  signpost overhead before collecting the Release-local baselines.
 
 ### 2026-10-30 — Separate annotation callouts from tooltips and add sheet backdrop dismissal
 
@@ -353,38 +387,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Performance agent: review the repaired `LibraryStorageModule.swift`, wire `enableSignposts` from
   JS when profiling, then commit the instrumentation together with `perfCounters.ts`/`perfMarks.ts`.
-
-### 2026-10-29 — Show the "Loop between markers" segment
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: show the loop-between-markers segment`)
-**Kanban moved:** marker-loop visual indication → Done (user confirmed on device after a full reload)
-
-**Changed:**
-
-- New `src/hooks/useMarkerLoopSegment.ts`: resolves the looped segment with the same rule as the
-  playback engine (`markerLoopRangeAtTime`, active-layer or all-layer markers); re-renders only when
-  the playhead crosses a marker.
-- Wrapped rows: faint violet wash plus a slim underline across the segment (`markerLoopSegment`
-  prop, included in the row memo comparator).
-- Overview strip: slim violet underline between the bounding markers, no fill or dimming.
-- Retained loop journey now asserts the marker-loop overlay is absent for range loop and present
-  for marker loop.
-
-**Verified:**
-
-- `npx tsc --noEmit` → passed; real browser screenshots of rows and strip reviewed.
-- Loop overview journey → passed with the new assertions.
-
-**Not verified / known gaps:**
-
-- No simulator or physical-iPhone review; wash opacity (7%) and bar weight were tuned on a dense
-  synthetic clip and may need adjusting on real music and device brightness.
-- The performance agent's `incrementPerfCounter` lines in `WrappedRow.tsx` and
-  `LoopOverviewTrack.tsx` are still uncommitted in the working tree; commit them with their
-  `perfCounters.ts`, or strip them from a staged blob as the previous commit did.
-
-**Next agent should:**
-
-- Review the marker-loop look on device and adjust the two opacity constants in `WrappedRow.tsx` if needed.
 
 <!-- end handover log -->

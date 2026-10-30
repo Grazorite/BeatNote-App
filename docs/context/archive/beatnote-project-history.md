@@ -4090,6 +4090,39 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-29 — Show the "Loop between markers" segment
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: show the loop-between-markers segment`)
+**Kanban moved:** marker-loop visual indication → Done (user confirmed on device after a full reload)
+
+**Changed:**
+
+- New `src/hooks/useMarkerLoopSegment.ts`: resolves the looped segment with the same rule as the
+  playback engine (`markerLoopRangeAtTime`, active-layer or all-layer markers); re-renders only when
+  the playhead crosses a marker.
+- Wrapped rows: faint violet wash plus a slim underline across the segment (`markerLoopSegment`
+  prop, included in the row memo comparator).
+- Overview strip: slim violet underline between the bounding markers, no fill or dimming.
+- Retained loop journey now asserts the marker-loop overlay is absent for range loop and present
+  for marker loop.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed; real browser screenshots of rows and strip reviewed.
+- Loop overview journey → passed with the new assertions.
+
+**Not verified / known gaps:**
+
+- No simulator or physical-iPhone review; wash opacity (7%) and bar weight were tuned on a dense
+  synthetic clip and may need adjusting on real music and device brightness.
+- The performance agent's `incrementPerfCounter` lines in `WrappedRow.tsx` and
+  `LoopOverviewTrack.tsx` are still uncommitted in the working tree; commit them with their
+  `perfCounters.ts`, or strip them from a staged blob as the previous commit did.
+
+**Next agent should:**
+
+- Review the marker-loop look on device and adjust the two opacity constants in `WrappedRow.tsx` if needed.
+
 ### 2026-10-29 — Restyle waveform markers, playhead, and loop range
 
 **Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: restyle waveform markers, playhead, and loop range`)
