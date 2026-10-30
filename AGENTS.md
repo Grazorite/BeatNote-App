@@ -64,7 +64,8 @@ potentially adding a hybrid path later.
    simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
    seek sample passes its instrumented completion target, while the required continuous cross-row
    scrub fails at 703.49 ms/s hitch time and untouched playback passes at 1.94 ms/s. Scrub-profiler
-   diagnosis and repeated latency/frame/memory/energy/contention baselines remain.
+   evidence now isolates the failure to main-thread CoreGraphics work; gated counters and repeated
+   latency/frame/memory/energy/contention baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -102,7 +103,8 @@ potentially adding a hybrid path later.
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
       paced seek, continuous-scrub, and steady-playback samples are registered, and scrub-profiler
-      diagnosis plus repeated latency/frame/memory/energy and contention baselines remain pending
+      evidence identifies CoreGraphics saturation; counters plus repeated latency/frame/memory/
+      energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -218,6 +220,40 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Isolate scrub cost to native SVG drawing
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
+
+**Changed:**
+
+- Captured a coordinated physical Time Profiler trace with Points of Interest requested, exported
+  the 21 MB referenced sample table, and compared the active scrub burst with immediate recovery.
+- Revised H-3: wrapped JS path generation is memoized, but static peaks/progress/markers/playhead
+  share one SVG, so dynamic updates drive expensive native CoreGraphics redraws.
+- Promoted O-3 to the first evidence-backed candidate after Phase 1; no optimisation was applied.
+
+**Verified:**
+
+- In the aligned 11-second scrub window, BeatNote used 10,847 ms of running samples: main thread
+  9,799 ms (90.3%), CoreGraphics-inclusive 9,564 ms (88.2%), JS thread 857 ms (7.9%).
+- The following 3.293 seconds remained at 1.09 average cores and were still CoreGraphics-dominant,
+  matching the post-release hitch tail. Thermal state remained Nominal.
+- Trace `/private/tmp/beatnote-s-medium-50-scrub-time-profiler.trace` contains BeatNote PID 66779
+  and ran 31.293264 seconds.
+
+**Not verified / known gaps:**
+
+- The deployed `7037118` Release bundle emitted no BeatNote Points of Interest or fallback logs;
+  its instrumentation flag was not on/observable, so render/path counter totals remain open.
+- Library-sheet and annotation/keyboard hitch baselines, React commit counts, memory, energy,
+  contention, Allocations, and Leaks remain open; Phase 2 must not start yet.
+
+**Next agent should:**
+
+- Deploy an internal Release bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`, capture the scrub counter
+  snapshot, then complete the Library-sheet and annotation/keyboard hitch baselines.
 
 ### 2026-10-30 — Pass the steady-playback hitch baseline
 
@@ -357,48 +393,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Capture the rapid wrapped-seek IVL breakdown in task 4.4, then run the scripted continuous-scrub
   hitch baseline before choosing any optimisation.
-
-### 2026-10-30 — Complete the performance measurement foundation
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build), `0b60092`; see `git log` (`docs: register local performance fixtures`)
-**Kanban moved:** `app-performance-optimization` Tasks 1.1 and 2.3 → Done; Phase 0 → Done; Phase 1 remains In Progress
-
-**Changed:**
-
-- Built and installed otherwise matching signed Release-local bundles with
-  `EXPO_PUBLIC_BEATNOTE_PERF=0` and `=1`, then captured paired 60-second foreground playback Time
-  Profiler traces on the reference iPhone.
-- Recorded the raw trace paths, bundle checksums, sampling windows, CPU result, and thermal state in
-  the performance results register; raw Instruments artifacts remain outside Git.
-- Generated ignored local-only medium AAC/MP3 and ten-minute stress WAV/AAC derivatives from one
-  representative source, then registered their absolute paths, measured metadata, and SHA-256
-  checksums. No copyrighted audio is tracked by Git.
-- Generated and checksummed the deterministic S-medium and S-long 0/50/500-marker descriptor/CSV
-  pairs under the ignored local performance directory, ready for device import.
-
-**Verified:**
-
-- Both builds installed and launched on iPhone 15 Pro Max / iOS 27.0.1 with the same bundle ID and
-  development team; their JS bundles had distinct expected checksums.
-- Flag off averaged 46.97% process CPU; flag on averaged 42.95%. The on-minus-off delta was -4.02
-  percentage points (-8.57% relative), so positive instrumentation overhead was 0; both traces
-  remained in the Fair thermal state.
-- `ffprobe` verified both 233.433-second medium encodes and both 600-second stress encodes at
-  44.1 kHz stereo; `shasum -a 256` recorded a stable identity for each local file.
-- The project generator produced all six expected descriptor/CSV pairs with fixed seed `20261029`;
-  their checksums are recorded in `fixtures.md`.
-
-**Not verified / known gaps:**
-
-- This was one same-song pair, and the song metadata/marker count was not captured. The negative
-  delta shows no added CPU in this pair but also exposes run-to-run variance; it is not a Phase 1
-  latency, frame, memory, or energy baseline.
-- All repeated physical latency, frame, memory, energy, contention, and render baselines remain open.
-- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Generate the fixed S-medium/50 project, then collect the first repeated Release-local physical
-  latency/frame baseline before implementing any candidate from `findings.md`.
 
 <!-- end handover log -->

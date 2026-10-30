@@ -6,7 +6,7 @@ physical Release-local evidence in `results.md`.
 | Rank | Hypothesis / evidence | Physical-iPhone relevance | Decision before measurement | Required confirmation |
 |---:|---|---|---|---|
 | 1 | H-9: `src/hooks/useWaveformData.ts` keeps decoded peak arrays in module-level `waveformCache` with no bound or eviction. Each URI can retain both detailed and overview products after switches. | Ten-switch and long-session physical footprint can grow even after returning to the first song. | Measure first; do not add eviction until switch-back behavior and retained size are known. | Allocations generations plus 5/15/30-minute and ten-switch footprint rows (3.3/4.6). |
-| 2 | H-3: `WaveformCanvas.tsx` subscribes to `currentTime` and calls `generateWaveformPath(...)` inline in render. In detail mode this can rebuild the SVG string on each sampled position update. Wrapped rows and overview already memoise their path inputs. | Large peak arrays can turn every playback tick into JS work and SVG reconciliation in detail mode. | Instrument path construction; avoid changing the already-memoised wrapped view without contrary evidence. | Path counter and React/JS profiles for detail and wrapped views (4.2/4.3). |
+| 2 | H-3 revised/partially confirmed: wrapped rows memoise the JS path string, but static peaks, played-progress clipping, markers, and the changing playhead share one SVG. The physical scrub profile spent 88.2% of running samples in CoreGraphics-inclusive stacks and 90.3% on the main thread, versus 7.9% on JS. | Continuous scrubbing saturates native drawing even though JS path generation is stable; any changing child can make the combined SVG surface redraw expensive static content. | Promote O-3 as the first evidence-backed candidate after the remaining Phase 1 gates; separate static waveform drawing from dynamic overlays, but do not implement it yet. | Capture the gated path/render counters, then require an O-3 before/after reduction in scrub p90/hitch ratio with unchanged geometry (4.2/4.3). |
 | 3 | H-6: `draftAutosave.ts` clones persisted content and computes its fingerprint synchronously while constructing a write snapshot. Cost scales with layer marker/annotation count before storage I/O begins. | A 500-marker edit may block the JS thread during interaction even if the eventual write is asynchronous. | Measure first; chunking changes persistence ordering and force-quit guarantees. | Signposted 500-marker autosave with JS long-task duration (3.4/4.6). |
 | 4 | H-2/H-4: `useZoomGesture.ts`, `useScrollZoom.ts`, `StemsView.tsx`, and `StemWaveform.tsx` use whole-store subscriptions. Those surfaces can reconstruct component work on unrelated store updates; the wrapped V1 path is much more granular. | Detail/stem surfaces may amplify playback updates, but hidden/deferred V1 surfaces may contribute nothing to the reported phone delay. | Audit and profile mounted surfaces before splitting selectors. | Complete subscription table and profiler commit reasons per view (4.1/4.2). |
 | 5 | H-7 is not yet supported by a code defect: native BPM windows already run in detached utility-priority tasks with explicit cancellation checks, while waveform extraction is asynchronous but unprofiled. | Changing QoS or adding yields prematurely could slow analysis without improving playback. | Keep current scheduling until a contention trace shows main/JS/audio interference. | Seek/control latency, hitches, audio dropout, and cancellation during decode/BPM/autosave (3.4). |
@@ -46,12 +46,20 @@ playhead playback therefore does not explain the dense hitch tail after scrubbin
 now isolated to the active scrub path or its recovery, which raises the priority of a scrub Time
 Profiler/render/path capture without yet choosing among H-2, H-3, and H-4.
 
+The scrub Time Profiler trace resolves the subsystem split. Across the aligned 11-second active
+window, BeatNote accumulated 10,847 ms of running samples: 9,799 ms on the main thread (90.3%),
+9,564 ms in CoreGraphics-inclusive stacks (88.2%), and 857 ms on the JS thread (7.9%). The next
+3.293 seconds remained at 1.09 average cores, again dominated by CoreGraphics. This weakens H-2 as
+the primary cause, and revises H-3 from “JS regenerates the SVG path string” to “native drawing
+rerasterizes expensive static SVG content when dynamic children change.” H-4 is also weakened by
+the stable container gesture introduced in `7037118`, although counter evidence is still missing.
+
 ## Current interpretation
 
-The most actionable physical-iPhone sequence is now: pair a scrub Time Profiler trace with
-render/path counters. Complete the sheet and
-keyboard hitch scenarios before changing code. The severe scrub result does not yet distinguish
-store/render/path work from Fabric or render-server stalls, so O-1/O-3/O-4 remain unauthorised.
+The most actionable physical-iPhone sequence is now: capture the gated render/path counters, then
+complete the sheet and keyboard hitch scenarios before changing code. O-3 is the first candidate
+with physical subsystem evidence, but Phase 1 remains open and the spec still forbids applying the
+optimisation yet. O-1 and O-4 remain unsupported as primary fixes for this scrub failure.
 
 ## Zustand subscription audit (task 4.1)
 

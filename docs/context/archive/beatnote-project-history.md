@@ -4121,6 +4121,49 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-30 — Complete the performance measurement foundation
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build), `0b60092`; see `git log` (`docs: register local performance fixtures`)
+**Kanban moved:** `app-performance-optimization` Tasks 1.1 and 2.3 → Done; Phase 0 → Done; Phase 1 remains In Progress
+
+**Changed:**
+
+- Built and installed otherwise matching signed Release-local bundles with
+  `EXPO_PUBLIC_BEATNOTE_PERF=0` and `=1`, then captured paired 60-second foreground playback Time
+  Profiler traces on the reference iPhone.
+- Recorded the raw trace paths, bundle checksums, sampling windows, CPU result, and thermal state in
+  the performance results register; raw Instruments artifacts remain outside Git.
+- Generated ignored local-only medium AAC/MP3 and ten-minute stress WAV/AAC derivatives from one
+  representative source, then registered their absolute paths, measured metadata, and SHA-256
+  checksums. No copyrighted audio is tracked by Git.
+- Generated and checksummed the deterministic S-medium and S-long 0/50/500-marker descriptor/CSV
+  pairs under the ignored local performance directory, ready for device import.
+
+**Verified:**
+
+- Both builds installed and launched on iPhone 15 Pro Max / iOS 27.0.1 with the same bundle ID and
+  development team; their JS bundles had distinct expected checksums.
+- Flag off averaged 46.97% process CPU; flag on averaged 42.95%. The on-minus-off delta was -4.02
+  percentage points (-8.57% relative), so positive instrumentation overhead was 0; both traces
+  remained in the Fair thermal state.
+- `ffprobe` verified both 233.433-second medium encodes and both 600-second stress encodes at
+  44.1 kHz stereo; `shasum -a 256` recorded a stable identity for each local file.
+- The project generator produced all six expected descriptor/CSV pairs with fixed seed `20261029`;
+  their checksums are recorded in `fixtures.md`.
+
+**Not verified / known gaps:**
+
+- This was one same-song pair, and the song metadata/marker count was not captured. The negative
+  delta shows no added CPU in this pair but also exposes run-to-run variance; it is not a Phase 1
+  latency, frame, memory, or energy baseline.
+- All repeated physical latency, frame, memory, energy, contention, and render baselines remain open.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Generate the fixed S-medium/50 project, then collect the first repeated Release-local physical
+  latency/frame baseline before implementing any candidate from `findings.md`.
+
 ### 2026-10-30 — Verify native waveform and BPM signposts
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `e4f1900`

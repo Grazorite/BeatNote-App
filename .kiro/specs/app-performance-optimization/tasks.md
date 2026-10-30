@@ -81,10 +81,17 @@ section references are to [`design.md`](./design.md).
         unstable props. Resolves H-2. _Req 4.2–4.4_
   - [ ] 4.3 `[device]` Path-regeneration and gesture-reconstruction counts during playback.
         Resolves H-3, H-4. _Req 4.5–4.6_
+    - Scrub Time Profiler evidence shows 9,564 ms of CoreGraphics-inclusive work in an 11-second
+      active window while the JS thread used 857 ms. Code inspection confirms `path.wrappedRow`
+      generation is memoized, but the static paths share one SVG with the changing progress and
+      playhead. The deployed bundle emitted no perf markers/counters, so counter totals remain open.
   - [ ] 4.4 `[device]` IVL breakdown traces for tap seek and dock controls (§6.5). Resolves H-5.
   - [ ] 4.5 `[device]` Modal/keyboard layout traces; confirm C-3 fix holds. Resolves H-8. _Req 4.7_
   - [ ] 4.6 `[device]` Time Profiler, Allocations generations, and Leaks review. Resolves H-6, H-7,
         H-9. _Req 5, 7_
+    - First Time Profiler trace captured: main thread 90.3% and CoreGraphics-inclusive stacks 88.2%
+      of BeatNote's 10,847 running samples during the aligned scrub window; JS was 7.9%. Allocations,
+      Leaks, and non-scrub native work remain open.
   - [ ] 4.7 `[desk]` Update the confirmed/hypothesis table in `requirements.md` and rank confirmed
         bottlenecks by threshold gap. Remove temporary counters (2.4) once data is captured.
   - Gate: Phase 2 starts only for candidates whose hypothesis is now confirmed.
