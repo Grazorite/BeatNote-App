@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { useWaveformData } from '../../../hooks/useWaveformData';
@@ -22,6 +23,7 @@ import {
 } from '../../../utils/rowLayout';
 import {
   loopSegmentsForRows,
+  scrubPointerToTimestamp,
   timestampToRow,
   type RowLoopSegment,
 } from '../../../utils/timelineMapping';
@@ -47,6 +49,10 @@ interface WrappedWaveformProps {
 const MOBILE_TARGET_ROW_HEIGHT = 56;
 const MOBILE_GUTTER_WIDTH = 52;
 const EMPTY_MARKERS: WrappedLayerMarkers[] = [];
+// Trailing edge zone that continues an active scrub into the next row.
+const SCRUB_EDGE_ZONE_PX = 20;
+// Time to auto-advance through one full row while holding at an edge.
+const SCRUB_EDGE_ROW_MS = 1500;
 
 const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
   audioUri,
@@ -257,6 +263,119 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     ? { onWheel: handleManualScrollStart }
     : {};
 
+  // One scrub gesture spans every row so an activated horizontal drag can travel across rows.
+  // Geometry and callbacks are read from a ref, keeping the gesture object stable while playback,
+  // scrolling, and the scrub itself re-render this component.
+  const scrubGeometryRef = useRef({ rows, rowHeight, rowPixelWidth, gutterWidth, onScrubStart, onScrubEnd });
+  scrubGeometryRef.current = { rows, rowHeight, rowPixelWidth, gutterWidth, onScrubStart, onScrubEnd };
+  const scrubRef = useRef({
+    active: false,
+    x: 0,
+    y: 0,
+    rowIndex: -1,
+    offsetMs: 0,
+    enteredCanvas: false,
+    frame: null as number | null,
+    lastFrameTs: 0,
+  });
+  useEffect(() => () => {
+    const { frame } = scrubRef.current;
+    if (frame != null) cancelAnimationFrame(frame);
+  }, []);
+  const scrubGesture = useMemo(() => {
+    const pointerRow = (y: number): number => {
+      const { rows: allRows, rowHeight: stride } = scrubGeometryRef.current;
+      const index = Math.floor(y / Math.max(1, stride));
+      return Math.min(allRows.length - 1, Math.max(0, Number.isFinite(index) ? index : 0));
+    };
+    // Rows end at the screen edge on phones, so a finger cannot travel past a row's end. Holding in
+    // the trailing edge zone (or over the leading gutter) keeps the scrub moving into the next (or
+    // previous) row, the way text selection auto-scrolls.
+    const edgeDirection = (x: number): -1 | 0 | 1 => {
+      const scrub = scrubRef.current;
+      const { gutterWidth: gutter, rowPixelWidth: width } = scrubGeometryRef.current;
+      const canvasX = x - gutter;
+      const direction = canvasX < 0 ? -1 : canvasX >= width - SCRUB_EDGE_ZONE_PX ? 1 : 0;
+      if (direction === 0) scrub.enteredCanvas = true;
+      // A scrub that starts at an edge must reach the canvas first, so it never auto-runs at once.
+      return scrub.enteredCanvas ? direction : 0;
+    };
+    const pointerTime = (): number => {
+      const { rows: allRows, rowPixelWidth: width, rowHeight: stride, gutterWidth: gutter } = scrubGeometryRef.current;
+      const scrub = scrubRef.current;
+      return scrubPointerToTimestamp(allRows, 0, width, stride, scrub.x - gutter, scrub.y);
+    };
+    const applyScrub = (): void => {
+      const { rows: allRows } = scrubGeometryRef.current;
+      if (allRows.length === 0) return;
+      const songEnd = allRows[allRows.length - 1].endMs;
+      const scrub = scrubRef.current;
+      const base = pointerTime();
+      scrub.offsetMs = Math.min(songEnd - base, Math.max(-base, scrub.offsetMs));
+      const targetTime = Math.round(base + scrub.offsetMs);
+      const { setCurrentTime, setGhostPlayheadTime } = useStudioStore.getState();
+      setCurrentTime(targetTime);
+      setGhostPlayheadTime(targetTime);
+    };
+    const tick = (timestamp: number): void => {
+      const scrub = scrubRef.current;
+      scrub.frame = null;
+      if (!scrub.active) return;
+      const direction = edgeDirection(scrub.x);
+      if (direction === 0) return;
+      const elapsedMs = scrub.lastFrameTs > 0 ? Math.min(100, timestamp - scrub.lastFrameTs) : 16;
+      scrub.lastFrameTs = timestamp;
+      const row = scrubGeometryRef.current.rows[pointerRow(scrub.y)];
+      if (!row) return;
+      const rowSpanMs = Math.max(1, row.endMs - row.startMs);
+      scrub.offsetMs += direction * rowSpanMs * (elapsedMs / SCRUB_EDGE_ROW_MS);
+      applyScrub();
+      scrub.frame = requestAnimationFrame(tick);
+    };
+    const updateScrub = (x: number, y: number): void => {
+      const scrub = scrubRef.current;
+      scrub.x = x;
+      scrub.y = y;
+      const rowIndex = pointerRow(y);
+      // Moving between rows makes the finger authoritative again, so the playhead sits under it.
+      if (rowIndex !== scrub.rowIndex) {
+        scrub.rowIndex = rowIndex;
+        scrub.offsetMs = 0;
+      }
+      applyScrub();
+      if (edgeDirection(x) !== 0 && scrub.frame == null) {
+        scrub.lastFrameTs = 0;
+        scrub.frame = requestAnimationFrame(tick);
+      }
+    };
+    const resetScrub = (): void => {
+      const scrub = scrubRef.current;
+      if (scrub.frame != null) cancelAnimationFrame(scrub.frame);
+      Object.assign(scrub, {
+        active: false, rowIndex: -1, offsetMs: 0, enteredCanvas: false, frame: null, lastFrameTs: 0,
+      });
+    };
+    // Vertical-first movement fails before activation, so it stays a scroll; failOffsetY no longer
+    // applies once horizontal movement has activated the scrub.
+    return Gesture.Pan()
+      .runOnJS(true)
+      .activeOffsetX([-6, 6])
+      .failOffsetY([-12, 12])
+      .onStart(event => {
+        resetScrub();
+        scrubRef.current.active = true;
+        scrubGeometryRef.current.onScrubStart();
+        updateScrub(event.x, event.y);
+      })
+      .onUpdate(event => updateScrub(event.x, event.y))
+      .onFinalize(() => {
+        if (!scrubRef.current.active) return;
+        resetScrub();
+        useStudioStore.getState().setGhostPlayheadTime(null);
+        scrubGeometryRef.current.onScrubEnd();
+      });
+  }, []);
+
   const handleSelectMarker = useCallback((layerId: Layer['id'], timestamp: number) => {
     setSelectedMarker({ layerId, timestamp });
   }, [setSelectedMarker]);
@@ -278,8 +397,6 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       outsideLoopSegments={outsideLoopSegmentsByRow.get(row.index)}
       isLoopRangeEnabled={isLoopRangeEnabled}
       onSeek={onSeek}
-      onScrubStart={onScrubStart}
-      onScrubEnd={onScrubEnd}
       onSelectMarker={handleSelectMarker}
       onSelectForDetail={onSelectForDetail}
     />
@@ -323,13 +440,15 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         </Pressable>
       </View>}
       {isMobile ? (
-        <View
-          style={[styles.viewport, styles.viewportMobile]}
-          onLayout={handleLayout}
-          testID="wrapped-waveform"
-        >
-          {rows.map(renderRow)}
-        </View>
+        <GestureDetector gesture={scrubGesture}>
+          <View
+            style={[styles.viewport, styles.viewportMobile]}
+            onLayout={handleLayout}
+            testID="wrapped-waveform"
+          >
+            {rows.map(renderRow)}
+          </View>
+        </GestureDetector>
       ) : (
         <ScrollView
           ref={scrollRef}
@@ -345,9 +464,14 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
           keyboardShouldPersistTaps="handled"
           testID="wrapped-waveform"
         >
-          <View style={{ height: topSpacerHeight }} />
-          {visibleRows.map(renderRow)}
-          <View style={{ height: bottomSpacerHeight }} />
+          {/* Content coordinates include the spacers, so y / rowHeight is the absolute row. */}
+          <GestureDetector gesture={scrubGesture}>
+            <View>
+              <View style={{ height: topSpacerHeight }} />
+              {visibleRows.map(renderRow)}
+              <View style={{ height: bottomSpacerHeight }} />
+            </View>
+          </GestureDetector>
         </ScrollView>
       )}
     </View>

@@ -267,6 +267,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-30 — Reset the editor after deleting its only song
+
+**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: restore unloaded music state`)
+**Kanban moved:** active-song deletion reset → Done
+
+**Changed:**
+
+- `libraryActions.ts`: deleting the current song with no adjacent queue destination now clears the
+  active selection and resets the authored/editor session to the same unloaded state as first launch.
+- `BottomSheet.tsx`: detents now resize the bottom-anchored sheet instead of translating a
+  full-height list below the viewport, so the Music Library can scroll while half open.
+- Hidden removed records, saved projects, and song drafts remain available for relinking; only the
+  stale active selection and capability-gated editor state are cleared.
+- The retained library/project journey now verifies “Choose Music”, “Load a song”, disabled
+  controls, the absence of missing-source diagnostic text, and medium-detent list scrolling.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused library/project journey → passed; full retained Playwright gate → 8/8 passed.
+
+**Not verified / known gaps:**
+
+- The corrected delete flow has not yet been rerun on the physical iPhone shown in the report.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Reload the current development build on the iPhone, import one song, delete it, and confirm the
+  clean unloaded canvas and dock without capability descriptions.
+
 ### 2026-10-29 — Start the measurement-first performance foundation
 
 **Agent:** orchestrator (Codex) + DSH-Qwen · **Commit(s):** `uncommitted`

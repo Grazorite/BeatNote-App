@@ -121,6 +121,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Make wrapped-waveform scrubbing continuous across rows: one container-level horizontal-first
+      scrub that follows the finger between rows and auto-continues from the trailing edge or gutter
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/utils/timelineMapping.ts`</sub>
+
 - [x] Keep dock tooltips readable above annotation callouts in portrait and landscape, and dismiss
       the half-height Music Library by tapping its exposed backdrop without breaking modal focus
       <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/styles/components/common/bottomSheet.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/controls/controlDock.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
@@ -218,6 +222,45 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Scrub continuously across wrapped waveform rows
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`fix: scrub continuously across wrapped waveform rows`)
+**Kanban moved:** cross-row wrapped-waveform scrubbing → Done
+
+**Changed:**
+
+- `WrappedWaveform.tsx`: replaced the per-row pan gestures with one stable container-level pan.
+  It keeps horizontal-first activation (`activeOffsetX ±6`, `failOffsetY ±12`), maps container
+  y to a row and x to time within that row, and auto-advances about one row per 1.5 s while the
+  finger holds in the trailing 20 px edge zone or over the leading gutter.
+- `WrappedRow.tsx`: rows retain only the tap/marker-selection gesture; scrub props and store
+  writes moved to the container. `timelineMapping.ts` gained `scrubPointerToTimestamp`.
+- Project-overview steering documents the cross-row scrub rule. The previously staged deletion of
+  three `.kiro/hooks/` files is included at the user's request.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed. Temporary Playwright checks (hold at row end reaches row 1;
+  drag down after activation lands under the finger in row 3) → passed, then deleted.
+- Full retained Playwright gate → 8/8 passed.
+- Signed Release-local build with the embedded bundle installed on the iPhone 15 Pro Max; the user
+  confirmed cross-row following and edge continuation work on the physical phone.
+
+**Not verified / known gaps:**
+
+- The earlier failed physical retests were caused by a stale on-device bundle: no Metro server was
+  running and the dev client never fetched new JavaScript over Wi-Fi or the wired link-local
+  address. That connectivity problem is unresolved; a Release rebuild was used instead.
+- Desktop/web virtualised rows inside the ScrollView were checked only through the retained
+  browser gate; scrubbing that scrolls rows out of the rendered window is not exercised.
+- Edge-zone width and auto-advance rate are first values; VoiceOver and landscape comfort were not
+  separately assessed.
+
+**Next agent should:**
+
+- Resume `app-performance-optimization` task 4.4 (rapid wrapped-seek IVL breakdown) on a
+  Release-local build, and diagnose why the dev client cannot reach local Metro before relying on it.
 
 ### 2026-10-30 — Quantify paced seek completion and rapid-input hitches
 
@@ -361,36 +404,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Reload the development build on the iPhone and confirm tooltip/callout ordering in both
   orientations and outside-tap dismissal at the Music Library's medium detent.
-
-### 2026-10-30 — Reset the editor after deleting its only song
-
-**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: restore unloaded music state`)
-**Kanban moved:** active-song deletion reset → Done
-
-**Changed:**
-
-- `libraryActions.ts`: deleting the current song with no adjacent queue destination now clears the
-  active selection and resets the authored/editor session to the same unloaded state as first launch.
-- `BottomSheet.tsx`: detents now resize the bottom-anchored sheet instead of translating a
-  full-height list below the viewport, so the Music Library can scroll while half open.
-- Hidden removed records, saved projects, and song drafts remain available for relinking; only the
-  stale active selection and capability-gated editor state are cleared.
-- The retained library/project journey now verifies “Choose Music”, “Load a song”, disabled
-  controls, the absence of missing-source diagnostic text, and medium-detent list scrolling.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → passed.
-- Focused library/project journey → passed; full retained Playwright gate → 8/8 passed.
-
-**Not verified / known gaps:**
-
-- The corrected delete flow has not yet been rerun on the physical iPhone shown in the report.
-- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Reload the current development build on the iPhone, import one song, delete it, and confirm the
-  clean unloaded canvas and dock without capability descriptions.
 
 <!-- end handover log -->

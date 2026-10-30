@@ -62,6 +62,9 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Phone waveform canvas** — a fixed, non-scrolling full-song view. Its row count follows the
   available screen height and each row's timestamp span adapts to the loaded track duration. Gutter
   and waveform gestures seek or select; marker creation is exclusive to the bottom marker controls.
+  One container-level scrub spans every row: a horizontal-first drag activates it (vertical-first
+  movement does not), the finger then maps across adjacent rows, and holding in the trailing edge
+  zone or over the leading gutter continues the scrub into the next or previous row.
 - **Magnetic snapping** — auto-aligning the playhead/marker to the nearest beat grid line or existing marker.
 - **8-count** — standard dance phrase unit (8 beats). The grid should support 8-count alignment in addition to individual beats.
 - **Ghost playhead** — a secondary playhead showing the last clicked position without committing to it.

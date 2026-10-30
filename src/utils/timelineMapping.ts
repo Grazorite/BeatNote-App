@@ -41,6 +41,28 @@ export function pointerToTimestamp({ row, rowPixelWidth }: RowRenderContext, xPx
   return Math.round(Math.min(row.endMs, Math.max(row.startMs, row.startMs + (x / width) * span)));
 }
 
+/**
+ * Map an active scrub pointer to a timestamp across adjacent wrapped rows.
+ *
+ * `yPx` is measured from the top of `originRowIndex` (use 0 with container coordinates), so each
+ * `rowStride` of vertical travel moves the target by one row. The target row is clamped to the
+ * song, which pins the playhead to the song start or end instead of ending the scrub.
+ */
+export function scrubPointerToTimestamp(
+  rows: readonly WrappedRow[],
+  originRowIndex: number,
+  rowPixelWidth: number,
+  rowStride: number,
+  xPx: number,
+  yPx: number,
+): number {
+  if (rows.length === 0) return 0;
+  const stride = Number.isFinite(rowStride) && rowStride > 0 ? rowStride : 1;
+  const rowOffset = Number.isFinite(yPx) ? Math.floor(yPx / stride) : 0;
+  const targetIndex = Math.min(rows.length - 1, Math.max(0, originRowIndex + rowOffset));
+  return pointerToTimestamp({ row: rows[targetIndex], rowPixelWidth }, xPx);
+}
+
 export function clipRowProgress(row: WrappedRow, currentTime: number): number {
   if (!Number.isFinite(currentTime) || currentTime <= row.startMs) return 0;
   if (currentTime >= row.endMs) return 1;

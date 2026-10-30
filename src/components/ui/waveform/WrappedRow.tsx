@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
@@ -46,8 +46,6 @@ interface WrappedRowProps {
   outsideLoopSegments?: RowLoopSegment[];
   isLoopRangeEnabled: boolean;
   onSeek: (positionMs: number) => void;
-  onScrubStart: () => void;
-  onScrubEnd: () => void;
   onSelectMarker: (layerId: LayerId, timestamp: number) => void;
   onSelectForDetail: (rowIndex: number) => void;
 }
@@ -141,12 +139,9 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   outsideLoopSegments = [],
   isLoopRangeEnabled,
   onSeek,
-  onScrubStart,
-  onScrubEnd,
   onSelectMarker,
   onSelectForDetail,
 }) => {
-  const scrubStartedRef = useRef(false);
   const progress = useStudioStore(state => clipRowProgress(row, state.currentTime));
   // Reduced to a string so only the row holding the selection re-renders when it changes.
   const selectedMarkerKey = useStudioStore(state => {
@@ -155,8 +150,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
       ? `${selected.layerId}-${selected.timestamp}`
       : null;
   });
-  const setCurrentTime = useStudioStore(state => state.setCurrentTime);
-  const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
   const safeProgress = Math.max(0, Math.min(1, progress));
   const activeWidth = rowPixelWidth * safeProgress;
   const playheadX = rowPixelWidth > 2
@@ -238,36 +231,14 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
         onSeek(targetTime);
       });
 
-    const panGesture = Gesture.Pan()
-      .runOnJS(true)
-      .activeOffsetX([-6, 6])
-      .failOffsetY([-12, 12])
-      .onStart(() => {
-        scrubStartedRef.current = true;
-        onScrubStart();
-      })
-      .onUpdate(event => {
-        const targetTime = timeAtPosition(event.x);
-        setCurrentTime(targetTime);
-        setGhostPlayheadTime(targetTime);
-      })
-      .onFinalize(() => {
-        if (!scrubStartedRef.current) return;
-        scrubStartedRef.current = false;
-        setGhostPlayheadTime(null);
-        onScrubEnd();
-      });
-
-    return Gesture.Race(tapGesture, panGesture);
+    // Scrubbing is owned by the parent WrappedWaveform so a drag can cross rows; its pan cancels
+    // this tap once the horizontal scrub activates.
+    return tapGesture;
   }, [
     markerAtPosition,
     markerLaneHeight,
-    onScrubEnd,
-    onScrubStart,
     onSeek,
     onSelectMarker,
-    setCurrentTime,
-    setGhostPlayheadTime,
     timeAtPosition,
   ]);
 
@@ -617,8 +588,6 @@ const areWrappedRowPropsEqual = (previous: WrappedRowProps, next: WrappedRowProp
   && sameLoopSegments(previous.outsideLoopSegments, next.outsideLoopSegments)
   && previous.isLoopRangeEnabled === next.isLoopRangeEnabled
   && previous.onSeek === next.onSeek
-  && previous.onScrubStart === next.onScrubStart
-  && previous.onScrubEnd === next.onScrubEnd
   && previous.onSelectMarker === next.onSelectMarker
   && previous.onSelectForDetail === next.onSelectForDetail
 );
