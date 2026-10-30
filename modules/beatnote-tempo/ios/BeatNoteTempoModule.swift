@@ -2,9 +2,42 @@ import Accelerate
 import AVFoundation
 import CoreMedia
 import ExpoModulesCore
-#if canImport(LibraryStorage)
-import LibraryStorage
-#endif
+import os
+
+private final class TempoSignpostGate: @unchecked Sendable {
+  static let shared = TempoSignpostGate()
+  private let log = OSLog(subsystem: "com.beatnote.app", category: .pointsOfInterest)
+  private let lock = NSLock()
+  private var enabled = false
+  private var intervals: [String: OSSignpostID] = [:]
+
+  func setEnabled(_ value: Bool) {
+    lock.lock()
+    enabled = value
+    if !value { intervals.removeAll() }
+    lock.unlock()
+  }
+
+  func begin(_ id: String, name: String) {
+    lock.lock()
+    guard enabled, intervals[id] == nil else {
+      lock.unlock()
+      return
+    }
+    let signpostID = OSSignpostID(log: log)
+    intervals[id] = signpostID
+    lock.unlock()
+    os_signpost(.begin, log: log, name: "BeatNote", signpostID: signpostID, "%{public}s", name)
+  }
+
+  func end(_ id: String) {
+    lock.lock()
+    let signpostID = intervals.removeValue(forKey: id)
+    lock.unlock()
+    guard let signpostID else { return }
+    os_signpost(.end, log: log, name: "BeatNote", signpostID: signpostID)
+  }
+}
 
 private enum TempoAnalysisError: Error {
   case audioTrackMissing
@@ -83,6 +116,10 @@ public final class BeatNoteTempoModule: Module {
     Name("BeatNoteTempo")
     Events("onAnalysisProgress")
 
+    Function("enableSignposts") { (enabled: Bool) in
+      TempoSignpostGate.shared.setEnabled(enabled)
+    }
+
     Function("cancelAnalysis") { (requestId: String) in
       CancellationRegistry.shared.cancel(requestId)
     }
@@ -140,15 +177,11 @@ public final class BeatNoteTempoModule: Module {
   }
 
   private static func signpostBegin(_ intervalID: String, name: String) {
-    #if canImport(LibraryStorage)
-    LibraryStorageModule.beginSignpost(intervalID, name: name)
-    #endif
+    TempoSignpostGate.shared.begin(intervalID, name: name)
   }
 
   private static func signpostEnd(_ intervalID: String) {
-    #if canImport(LibraryStorage)
-    LibraryStorageModule.endSignpost(intervalID)
-    #endif
+    TempoSignpostGate.shared.end(intervalID)
   }
 
   private static func defaultWindows(durationSeconds: Double) -> [AnalysisWindow] {

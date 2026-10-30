@@ -1,4 +1,5 @@
 import BeatNoteTempo from '../../modules/beatnote-tempo/src';
+import { perfMarksEnabled } from '../utils/perfMarks';
 import type { AnalysisRequest, AnalysisResult } from './bpmAnalysis.types';
 
 export const ANALYZER_ID = 'ios-accelerate-v1';
@@ -13,6 +14,7 @@ const abortError = (): Error => {
 export async function analyzeBpm(request: AnalysisRequest): Promise<AnalysisResult | null> {
   if (request.signal?.aborted) throw abortError();
 
+  BeatNoteTempo.enableSignposts?.(perfMarksEnabled);
   const requestId = `tempo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const progressSubscription = BeatNoteTempo.addListener('onAnalysisProgress', event => {
     if (event.requestId === requestId) request.onProgress?.(event.fraction);

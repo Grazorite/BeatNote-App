@@ -19,6 +19,7 @@ interface ProgressEvent {
 }
 
 interface BeatNoteTempoNativeModule {
+  enableSignposts?(enabled: boolean): void;
   analyzeTempoAsync(
     audioUri: string,
     requestId: string,

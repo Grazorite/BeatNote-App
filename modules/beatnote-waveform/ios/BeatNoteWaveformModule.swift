@@ -1,9 +1,42 @@
 import AVFoundation
 import CoreMedia
 import ExpoModulesCore
-#if canImport(LibraryStorage)
-import LibraryStorage
-#endif
+import os
+
+private final class WaveformSignpostGate: @unchecked Sendable {
+  static let shared = WaveformSignpostGate()
+  private let log = OSLog(subsystem: "com.beatnote.app", category: .pointsOfInterest)
+  private let lock = NSLock()
+  private var enabled = false
+  private var intervals: [String: OSSignpostID] = [:]
+
+  func setEnabled(_ value: Bool) {
+    lock.lock()
+    enabled = value
+    if !value { intervals.removeAll() }
+    lock.unlock()
+  }
+
+  func begin(_ id: String, name: String) {
+    lock.lock()
+    guard enabled, intervals[id] == nil else {
+      lock.unlock()
+      return
+    }
+    let signpostID = OSSignpostID(log: log)
+    intervals[id] = signpostID
+    lock.unlock()
+    os_signpost(.begin, log: log, name: "BeatNote", signpostID: signpostID, "%{public}s", name)
+  }
+
+  func end(_ id: String) {
+    lock.lock()
+    let signpostID = intervals.removeValue(forKey: id)
+    lock.unlock()
+    guard let signpostID else { return }
+    os_signpost(.end, log: log, name: "BeatNote", signpostID: signpostID)
+  }
+}
 
 private enum WaveformExtractionError: Error {
   case audioTrackMissing
@@ -37,6 +70,10 @@ public final class BeatNoteWaveformModule: Module {
   public func definition() -> ModuleDefinition {
     Name("BeatNoteWaveform")
 
+    Function("enableSignposts") { (enabled: Bool) in
+      WaveformSignpostGate.shared.setEnabled(enabled)
+    }
+
     AsyncFunction("extractPeaksAsync") {
       (audioURL: URL, requestedSamplesPerSecond: Int) async throws -> [String: Any] in
       let samplesPerSecond = min(max(requestedSamplesPerSecond, 25), 200)
@@ -48,15 +85,11 @@ public final class BeatNoteWaveformModule: Module {
   }
 
   private static func signpostBegin(_ intervalID: String, name: String) {
-    #if canImport(LibraryStorage)
-    LibraryStorageModule.beginSignpost(intervalID, name: name)
-    #endif
+    WaveformSignpostGate.shared.begin(intervalID, name: name)
   }
 
   private static func signpostEnd(_ intervalID: String) {
-    #if canImport(LibraryStorage)
-    LibraryStorageModule.endSignpost(intervalID)
-    #endif
+    WaveformSignpostGate.shared.end(intervalID)
   }
 
   private static func extractPeaks(
