@@ -14,6 +14,9 @@ pass. Raw traces, videos, and profiler exports stay outside the repository.
 | 2026-10-30 | `7037118` | iPhone 15 Pro Max | 27.0.1 | Release-local; perf markers not observed | S-medium M4A, 233.433 s/44.1 kHz stereo, SHA-256 `a697fc1cc7eb0db6f27e036d584d64de9a23c22c9d219af55bb3465e2e0d071a` | 50 | Continuous cross-row wrapped-waveform scrub | BeatNote hitch duration and interaction ratio | Animation Hitches; first coordinated 10 s of BeatNote hitch activity | 152 | 16.67 ms | 116.69 ms | 383.42 ms | < 10 ms/s | Fail: 703.49 ms/s | `/private/tmp/beatnote-s-medium-50-continuous-scrub-v4.trace`; 7,034.902 ms summed hitch time; Nominal thermal state; capture began only after explicit `RECORDING NOW` cue |
 | 2026-10-30 | `7037118` | iPhone 15 Pro Max | 27.0.1 | Release-local; perf markers not observed | S-medium M4A, 233.433 s/44.1 kHz stereo, SHA-256 `a697fc1cc7eb0db6f27e036d584d64de9a23c22c9d219af55bb3465e2e0d071a` | 50 | Steady foreground playback, untouched | BeatNote hitch duration and 60 s ratio | Animation Hitches; final 60 s of a coordinated 66.146213 s capture | 4 | 33.34 ms | 33.34 ms | 33.34 ms | < 5 ms/s; max < 50 ms | Pass: 1.94 ms/s | `/private/tmp/beatnote-s-medium-50-steady-playback.trace`; 116.692 ms summed hitch time; Nominal thermal state |
 | 2026-10-30 | `7037118` | iPhone 15 Pro Max | 27.0.1 | Release-local; perf markers not observed | S-medium M4A, 233.433 s/44.1 kHz stereo, SHA-256 `a697fc1cc7eb0db6f27e036d584d64de9a23c22c9d219af55bb3465e2e0d071a` | 50 | Continuous cross-row scrub and immediate recovery | Running CPU sample attribution | Time Profiler, 1 ms samples; aligned 11 s active CPU window | 10,847 samples | — | — | 0.99 average cores | Diagnostic | n/a | `/private/tmp/beatnote-s-medium-50-scrub-time-profiler.trace`; main thread 9,799 ms (90.3%), CoreGraphics-inclusive 9,564 ms (88.2%), JS thread 857 ms (7.9%); next 3.293 s remained at 1.09 average cores; Nominal thermal state |
+| 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Continuous cross-row scrub | Physical instrumentation presence | Instruments Logging / `os-signpost` export | 1 | — | — | — | `seek.scrub` signpost present | Pass | BeatNote `seek.scrub` begin observed on the React Native JS thread; the user released after the trace ended, so no matching end was expected; raw trace deleted after extraction at user request |
+| 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Five Music Library open/settle/backdrop-dismiss cycles | BeatNote hitch duration and interaction ratio | Animation Hitches / 26.058452 s trace | 1 | 16.67 ms | 16.67 ms | 16.67 ms | < 10 ms/s | Pass: 0.64 ms/s | Nominal thermal state; raw trace deleted after extraction at user request |
+| 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Three annotation open/type/save cycles with software keyboard | BeatNote hitch duration and interaction ratio | Animation Hitches / 36.239625 s trace | 7 | 16.67 ms | 233.385 ms | 233.385 ms | < 10 ms/s | Fail: 14.72 ms/s | 533.451 ms summed hitch time; Nominal thermal state; first capture was discarded after a disk-full save failure, replacement raw trace deleted after extraction at user request |
 
 The paired physical rows above pass only the instrumentation-overhead gate. They are a single
 same-song comparison with uncaptured song metadata and visible run-to-run variance, so they do not
@@ -22,8 +25,7 @@ replace the repeated physical latency, frame, memory, or energy baselines requir
 The paced seek interval ends only after the native player seek promise resolves and one animation
 frame runs. It is stronger than a handler-only timing but does not independently prove the first
 changed video frame, audible audio at the target, or ±20 ms position accuracy. The hitch result is a
-diagnostic proxy because Requirement 3 does not define a dedicated tap-seek hitch threshold; the
-required playback, continuous-scrub, sheet, and keyboard scenarios remain open.
+diagnostic proxy because Requirement 3 does not define a dedicated tap-seek hitch threshold.
 
 The continuous-scrub row is the first required Requirement 3 interaction rather than a proxy. Its
 ten-second window begins with the first BeatNote hitch after the coordinated start cue. Raw hitch
@@ -38,6 +40,15 @@ The scrub Time Profiler capture included Points of Interest, but the deployed `7
 emitted no BeatNote markers or fallback logs, so its instrumentation flag was not verified as on.
 The aligned CPU burst still identifies the dominant subsystem: main-thread CoreGraphics/QuartzCore
 rendering, with JS accounting for less than one tenth of the running samples.
+
+The flag-on replacement bundle emitted `seek.scrub` on the physical device, confirming the native
+bridge. The Music Library sheet passed its hitch target, while annotation editing with the software
+keyboard failed at 14.72 ms/s. This completes the four Requirement 3 hitch scenarios but does not
+replace the layout-focused keyboard trace or temporary counter snapshot still required by task 4.
+
+Raw trace paths in earlier rows are retained as provenance only. At the user's request, all raw
+BeatNote temporary trace bundles and exported tables on this host were deleted after their summary
+metrics were recorded here.
 
 ## Optimisation decisions
 

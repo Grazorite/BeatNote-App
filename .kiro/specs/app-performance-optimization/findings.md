@@ -54,12 +54,19 @@ the primary cause, and revises H-3 from “JS regenerates the SVG path string”
 rerasterizes expensive static SVG content when dynamic children change.” H-4 is also weakened by
 the stable container gesture introduced in `7037118`, although counter evidence is still missing.
 
+The remaining Requirement 3 surfaces split cleanly. Five Music Library sheet cycles produced only
+one 16.670 ms BeatNote hitch over 26.058 seconds (0.64 ms/s), while three annotation open/type/save
+cycles with the software keyboard produced seven hitches totalling 533.451 ms over 36.240 seconds
+(14.72 ms/s), including a 233.385 ms maximum. H-8 therefore remains live for a layout-focused trace;
+the bottom-sheet animation is not a comparable physical bottleneck.
+
 ## Current interpretation
 
-The most actionable physical-iPhone sequence is now: capture the gated render/path counters, then
-complete the sheet and keyboard hitch scenarios before changing code. O-3 is the first candidate
-with physical subsystem evidence, but Phase 1 remains open and the spec still forbids applying the
-optimisation yet. O-1 and O-4 remain unsupported as primary fixes for this scrub failure.
+The most actionable physical-iPhone sequence is now: capture the gated render/path counters through
+Debug+Metro DevTools, then run the layout-focused keyboard trace before changing code. O-3 is the
+first candidate with physical subsystem evidence and O-10 now has a failing surface to investigate,
+but Phase 1 remains open and the spec still forbids applying either optimisation. O-1 and O-4 remain
+unsupported as primary fixes for the scrub failure.
 
 ## Zustand subscription audit (task 4.1)
 

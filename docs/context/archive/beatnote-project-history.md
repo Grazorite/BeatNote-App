@@ -4121,6 +4121,43 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-30 — Quantify paced seek completion and rapid-input hitches
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `36a266f`
+**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
+
+**Changed:**
+
+- Added a flag-gated, post-signpost unified-log duration fallback because Xcode 27's physical
+  modeled interval table omitted overlapping seek intervals even though the app emitted them.
+- Registered the first physical S-medium/50 wrapped-waveform latency sample and the separate
+  slow-then-rapid Animation Hitches evidence without promoting either to a full Phase 1 baseline.
+- Updated the findings and profiling guide so future captures reconcile modeled intervals with the
+  fallback count and do not confuse the instrumented completion endpoint with audible timing.
+
+**Verified:**
+
+- Final 20 paced taps: p50 46.77 ms, p90 51.20 ms, max 54.01 ms from handler entry through player
+  seek completion and the following animation frame; the instrumented endpoint passes 100 ms.
+- Slow-then-rapid trace: six hitches, 1,658.698 ms total over 51.348242 seconds (32.30 ms/s), longest
+  550.12 ms, Nominal thermal state; user confirmed visible lag during rapid tapping.
+- Signed Release-local build installed and launched on iPhone 15 Pro Max; Swift parse,
+  `npx tsc --noEmit`, and retained Playwright gate (8/8) passed.
+
+**Not verified / known gaps:**
+
+- External-video first feedback, audible-position timing, ±20 ms seek accuracy, and the other
+  Debug/Release, S-long/500, frame, memory, energy, and contention scenarios remain open.
+- The focused iOS annotation/project test reached the app but failed while waiting for the Music
+  Library sheet to close under a manually staged simulator run; the official clean staging path was
+  not rerun, so this native-touch verification gap remains explicit.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Capture the rapid wrapped-seek IVL breakdown in task 4.4, then run the scripted continuous-scrub
+  hitch baseline before choosing any optimisation.
+
 ### 2026-10-30 — Complete the performance measurement foundation
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build), `0b60092`; see `git log` (`docs: register local performance fixtures`)

@@ -64,8 +64,10 @@ potentially adding a hybrid path later.
    simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
    seek sample passes its instrumented completion target, while the required continuous cross-row
    scrub fails at 703.49 ms/s hitch time and untouched playback passes at 1.94 ms/s. Scrub-profiler
-   evidence now isolates the failure to main-thread CoreGraphics work; gated counters and repeated
-   latency/frame/memory/energy/contention baselines remain.
+   evidence now isolates the failure to main-thread CoreGraphics work. The Music Library sheet
+   passes at 0.64 ms/s, while annotation editing with the keyboard fails at 14.72 ms/s; the flag-on
+   physical scrub signpost is verified. Gated counter totals and repeated latency/memory/energy/
+   contention baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -102,9 +104,9 @@ potentially adding a hybrid path later.
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
-      paced seek, continuous-scrub, and steady-playback samples are registered, and scrub-profiler
-      evidence identifies CoreGraphics saturation; counters plus repeated latency/frame/memory/
-      energy and contention baselines remain pending
+      paced seek and all four required frame/hitch scenarios are registered, scrub-profiler evidence
+      identifies CoreGraphics saturation, and keyboard editing fails its target; counters plus
+      repeated latency/memory/energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -220,6 +222,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Complete the required frame/hitch baseline set
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `ab697b7`; see `git log` (`docs: complete physical hitch baselines`)
+**Kanban moved:** `app-performance-optimization` task 3.2 → Done; Phase 1 remains In Progress
+
+**Changed:**
+
+- Built and installed a Release-local bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`; its physical
+  `seek.scrub` signpost confirms the native profiling bridge is active.
+- Completed the remaining Music Library sheet and annotation/software-keyboard Animation Hitches
+  scenarios and registered both results in the performance spec.
+- At the user's request, deleted all raw BeatNote trace bundles, exported tables/logs, four Xcode
+  DerivedData trees, and the temporary restored-documents folder after recording the summaries.
+
+**Verified:**
+
+- Five sheet open/settle/backdrop-dismiss cycles: one 16.670 ms hitch over 26.058 seconds
+  (0.64 ms/s), passing at Nominal thermal state.
+- Three annotation open/type/save cycles: seven hitches, 533.451 ms total over 36.240 seconds
+  (14.72 ms/s), p50 16.670 ms, p90/max 233.385 ms, failing at Nominal thermal state.
+- Cleanup increased internal free space from 104 MiB before trace relocation to 51 GiB after all
+  BeatNote temporary artifacts were removed; the ignored raw-trace archive is gone.
+
+**Not verified / known gaps:**
+
+- Release-local exposes the diagnostic global only through a DevTools console that was not
+  available in this run, so render/path/gesture counter totals still require Debug+Metro.
+- The keyboard failure still needs a layout-focused trace before O-10 is authorised. Raw traces are
+  intentionally unavailable after the user's cleanup request; only the registered metrics remain.
+
+**Next agent should:**
+
+- Run the Debug+Metro counter/React-profiler scenario, then capture a layout-focused annotation
+  keyboard trace before choosing between O-3 and O-10.
 
 ### 2026-10-30 — Isolate scrub cost to native SVG drawing
 
@@ -356,42 +393,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Resume `app-performance-optimization` task 4.4 (rapid wrapped-seek IVL breakdown) on a
   Release-local build, and diagnose why the dev client cannot reach local Metro before relying on it.
-
-### 2026-10-30 — Quantify paced seek completion and rapid-input hitches
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `36a266f`
-**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
-
-**Changed:**
-
-- Added a flag-gated, post-signpost unified-log duration fallback because Xcode 27's physical
-  modeled interval table omitted overlapping seek intervals even though the app emitted them.
-- Registered the first physical S-medium/50 wrapped-waveform latency sample and the separate
-  slow-then-rapid Animation Hitches evidence without promoting either to a full Phase 1 baseline.
-- Updated the findings and profiling guide so future captures reconcile modeled intervals with the
-  fallback count and do not confuse the instrumented completion endpoint with audible timing.
-
-**Verified:**
-
-- Final 20 paced taps: p50 46.77 ms, p90 51.20 ms, max 54.01 ms from handler entry through player
-  seek completion and the following animation frame; the instrumented endpoint passes 100 ms.
-- Slow-then-rapid trace: six hitches, 1,658.698 ms total over 51.348242 seconds (32.30 ms/s), longest
-  550.12 ms, Nominal thermal state; user confirmed visible lag during rapid tapping.
-- Signed Release-local build installed and launched on iPhone 15 Pro Max; Swift parse,
-  `npx tsc --noEmit`, and retained Playwright gate (8/8) passed.
-
-**Not verified / known gaps:**
-
-- External-video first feedback, audible-position timing, ±20 ms seek accuracy, and the other
-  Debug/Release, S-long/500, frame, memory, energy, and contention scenarios remain open.
-- The focused iOS annotation/project test reached the app but failed while waiting for the Music
-  Library sheet to close under a manually staged simulator run; the official clean staging path was
-  not rerun, so this native-touch verification gap remains explicit.
-- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Capture the rapid wrapped-seek IVL breakdown in task 4.4, then run the scripted continuous-scrub
-  hitch baseline before choosing any optimisation.
 
 <!-- end handover log -->

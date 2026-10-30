@@ -54,7 +54,7 @@ section references are to [`design.md`](./design.md).
       completion and the following animation frame. It passes the instrumented completion target,
       but external first-frame video, audible-position timing, accuracy, Debug+Metro, S-long/500,
       and every other interaction remain open.
-  - [ ] 3.2 `[device]` Frame-time and hitch baselines for playback, scrubbing, library sheet, and
+  - [x] 3.2 `[device]` Frame-time and hitch baselines for playback, scrubbing, library sheet, and
         annotation with keyboard. _Req 3_
     - A diagnostic slow-then-rapid wrapped-seek trace recorded 32.30 ms/s hitch time and a
       550.12 ms longest hitch at Nominal thermal state; the user also observed rapid-tap lag. This
@@ -66,8 +66,13 @@ section references are to [`design.md`](./design.md).
       < 10 ms/s target.
     - The separate untouched 60-second playback trace on the same build recorded four hitches,
       116.692 ms total (1.94 ms/s), and a 33.34 ms maximum at Nominal thermal state. It passes both
-      steady targets and localises the earlier tail to scrub/recovery behavior. Library sheet and
-      annotation/keyboard remain open.
+      steady targets and localises the earlier tail to scrub/recovery behavior.
+    - Five natural Music Library open/settle/backdrop-dismiss cycles produced one 16.670 ms
+      BeatNote hitch over 26.058 seconds (0.64 ms/s) at Nominal thermal state, passing the
+      < 10 ms/s interaction target.
+    - Three annotation open/type/save cycles with the software keyboard produced seven BeatNote
+      hitches totalling 533.451 ms over 36.240 seconds (14.72 ms/s), p90/max 233.385 ms, at
+      Nominal thermal state. The keyboard scenario fails the < 10 ms/s interaction target.
   - [ ] 3.3 `[device]` 5/15/30-minute memory, CPU, energy, and thermal runs with S-long and
         S-stress; ten-switch memory test; Leaks; 15-minute background run. _Req 7_
   - [ ] 3.4 `[device]` Contention runs: interactions during waveform decode, BPM analysis, 500-marker
@@ -84,9 +89,14 @@ section references are to [`design.md`](./design.md).
     - Scrub Time Profiler evidence shows 9,564 ms of CoreGraphics-inclusive work in an 11-second
       active window while the JS thread used 857 ms. Code inspection confirms `path.wrappedRow`
       generation is memoized, but the static paths share one SVG with the changing progress and
-      playhead. The deployed bundle emitted no perf markers/counters, so counter totals remain open.
+      playhead. A rebuilt `EXPO_PUBLIC_BEATNOTE_PERF=1` Release bundle emitted the physical
+      `seek.scrub` signpost, confirming the gated bridge; the Release runtime still exposed no
+      practical DevTools console route for copying the temporary counter snapshot, so totals remain
+      open for the Debug+Metro profiler run.
   - [ ] 4.4 `[device]` IVL breakdown traces for tap seek and dock controls (§6.5). Resolves H-5.
   - [ ] 4.5 `[device]` Modal/keyboard layout traces; confirm C-3 fix holds. Resolves H-8. _Req 4.7_
+    - Three physical annotation open/type/save cycles completed without a layout crash, but the
+      Animation Hitches baseline failed at 14.72 ms/s; a layout-focused trace is still required.
   - [ ] 4.6 `[device]` Time Profiler, Allocations generations, and Leaks review. Resolves H-6, H-7,
         H-9. _Req 5, 7_
     - First Time Profiler trace captured: main thread 90.3% and CoreGraphics-inclusive stacks 88.2%
