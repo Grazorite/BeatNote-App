@@ -57,12 +57,18 @@ private enum LibraryStorageError: Error {
 /// Opt-in os_signpost intervals for Instruments. Disabled by default so release behaviour and
 /// overhead are unchanged unless profiling explicitly turns it on.
 private final class SignpostGate: @unchecked Sendable {
+  private struct LiveInterval {
+    let signpostID: OSSignpostID
+    let name: String
+    let startedAtNanoseconds: UInt64
+  }
+
   static let shared = SignpostGate()
   // Points of Interest shows these intervals in Instruments' default timeline.
   private let log = OSLog(subsystem: "com.beatnote.app", category: .pointsOfInterest)
   private let lock = NSLock()
   private var enabled = false
-  private var intervals: [String: OSSignpostID] = [:]
+  private var intervals: [String: LiveInterval] = [:]
 
   func setEnabled(_ value: Bool) {
     lock.lock()
@@ -79,7 +85,11 @@ private final class SignpostGate: @unchecked Sendable {
       return
     }
     let id = OSSignpostID(log: log)
-    intervals[intervalID] = id
+    intervals[intervalID] = LiveInterval(
+      signpostID: id,
+      name: name,
+      startedAtNanoseconds: DispatchTime.now().uptimeNanoseconds
+    )
     lock.unlock()
     // The signpost name must be a static string and identical for begin and end, so the dynamic
     // interval name travels in the message instead.
@@ -89,10 +99,22 @@ private final class SignpostGate: @unchecked Sendable {
   /// End the interval keyed by `intervalID`, if one is live.
   func end(_ intervalID: String) {
     lock.lock()
-    let id = intervals.removeValue(forKey: intervalID)
+    let interval = intervals.removeValue(forKey: intervalID)
     lock.unlock()
-    guard let id else { return }
-    os_signpost(.end, log: log, name: "BeatNote", signpostID: id)
+    guard let interval else { return }
+    os_signpost(.end, log: log, name: "BeatNote", signpostID: interval.signpostID)
+
+    // Some physical-device Logging traces omit overlapping signpost intervals. Emit a gated,
+    // post-end duration record as a measurement fallback; it occurs after the measured endpoint.
+    let endedAtNanoseconds = DispatchTime.now().uptimeNanoseconds
+    let durationMs = Double(endedAtNanoseconds - interval.startedAtNanoseconds) / 1_000_000
+    os_log(
+      .info,
+      log: log,
+      "BeatNotePerf %{public}s %{public}.3f ms",
+      interval.name,
+      durationMs
+    )
   }
 }
 
