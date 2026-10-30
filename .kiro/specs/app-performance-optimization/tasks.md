@@ -21,7 +21,7 @@ section references are to [`design.md`](./design.md).
         method. _Req 5.1, 6.1–6.2, §5_
   - [x] 1.5 `[desk]` Create `results.md` with the §9 register header. _Req 11_
 
-- [ ] 2. Instrumentation
+- [x] 2. Instrumentation
   - [x] 2.1 `[desk]` Add `src/utils/perfMarks.ts` behind `BEATNOTE_PERF`; bracket tap seek, scrub,
         marker add/remove, play/pause, annotation open/save, and track switch. _§4.1_
   - [x] 2.2 `[sim]` Add `OSSignposter` helper to `modules/library-storage/` and signposts in
@@ -31,8 +31,13 @@ section references are to [`design.md`](./design.md).
       contains `track.switch`, `waveform.decode`, `bpm.analysis`, and `draft.write`. Waveform and
       tempo use module-local opt-in gates because static Expo modules did not share LibraryStorage's
       in-process gate; older installed binaries remain safe through optional JS capability checks.
-  - [ ] 2.3 `[device]` Measure signpost overhead flag-on vs flag-off in a 60 s playback trace;
+  - [x] 2.3 `[device]` Measure signpost overhead flag-on vs flag-off in a 60 s playback trace;
         must be ≤ 1% CPU. _Req 5.3_
+    - Paired Release-local Time Profiler traces on iPhone 15 Pro Max / iOS 27.0.1 measured 46.97%
+      average process CPU with the flag off and 42.95% with it on. The raw on-minus-off delta was
+      -4.02 percentage points (-8.57% relative), so measured positive overhead was 0; both runs
+      remained in the Fair thermal state. This single pair passes the overhead gate but is not a
+      general performance baseline; the user-selected song's metadata was not captured.
   - [x] 2.4 `[desk]` Add temporary render, path-regeneration, and gesture-construction counters.
         Remove before Phase 1 completes. _§4.3_
   - Verify: `npx tsc --noEmit`, `npm test`, focused `testAudioAnnotationAndProjectRestore`.

@@ -61,8 +61,9 @@ potentially adding a hybrid path later.
 
 1. Complete `app-performance-optimization` Phase 0–1 before applying any optimisation. The JS/native
    intervals, temporary counters, audit, deterministic projects, short fixture, guides, and results
-   register are committed, and simulator Instruments now shows the waveform/BPM intervals. Local
-   medium/stress fixture metadata, physical signpost overhead, and Release-local baselines remain.
+   register are committed, simulator Instruments shows the waveform/BPM intervals, and the paired
+   physical signpost-overhead check passes. Local medium/stress fixture metadata and the repeated
+   Release-local latency/frame/memory/energy baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -98,8 +99,9 @@ potentially adding a hybrid path later.
 ### 🚧 In Progress
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation; simulator instrumentation is verified, while
-      local fixture registration, signpost overhead, and device baselines remain pending
+      Release-local baselines before any optimisation; simulator instrumentation and physical
+      signpost overhead are verified, while local fixture registration and device baselines remain
+      pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -215,6 +217,40 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Pass the physical signpost-overhead gate
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `915117e` (measured build); see `git log` (`docs: record physical signpost overhead`)
+**Kanban moved:** `app-performance-optimization` Task 2.3 → Done; Phase 0–1 remains In Progress
+
+**Changed:**
+
+- Built and installed otherwise matching signed Release-local bundles with
+  `EXPO_PUBLIC_BEATNOTE_PERF=0` and `=1`, then captured paired 60-second foreground playback Time
+  Profiler traces on the reference iPhone.
+- Recorded the raw trace paths, bundle checksums, sampling windows, CPU result, and thermal state in
+  the performance results register; raw Instruments artifacts remain outside Git.
+
+**Verified:**
+
+- Both builds installed and launched on iPhone 15 Pro Max / iOS 27.0.1 with the same bundle ID and
+  development team; their JS bundles had distinct expected checksums.
+- Flag off averaged 46.97% process CPU; flag on averaged 42.95%. The on-minus-off delta was -4.02
+  percentage points (-8.57% relative), so positive instrumentation overhead was 0; both traces
+  remained in the Fair thermal state.
+
+**Not verified / known gaps:**
+
+- This was one same-song pair, and the song metadata/marker count was not captured. The negative
+  delta shows no added CPU in this pair but also exposes run-to-run variance; it is not a Phase 1
+  latency, frame, memory, or energy baseline.
+- Local S-medium/S-stress metadata and checksums remain open, as do all repeated physical baselines.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Register reproducible local S-medium/S-stress songs, then collect the first repeated Release-local
+  physical baseline before implementing any candidate from `findings.md`.
 
 ### 2026-10-30 — Verify native waveform and BPM signposts
 
@@ -348,44 +384,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Capture a simulator Points of Interest trace, then register local medium/stress songs and collect
   the first Release-local physical baseline before implementing any candidate from `findings.md`.
-
-### 2026-10-30 — Fix the shuffle-journey flake and repair the signpost native build
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** shuffle fix in `git log` (`test: make the shuffled-queue journey deterministic`); native repairs `uncommitted`
-**Kanban moved:** none (unblocks `app-performance-optimization` native builds; supports the retained gate)
-
-**Changed:**
-
-- `tests/ui-components.spec.ts`: the shuffled-queue journey now finishes a track from 500 ms
-  before the end instead of 50 ms. Root cause: the 5 s web fixture can end on its own while the
-  test toggles repeat/shuffle; that natural end sets the completion guard, and a restart inside
-  the player's 100 ms `END_OF_TRACK_TOLERANCE_MS` can never clear it, so the shuffle completion was
-  ignored. Diagnosed with element-state dumps; this was a test-timing flaw, not a product or
-  performance-instrumentation regression.
-- Performance agent's uncommitted signpost work (left uncommitted for that agent to finish):
-  `LibraryStorageModule.swift` rewritten to the real `os` API (`OSLog` Points of Interest,
-  `OSSignpostID(log:)`, static begin/end name, `setEnabled`, void JS functions, public static
-  entry points). `BeatNoteWaveform.podspec` and `BeatNoteTempo.podspec` now depend on
-  `LibraryStorage` so their `#if canImport(LibraryStorage)` is deterministic. Android
-  `LibraryStorageModule.kt` gained no-op signpost functions matching the web stub.
-
-**Verified:**
-
-- Shuffled-queue journey: 2/8 passing at 6 workers before the change, 16/16 after.
-- Full retained Playwright suite with `--repeat-each=2` at default parallelism → 16/16.
-- iOS simulator build with the repaired Swift → compiles; focused
-  `testAutomaticBpmSuggestionAndAnchorControls` (exercises tempo and waveform modules) → passed.
-
-**Not verified / known gaps:**
-
-- Signposts were not observed in Instruments, and nothing in JS calls `enableSignposts` yet.
-- Android Kotlin stubs were not compiled (no Android build run).
-- Earlier simulator runs were interrupted mid-test and left `testmanagerd` broken; a simulator
-  reboot fixed it. If XCTest reports a missing testmanagerd socket, reboot the simulator first.
-
-**Next agent should:**
-
-- Performance agent: review the repaired `LibraryStorageModule.swift`, wire `enableSignposts` from
-  JS when profiling, then commit the instrumentation together with `perfCounters.ts`/`perfMarks.ts`.
 
 <!-- end handover log -->
