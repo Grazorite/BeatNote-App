@@ -4121,6 +4121,40 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-30 — Verify native waveform and BPM signposts
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `e4f1900`
+**Kanban moved:** `app-performance-optimization` Task 2.2 → Done; Phase 0–1 remains In Progress
+
+**Changed:**
+
+- Gave `BeatNoteWaveform` and `BeatNoteTempo` independent, thread-safe opt-in signpost gates and
+  enabled each gate immediately before its native operation. This avoids relying on mutable static
+  state crossing static Expo-module boundaries.
+- Kept the new native methods optional in JS so Metro can still load against an older installed
+  binary; removed the now-unnecessary cross-pod LibraryStorage dependency.
+- Recorded the simulator trace and interval labels in the performance task ledger and results
+  register; raw Instruments output remains outside Git.
+
+**Verified:**
+
+- Instruments Logging trace `/private/tmp/beatnote-signposts-local-gates.trace` on iPhone 17 Pro
+  Simulator / iOS 26.2 contains `track.switch`, `waveform.decode`, `bpm.analysis`, and `draft.write`.
+- `npx tsc --noEmit`, Swift parse, and `git diff --check` → passed; retained Playwright gate → 8/8.
+- Focused `testAutomaticBpmSuggestionAndAnchorControls` → passed in 55.608 seconds; focused
+  `testAudioAnnotationAndProjectRestore` → passed in 71.147 seconds.
+
+**Not verified / known gaps:**
+
+- Physical flag-on/flag-off overhead, local medium/stress fixture metadata, and every Release-local
+  physical baseline remain open; simulator evidence cannot pass an acceptance threshold.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Register local S-medium/S-stress fixture paths and checksums, then measure 60-second physical
+  signpost overhead before collecting the Release-local baselines.
+
 ### 2026-10-30 — Separate annotation callouts from tooltips and add sheet backdrop dismissal
 
 **Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: keep mobile feedback and sheets accessible`)

@@ -40,10 +40,16 @@ released, so the next steady-playback trace must determine how much belongs to o
 updates versus the scrub path. The result confirms priority, but still does not identify H-2, H-3,
 or H-4 as the cause.
 
+The follow-up untouched 60-second playback trace recorded only four hitches totalling 116.692 ms
+(1.94 ms/s), with a 33.34 ms maximum, passing both steady targets at Nominal thermal state. Ordinary
+playhead playback therefore does not explain the dense hitch tail after scrubbing. The failure is
+now isolated to the active scrub path or its recovery, which raises the priority of a scrub Time
+Profiler/render/path capture without yet choosing among H-2, H-3, and H-4.
+
 ## Current interpretation
 
-The most actionable physical-iPhone sequence is now: capture a steady-playback Animation Hitches
-baseline, then pair a scrub Time Profiler trace with render/path counters. Complete the sheet and
+The most actionable physical-iPhone sequence is now: pair a scrub Time Profiler trace with
+render/path counters. Complete the sheet and
 keyboard hitch scenarios before changing code. The severe scrub result does not yet distinguish
 store/render/path work from Fabric or render-server stalls, so O-1/O-3/O-4 remain unauthorised.
 

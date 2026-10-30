@@ -63,8 +63,8 @@ potentially adding a hybrid path later.
    complete: reference fixtures, deterministic projects, instrumentation/counters, guides, audit,
    simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
    seek sample passes its instrumented completion target, while the required continuous cross-row
-   scrub fails at 703.49 ms/s hitch time. Steady playback, profiler diagnosis, and repeated
-   latency/frame/memory/energy/contention baselines remain.
+   scrub fails at 703.49 ms/s hitch time and untouched playback passes at 1.94 ms/s. Scrub-profiler
+   diagnosis and repeated latency/frame/memory/energy/contention baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -101,8 +101,8 @@ potentially adding a hybrid path later.
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
-      paced seek and continuous-scrub samples are registered, and steady-playback/profiler diagnosis
-      plus repeated latency/frame/memory/energy and contention baselines remain pending
+      paced seek, continuous-scrub, and steady-playback samples are registered, and scrub-profiler
+      diagnosis plus repeated latency/frame/memory/energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -218,6 +218,37 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Pass the steady-playback hitch baseline
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
+
+**Changed:**
+
+- Captured a clearly cued 65-second Animation Hitches run with S-medium/50 playing untouched and
+  evaluated the final 60 seconds as the steady-playback baseline.
+- Registered the passing result and narrowed the severe prior tail to scrub/recovery behavior rather
+  than ordinary playhead playback.
+
+**Verified:**
+
+- Four BeatNote hitches totalled 116.692 ms over 60 seconds: 1.94 ms/s, p50/p90/max 33.34 ms.
+  This passes the < 5 ms/s ratio and < 50 ms single-hitch targets at Nominal thermal state.
+- Trace `/private/tmp/beatnote-s-medium-50-steady-playback.trace` contains BeatNote PID 66779 and
+  ran 66.146213 seconds; the final 60 seconds were measured.
+- The repository remained clean at measured commit `7037118`; no product code changed.
+
+**Not verified / known gaps:**
+
+- The scrub hot path and post-release recovery still lack Time Profiler and render/path evidence.
+- Library-sheet and annotation/keyboard hitch baselines remain open, as do the other Phase 1
+  latency, memory, energy, contention, and render scenarios.
+
+**Next agent should:**
+
+- Capture the continuous cross-row scrub in Time Profiler with the existing signposts/counters,
+  then inspect the dominant JS/main-thread stacks before proposing any optimisation.
 
 ### 2026-10-30 — Capture the continuous cross-row scrub baseline
 
@@ -369,39 +400,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Generate the fixed S-medium/50 project, then collect the first repeated Release-local physical
   latency/frame baseline before implementing any candidate from `findings.md`.
-
-### 2026-10-30 — Verify native waveform and BPM signposts
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `e4f1900`
-**Kanban moved:** `app-performance-optimization` Task 2.2 → Done; Phase 0–1 remains In Progress
-
-**Changed:**
-
-- Gave `BeatNoteWaveform` and `BeatNoteTempo` independent, thread-safe opt-in signpost gates and
-  enabled each gate immediately before its native operation. This avoids relying on mutable static
-  state crossing static Expo-module boundaries.
-- Kept the new native methods optional in JS so Metro can still load against an older installed
-  binary; removed the now-unnecessary cross-pod LibraryStorage dependency.
-- Recorded the simulator trace and interval labels in the performance task ledger and results
-  register; raw Instruments output remains outside Git.
-
-**Verified:**
-
-- Instruments Logging trace `/private/tmp/beatnote-signposts-local-gates.trace` on iPhone 17 Pro
-  Simulator / iOS 26.2 contains `track.switch`, `waveform.decode`, `bpm.analysis`, and `draft.write`.
-- `npx tsc --noEmit`, Swift parse, and `git diff --check` → passed; retained Playwright gate → 8/8.
-- Focused `testAutomaticBpmSuggestionAndAnchorControls` → passed in 55.608 seconds; focused
-  `testAudioAnnotationAndProjectRestore` → passed in 71.147 seconds.
-
-**Not verified / known gaps:**
-
-- Physical flag-on/flag-off overhead, local medium/stress fixture metadata, and every Release-local
-  physical baseline remain open; simulator evidence cannot pass an acceptance threshold.
-- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Register local S-medium/S-stress fixture paths and checksums, then measure 60-second physical
-  signpost overhead before collecting the Release-local baselines.
 
 <!-- end handover log -->
