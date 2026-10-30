@@ -118,6 +118,10 @@ potentially adding a hybrid path later.
 
 ### ✅ Done
 
+- [x] Keep dock tooltips readable above annotation callouts in portrait and landscape, and dismiss
+      the half-height Music Library by tapping its exposed backdrop without breaking modal focus
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/styles/components/common/bottomSheet.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/controls/controlDock.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
       scrolling inside the half-height Music Library sheet
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>
@@ -134,9 +138,6 @@ potentially adding a hybrid path later.
 - [x] Pass physical-iPhone acceptance for `playback-marker-control-dock` and `loop-range-overview`
       (VoiceOver deliberately skipped) and archive both specs
       <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/`, `docs/context/archive/specs/loop-range-overview/`, `AGENTS.md`</sub>
-
-- [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
-      <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
 
 ---
 
@@ -214,6 +215,35 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Separate annotation callouts from tooltips and add sheet backdrop dismissal
+
+**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: keep mobile feedback and sheets accessible`)
+**Kanban moved:** mobile feedback stacking and Music Library outside-tap dismissal → Done
+
+**Changed:**
+
+- Mobile feedback now shares one ordered overlay stack: transient dock tooltips render above the
+  current annotation callout with a fixed gap in both portrait and landscape.
+- The half-height Music Library now closes when its exposed backdrop is tapped; the backdrop sits
+  behind the sheet, remains outside the focus order, and restores focus to the Song Title control.
+- The retained journeys cover non-overlap in both orientations plus backdrop dismissal and modal
+  title/return-focus behavior.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused mobile-dock and Music Library journeys → passed; full retained Playwright gate → 8/8.
+
+**Not verified / known gaps:**
+
+- The stacking and backdrop dismissal have not yet been hand-tested on the physical iPhone.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Reload the development build on the iPhone and confirm tooltip/callout ordering in both
+  orientations and outside-tap dismissal at the Music Library's medium detent.
 
 ### 2026-10-30 — Reset the editor after deleting its only song
 
@@ -356,43 +386,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Review the marker-loop look on device and adjust the two opacity constants in `WrappedRow.tsx` if needed.
-
-### 2026-10-29 — Restyle waveform markers, playhead, and loop range
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: restyle waveform markers, playhead, and loop range`)
-**Kanban moved:** waveform visual consistency polish → Done (physical-device review pending)
-
-**Changed:**
-
-- Wrapped rows: markers are now a 2-pt rounded line topped by the in-app shield (solid = annotated,
-  outlined = plain, glow = selected); clusters are a glass pill with a shield and count.
-- Overview strip: simplified solid-shield markers; fixed layering so the played-waveform tint no
-  longer recolours them (peaks, played waveform, markers, playhead).
-- Playhead (rows and strip): round-capped line, rounded head, soft shadow.
-- Loop range: rounded fill, slimmer capsule handles with a grip notch, muted teal via new theme roles
-  `loopFill`, `loopFillDisabled`, `loopBorder`; `loopEnabled` is now `#2bbdb2`.
-- Played waveform muted through `PLAYED_WAVEFORM_OPACITY` (0.7) in `src/styles/common.ts`.
-- Shared shield geometry in `src/utils/markerShape.ts`; conventions recorded in `coding-standards.md`.
-- Tests: annotation-dot assertion now expects the shield head; loop colour assertions updated.
-
-**Verified:**
-
-- `npx tsc --noEmit` → passed. Real browser screenshots of rows and strip reviewed.
-- Full retained Playwright run → 7/8 on the first parallel pass; the shuffled-queue journey failed
-  once under parallel load and passed 3/3 when run alone (not touched by this change).
-
-**Not verified / known gaps:**
-
-- No iOS simulator or physical-iPhone review; handle drag comfort and 44-pt targets are unchanged
-  by design but were not hand-tested. Screenshots used a dense synthetic test clip, not real music.
-- The shuffled-queue journey looks timing-sensitive under load; the cause was not investigated.
-- Desktop `WaveformCanvas.tsx` playhead and loop styling were deliberately left as is.
-- This commit deliberately excludes the performance agent's `incrementPerfCounter` lines in
-  `WrappedRow.tsx` and `LoopOverviewTrack.tsx`; they remain in the working tree and must be committed
-  together with their `src/utils/perfCounters.ts`.
-
-**Next agent should:**
-
-- Review the new look on the simulator and iPhone.
 
 <!-- end handover log -->

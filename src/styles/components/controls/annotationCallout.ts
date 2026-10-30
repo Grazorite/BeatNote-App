@@ -3,20 +3,26 @@ import { colors } from '../../common';
 
 export const annotationCalloutStyles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: '100%',
     alignSelf: 'center',
-    zIndex: 12,
     width: '62%',
     maxWidth: 280,
     minHeight: 36,
     maxHeight: 58,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginBottom: 6,
     borderRadius: 12,
     overflow: 'hidden',
     justifyContent: 'center',
+  },
+  floating: {
+    position: 'absolute',
+    bottom: '100%',
+    zIndex: 12,
+    marginBottom: 6,
+  },
+  stacked: {
+    position: 'relative',
+    zIndex: 1,
   },
   text: {
     color: colors.text,

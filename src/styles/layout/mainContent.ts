@@ -72,6 +72,16 @@ export const mainContentStyles = StyleSheet.create({
     position: 'relative',
     overflow: 'visible',
   },
+  mobileFeedbackStack: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: '100%',
+    zIndex: 20,
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   mobileControlDock: {
     position: 'relative',
     zIndex: 2,

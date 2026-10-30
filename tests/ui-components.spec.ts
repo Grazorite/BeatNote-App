@@ -242,6 +242,17 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('add-marker').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Marker added');
     await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#b54a45');
+    await page.getByTestId('annotation-control').click();
+    await page.getByTestId('annotation-editor-input').fill('Portrait turn');
+    await page.getByTestId('save-annotation').click();
+    await expect(page.getByTestId('annotation-callout')).toBeVisible();
+    await expect(page.getByTestId('dock-toast')).toHaveText('Annotation saved');
+    const portraitFeedback = await page.evaluate(() => {
+      const toast = document.querySelector('[data-testid="dock-toast"]')?.getBoundingClientRect();
+      const annotation = document.querySelector('[data-testid="annotation-callout"]')?.getBoundingClientRect();
+      return { toastBottom: toast?.bottom ?? 0, annotationTop: annotation?.top ?? 0 };
+    });
+    expect(portraitFeedback.toastBottom).toBeLessThanOrEqual(portraitFeedback.annotationTop + 1);
     await page.getByTestId('add-marker').click();
     await expect(page.getByTestId('dock-toast')).toHaveText('Marker removed');
     await expect(page.getByTestId('add-marker').locator('svg path').first()).toHaveAttribute('fill', '#3a8f5b');
@@ -388,6 +399,18 @@ test.describe('UI Components & Layout', () => {
     await expect(waveformContainer).toHaveAttribute('data-rotation-identity', 'retained');
     await expect(page.locator('[data-testid^="wrapped-row-peaks-"]').first()).toBeVisible();
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
+    await page.getByTestId('navigate-left-marker').click();
+    await page.getByTestId('annotation-control').click();
+    await page.getByTestId('annotation-editor-input').fill('Landscape turn');
+    await page.getByTestId('save-annotation').click();
+    await expect(page.getByTestId('annotation-callout')).toBeVisible();
+    await expect(page.getByTestId('dock-toast')).toHaveText('Annotation saved');
+    const landscapeFeedback = await page.evaluate(() => {
+      const toast = document.querySelector('[data-testid="dock-toast"]')?.getBoundingClientRect();
+      const annotation = document.querySelector('[data-testid="annotation-callout"]')?.getBoundingClientRect();
+      return { toastBottom: toast?.bottom ?? 0, annotationTop: annotation?.top ?? 0 };
+    });
+    expect(landscapeFeedback.toastBottom).toBeLessThanOrEqual(landscapeFeedback.annotationTop + 1);
     await expect(page.getByTestId('playback-speed')).toContainText('1.55×');
     await page.getByTestId('playback-speed').click();
     const landscapeSpeedChooser = await page.getByTestId('playback-speed-chooser').boundingBox();
@@ -671,7 +694,8 @@ test.describe('UI Components & Layout', () => {
     await expect.poll(() => page.evaluate(() => (
       document.querySelector('[data-testid="music-library-sheet"]')?.contains(document.activeElement)
     ))).toBe(true);
-    await page.keyboard.press('Escape');
+    await page.getByTestId('music-library-sheet-backdrop').click({ position: { x: 10, y: 10 } });
+    await expect(page.getByTestId('music-library-sheet')).toHaveCount(0);
     await expect(songTitleControl).toBeFocused();
     await songTitleControl.click();
     const restoredLibraryRow = page.getByRole('button', { name: /^test-audio,/ });

@@ -10,8 +10,13 @@ export const bottomSheetStyles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: colors.overlay,
   },
+  dismissArea: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
   sheet: {
     position: 'relative',
+    zIndex: 1,
     width: '100%',
     overflow: 'hidden',
     borderTopLeftRadius: 22,

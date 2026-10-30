@@ -8,12 +8,13 @@ import GlassBackdrop from './GlassBackdrop';
 interface AnnotationCalloutProps {
   text: string;
   onPress: () => void;
+  stacked?: boolean;
 }
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 /** Show a bounded timed preview for the most recently reached annotated marker. */
-const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress }) => {
+const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress, stacked = false }) => {
   if (!text.trim()) return null;
   return (
     <AnimatedTouchableOpacity
@@ -23,7 +24,7 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress }) 
       accessibilityHint="Opens the annotation editor"
       activeOpacity={0.86}
       onPress={onPress}
-      style={styles.container}
+      style={[styles.container, stacked ? styles.stacked : styles.floating]}
       entering={FadeIn.duration(160)}
       exiting={FadeOut.duration(ANNOTATION_FADE_MS)}
     >

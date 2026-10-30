@@ -4087,3 +4087,48 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Continue automatic-BPM real-song/browser performance acceptance, then collect Release-build app
   performance baselines from the existing optimization spec.
+
+## Archived Handover Log — 2026-10-30 rotation
+
+### 2026-10-29 — Restyle waveform markers, playhead, and loop range
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`feat: restyle waveform markers, playhead, and loop range`)
+**Kanban moved:** waveform visual consistency polish → Done (physical-device review pending)
+
+**Changed:**
+
+- Wrapped rows: markers are now a 2-pt rounded line topped by the in-app shield (solid = annotated,
+  outlined = plain, glow = selected); clusters are a glass pill with a shield and count.
+- Overview strip: simplified solid-shield markers; fixed layering so the played-waveform tint no
+  longer recolours them (peaks, played waveform, markers, playhead).
+- Playhead (rows and strip): round-capped line, rounded head, soft shadow.
+- Loop range: rounded fill, slimmer capsule handles with a grip notch, muted teal via new theme roles
+  `loopFill`, `loopFillDisabled`, `loopBorder`; `loopEnabled` is now `#2bbdb2`.
+- Played waveform muted through `PLAYED_WAVEFORM_OPACITY` (0.7) in `src/styles/common.ts`.
+- Shared shield geometry in `src/utils/markerShape.ts`; conventions recorded in `coding-standards.md`.
+- Tests: annotation-dot assertion now expects the shield head; loop colour assertions updated.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed. Real browser screenshots of rows and strip reviewed.
+- Full retained Playwright run → 7/8 on the first parallel pass; the shuffled-queue journey failed
+  once under parallel load and passed 3/3 when run alone (not touched by this change).
+
+**Not verified / known gaps:**
+
+- No iOS simulator or physical-iPhone review; handle drag comfort and 44-pt targets are unchanged
+  by design but were not hand-tested. Screenshots used a dense synthetic clip, not real music.
+- The shuffled-queue journey looks timing-sensitive under load; the cause was not investigated.
+- Desktop `WaveformCanvas.tsx` playhead and loop styling were deliberately left as is.
+- This commit deliberately excludes the performance agent's `incrementPerfCounter` lines in
+  `WrappedRow.tsx` and `LoopOverviewTrack.tsx`; they remain in the working tree and must be committed
+  together with their `src/utils/perfCounters.ts`.
+
+**Next agent should:**
+
+- Review the new look on the simulator and iPhone.
+
+## Archived Done checklist items — 2026-10-30 rotation
+
+- [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
+      <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>

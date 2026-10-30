@@ -48,6 +48,10 @@ interface WebKeyEvent {
   preventDefault(): void;
 }
 
+interface WebPointerEvent {
+  preventDefault(): void;
+}
+
 const ANIMATION_MS = 300;
 
 const focusNode = (node: unknown): void => {
@@ -247,6 +251,15 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   }));
   const webKeyProps = Platform.OS === 'web' ? { onKeyDown: handleWebKeyDown } : {};
   const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
+  const backdropInteractionProps = Platform.OS === 'web'
+    ? {
+      onClick: requestClose,
+      onMouseDown: (event: WebPointerEvent) => event.preventDefault(),
+    }
+    : {
+      onStartShouldSetResponder: () => true,
+      onResponderRelease: requestClose,
+    };
 
   return (
     <AppModal
@@ -326,6 +339,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               {children}
             </View>
           </Animated.View>
+          <View
+            style={styles.dismissArea}
+            accessible={false}
+            focusable={false}
+            testID={`${testID}-backdrop`}
+            {...backdropInteractionProps}
+          />
         </View>
       </GestureHandlerRootView>
     </AppModal>

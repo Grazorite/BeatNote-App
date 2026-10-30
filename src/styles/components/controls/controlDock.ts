@@ -68,11 +68,7 @@ export const controlDockStyles = StyleSheet.create({
     minHeight: 0,
   },
   toast: {
-    position: 'absolute',
-    bottom: '100%',
     alignSelf: 'center',
-    marginBottom: 6,
-    zIndex: 10,
     maxWidth: '92%',
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -82,6 +78,16 @@ export const controlDockStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  toastFloating: {
+    position: 'absolute',
+    bottom: '100%',
+    marginBottom: 6,
+    zIndex: 10,
+  },
+  toastStacked: {
+    position: 'relative',
+    zIndex: 2,
   },
   toastText: {
     color: colors.text,

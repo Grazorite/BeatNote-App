@@ -7,9 +7,10 @@ import GlassBackdrop from './GlassBackdrop';
 interface DockToastProps {
   message: string | null;
   action?: DockToastAction | null;
+  stacked?: boolean;
 }
 
-const DockToast: React.FC<DockToastProps> = ({ message, action }) => {
+const DockToast: React.FC<DockToastProps> = ({ message, action, stacked = false }) => {
   const announcedRef = useRef<string | null>(null);
   if (!message) return null;
   const shouldAnnounce = announcedRef.current !== message;
@@ -17,7 +18,7 @@ const DockToast: React.FC<DockToastProps> = ({ message, action }) => {
   return (
     <View
       testID="dock-toast"
-      style={styles.toast}
+      style={[styles.toast, stacked ? styles.toastStacked : styles.toastFloating]}
       pointerEvents={action ? 'auto' : 'none'}
       accessibilityLiveRegion={shouldAnnounce ? 'polite' : 'none'}
       aria-live={shouldAnnounce ? 'polite' : 'off'}

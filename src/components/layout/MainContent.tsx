@@ -340,15 +340,23 @@ const MainContent: React.FC<MainContentProps> = ({
   if (isMobile) {
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
-        <DockToast key={toast.nonce} message={toast.message} action={toast.action} />
-        <DanceCountDisplay />
-        {timedAnnotationMarker && displayedAnnotation.trim() && (
-          <AnnotationCallout
-            key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
-            text={displayedAnnotation}
-            onPress={() => openAnnotationEditor(timedAnnotationMarker)}
+        <View style={styles.mobileFeedbackStack} pointerEvents="box-none">
+          <DockToast
+            key={toast.nonce}
+            message={toast.message}
+            action={toast.action}
+            stacked
           />
-        )}
+          {timedAnnotationMarker && displayedAnnotation.trim() && (
+            <AnnotationCallout
+              key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
+              text={displayedAnnotation}
+              onPress={() => openAnnotationEditor(timedAnnotationMarker)}
+              stacked
+            />
+          )}
+        </View>
+        <DanceCountDisplay />
         {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (
           <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
         )}
