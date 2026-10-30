@@ -11,6 +11,7 @@ pass. Raw traces, videos, and profiler exports stay outside the repository.
 | 2026-10-30 | `36a266f` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo, SHA-256 `a697fc1cc7eb0db6f27e036d584d64de9a23c22c9d219af55bb3465e2e0d071a` | 50 | Wrapped waveform tap seek, paced | Handler entry through player seek completion and following animation frame | Gated post-signpost unified-log duration | 20 | 46.77 ms | 51.20 ms | 54.01 ms | Playhead first feedback ≤ 100 ms; audible position ≤ 200 ms | Pass for instrumented completion only | `/private/tmp/beatnote-s-medium-50-wrapped-seek-fallback.trace`; final 20 of 25 captured intervals form the requested sample, first five treated as warm-up; thermal state and audible-position accuracy were not captured |
 | 2026-10-30 | `a3df85f` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Wrapped waveform tap seek, slow then rapid | Interaction hitch ratio | Animation Hitches; 1,658.698 ms total hitch time / 51.348242 s interaction | 1 | 32.30 ms/s | — | — | < 10 ms/s (interactive scrub/transition target used as nearest proxy) | Fail (proxy) | `/private/tmp/beatnote-s-medium-50-wrapped-seek-animation-hitches.trace`; six hitches; Nominal thermal state; user observed visible rapid-tap lag |
 | 2026-10-30 | `a3df85f` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Wrapped waveform tap seek, slow then rapid | Longest hitch | Animation Hitches | 6 hitches | — | — | 550.12 ms | Diagnostic only; 50 ms ceiling applies to steady playback | n/a | Same trace; hitch durations 550.121, 166.703, 533.451, 187.541, 187.541, and 33.341 ms |
+| 2026-10-30 | `7037118` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo, SHA-256 `a697fc1cc7eb0db6f27e036d584d64de9a23c22c9d219af55bb3465e2e0d071a` | 50 | Continuous cross-row wrapped-waveform scrub | BeatNote hitch duration and interaction ratio | Animation Hitches; first coordinated 10 s of BeatNote hitch activity | 152 | 16.67 ms | 116.69 ms | 383.42 ms | < 10 ms/s | Fail: 703.49 ms/s | `/private/tmp/beatnote-s-medium-50-continuous-scrub-v4.trace`; 7,034.902 ms summed hitch time; Nominal thermal state; capture began only after explicit `RECORDING NOW` cue |
 
 The paired physical rows above pass only the instrumentation-overhead gate. They are a single
 same-song comparison with uncaptured song metadata and visible run-to-run variance, so they do not
@@ -21,6 +22,11 @@ frame runs. It is stronger than a handler-only timing but does not independently
 changed video frame, audible audio at the target, or ±20 ms position accuracy. The hitch result is a
 diagnostic proxy because Requirement 3 does not define a dedicated tap-seek hitch threshold; the
 required playback, continuous-scrub, sheet, and keyboard scenarios remain open.
+
+The continuous-scrub row is the first required Requirement 3 interaction rather than a proxy. Its
+ten-second window begins with the first BeatNote hitch after the coordinated start cue. Raw hitch
+activity continued after release, so a separate steady-playback capture is still required rather
+than attributing the tail to scrubbing.
 
 ## Optimisation decisions
 

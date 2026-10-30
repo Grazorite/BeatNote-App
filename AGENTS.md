@@ -62,9 +62,9 @@ potentially adding a hybrid path later.
 1. Complete `app-performance-optimization` Phase 1 before applying any optimisation. Phase 0 is
    complete: reference fixtures, deterministic projects, instrumentation/counters, guides, audit,
    simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
-   seek sample passes its instrumented completion target, while rapid tapping produces failing
-   proxy hitch evidence; IVL diagnosis and repeated latency/frame/memory/energy/contention baselines
-   remain.
+   seek sample passes its instrumented completion target, while the required continuous cross-row
+   scrub fails at 703.49 ms/s hitch time. Steady playback, profiler diagnosis, and repeated
+   latency/frame/memory/energy/contention baselines remain.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -101,8 +101,8 @@ potentially adding a hybrid path later.
 
 - [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
-      the first paced seek sample is registered, and rapid-input hitch diagnosis plus repeated
-      latency/frame/memory/energy and contention baselines remain pending
+      paced seek and continuous-scrub samples are registered, and steady-playback/profiler diagnosis
+      plus repeated latency/frame/memory/energy and contention baselines remain pending
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -141,10 +141,6 @@ potentially adding a hybrid path later.
 - [x] Complete simulator runtime automation for automatic BPM cancellation and 150-second memory,
       and keep the iOS project sheet mounted across Files picker callbacks
       <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/tasks.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `scripts/ios-ui-test.js`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Pass physical-iPhone acceptance for `playback-marker-control-dock` and `loop-range-overview`
-      (VoiceOver deliberately skipped) and archive both specs
-      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/`, `docs/context/archive/specs/loop-range-overview/`, `AGENTS.md`</sub>
 
 ---
 
@@ -222,6 +218,38 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-30 — Capture the continuous cross-row scrub baseline
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
+
+**Changed:**
+
+- Rejected the pre-fix and interrupted scrub traces, then captured a clearly cued 30-second
+  Animation Hitches run against Kiro's deployed cross-row scrub fix.
+- Registered the first required continuous-scrub hitch result and updated the findings without
+  attributing the failure to an unprofiled React, path, Fabric, or render-server cause.
+
+**Verified:**
+
+- The aligned ten-second scrub window contains 152 BeatNote hitches totalling 7,034.902 ms:
+  703.49 ms/s, p50 16.67 ms, p90 116.69 ms, and max 383.42 ms. The < 10 ms/s target fails.
+- Trace `/private/tmp/beatnote-s-medium-50-continuous-scrub-v4.trace` contains BeatNote PID 66779,
+  ran 31.244636 seconds, and remained in the Nominal thermal state.
+- The repository was clean at measurement commit `7037118`; no product code changed in this step.
+
+**Not verified / known gaps:**
+
+- Hitch activity continued after the instructed release, so a separate steady-playback trace must
+  distinguish ordinary playhead cost from scrub-specific work.
+- Time Profiler/render/path evidence and the Library-sheet and annotation/keyboard hitch scenarios
+  remain open; this result does not authorise an optimisation by itself.
+
+**Next agent should:**
+
+- Capture 60 seconds of steady Release-local playback in Animation Hitches, then profile the scrub
+  path with Time Profiler plus the existing render/path counters.
 
 ### 2026-10-30 — Scrub continuously across wrapped waveform rows
 
@@ -375,34 +403,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Register local S-medium/S-stress fixture paths and checksums, then measure 60-second physical
   signpost overhead before collecting the Release-local baselines.
-
-### 2026-10-30 — Separate annotation callouts from tooltips and add sheet backdrop dismissal
-
-**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: keep mobile feedback and sheets accessible`)
-**Kanban moved:** mobile feedback stacking and Music Library outside-tap dismissal → Done
-
-**Changed:**
-
-- Mobile feedback now shares one ordered overlay stack: transient dock tooltips render above the
-  current annotation callout with a fixed gap in both portrait and landscape.
-- The half-height Music Library now closes when its exposed backdrop is tapped; the backdrop sits
-  behind the sheet, remains outside the focus order, and restores focus to the Song Title control.
-- The retained journeys cover non-overlap in both orientations plus backdrop dismissal and modal
-  title/return-focus behavior.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → passed.
-- Focused mobile-dock and Music Library journeys → passed; full retained Playwright gate → 8/8.
-
-**Not verified / known gaps:**
-
-- The stacking and backdrop dismissal have not yet been hand-tested on the physical iPhone.
-- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
-
-**Next agent should:**
-
-- Reload the development build on the iPhone and confirm tooltip/callout ordering in both
-  orientations and outside-tap dismissal at the Music Library's medium detent.
 
 <!-- end handover log -->

@@ -4121,6 +4121,35 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log — 2026-10-30 rotation
 
+### 2026-10-30 — Separate annotation callouts from tooltips and add sheet backdrop dismissal
+
+**Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: keep mobile feedback and sheets accessible`)
+**Kanban moved:** mobile feedback stacking and Music Library outside-tap dismissal → Done
+
+**Changed:**
+
+- Mobile feedback now shares one ordered overlay stack: transient dock tooltips render above the
+  current annotation callout with a fixed gap in both portrait and landscape.
+- The half-height Music Library now closes when its exposed backdrop is tapped; the backdrop sits
+  behind the sheet, remains outside the focus order, and restores focus to the Song Title control.
+- The retained journeys cover non-overlap in both orientations plus backdrop dismissal and modal
+  title/return-focus behavior.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused mobile-dock and Music Library journeys → passed; full retained Playwright gate → 8/8.
+
+**Not verified / known gaps:**
+
+- The stacking and backdrop dismissal have not yet been hand-tested on the physical iPhone.
+- Three unrelated deleted `.kiro/hooks/` files remain unstaged user work.
+
+**Next agent should:**
+
+- Reload the development build on the iPhone and confirm tooltip/callout ordering in both
+  orientations and outside-tap dismissal at the Music Library's medium detent.
+
 ### 2026-10-30 — Commit the performance measurement foundation
 
 **Agent:** orchestrator (Codex) + DSH-Qwen + Kiro · **Commit(s):** `7ededba`, `a9f9e18`
@@ -4271,6 +4300,10 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - Review the new look on the simulator and iPhone.
 
 ## Archived Done checklist items — 2026-10-30 rotation
+
+- [x] Pass physical-iPhone acceptance for `playback-marker-control-dock` and `loop-range-overview`
+      (VoiceOver deliberately skipped) and archive both specs
+      <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/`, `docs/context/archive/specs/loop-range-overview/`, `AGENTS.md`</sub>
 
 - [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
       <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>

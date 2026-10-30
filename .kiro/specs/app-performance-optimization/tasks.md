@@ -60,6 +60,10 @@ section references are to [`design.md`](./design.md).
       550.12 ms longest hitch at Nominal thermal state; the user also observed rapid-tap lag. This
       fails the nearest interactive target as a proxy, but does not replace the four scripted 3.2
       scenarios.
+    - The required Release-local S-medium/50 continuous cross-row scrub is now captured on
+      `7037118`: 152 hitches summed to 7,034.902 ms in the aligned ten-second window
+      (703.49 ms/s), with p90 116.69 ms and max 383.42 ms at Nominal thermal state. This fails the
+      < 10 ms/s target. Steady playback, Library sheet, and annotation/keyboard remain open.
   - [ ] 3.3 `[device]` 5/15/30-minute memory, CPU, energy, and thermal runs with S-long and
         S-stress; ten-switch memory test; Leaks; 15-minute background run. _Req 7_
   - [ ] 3.4 `[device]` Contention runs: interactions during waveform decode, BPM analysis, 500-marker

@@ -32,12 +32,20 @@ intervals, while the gated post-end unified-log fallback retained all 25. This c
 smoothness problem under rapid input, but not H-5's cause; task 4.4 must split touch delivery, JS,
 store, React/Fabric, and frame time before O-5 or O-6 is authorised.
 
+After commit `7037118` made one horizontal-first scrub continuous across wrapped rows, the required
+ten-second Release-local S-medium/50 scrub recorded 152 BeatNote hitches: 7,034.902 ms summed hitch
+time (703.49 ms/s), p90 116.69 ms, and max 383.42 ms at Nominal thermal state. This is a direct
+Requirement 3 failure, not the earlier tap-seek proxy. Hitch activity persisted after the scrub was
+released, so the next steady-playback trace must determine how much belongs to ordinary playhead
+updates versus the scrub path. The result confirms priority, but still does not identify H-2, H-3,
+or H-4 as the cause.
+
 ## Current interpretation
 
-The most actionable physical-iPhone sequence is now: capture task 4.4's rapid-seek IVL breakdown,
-then complete the scripted playback/scrub/sheet/keyboard hitch baselines and memory/path-generation
-traces. The paced completion distribution alone does not authorise optimistic seeking (O-6), and
-the rapid-input hitches do not yet distinguish JS/store work from Fabric or render-server stalls.
+The most actionable physical-iPhone sequence is now: capture a steady-playback Animation Hitches
+baseline, then pair a scrub Time Profiler trace with render/path counters. Complete the sheet and
+keyboard hitch scenarios before changing code. The severe scrub result does not yet distinguish
+store/render/path work from Fabric or render-server stalls, so O-1/O-3/O-4 remain unauthorised.
 
 ## Zustand subscription audit (task 4.1)
 
