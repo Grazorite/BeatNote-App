@@ -119,6 +119,22 @@ metric worsens > 10%, any preserved behaviour regresses, or a new crash appears)
 - [ ] 7. `[desk]` + `[device]` O-3 Separate static waveform paths from dynamic overlays, if 4.3
       confirms H-3.
   - Rollback also on any playhead, marker, or loop misalignment in portrait or landscape.
+  - Status 2026-10-30: implemented at the user's direction before Phase 1 closed, on the subsystem
+    evidence in `findings.md` (88.2% CoreGraphics-inclusive scrub samples); the view-level ablation
+    was skipped. Wrapped rows now draw back/front artwork in static SVGs, reveal the played copy
+    with `ClipReveal`, and move the playhead with `MovingPlayhead`; the overview progress/playhead
+    use the same primitives. Web gate passes. On 2026-10-31 the physical geometry, tint, cross-row
+    following, and seek stability checks passed; a first after-trace improved scrub ratio 71.8%,
+    p90 14.3%, and max 60.9%, but ran entirely at Serious thermal state. A Nominal after-row and
+    keep/revert decision remain open.
+  - [ ] 7.1 Coalesce interaction writes (O-7 variant): scrub store writes are published at most
+        once per frame and flushed on release; rapid tap seeks are latest-wins with one player seek
+        in flight and a single resume. Same status and rollback rule as task 7; additionally revert
+        if rapid taps land on an older target or audible playback fails to resume after seeking.
+    - Physical acceptance 2026-10-31: rapid taps resumed at the final target, large jumps became
+      noticeably faster, play/pause no longer flickered, stale native positions no longer flashed
+      the waveform backwards during a playing seek, and ordinary play/pause response improved.
+      Nominal rapid/paced seek after-measurements remain open.
 - [ ] 8. `[desk]` + `[device]` O-5 Immediate pressed feedback for dock and transport controls.
   - Rollback also on any change to accessible name, role, state, or 44×44 target.
 

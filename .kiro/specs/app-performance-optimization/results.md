@@ -17,6 +17,7 @@ pass. Raw traces, videos, and profiler exports stay outside the repository.
 | 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Continuous cross-row scrub | Physical instrumentation presence | Instruments Logging / `os-signpost` export | 1 | — | — | — | `seek.scrub` signpost present | Pass | BeatNote `seek.scrub` begin observed on the React Native JS thread; the user released after the trace ended, so no matching end was expected; raw trace deleted after extraction at user request |
 | 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Five Music Library open/settle/backdrop-dismiss cycles | BeatNote hitch duration and interaction ratio | Animation Hitches / 26.058452 s trace | 1 | 16.67 ms | 16.67 ms | 16.67 ms | < 10 ms/s | Pass: 0.64 ms/s | Nominal thermal state; raw trace deleted after extraction at user request |
 | 2026-10-30 | `ab697b7` | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Three annotation open/type/save cycles with software keyboard | BeatNote hitch duration and interaction ratio | Animation Hitches / 36.239625 s trace | 7 | 16.67 ms | 233.385 ms | 233.385 ms | < 10 ms/s | Fail: 14.72 ms/s | 533.451 ms summed hitch time; Nominal thermal state; first capture was discarded after a disk-full save failure, replacement raw trace deleted after extraction at user request |
+| 2026-10-31 | uncommitted optimisation working tree | iPhone 15 Pro Max | 27.0.1 | Release-local, `EXPO_PUBLIC_BEATNOTE_PERF=1` | S-medium M4A, 233.433 s/44.1 kHz stereo | 50 | Continuous cross-row scrub after O-3 / task 7.1 | BeatNote hitch duration and interaction ratio | Animation Hitches; first aligned 10 s from the first BeatNote hitch | 45 | 33.34 ms | 100.02 ms | 150.03 ms | < 10 ms/s | Invalid for keep/revert: 198.38 ms/s | 1,983.773 ms summed hitch time; Serious thermal state throughout; diagnostic ratio improved 71.8% vs 703.49 ms/s baseline, p90 improved 14.3%, max improved 60.9%, but Requirement 10.4 comparison awaits a Nominal repeat; raw trace deleted after extraction at user request |
 
 The paired physical rows above pass only the instrumentation-overhead gate. They are a single
 same-song comparison with uncaptured song metadata and visible run-to-run variance, so they do not
@@ -50,7 +51,19 @@ Raw trace paths in earlier rows are retained as provenance only. At the user's r
 BeatNote temporary trace bundles and exported tables on this host were deleted after their summary
 metrics were recorded here.
 
+The first post-optimisation scrub trace is diagnostic only because the phone remained in the
+Serious thermal state for the entire capture. Its direction and magnitude are encouraging, but it
+cannot decide keep/revert. Physical functional acceptance on the same Release-local code passed:
+waveform tint/playhead alignment, continuous cross-row scrubbing, latest-target rapid taps and
+audible resume, large-jump responsiveness, stable play/pause icon state, seek without waveform
+flashback, and prompt ordinary play/pause response. VoiceOver remains untested.
+
 ## Optimisation decisions
 
 For each O-1…O-11 change, link the matching before/after rows and record `keep` or `revert` with the
 Requirement 10.4 reason. No decision has been made yet.
+
+| Change | Before rows | After rows | Decision |
+|---|---|---|---|
+| O-3 static row/overview artwork with `ClipReveal` progress and `MovingPlayhead` (task 7) | `7037118` continuous cross-row scrub (703.49 ms/s; 88.2% CoreGraphics) and steady playback (1.94 ms/s) | Serious-thermal diagnostic: 198.38 ms/s, p90 100.02 ms, max 150.03 ms; physical geometry/tint passed. Repeat scrub and steady playback at Nominal. | Open — thermal-valid comparison pending |
+| Per-frame scrub publishing and latest-wins tap seeks (task 7.1) | `a3df85f` slow-then-rapid tap seek (32.30 ms/s, 550.12 ms longest hitch) and paced seek (p90 51.20 ms) | Physical latest-target/resume, large-jump response, waveform stability, and transport response passed. Repeat rapid and paced tap measurements at Nominal. | Open — measured after-rows pending |

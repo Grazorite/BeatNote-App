@@ -267,6 +267,45 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Handover Log
 
+### 2026-10-30 — Scrub continuously across wrapped waveform rows
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`fix: scrub continuously across wrapped waveform rows`)
+**Kanban moved:** cross-row wrapped-waveform scrubbing → Done
+
+**Changed:**
+
+- `WrappedWaveform.tsx`: replaced the per-row pan gestures with one stable container-level pan.
+  It keeps horizontal-first activation (`activeOffsetX ±6`, `failOffsetY ±12`), maps container
+  y to a row and x to time within that row, and auto-advances about one row per 1.5 s while the
+  finger holds in the trailing 20 px edge zone or over the leading gutter.
+- `WrappedRow.tsx`: rows retain only the tap/marker-selection gesture; scrub props and store
+  writes moved to the container. `timelineMapping.ts` gained `scrubPointerToTimestamp`.
+- Project-overview steering documents the cross-row scrub rule. The previously staged deletion of
+  three `.kiro/hooks/` files is included at the user's request.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed. Temporary Playwright checks (hold at row end reaches row 1;
+  drag down after activation lands under the finger in row 3) → passed, then deleted.
+- Full retained Playwright gate → 8/8 passed.
+- Signed Release-local build with the embedded bundle installed on the iPhone 15 Pro Max; the user
+  confirmed cross-row following and edge continuation work on the physical phone.
+
+**Not verified / known gaps:**
+
+- The earlier failed physical retests were caused by a stale on-device bundle: no Metro server was
+  running and the dev client never fetched new JavaScript over Wi-Fi or the wired link-local
+  address. That connectivity problem is unresolved; a Release rebuild was used instead.
+- Desktop/web virtualised rows inside the ScrollView were checked only through the retained
+  browser gate; scrubbing that scrolls rows out of the rendered window is not exercised.
+- Edge-zone width and auto-advance rate are first values; VoiceOver and landscape comfort were not
+  separately assessed.
+
+**Next agent should:**
+
+- Resume `app-performance-optimization` task 4.4 (rapid wrapped-seek IVL breakdown) on a
+  Release-local build, and diagnose why the dev client cannot reach local Metro before relying on it.
+
 ### 2026-10-30 — Reset the editor after deleting its only song
 
 **Agent:** orchestrator (Codex) · **Commit(s):** see `git log` (`fix: restore unloaded music state`)

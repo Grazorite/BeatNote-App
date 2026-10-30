@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-30
+**Last updated:** 2026-10-31
 **Branch:** `master` (work happens here; no feature branches) · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -59,15 +59,12 @@ potentially adding a hybrid path later.
 
 ### Current Focus
 
-1. Complete `app-performance-optimization` Phase 1 before applying any optimisation. Phase 0 is
-   complete: reference fixtures, deterministic projects, instrumentation/counters, guides, audit,
-   simulator signpost visibility, and physical overhead are verified. The first S-medium/50 paced
-   seek sample passes its instrumented completion target, while the required continuous cross-row
-   scrub fails at 703.49 ms/s hitch time and untouched playback passes at 1.94 ms/s. Scrub-profiler
-   evidence now isolates the failure to main-thread CoreGraphics work. The Music Library sheet
-   passes at 0.64 ms/s, while annotation editing with the keyboard fails at 14.72 ms/s; the flag-on
-   physical scrub signpost is verified. Gated counter totals and repeated latency/memory/energy/
-   contention baselines remain.
+1. Complete `app-performance-optimization` Phase 1 and validate the first evidence-backed changes.
+   Phase 0 and all four required hitch baselines are recorded. O-3 static waveform artwork plus
+   per-frame scrub/latest-wins seek coalescing are implemented and pass physical functional checks.
+   A first post-change scrub trace improved the ratio 71.8%, p90 14.3%, and max 60.9%, but ran at
+   Serious thermal state and cannot decide keep/revert; repeat it at Nominal before proceeding.
+   Gated counters and repeated latency/memory/energy/contention baselines also remain open.
 2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
@@ -89,7 +86,7 @@ potentially adding a hybrid path later.
 | Agent / Role | Owns | Current assignment |
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
-| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Completed read-only audit `session-b21ea04d-e305-4b1a-802f-d1b8934c426a` and native signpost implementation `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; orchestrator/Kiro reviewed and repaired the integration |
+| `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Completed performance audits `session-b21ea04d-e305-4b1a-802f-d1b8934c426a` and `session-95fd531c-fdd4-467a-a92c-dd6ab7063d1f`, plus native signposts `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; orchestrator/Kiro reviewed and repaired the integrations |
 | `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
 
 ---
@@ -106,7 +103,11 @@ potentially adding a hybrid path later.
       Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
       paced seek and all four required frame/hitch scenarios are registered, scrub-profiler evidence
       identifies CoreGraphics saturation, and keyboard editing fails its target; counters plus
-      repeated latency/memory/energy and contention baselines remain pending
+      repeated latency/memory/energy and contention baselines remain pending. O-3 static artwork
+      and per-frame scrub / latest-wins seek coalescing (tasks 7, 7.1) are implemented at the
+      user's direction and pass physical functional acceptance; the first after-trace improved
+      substantially but was thermally invalid, so Nominal after-measurements and keep/revert remain
+      open
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -222,6 +223,49 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-31 — Stabilise and physically accept the first waveform optimisations
+
+**Agent:** orchestrator (Codex + Kiro + DSH-Qwen) · **Commit(s):** this commit
+**Kanban moved:** none; `app-performance-optimization` tasks 7 and 7.1 remain In Progress pending thermally valid after-rows
+
+**Changed:**
+
+- Wrapped rows and the overview now keep waveform/marker/loop artwork static, reveal a fixed
+  played-colour copy with `ClipReveal`, and move the playhead with a transform. Scrub writes publish
+  at most once per frame and flush on release.
+- Tap seeks are latest-wins and lifecycle-safe. Scrub completion shares the seek drain; native
+  pre-seek clock/status events cannot flash the waveform backwards or toggle the transport icon.
+- Played waveform layers are pre-mounted for the fitted mobile rows, avoiding SVG-tree creation on
+  large jumps. Ordinary Play no longer performs a redundant seek before starting audio.
+- The profiling/testing docs now require temporary-artifact cleanup and record the preliminary
+  after-trace plus the physical functional evidence.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate → passed (8/8).
+- Earlier focused iPhone 17 Pro simulator journeys for landscape gestures and audio annotation /
+  restore passed; DSH-Qwen review `session-95fd531c-fdd4-467a-a92c-dd6ab7063d1f` found the seek
+  lifecycle/race hazards that were repaired before the final build.
+- Signed Release-local build installed on iPhone 15 Pro Max / iOS 27.0.1. The user confirmed correct
+  tint/playhead alignment, continuous cross-row scrub, final-target rapid seeks with audible resume,
+  noticeably faster large jumps, no play-icon or waveform flicker, and prompt play/pause response.
+- Serious-thermal diagnostic scrub trace: 198.38 ms/s, p90 100.02 ms, max 150.03 ms, improving the
+  respective baseline metrics 71.8%, 14.3%, and 60.9%; invalid for keep/revert until Nominal repeat.
+- Deleted every raw trace/export, `ios/build`, `/private/tmp/beatnote-release-dd`, Playwright report,
+  and test-results directory after extracting results; no temporary build/trace cache was retained.
+
+**Not verified / known gaps:**
+
+- Repeat continuous scrub, steady playback, rapid taps, and paced seeks at Nominal thermal state;
+  Requirement 10.4 keep/revert decisions remain open. The phone was deliberately left to cool.
+- VoiceOver row values, gated counter totals, and repeated latency/memory/energy/contention evidence
+  remain open. The view-level ablation was skipped at the user's direction.
+
+**Next agent should:**
+
+- Once the phone is Nominal, repeat the coordinated continuous-scrub Animation Hitches capture on
+  the installed Release build, then record the valid after-row before deciding keep/revert.
 
 ### 2026-10-30 — Complete the required frame/hitch baseline set
 
@@ -354,44 +398,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Capture 60 seconds of steady Release-local playback in Animation Hitches, then profile the scrub
   path with Time Profiler plus the existing render/path counters.
-
-### 2026-10-30 — Scrub continuously across wrapped waveform rows
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** see `git log` (`fix: scrub continuously across wrapped waveform rows`)
-**Kanban moved:** cross-row wrapped-waveform scrubbing → Done
-
-**Changed:**
-
-- `WrappedWaveform.tsx`: replaced the per-row pan gestures with one stable container-level pan.
-  It keeps horizontal-first activation (`activeOffsetX ±6`, `failOffsetY ±12`), maps container
-  y to a row and x to time within that row, and auto-advances about one row per 1.5 s while the
-  finger holds in the trailing 20 px edge zone or over the leading gutter.
-- `WrappedRow.tsx`: rows retain only the tap/marker-selection gesture; scrub props and store
-  writes moved to the container. `timelineMapping.ts` gained `scrubPointerToTimestamp`.
-- Project-overview steering documents the cross-row scrub rule. The previously staged deletion of
-  three `.kiro/hooks/` files is included at the user's request.
-
-**Verified:**
-
-- `npx tsc --noEmit` → passed. Temporary Playwright checks (hold at row end reaches row 1;
-  drag down after activation lands under the finger in row 3) → passed, then deleted.
-- Full retained Playwright gate → 8/8 passed.
-- Signed Release-local build with the embedded bundle installed on the iPhone 15 Pro Max; the user
-  confirmed cross-row following and edge continuation work on the physical phone.
-
-**Not verified / known gaps:**
-
-- The earlier failed physical retests were caused by a stale on-device bundle: no Metro server was
-  running and the dev client never fetched new JavaScript over Wi-Fi or the wired link-local
-  address. That connectivity problem is unresolved; a Release rebuild was used instead.
-- Desktop/web virtualised rows inside the ScrollView were checked only through the retained
-  browser gate; scrubbing that scrolls rows out of the rendered window is not exercised.
-- Edge-zone width and auto-advance rate are first values; VoiceOver and landscape comfort were not
-  separately assessed.
-
-**Next agent should:**
-
-- Resume `app-performance-optimization` task 4.4 (rapid wrapped-seek IVL breakdown) on a
-  Release-local build, and diagnose why the dev client cannot reach local Metro before relying on it.
 
 <!-- end handover log -->

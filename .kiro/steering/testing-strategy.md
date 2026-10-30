@@ -81,3 +81,12 @@ does, document the exception here and keep the smallest possible test.
 - Delete superseded and temporary tests instead of preserving them for historical counts.
 - A bug fix may begin with a failing temporary test, but completion includes removing that test once
   the corresponding critical workflow proves the fix.
+
+## Disk hygiene for heavy recordings
+
+Instruments traces, Hermes profiles, 240-fps videos, XCTest result bundles, Playwright failure
+artefacts, and generated iOS build caches consume many gigabytes on the development Mac. Clear them
+at the end of every profiling or native-test session once their summaries are recorded, keeping only
+an open optimisation's "before" baseline until its keep/revert decision is logged. The inspection
+and cleanup commands live in
+[`app-performance-optimization/profiling-guide.md`](../specs/app-performance-optimization/profiling-guide.md#clear-heavy-recordings-after-every-session).

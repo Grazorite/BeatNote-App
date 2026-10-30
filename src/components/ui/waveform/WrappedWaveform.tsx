@@ -277,10 +277,12 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     enteredCanvas: false,
     frame: null as number | null,
     lastFrameTs: 0,
+    applyFrame: null as number | null,
   });
   useEffect(() => () => {
-    const { frame } = scrubRef.current;
+    const { frame, applyFrame } = scrubRef.current;
     if (frame != null) cancelAnimationFrame(frame);
+    if (applyFrame != null) cancelAnimationFrame(applyFrame);
   }, []);
   const scrubGesture = useMemo(() => {
     const pointerRow = (y: number): number => {
@@ -317,6 +319,23 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
       setCurrentTime(targetTime);
       setGhostPlayheadTime(targetTime);
     };
+    // Touch events can arrive faster than the display refreshes; publish at most one scrub
+    // position per frame so each store update corresponds to a frame that can actually be shown.
+    const scheduleApply = (): void => {
+      const scrub = scrubRef.current;
+      if (scrub.applyFrame != null) return;
+      scrub.applyFrame = requestAnimationFrame(() => {
+        scrub.applyFrame = null;
+        if (scrub.active) applyScrub();
+      });
+    };
+    const flushApply = (): void => {
+      const scrub = scrubRef.current;
+      if (scrub.applyFrame == null) return;
+      cancelAnimationFrame(scrub.applyFrame);
+      scrub.applyFrame = null;
+      applyScrub();
+    };
     const tick = (timestamp: number): void => {
       const scrub = scrubRef.current;
       scrub.frame = null;
@@ -342,7 +361,7 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         scrub.rowIndex = rowIndex;
         scrub.offsetMs = 0;
       }
-      applyScrub();
+      scheduleApply();
       if (edgeDirection(x) !== 0 && scrub.frame == null) {
         scrub.lastFrameTs = 0;
         scrub.frame = requestAnimationFrame(tick);
@@ -351,8 +370,15 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     const resetScrub = (): void => {
       const scrub = scrubRef.current;
       if (scrub.frame != null) cancelAnimationFrame(scrub.frame);
+      if (scrub.applyFrame != null) cancelAnimationFrame(scrub.applyFrame);
       Object.assign(scrub, {
-        active: false, rowIndex: -1, offsetMs: 0, enteredCanvas: false, frame: null, lastFrameTs: 0,
+        active: false,
+        rowIndex: -1,
+        offsetMs: 0,
+        enteredCanvas: false,
+        frame: null,
+        lastFrameTs: 0,
+        applyFrame: null,
       });
     };
     // Vertical-first movement fails before activation, so it stays a scroll; failOffsetY no longer
@@ -366,10 +392,14 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
         scrubRef.current.active = true;
         scrubGeometryRef.current.onScrubStart();
         updateScrub(event.x, event.y);
+        // The first position is shown immediately rather than on the next frame.
+        flushApply();
       })
       .onUpdate(event => updateScrub(event.x, event.y))
       .onFinalize(() => {
         if (!scrubRef.current.active) return;
+        // endWaveformScrub seeks the player to the stored time, so publish the final position first.
+        flushApply();
         resetScrub();
         useStudioStore.getState().setGhostPlayheadTime(null);
         scrubGeometryRef.current.onScrubEnd();

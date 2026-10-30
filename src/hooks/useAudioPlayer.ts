@@ -19,6 +19,8 @@ interface ErrorState {
 const END_OF_TRACK_TOLERANCE_MS = 100;
 const PLAYBACK_UPDATE_INTERVAL_MS = 100;
 const PLAYBACK_RATE_DEBOUNCE_MS = 120;
+const PLAYBACK_INTENT_COMMAND_TIMEOUT_MS = 2000;
+const PLAYBACK_INTENT_SETTLE_MS = 400;
 
 /**
  * Custom audio player hook that handles:
@@ -35,6 +37,14 @@ export const useCustomAudioPlayer = () => {
   const previousSampleRef = useRef<number | null>(null);
   const loopDecisionSuspendedRef = useRef(false);
   const loopSeekInFlightRef = useRef(false);
+  const pendingSeekRef = useRef<number | null>(null);
+  const pendingSeekIntervalsRef = useRef<string[]>([]);
+  const seekDrainRef = useRef<Promise<void> | null>(null);
+  const seekResumePlaybackRef = useRef(false);
+  const seekEpochRef = useRef(0);
+  const mountedRef = useRef(true);
+  const playbackIntentRef = useRef<boolean | null>(null);
+  const playbackIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failedLoopRangeKeyRef = useRef<string | null>(null);
   const completionHandledRef = useRef(false);
   const playbackRateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,6 +87,41 @@ export const useCustomAudioPlayer = () => {
     setCurrentTime: state.setCurrentTime,
     playbackSpeed: state.playbackSpeed,
   })));
+
+  const holdPlaybackIntent = useCallback((playing: boolean, durationMs: number): void => {
+    playbackIntentRef.current = playing;
+    if (playbackIntentTimerRef.current !== null) clearTimeout(playbackIntentTimerRef.current);
+    useStudioStore.getState().setIsPlaying(playing);
+    playbackIntentTimerRef.current = setTimeout(() => {
+      playbackIntentTimerRef.current = null;
+      if (playbackIntentRef.current !== playing) return;
+      playbackIntentRef.current = null;
+      const statusPlaying = playerStatusRef.current.playing;
+      const state = useStudioStore.getState();
+      if (state.switchPhase === 'idle' && state.isPlaying !== statusPlaying) {
+        state.setIsPlaying(statusPlaying);
+      }
+    }, durationMs);
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      seekEpochRef.current += 1;
+      pendingSeekRef.current = null;
+      pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
+      seekDrainRef.current = null;
+      if (playbackIntentTimerRef.current !== null) clearTimeout(playbackIntentTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    seekEpochRef.current += 1;
+    pendingSeekRef.current = null;
+    pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
+    seekDrainRef.current = null;
+  }, [player]);
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });
@@ -165,10 +210,17 @@ export const useCustomAudioPlayer = () => {
           : currentState.songDuration);
         return;
       }
-      if (currentState.switchPhase === 'idle' && currentState.isPlaying !== status.playing) {
+      if (currentState.switchPhase === 'idle'
+        && playbackIntentRef.current === null
+        && currentState.isPlaying !== status.playing) {
         currentState.setIsPlaying(status.playing);
       }
-      if (currentState.switchPhase === 'idle' && !status.playing) {
+      // Native seek status can briefly report the pre-seek position as paused. Keep the tapped
+      // position authoritative until the latest-wins seek drain has settled.
+      if (currentState.switchPhase === 'idle'
+        && playbackIntentRef.current === null
+        && !loopDecisionSuspendedRef.current
+        && !status.playing) {
         const reportedPositionMs = status.currentTime * 1000;
         if (Number.isFinite(reportedPositionMs)
           && Math.abs(currentState.currentTime - reportedPositionMs) > 20) {
@@ -271,106 +323,137 @@ export const useCustomAudioPlayer = () => {
     if (!player) return;
     const intervalId = perfBegin('playback.toggle');
     try {
-      if (isPlaying) {
+      const targetPlaying = !useStudioStore.getState().isPlaying;
+      seekResumePlaybackRef.current = targetPlaying;
+      holdPlaybackIntent(targetPlaying, PLAYBACK_INTENT_COMMAND_TIMEOUT_MS);
+      if (!targetPlaying) {
         player.pause();
-        setIsPlaying(false);
+        holdPlaybackIntent(false, PLAYBACK_INTENT_SETTLE_MS);
       } else {
+        const activeDrain = seekDrainRef.current;
+        if (activeDrain !== null) {
+          await activeDrain;
+          return;
+        }
         const { currentTime, songDuration, setViewportStartTime } = useStudioStore.getState();
         
         // If at end of track, restart from beginning
         if (currentTime >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
           setCurrentTime(0);
           setViewportStartTime(0); // Reset viewport for both single and stems modes
-          player.seekTo(0);
+          await player.seekTo(0);
           previousSampleRef.current = 0;
           failedLoopRangeKeyRef.current = null;
         } else {
-          player.seekTo(currentTime / 1000); // Convert to seconds
+          // Paused native status already keeps the store aligned with the player. Re-seeking here
+          // delayed every ordinary Play command and made the transport feel unresponsive.
           previousSampleRef.current = currentTime;
         }
-        player.play();
-        setIsPlaying(true);
+        if (!mountedRef.current || playbackIntentRef.current !== true) return;
+        await player.play();
+        holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
       }
     } catch (error) {
       console.error('Playback error:', error);
+      playbackIntentRef.current = null;
+      if (playbackIntentTimerRef.current !== null) {
+        clearTimeout(playbackIntentTimerRef.current);
+        playbackIntentTimerRef.current = null;
+      }
+      setIsPlaying(playerStatusRef.current.playing);
       Alert.alert('Playback Error', 'Failed to control audio playback');
     } finally {
       perfEndAfterFrame(intervalId);
     }
-  }, [player, isPlaying, setIsPlaying, setCurrentTime]);
+  }, [holdPlaybackIntent, player, setIsPlaying, setCurrentTime]);
 
-  const seekToPosition = useCallback(async (position: number) => {
+  const seekToPosition = useCallback(async (position: number): Promise<void> => {
     if (!player) return;
 
     const intervalId = perfBegin(
-      loopDecisionSuspendedRef.current ? 'seek.scrub' : 'seek.tap',
+      loopDecisionSuspendedRef.current && seekDrainRef.current === null ? 'seek.scrub' : 'seek.tap',
     );
-    loopDecisionSuspendedRef.current = true;
-    try {
-      const { songDuration } = useStudioStore.getState();
-      // Clamp position to valid range
-      const clampedPosition = Math.max(0, Math.min(position, songDuration));
-      const wasPlaying = isPlaying;
-      
-      // Always update the store time first
-      setCurrentTime(clampedPosition);
-      
-      // Seek the audio player
-      await player.seekTo(clampedPosition / 1000); // Convert to seconds
-      previousSampleRef.current = clampedPosition;
-      failedLoopRangeKeyRef.current = null;
-      
-      // Continue playing if it was playing before
-      if (wasPlaying) {
-        await player.play();
-        setIsPlaying(true);
-      }
-    } catch (error) {
-      console.error('Seek error:', error);
-      Alert.alert('Seek Error', 'Failed to seek to position');
-      const reportedPosition = (player.currentTime ?? 0) * 1000;
-      previousSampleRef.current = reportedPosition;
-      setCurrentTime(reportedPosition);
-    } finally {
-      loopDecisionSuspendedRef.current = false;
-      perfEndAfterFrame(intervalId);
+    const { songDuration } = useStudioStore.getState();
+    const clampedPosition = Math.max(0, Math.min(position, songDuration));
+    // Visual feedback is immediate for every tap; only the newest target reaches the player.
+    setCurrentTime(clampedPosition);
+    pendingSeekRef.current = clampedPosition;
+    pendingSeekIntervalsRef.current.push(intervalId);
+    seekResumePlaybackRef.current = useStudioStore.getState().isPlaying;
+    if (seekResumePlaybackRef.current) {
+      holdPlaybackIntent(true, PLAYBACK_INTENT_COMMAND_TIMEOUT_MS);
     }
-  }, [player, isPlaying, setIsPlaying, setCurrentTime]);
+    if (seekDrainRef.current) return seekDrainRef.current;
+
+    const seekEpoch = seekEpochRef.current;
+    loopDecisionSuspendedRef.current = true;
+    // Rapid taps previously queued one awaited seek (and play) per tap. Draining latest-wins keeps
+    // at most one player seek in flight and resumes playback once, after the final target.
+    let drain: Promise<void> | null = null;
+    drain = (async (): Promise<void> => {
+      try {
+        while (true) {
+          while (pendingSeekRef.current !== null) {
+            const target = pendingSeekRef.current;
+            pendingSeekRef.current = null;
+            await player.seekTo(target / 1000); // Convert to seconds
+            if (!mountedRef.current || seekEpoch !== seekEpochRef.current) return;
+            previousSampleRef.current = target;
+            failedLoopRangeKeyRef.current = null;
+          }
+          if (seekResumePlaybackRef.current) {
+            // A tap can arrive while the native play promise is pending. Recheck the queue after
+            // resuming so that target is sought instead of being cleared by the drain's finally.
+            await player.play();
+            if (!mountedRef.current || seekEpoch !== seekEpochRef.current) return;
+            if (pendingSeekRef.current !== null) continue;
+            holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
+          }
+          break;
+        }
+      } catch (error) {
+        pendingSeekRef.current = null;
+        console.error('Seek error:', error);
+        Alert.alert('Seek Error', 'Failed to seek to position');
+        const reportedPosition = (player.currentTime ?? 0) * 1000;
+        previousSampleRef.current = reportedPosition;
+        setCurrentTime(reportedPosition);
+      } finally {
+        if (seekDrainRef.current === drain) {
+          loopDecisionSuspendedRef.current = false;
+          seekDrainRef.current = null;
+          pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
+        }
+      }
+    })();
+    seekDrainRef.current = drain;
+    return drain;
+  }, [holdPlaybackIntent, player, setCurrentTime]);
 
   const startWaveformScrub = useCallback(async () => {
     perfBegin('seek.scrub', 'seek.scrub:session');
     loopDecisionSuspendedRef.current = true;
     if (player && isPlaying) {
       wasPlayingBeforeScrubRef.current = true;
+      seekResumePlaybackRef.current = false;
+      holdPlaybackIntent(false, PLAYBACK_INTENT_SETTLE_MS);
       player.pause();
-      setIsPlaying(false);
     } else {
       wasPlayingBeforeScrubRef.current = false;
     }
-  }, [isPlaying, player, setIsPlaying]);
+  }, [holdPlaybackIntent, isPlaying, player]);
 
   const endWaveformScrub = useCallback(async () => {
     if (player) {
       const { currentTime } = useStudioStore.getState();
-      try {
-        await player.seekTo(currentTime / 1000); // Convert to seconds
-        previousSampleRef.current = currentTime;
-        failedLoopRangeKeyRef.current = null;
-        if (wasPlayingBeforeScrubRef.current) {
-          player.play();
-          setIsPlaying(true);
-        }
-      } catch (scrubError) {
-        console.error('Scrub seek error:', scrubError);
-        const reportedPosition = (player.currentTime ?? 0) * 1000;
-        previousSampleRef.current = reportedPosition;
-        setCurrentTime(reportedPosition);
-      }
+      const shouldResume = wasPlayingBeforeScrubRef.current;
+      if (shouldResume) holdPlaybackIntent(true, PLAYBACK_INTENT_COMMAND_TIMEOUT_MS);
+      await seekToPosition(currentTime);
     }
     wasPlayingBeforeScrubRef.current = false;
     loopDecisionSuspendedRef.current = false;
     perfEndAfterFrame('seek.scrub:session');
-  }, [player, setCurrentTime, setIsPlaying]);
+  }, [holdPlaybackIntent, player, seekToPosition]);
 
   const tapToBeat = useCallback(async () => {
     const { currentTime } = useStudioStore.getState();
@@ -410,7 +493,12 @@ export const useCustomAudioPlayer = () => {
           allLayersData,
         } = useStudioStore.getState();
 
-        if (loopDecisionSuspendedRef.current || loopSeekInFlightRef.current) {
+        if (loopDecisionSuspendedRef.current) {
+          // The store already contains the user's latest tap/scrub position. Publishing the old
+          // native clock during seek settlement makes every playing seek flash backwards once.
+          return;
+        }
+        if (loopSeekInFlightRef.current) {
           previousSampleRef.current = currentTimeMs;
           setCurrentTime(currentTimeMs);
           return;

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { LayerId } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { generateWaveformPath } from '../../../hooks/useWaveformData';
@@ -13,14 +13,16 @@ import {
   markerHeadTransform,
 } from '../../../utils/markerShape';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
-import {
-  clipRowProgress,
-  pointerToTimestamp,
-  type RowLoopSegment,
-} from '../../../utils/timelineMapping';
+import { pointerToTimestamp, type RowLoopSegment } from '../../../utils/timelineMapping';
 import RowGutter from './RowGutter';
+import {
+  formatAccessibleTime,
+  RowAccessibleSurface,
+  RowPlayhead,
+  RowProgressLayer,
+} from './WrappedRowLiveLayers';
 import { wrappedRowStyles as styles } from '../../../styles/components/waveform/wrappedRow';
-import { colors, PLAYED_WAVEFORM_OPACITY } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import { incrementPerfCounter } from '../../../utils/perfCounters';
 
 export interface WrappedLayerMarkers {
@@ -65,24 +67,12 @@ const MARKER_HEAD_TOP = 2;
 const MARKER_LINE_WIDTH = 2;
 const MARKER_LINE_OPACITY = 0.75;
 const MARKER_GLOW_OPACITY = 0.22;
-// Playhead: round-capped line with a rounded head and a soft dark shadow instead of a hard halo.
-const PLAYHEAD_HEAD_Y = 5;
-const PLAYHEAD_HEAD_RADIUS = 3.5;
-const PLAYHEAD_SHADOW_WIDTH = 6;
-const PLAYHEAD_SHADOW_OPACITY = 0.5;
 const LOOP_RANGE_RADIUS = 4;
 // "Loop between markers": a faint violet wash plus a slim underline, so it stays visually distinct
 // from the teal range loop and never relies on colour alone.
 const MARKER_LOOP_WASH_OPACITY = 0.07;
 const MARKER_LOOP_BAR_HEIGHT = 2;
 const MARKER_LOOP_BAR_OPACITY = 0.7;
-
-const formatAccessibleTime = (milliseconds: number): string => {
-  const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-};
 
 const markerX = (row: WrappedRowModel, timestamp: number, width: number): number => {
   const duration = Math.max(1, row.endMs - row.startMs);
@@ -142,7 +132,8 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   onSelectMarker,
   onSelectForDetail,
 }) => {
-  const progress = useStudioStore(state => clipRowProgress(row, state.currentTime));
+  // Playback time is consumed only by the live layers, so this row's SVG artwork re-renders only
+  // when its own data, geometry, or selection changes.
   // Reduced to a string so only the row holding the selection re-renders when it changes.
   const selectedMarkerKey = useStudioStore(state => {
     const selected = state.selectedMarker;
@@ -150,11 +141,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
       ? `${selected.layerId}-${selected.timestamp}`
       : null;
   });
-  const safeProgress = Math.max(0, Math.min(1, progress));
-  const activeWidth = rowPixelWidth * safeProgress;
-  const playheadX = rowPixelWidth > 2
-    ? Math.max(1, Math.min(rowPixelWidth - 1, activeWidth))
-    : rowPixelWidth / 2;
   const waveformHeight = Math.max(1, rowHeight - 2);
   const markerLaneHeight = Math.min(MARKER_LANE_HEIGHT, waveformHeight * MARKER_LANE_HEIGHT_RATIO);
   const headScale = Math.max(
@@ -163,15 +149,11 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
   );
   const markerLineTop = MARKER_HEAD_TOP + MARKER_SHIELD_LINE_START * headScale;
   const headCenterY = MARKER_HEAD_TOP + 7.5 * headScale;
-  const clipId = `wrapped-row-progress-${row.index}`;
   const loopRect = loopGeometry(row, rowPixelWidth, loopSegment);
   const markerLoopRect = loopGeometry(row, rowPixelWidth, markerLoopSegment);
   const outsideLoopRects = outsideLoopSegments
     .map(segment => loopGeometry(row, rowPixelWidth, segment))
     .filter((geometry): geometry is LoopGeometry => geometry !== null);
-  const rowDuration = Math.max(0, row.endMs - row.startMs);
-  const playbackPosition = Math.round(row.startMs + rowDuration * safeProgress);
-  const playbackValueText = `Playback at ${formatAccessibleTime(playbackPosition)}`;
   const rowLabel = [
     `Row ${row.index + 1}`,
     `${formatAccessibleTime(row.startMs)} to ${formatAccessibleTime(row.endMs)}`,
@@ -244,24 +226,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
 
   return (
     <View style={[styles.row, { height: rowHeight }]}>
-      <View
-        accessible
-        accessibilityLabel={rowLabel}
-        accessibilityRole="adjustable"
-        accessibilityValue={isActiveRow ? {
-          min: row.startMs,
-          max: row.endMs,
-          now: playbackPosition,
-          text: playbackValueText,
-        } : undefined}
-        aria-valuemax={isActiveRow ? row.endMs : undefined}
-        aria-valuemin={isActiveRow ? row.startMs : undefined}
-        aria-valuenow={isActiveRow ? playbackPosition : undefined}
-        aria-valuetext={isActiveRow ? playbackValueText : undefined}
-        pointerEvents="none"
-        style={StyleSheet.absoluteFill}
-        testID={`wrapped-row-${row.index}`}
-      />
+      <RowAccessibleSurface row={row} label={rowLabel} isActiveRow={isActiveRow} />
       <Pressable
         accessibilityLabel={`Open detail editor for row ${row.index + 1}`}
         accessibilityRole="button"
@@ -354,24 +319,6 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                 opacity={0.75}
                 testID={`wrapped-row-peaks-${row.index}`}
               />
-              {activeWidth > 0 && (
-                <>
-                  <Defs>
-                    <ClipPath id={clipId}>
-                      <Rect x={0} y={0} width={activeWidth} height={waveformHeight} />
-                    </ClipPath>
-                  </Defs>
-                  <Path
-                    d={path}
-                    stroke={activeLayerColor}
-                    strokeOpacity={PLAYED_WAVEFORM_OPACITY}
-                    strokeWidth={1.5}
-                    fill="none"
-                    clipPath={`url(#${clipId})`}
-                    testID={`wrapped-row-progress-${row.index}`}
-                  />
-                </>
-              )}
             </>
           ) : (
             <>
@@ -383,19 +330,22 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
                 fill={colors.gridMinor}
                 opacity={0.65}
               />
-              {activeWidth > 0 && (
-                <Rect
-                  x={0}
-                  y={(waveformHeight / 2) - 3}
-                  width={activeWidth}
-                  height={6}
-                  fill={activeLayerColor}
-                  testID={`wrapped-row-progress-${row.index}`}
-                />
-              )}
             </>
           )}
-
+          </Svg>
+          <RowProgressLayer
+            row={row}
+            path={path}
+            rowPixelWidth={rowPixelWidth}
+            waveformHeight={waveformHeight}
+            activeLayerColor={activeLayerColor}
+          />
+          {/* Front artwork stays above the played tint so markers and loop dimming are unchanged. */}
+          <Svg
+            width={rowPixelWidth}
+            height={waveformHeight}
+            style={StyleSheet.absoluteFill}
+          >
           {markersByLayer.flatMap(layer => layer.timestamps.map(timestamp => (
             <Line
               key={`${layer.layerId}-${timestamp}`}
@@ -517,41 +467,10 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             />
           ))}
 
-          {isActiveRow && (
-            <>
-              <Line
-                x1={playheadX}
-                y1={PLAYHEAD_HEAD_Y}
-                x2={playheadX}
-                y2={waveformHeight}
-                stroke={colors.background}
-                strokeWidth={PLAYHEAD_SHADOW_WIDTH}
-                strokeLinecap="round"
-                opacity={PLAYHEAD_SHADOW_OPACITY}
-                testID={`wrapped-row-playhead-underlay-${row.index}`}
-              />
-              <Line
-                x1={playheadX}
-                y1={PLAYHEAD_HEAD_Y}
-                x2={playheadX}
-                y2={waveformHeight}
-                stroke={colors.loopPlayhead}
-                strokeWidth={2}
-                strokeLinecap="round"
-                testID={`wrapped-row-playhead-${row.index}`}
-              />
-              <Circle
-                cx={playheadX}
-                cy={PLAYHEAD_HEAD_Y}
-                r={PLAYHEAD_HEAD_RADIUS}
-                fill={colors.loopPlayhead}
-                stroke={colors.background}
-                strokeWidth={1.5}
-                testID={`wrapped-row-playhead-cap-${row.index}`}
-              />
-            </>
-          )}
           </Svg>
+          {isActiveRow && (
+            <RowPlayhead row={row} rowPixelWidth={rowPixelWidth} waveformHeight={waveformHeight} />
+          )}
         </View>
       </GestureDetector>
     </View>
