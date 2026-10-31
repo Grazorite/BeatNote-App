@@ -130,7 +130,6 @@ task 4.2 before changing selectors. Summary: 201 subscriptions — 158 granular,
 | `src/components/ui/controls/DanceCountDisplay.tsx:15` | granular | when field changes | `state => state.phraseStartMs` |
 | `src/components/ui/controls/DanceCountVisibilityControl.tsx:9` | granular | when field changes | `state => state.showDanceCounts` |
 | `src/components/ui/controls/DanceCountVisibilityControl.tsx:10` | granular | stable action reference | `state => state.setShowDanceCounts` |
-| `src/components/ui/controls/GridLinesToggle.tsx:8` | broad | every store update | `(whole store)` |
 | `src/components/ui/controls/HelpButton.tsx:8` | broad | every store update | `(whole store)` |
 | `src/components/ui/controls/HorizontalLayerSelector.tsx:18` | broad | every store update | `(whole store)` |
 | `src/components/ui/controls/InnerLoopControl.tsx:16` | shallow object | when selected fields change | `useShallow(store => ({ marker: store.isLoopMarkerActive, range: store.isLoopRangeEnabled, loaded: store.songLo` |

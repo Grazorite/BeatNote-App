@@ -10,7 +10,9 @@ available. Debug measurements diagnose only; they cannot pass acceptance.
 2. Set fixed brightness, disable Low Power Mode, close unrelated foreground apps, and let the phone
    idle for five minutes. Force-quit BeatNote before each set.
 3. Import the named song and open the fixed project from `fixtures.md`. Confirm speed 1×, Repeat and
-   Shuffle off, and no analysis already running unless the scenario asks for it.
+   Shuffle off, **Show waveform (Pro) on**, and no analysis already running unless the scenario asks
+   for it. Historical waveform baselines used decoded artwork; a run with the new off-by-default
+   solid bars is a separate Lite configuration and must never be compared as an O-3 after-row.
 4. Capture 240-fps video with the whole phone and touching finger visible, or capture touch events,
    BeatNote signposts, and Animation Hitches together. Record the method and its resolution.
 5. Run one warm-up repetition. Then record at least 20 repetitions per interaction without changing
@@ -39,6 +41,10 @@ For the baseline, run once with S-medium/50 and once with S-long/500.
 During playback, separately capture 60 seconds of steady playback, ten seconds of continuous scrub,
 Library open/close, and annotation open/save with keyboard. Record JS/UI frame time, Core Animation
 hitches, tasks longer than 50 ms, and 60/120 Hz context.
+
+After the waveform-on keep/revert decision is complete, repeat steady playback and continuous scrub
+once with waveform artwork off. Record that row as the Lite solid-bar configuration; it measures the
+product-tier cost boundary, not the waveform optimisation itself.
 
 ## Contention set
 

@@ -59,6 +59,10 @@ with `npx playwright install chromium` before running `npm test`.
 The generated `ios/` project is not durable configuration. Any lasting build flag must be expressed
 through Expo config or a config plugin before task completion.
 
+For waveform performance rows, open Settings and enable **Show waveform (Pro)** before recording.
+It now defaults off. Mixing the Lite solid-bar state with historical decoded-waveform baselines
+invalidates the comparison; record waveform-off evidence as its own named configuration.
+
 ## Instruments
 
 Use Product > Profile or Xcode > Open Developer Tool > Instruments, select the physical process,

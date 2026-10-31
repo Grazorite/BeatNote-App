@@ -33,7 +33,6 @@ The investigation starts from these files. The list is a map, not a claim that e
 | Annotation | `AnnotationDockButton.tsx`, `AnnotationField.tsx`, `AnnotationCallout.tsx` |
 | Library and persistence | `src/features/library/trackSwitch.ts`, `draftAutosave.ts`, `persistencePipeline.ts`, `useLibraryLifecycle.ts` |
 | Native | `modules/beatnote-waveform/`, `modules/beatnote-tempo/`, `modules/library-storage/` |
-| Existing helper | `src/hooks/usePerformanceMonitor.ts` (render-time averaging, used by `StudioScreen.tsx`) |
 
 ## 3. Reference fixtures
 
