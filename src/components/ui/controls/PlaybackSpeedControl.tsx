@@ -7,8 +7,10 @@ import {
   LayoutChangeEvent,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DEFAULT_PLAYBACK_SPEED,
   formatSpeedLabel,
@@ -26,6 +28,10 @@ import { capabilitiesForLoadedItem } from '../../../features/library/sourceResol
 
 const DRAG_CLOSE_DELAY_MS = 700;
 const DRAG_FADE_DURATION_MS = 420;
+/** Preferred overhang of the compact (landscape) chooser below the speed button's bottom edge. */
+const COMPACT_CHOOSER_BELOW_ANCHOR = 124;
+/** Minimum gap between the compact chooser and the safe-area edges. */
+const CHOOSER_EDGE_MARGIN = 8;
 
 interface PlaybackSpeedControlProps {
   value?: number;
@@ -50,6 +56,10 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const [localValue, setLocalValue] = useState(DEFAULT_PLAYBACK_SPEED);
   const [open, setOpen] = useState(false);
   const [trackWidth, setTrackWidth] = useState(0);
+  const [compactTop, setCompactTop] = useState<number | null>(null);
+  const wrapperRef = useRef<View>(null);
+  const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const dismissingRef = useRef(false);
@@ -147,6 +157,20 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   }, [applySpeed, trackWidth]);
 
   const onTrackLayout = (event: LayoutChangeEvent) => setTrackWidth(event.nativeEvent.layout.width);
+  // The compact chooser grows with its content, so a fixed offset can push it past the top of a
+  // short landscape window. Keep the preferred placement but clamp it inside the safe area.
+  const onChooserLayout = (event: LayoutChangeEvent) => {
+    if (!compact) return;
+    const chooserHeight = event.nativeEvent.layout.height;
+    wrapperRef.current?.measureInWindow((_x, anchorY, _width, anchorHeight) => {
+      const preferredTop = anchorY + anchorHeight + COMPACT_CHOOSER_BELOW_ANCHOR - chooserHeight;
+      const minTop = insets.top + CHOOSER_EDGE_MARGIN;
+      const maxTop = windowHeight - insets.bottom - CHOOSER_EDGE_MARGIN - chooserHeight;
+      const top = Math.min(Math.max(preferredTop, minTop), Math.max(minTop, maxTop));
+      const nextTop = Math.round(top - anchorY);
+      setCompactTop(current => (current === nextTop ? current : nextTop));
+    });
+  };
   const onTouch = (event: GestureResponderEvent) => {
     updateFromTrackX(event.nativeEvent.locationX);
   };
@@ -174,18 +198,19 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View ref={wrapperRef} collapsable={false} style={styles.wrapper}>
       {open && (
         <Animated.View
           style={[
             styles.chooser,
             compact
-              ? styles.compactChooser
+              ? [styles.compactChooser, compactTop !== null && { top: compactTop, bottom: undefined }]
               : chooserSide === 'leading'
                 ? styles.leadingChooser
                 : styles.trailingChooser,
             animatedChooserStyle,
           ]}
+          onLayout={onChooserLayout}
           testID="playback-speed-chooser"
           onTouchStart={restorePopup}
           onTouchEnd={finishPopupInteraction}
