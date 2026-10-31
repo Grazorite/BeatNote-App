@@ -99,6 +99,11 @@ final class BeatNoteUITests: XCTestCase {
 
   func testAudioAnnotationAndProjectRestore() {
     loadBundledSimulatorAudio()
+    element("sidebar-open-toggle").tap()
+    let waveformToggle = element("waveform-visibility-toggle")
+    XCTAssertTrue(waveformToggle.waitForExistence(timeout: 5))
+    waveformToggle.tap()
+    element("sidebar-toggle").tap()
     XCTAssertTrue(
       element("wrapped-row-peaks-0").waitForExistence(timeout: 10),
       "Native audio loading should decode real waveform peaks for wrapped rows."

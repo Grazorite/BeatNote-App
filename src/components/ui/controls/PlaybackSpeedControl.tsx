@@ -32,6 +32,7 @@ interface PlaybackSpeedControlProps {
   options?: readonly number[];
   onSelect?: (value: number) => void;
   compact?: boolean;
+  chooserSide?: 'leading' | 'trailing';
 }
 
 const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
@@ -39,6 +40,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   options = PLAYBACK_SPEED_PRESETS,
   onSelect,
   compact,
+  chooserSide = 'trailing',
 }) => {
   const songLoaded = useStudioStore(state => state.songLoaded);
   const speedAvailable = useStudioStore(state => capabilitiesForLoadedItem(
@@ -175,7 +177,15 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     <View style={styles.wrapper}>
       {open && (
         <Animated.View
-          style={[styles.chooser, compact && styles.compactChooser, animatedChooserStyle]}
+          style={[
+            styles.chooser,
+            compact
+              ? styles.compactChooser
+              : chooserSide === 'leading'
+                ? styles.leadingChooser
+                : styles.trailingChooser,
+            animatedChooserStyle,
+          ]}
           testID="playback-speed-chooser"
           onTouchStart={restorePopup}
           onTouchEnd={finishPopupInteraction}

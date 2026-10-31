@@ -15,13 +15,18 @@ export const playbackSpeedControlStyles = StyleSheet.create({
   chooser: {
     position: 'absolute',
     bottom: 50,
-    right: -46,
     width: 280,
     padding: 14,
     borderRadius: 14,
     backgroundColor: 'transparent',
     overflow: 'hidden',
     zIndex: 30,
+  },
+  leadingChooser: {
+    left: -46,
+  },
+  trailingChooser: {
+    right: -46,
   },
   /** Slightly stronger glass: a translucent layer in the theme surface token laid behind
    *  the GlassBackdrop gradient so the chooser reads less washed-out while keeping the
@@ -38,7 +43,7 @@ export const playbackSpeedControlStyles = StyleSheet.create({
     zIndex: 0,
   },
   compactChooser: {
-    bottom: -52,
+    bottom: -124,
     right: 52,
     width: 270,
   },

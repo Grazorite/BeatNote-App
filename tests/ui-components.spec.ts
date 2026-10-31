@@ -53,6 +53,17 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
     await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
+    await expect(page.getByText('Basic', { exact: true })).toBeVisible();
+    await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-waveform')).toBeVisible();
+    await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'false');
+    const settingsOrder = await page.evaluate(() => [
+      'settings-waveform',
+      'settings-layer-names',
+      'settings-bpm',
+    ].map(id => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().y ?? -1));
+    expect(settingsOrder[0]).toBeLessThan(settingsOrder[1]);
+    expect(settingsOrder[1]).toBeLessThan(settingsOrder[2]);
     await expect(page.getByTestId('settings-bpm')).toBeVisible();
     await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
     await expect(page.getByTestId('settings-dance-counts')).toBeVisible();
@@ -262,6 +273,12 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('dock-toast')).toHaveCount(0, { timeout: 2500 });
     await page.getByTestId('playback-speed').click();
     await expect(page.getByTestId('playback-speed-glass')).toBeVisible();
+    const portraitSpeedChooser = await page.getByTestId('playback-speed-chooser').boundingBox();
+    expect(portraitSpeedChooser).not.toBeNull();
+    if (portraitSpeedChooser) {
+      expect(portraitSpeedChooser.x).toBeGreaterThanOrEqual(0);
+      expect(portraitSpeedChooser.x + portraitSpeedChooser.width).toBeLessThanOrEqual(393);
+    }
     await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemin', '0.5');
     await expect(page.getByTestId('playback-speed-slider')).toHaveAttribute('aria-valuemax', '2');
     const decrementSpeed = page.getByTestId('playback-speed-decrement');
@@ -372,10 +389,16 @@ test.describe('UI Components & Layout', () => {
 
     const portraitOrder = await page.evaluate(() => {
       const x = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().x ?? 0;
-      return [x('annotation-control'), x('playback-speed'), x('remove-last-marker')];
+      return {
+        actions: [x('annotation-control'), x('playback-speed'), x('remove-last-marker')],
+        queue: [x('first-track-control'), x('previous-track-control'), x('next-track-control')],
+      };
     });
-    expect(portraitOrder[0]).toBeLessThan(portraitOrder[1]);
-    expect(portraitOrder[1]).toBeLessThan(portraitOrder[2]);
+    expect(portraitOrder.actions[0]).toBeLessThan(portraitOrder.actions[1]);
+    expect(portraitOrder.actions[1]).toBeLessThan(portraitOrder.actions[2]);
+    expect(portraitOrder.queue[0]).toBeLessThan(portraitOrder.queue[1]);
+    expect(portraitOrder.queue[1]).toBeLessThan(portraitOrder.queue[2]);
+    expect(portraitOrder.actions[2]).toBeLessThan(portraitOrder.queue[0]);
 
     await page.getByTestId('add-marker').click();
     await page.getByTestId('navigate-right-marker').click();
@@ -392,12 +415,14 @@ test.describe('UI Components & Layout', () => {
     if (toastBox && overviewBox) expect(toastBox.y + toastBox.height).toBeLessThanOrEqual(overviewBox.y + 1);
 
     const waveformContainer = page.getByTestId('waveform-container');
-    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid^="wrapped-row-waveform-"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]')).toHaveCount(0);
     await waveformContainer.evaluate(element => element.setAttribute('data-rotation-identity', 'retained'));
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
     await expect(waveformContainer).toHaveAttribute('data-rotation-identity', 'retained');
-    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid^="wrapped-row-waveform-"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid^="wrapped-row-peaks-"]')).toHaveCount(0);
     await expect(page.getByTestId('control-dock-glass')).toBeVisible();
     await page.getByTestId('navigate-left-marker').click();
     await page.getByTestId('annotation-control').click();
@@ -414,12 +439,18 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('playback-speed')).toContainText('1.55×');
     await page.getByTestId('playback-speed').click();
     const landscapeSpeedChooser = await page.getByTestId('playback-speed-chooser').boundingBox();
+    const landscapeTitleBar = await page.getByTestId('song-title-control').boundingBox();
     expect(landscapeSpeedChooser).not.toBeNull();
+    expect(landscapeTitleBar).not.toBeNull();
     if (landscapeSpeedChooser) {
       expect(landscapeSpeedChooser.x).toBeGreaterThanOrEqual(0);
       expect(landscapeSpeedChooser.y).toBeGreaterThanOrEqual(0);
       expect(landscapeSpeedChooser.x + landscapeSpeedChooser.width).toBeLessThanOrEqual(740);
       expect(landscapeSpeedChooser.y + landscapeSpeedChooser.height).toBeLessThanOrEqual(390);
+      if (landscapeTitleBar) {
+        expect(landscapeSpeedChooser.y)
+          .toBeGreaterThanOrEqual(landscapeTitleBar.y + landscapeTitleBar.height + 4);
+      }
     }
     await page.getByTestId('playback-speed-reset').click();
     await expect(page.getByTestId('playback-speed')).toContainText('1×');
@@ -465,9 +496,9 @@ test.describe('UI Components & Layout', () => {
       const settings = box('sidebar-open-toggle');
       const waveform = box('waveform-container');
       return {
-        leftColumn: [previousMarker?.x, addMarker?.x, innerLoop?.x, repeat?.x, firstTrack?.x, previousTrack?.x],
-        rightColumn: [nextMarker?.x, removePrevious?.x, annotation?.x, speed?.x, shuffle?.x, nextTrack?.x],
-        rows: [previousMarker?.y ?? 0, addMarker?.y ?? 0, innerLoop?.y ?? 0, play?.y ?? 0, repeat?.y ?? 0, firstTrack?.y ?? 0, previousTrack?.y ?? 0],
+        leftColumn: [previousMarker?.x, addMarker?.x, speed?.x, repeat?.x, firstTrack?.x, previousTrack?.x],
+        rightColumn: [nextMarker?.x, annotation?.x, removePrevious?.x, innerLoop?.x, shuffle?.x, nextTrack?.x],
+        rows: [previousMarker?.y ?? 0, addMarker?.y ?? 0, speed?.y ?? 0, play?.y ?? 0, repeat?.y ?? 0, firstTrack?.y ?? 0, previousTrack?.y ?? 0],
         ordinary: previousMarker ? { width: previousMarker.width, height: previousMarker.height } : null,
         play: play ? {
           left: play.left,

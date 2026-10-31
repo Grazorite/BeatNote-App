@@ -76,7 +76,12 @@ const ControlDock: React.FC<ControlDockProps> = ({
   );
   const speed = (
     <View style={[cellStyle, styles.popupCell]}>
-      <PlaybackSpeedControl compact={isLandscape} value={playbackSpeed} onSelect={onPlaybackSpeedChange} />
+      <PlaybackSpeedControl
+        compact={isLandscape}
+        chooserSide={isLandscape ? 'trailing' : 'leading'}
+        value={playbackSpeed}
+        onSelect={onPlaybackSpeedChange}
+      />
     </View>
   );
   const firstTrack = queueControl('first');
@@ -95,10 +100,10 @@ const ControlDock: React.FC<ControlDockProps> = ({
           testID="landscape-control-grid"
         >
           <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{marker('previous')}{marker('next')}</View>
-          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{marker('add')}{marker('removePrevious')}</View>
-          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{innerLoop}{annotation}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{marker('add')}{annotation}</View>
+          <View style={[styles.landscapeRow, styles.popupRow, { height: ordinaryLandscapeHeight }]} pointerEvents="box-none">{speed}{marker('removePrevious')}</View>
           <View style={[styles.landscapePlayBlock, { height: ordinaryLandscapeHeight * 2 }]}><PlayPauseControl onTogglePlayback={onTogglePlayback} /></View>
-          <View style={[styles.landscapeRow, styles.popupRow, { height: ordinaryLandscapeHeight }]} pointerEvents="box-none">{repeat}{speed}</View>
+          <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{repeat}{innerLoop}</View>
           <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{firstTrack}{shuffle}</View>
           <View style={[styles.landscapeRow, { height: ordinaryLandscapeHeight }]}>{previousTrack}{nextTrack}</View>
         </View>
@@ -118,11 +123,11 @@ const ControlDock: React.FC<ControlDockProps> = ({
           {repeat}{innerLoop}{shuffle}
         </View>
         <View style={[styles.row, styles.popupRow]} pointerEvents="box-none">
-          {firstTrack}{previousTrack}{nextTrack}
-          <Spacer /><Spacer />
           {annotation}
           {speed}
           {marker('removePrevious')}
+          <Spacer /><Spacer />
+          {firstTrack}{previousTrack}{nextTrack}
         </View>
         <View style={styles.playBlock}>
           <PlayPauseControl onTogglePlayback={onTogglePlayback} />
