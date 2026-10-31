@@ -4460,3 +4460,83 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - [x] Adopt the BeatNote app icon across icon, adaptive icon, splash, and favicon
       <sub>**Key Artifacts:** `app.json`, `assets/beatnote-icon-source.svg`, `assets/beatnote-icon.svg`, `assets/beatnote-icon-shield.svg`, `assets/beatnote-mark.svg`, `.kiro/steering/ios-testflight.md`, `assets/icon.png`, `assets/adaptive-icon.png`, `assets/splash-icon.png`, `assets/favicon.png`</sub>
+
+## Archived Done checklist items — 2026-10-31 rotation
+
+- [x] Complete simulator runtime automation for automatic BPM cancellation and 150-second memory,
+      and keep the iOS project sheet mounted across Files picker callbacks
+      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/tasks.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `scripts/ios-ui-test.js`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+## Archived handover — 2026-10-31 rotation
+
+### 2026-10-30 — Capture the continuous cross-row scrub baseline
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
+
+**Changed:**
+
+- Rejected the pre-fix and interrupted scrub traces, then captured a clearly cued 30-second
+  Animation Hitches run against Kiro's deployed cross-row scrub fix.
+- Registered the first required continuous-scrub hitch result and updated the findings without
+  attributing the failure to an unprofiled React, path, Fabric, or render-server cause.
+
+**Verified:**
+
+- The aligned ten-second scrub window contains 152 BeatNote hitches totalling 7,034.902 ms:
+  703.49 ms/s, p50 16.67 ms, p90 116.69 ms, and max 383.42 ms. The < 10 ms/s target fails.
+- Trace `/private/tmp/beatnote-s-medium-50-continuous-scrub-v4.trace` contains BeatNote PID 66779,
+  ran 31.244636 seconds, and remained in the Nominal thermal state.
+- The repository was clean at measurement commit `7037118`; no product code changed in this step.
+
+**Not verified / known gaps:**
+
+- Hitch activity continued after the instructed release, so a separate steady-playback trace must
+  distinguish ordinary playhead cost from scrub-specific work.
+- Time Profiler/render/path evidence and the Library-sheet and annotation/keyboard hitch scenarios
+  remain open; this result does not authorise an optimisation by itself.
+
+**Next agent should:**
+
+- Capture 60 seconds of steady Release-local playback in Animation Hitches, then profile the scrub
+  path with Time Profiler plus the existing render/path counters.
+
+## Archived Done checklist items — 2026-10-31 mobile-control rotation
+
+- [x] Complete and archive `local-music-library-queue`, including Files/third-party Open_In,
+      app-owned storage, per-song drafts/projects, queue controls, Repeat/Shuffle completion,
+      restore/relink, low-storage behavior, and a 107,604,078-byte physical-device import
+      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `src/features/library/`, `src/hooks/useAudioPlayer.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-10-31 mobile-control rotation
+
+### 2026-10-30 — Pass the steady-playback hitch baseline
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
+
+**Changed:**
+
+- Captured a clearly cued 65-second Animation Hitches run with S-medium/50 playing untouched and
+  evaluated the final 60 seconds as the steady-playback baseline.
+- Registered the passing result and narrowed the severe prior tail to scrub/recovery behavior rather
+  than ordinary playhead playback.
+
+**Verified:**
+
+- Four BeatNote hitches totalled 116.692 ms over 60 seconds: 1.94 ms/s, p50/p90/max 33.34 ms.
+  This passes the < 5 ms/s ratio and < 50 ms single-hitch targets at Nominal thermal state.
+- Trace `/private/tmp/beatnote-s-medium-50-steady-playback.trace` contains BeatNote PID 66779 and
+  ran 66.146213 seconds; the final 60 seconds were measured.
+- The repository remained clean at measured commit `7037118`; no product code changed.
+
+**Not verified / known gaps:**
+
+- The scrub hot path and post-release recovery still lack Time Profiler and render/path evidence.
+- Library-sheet and annotation/keyboard hitch baselines remain open, as do the other Phase 1
+  latency, memory, energy, contention, and render scenarios.
+
+**Next agent should:**
+
+- Capture the continuous cross-row scrub in Time Profiler with the existing signposts/counters,
+  then inspect the dominant JS/main-thread stacks before proposing any optimisation.

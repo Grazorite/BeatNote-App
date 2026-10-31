@@ -32,7 +32,8 @@ Goal: prove that annotation and rehearsal are reliable on a physical iPhone and 
 - One visible annotation lane in the V1 phone editor; preserve the six-layer project schema for
   compatibility and V2 expansion
 - Marker editing, navigation, undo, and redo
-- Basic waveform navigation and BPM / 8-count guidance
+- Solid timing bars, seeking, and BPM / 8-count guidance; decoded waveform artwork is a disabled-by-default Pro preview
+- One non-destructive local automatic-BPM suggestion with manual BPM/anchor correction
 - Section looping and practical rehearsal controls
 - Reliable local project save, reopen, and CSV export
 - Physical-device acceptance and adequate unit/E2E coverage
@@ -51,12 +52,17 @@ Pro candidates:
 
 - Unlimited saved projects
 - All six layers and custom layer names
-- Detailed, persistently cached, zoomable waveforms; Lite retains a useful basic real waveform or
-  timing-bar fallback. V1's platform extraction providers already accept a resolution selected by a
-  future provider-neutral capability service, but no entitlement is enforced yet.
+- Toggleable decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip,
+  disabled by default. Lite retains solid timing/progress bars with the same seeking, markers,
+  loops, playhead, BPM grid, and annotation workflow. V1's preview provider exposes the toggle but
+  no purchase entitlement is enforced yet.
 - Pitch-preserving slow playback
 - PDF choreography sheets and MIDI export
 - Advanced snapping, reusable project templates, and custom annotation vocabularies
+- Advanced tempo intelligence: tempo maps, deeper downbeat/phrase assistance, batch/configurable
+  re-analysis, and professional confidence/diagnostic controls
+- Apple Music as a provider integration if a V2 technical/policy spike proves acceptable seeking,
+  playback lifecycle, catalog identity, and degraded-mode behavior
 
 Before V2 ships, implement and verify purchase, restore-purchase, entitlement refresh, offline grace,
 and expiry handling. The app must not corrupt or hide existing project data when entitlement state
@@ -93,7 +99,7 @@ Goal: add a durable offline Pro workflow after cloud validation proves that user
 The Lite tier must complete a real project:
 
 - Import and play supported local audio
-- Seek, scrub, loop, and use a basic waveform
+- Seek, scrub, loop, and use solid timing/progress bars without decoded waveform artwork
 - Add, edit, navigate, and delete unlimited markers and annotations
 - Use the basic beat and 8-count workflow
 - Save a small number of local projects
@@ -115,16 +121,60 @@ provider, which grants implemented preview features without enforcing a paywall.
 | `projects.unlimited` | No (three-project hypothesis) | Yes |
 | `layers.multiple` | No (one phone lane) | Yes |
 | `layers.customNames` | No | Yes |
-| `waveform.detailed` | No (basic waveform remains) | Yes |
+| `waveform.display` | No (solid timing/progress bars remain) | Yes; user-controlled and off by default |
 | `playback.pitchPreservingSpeed` | No (1× remains) | Yes |
 | `export.pdf` | No (CSV remains) | Yes |
 | `export.midi` | No (CSV remains) | Yes |
 | `snapping.advanced` | No (basic beat/count guidance remains) | Yes |
 | `projects.templates` | No | Yes |
 | `annotations.customVocabulary` | No (built-in suggestions remain) | Yes |
+| `analysis.autoBpm` | Yes (one local suggestion plus manual correction) | Yes |
+| `analysis.advancedTempo` | No | Yes |
+| `sources.appleMusic` | No | Candidate, subject to V2 feasibility |
 
 This matrix does not gate project readability, existing annotations, basic CSV export, or access to
 previously saved data. Stem-processing credits remain a separate metered product capability.
+
+## Streaming provider integrations
+
+Streaming access is a playback-source capability, not the same thing as the `beatnote.pro` product
+entitlement. A user may need both BeatNote Pro and a separate provider subscription. Losing either
+must not hide or corrupt existing BeatNote projects.
+
+### Apple Music — V2 Pro feasibility candidate
+
+MusicKit supports user authorization, catalog/library selection, subscription capability checks,
+in-app playback, queue control, playback state, and a settable playback time. It is therefore the
+first provider worth evaluating for a paid convenience integration:
+
+- [MusicKit overview](https://developer.apple.com/musickit/)
+- [MusicKit framework](https://developer.apple.com/documentation/musickit)
+- [MusicPlayer playback time](https://developer.apple.com/documentation/musickit/musicplayer/playbacktime)
+
+The public MusicKit surface documents controlled playback and metadata, not a decoded PCM/file
+contract suitable for BeatNote's waveform extraction or local BPM detector. Until an implementation
+spike proves otherwise, an Apple Music source must advertise `waveformAccess = false` and
+`decodedAudioAnalysis = false`; the editor falls back to a timing bar and manual BPM. The spike must
+also verify exact seeking, looping, speed control, background behavior, authorization revocation,
+subscription loss, storefront changes, and stable catalog identity before the feature enters V2.
+
+BeatNote Pro may charge for BeatNote's integration/workflow, but must not imply that it includes an
+Apple Music subscription.
+
+### Spotify — blocked for a paid BeatNote integration
+
+Do not schedule Spotify streaming as a commercial Pro feature under the current published terms.
+Spotify's iOS/Web Playback documentation says commercial streaming integrations are prohibited, its
+iOS SDK controls the separate Spotify app rather than exposing an audio asset, and Development Mode
+is intentionally unsuitable for a scalable business:
+
+- [Spotify iOS SDK policy notes](https://developer.spotify.com/documentation/ios/getting-started)
+- [Spotify quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes)
+- [Spotify 2026 development-mode policy](https://developer.spotify.com/blog/2026-02-06-update-on-developer-access-and-platform-security)
+
+Revisit only after a written Spotify partnership/approval or a material policy change. A simple
+external deep link may be considered separately, but it is not a BeatNote playback-source
+integration and must not be marketed as one.
 
 ## Monetisation implementation timing
 

@@ -1,157 +1,128 @@
 # BeatNote
 
-> Professional multi-track audio annotation tool for choreographers, dancers, and music producers.
+> Local-first music annotation and rehearsal for choreographers and dancers.
 
-BeatNote lets you load a song, annotate beats and movements across multiple layers, and export your work. Stem splitting is planned for V3.
+BeatNote imports a song into an app-owned local library, presents a wrapped full-song timeline, and
+lets a choreographer place markers, write movement cues, align dance counts, loop sections, rehearse
+at pitch-preserved speeds, and export the work as CSV or a choreography PDF.
 
----
-
-## Who it's for
-
-Primarily choreographers and dancers who need to map music structure to movement. Also useful for music producers, session musicians, and audio engineers.
-
----
+The project is in V1 stabilisation. The core workflow is implemented on web and iOS; performance,
+representative-song tempo analysis, physical-device audio behavior, external sharing, and TestFlight
+remain release gates. See [AGENTS.md](./AGENTS.md) for live status.
 
 ## Core workflow
 
-1. Load a song (MP3, WAV, M4A, AAC, OGG, FLAC)
-2. Select a layer and tap to place beat markers during playback
-3. Add text annotations to markers (move names, cues, counts)
-4. Export as CSV or MIDI (PDF choreography sheet planned)
+1. Import local MP3, WAV, M4A, AAC, OGG, or FLAC audio through the Music Library, Files, or iOS Open In.
+2. Play or scrub the wrapped timeline and add markers from the marker controls.
+3. Attach choreography annotations and align BPM, beat anchor, phrase start, and 4/6/8-count guidance.
+4. Rehearse with section loops, Repeat/Shuffle, queue navigation, and 0.5×–2× pitch-preserved playback.
+5. Keep per-song drafts or named project revisions, then export CSV or a printable PDF choreography sheet.
 
----
+## V1 feature set
 
-## Features
+- App-owned local music library with durable import, relink, rename, removal, search, sort, and queue controls
+- Per-song autosaved drafts plus named, revisioned projects
+- Fixed-height wrapped timeline with continuous cross-row scrubbing and a full-song loop overview
+- Optional decoded waveform artwork in the canvas and overview strip (Pro preview, off by default); solid timing bars preserve the complete Lite workflow
+- Unlimited markers and free-text annotations on the V1 phone annotation lane
+- Marker navigation, undo/redo, vocabulary suggestions, and timed annotation callouts
+- BPM, beat-anchor, phrase-start, 4/6/8-count guidance, snapping, and non-destructive automatic BPM suggestions
+- Loop range, between-marker loop, Repeat/Shuffle, and Control Centre / Now Playing integration
+- Pitch-preserved playback from 0.5× to 2×
+- CSV import/replacement and CSV/PDF export through download or the iOS share sheet
+- Background playback and responsive portrait/landscape controls
 
-### Available now
+The six-layer project schema and MIDI engine remain for compatibility and future Pro expansion, but
+the V1 phone editor exposes one annotation lane and CSV/PDF export only.
 
-- Annotation layers with a unified full-mix waveform
-- Magnetic snapping to beat grid and existing markers
-- BPM control with rhythmic grid overlay
-- Ghost playhead for non-destructive position preview
-- Loop marker and repeat playback modes
-- Tap-to-beat marker placement with undo/redo and marker navigation
-- Per-marker text annotations
-- Project save/load via AsyncStorage
-- CSV + MIDI export, CSV import
-- Keyboard shortcuts (web)
-- Responsive: desktop, tablet, mobile
+## Release direction
 
-### Planned
+- **V1:** finish performance work, automatic-BPM runtime evidence, physical-device acceptance, and TestFlight setup.
+- **V2 Pro:** purchases/restore, multiple layers, professional workflow depth, advanced tempo tools,
+  toggleable waveform artwork, and an Apple Music feasibility spike/integration if MusicKit satisfies BeatNote's seeking and lifecycle requirements.
+- **Spotify:** not currently scheduled. Spotify's published developer policy prohibits commercial
+  streaming integrations, so it cannot honestly be sold as a BeatNote paid feature without an
+  approved partnership or a policy change.
+- **V3:** managed cloud stem-separation beta, followed by on-device/hybrid work only if demand and benchmarks justify it.
 
-See the Roadmap section below for status. Not yet implemented: 8-count grid mode, slow-down /
-pitch-preserve playback, PDF choreography export, customisable layer names, iCloud sync, and
-share-sheet import/export. Demucs stem separation is deliberately deferred to V3, beginning with
-a cloud-first beta and potentially adding an on-device/hybrid path later.
+Basic local automatic BPM assistance remains part of the proposed Lite workflow. V2 may monetise
+advanced tempo intelligence such as tempo maps, deeper downbeat/phrase assistance, and batch or
+configurable re-analysis—not the first useful BPM suggestion.
 
-> **Live project state** — features in flight, the task board, and the handover log live in
-> [`AGENTS.md`](./AGENTS.md), the single source of truth for current work.
-
----
+See [the release and monetisation roadmap](./.kiro/steering/release-roadmap.md) for the capability matrix and provider constraints.
 
 ## Tech stack
 
-| Layer | Technology |
+| Area | Technology |
 | --- | --- |
-| Framework | Expo SDK 54 + React Native 0.81.5 |
-| Language | TypeScript (strict) |
+| App | Expo SDK 54, React Native 0.81.5, React 19, TypeScript |
 | State | Zustand |
-| Audio | expo-audio + AVAudioEngine (iOS native) |
-| Stem separation | Demucs (CoreML on-device) + cloud fallback |
-| Graphics | react-native-svg + react-native-reanimated |
-| Gestures | react-native-gesture-handler v2 |
-| Storage | AsyncStorage + iCloud (iOS) |
-| Testing | Playwright (E2E, web) + Jest (unit, critical logic) |
-| CI/CD | EAS Build + TestFlight |
-
----
-
-## Quick start
-
-```bash
-npm install
-npx expo start          # web dev server
-npx expo start --ios    # iOS simulator
-```
-
----
+| Playback | `expo-audio` with native lock-screen/background integration |
+| Waveform | `BeatNoteWaveform` Expo Module on iOS; Web Audio provider on web |
+| Tempo | Local `BeatNoteTempo` Expo Module on iOS; worker-based detector on web |
+| Storage | AsyncStorage metadata, app-owned native files, IndexedDB web audio |
+| Graphics and gestures | React Native SVG, Reanimated, Gesture Handler |
+| Export | CSV, `expo-print`/share sheet on iOS, browser print/download on web |
+| Testing | TypeScript, focused Playwright journeys, focused iOS XCTest |
 
 ## Project structure
 
-```css
+```text
 src/
-├── components/
-│   ├── icons/          # Custom SVG icons
-│   ├── layout/         # Sidebar, MainContent, StemsView
-│   └── ui/
-│       ├── common/     # Reusable primitives
-│       ├── controls/   # Audio, marker, layer controls
-│       ├── modals/     # Save, export, import, project manager
-│       ├── screens/    # HelpScreen
-│       └── waveform/   # WaveformCanvas, StemWaveform, RhythmicGrid
+├── components/              # Layout, controls, library, project, and waveform UI
 ├── features/
-│   ├── studio/         # Main StudioScreen
-│   └── stemSeparation/ # Demucs integration (on-device + cloud)
-├── hooks/
-│   ├── useStudioStore.ts       # Global Zustand store
-│   ├── useAudioPlayer.ts       # Playback, scrub, tap-to-beat
-│   ├── useWaveformData.ts      # Waveform peak extraction
-│   ├── useKeyboardShortcuts.ts # Web keyboard bindings
-│   └── ...
-├── styles/             # Organised per-component styles
-├── types/              # TypeScript definitions
-└── utils/
-    ├── exportEngine.ts     # CSV, MIDI, PDF export
-    ├── importEngine.ts     # CSV import
-    ├── projectManager.ts   # AsyncStorage project CRUD
-    └── magneticSnapping.ts # Snap-to-grid logic
-tests/                  # Playwright E2E + Jest unit tests
-.kiro/steering/         # Project steering docs (always loaded)
+│   ├── analysis/            # Automatic-BPM lifecycle and cache
+│   ├── entitlements/        # Provider-neutral Lite/Pro capability policy
+│   ├── library/             # Music items, app-owned audio, drafts, projects, queue
+│   ├── performance/         # Gated diagnostics for the active optimisation work
+│   ├── stemSeparation/      # Preserved V3 foundation; no V1/V2 UI
+│   └── studio/              # Main studio composition
+├── hooks/                   # Audio, store, responsive interaction, waveform hooks
+├── services/                # Platform waveform and BPM-analysis providers
+├── styles/                  # Component-mirrored styles
+├── types/                   # Persistent and runtime contracts
+└── utils/                   # Export, timing, snapping, playback, validation
+
+modules/
+├── beatnote-tempo/          # Local iOS tempo analysis
+├── beatnote-waveform/       # Streaming iOS waveform extraction
+└── library-storage/         # Native managed-file and instrumentation boundary
+
+.kiro/specs/                 # Active feature/performance specifications
+.kiro/steering/              # Durable product and architecture decisions
+docs/context/archive/        # Completed specs and historical handovers
 ```
 
----
-
-## Testing
+## Development
 
 ```bash
-npm test                    # Playwright E2E (web)
-npm run test:ui             # Playwright interactive UI
-npx jest --testPathPattern=unit  # Jest unit tests
+npm install
+npm run web              # Expo web development server
+npx tsc --noEmit         # TypeScript gate
+npm test                 # Retained Playwright journeys
+npm run test:unit        # Temporary Jest checks, if a task currently has any
 ```
 
----
-
-## iOS / TestFlight
-
-Requires Apple Developer account ($99/year). Once configured:
+Focused native integration checks use:
 
 ```bash
-eas build --platform ios --profile preview   # TestFlight build
-eas submit --platform ios                    # Submit to TestFlight
+IOS_TEST_ONLY=<testCase> npm run test:ios:ui
 ```
 
-See `.kiro/steering/ios-testflight.md` for full setup guide.
+To run the iOS app, start Metro with `npm start -- --dev-client`, open `ios/BeatNote.xcworkspace`
+(run `npx expo prebuild -p ios` first if it is missing), choose the `BeatNote` scheme and a
+simulator or device, then press Run. `npm run ios` currently cannot resolve the Simulator app on
+Xcode 27 hosts. The iOS build requires Xcode and the generated native project. TestFlight additionally requires an
+Apple Developer account and real EAS credentials; see
+[`.kiro/steering/ios-testflight.md`](./.kiro/steering/ios-testflight.md).
 
----
+## Documentation
 
-## Roadmap
-
-- [x] Multi-track annotation (web)
-- [x] Project save/load
-- [x] CSV + MIDI export
-- [ ] iOS port + TestFlight
-- [ ] V2 Pro launch (monetisation architecture begins during V1)
-- [ ] V3 cloud stem-separation beta, subject to demand and unit economics
-- [ ] Later V3 on-device/hybrid stem separation, subject to physical-device benchmarks
-- [ ] PDF choreography export
-- [ ] 8-count grid mode
-- [ ] Slow-down / pitch-preserve playback (iOS)
-- [ ] iCloud sync
-- [ ] Share sheet import/export
-- [ ] Customisable layer names
-- [ ] Storage management screen
-
----
+- [Live project status and handover](./AGENTS.md)
+- [Product overview](./.kiro/steering/project-overview.md)
+- [Release and monetisation roadmap](./.kiro/steering/release-roadmap.md)
+- [Architecture decisions](./.kiro/steering/architecture-decisions.md)
+- [Testing strategy](./.kiro/steering/testing-strategy.md)
 
 ## License
 

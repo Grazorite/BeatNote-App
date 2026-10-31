@@ -18,9 +18,11 @@ The app is currently a personal tool with a clear path toward commercial release
    navigate music items, not project files.
 3. Tap to place beat markers during playback on the V1 annotation lane and add text annotations
    such as move names, choreography cues, and 8-counts.
-4. Switch songs without losing work: every song has an autosaved draft, while explicitly saved
+4. Accept, preview, correct, or ignore the local automatic-BPM/beat-anchor suggestion; the authored
+   grid remains under the user's control.
+5. Switch songs without losing work: every song has an autosaved draft, while explicitly saved
    projects provide named baselines and multiple versions per song.
-5. Replay, seek, and rehearse the annotated music, then manage saved work and CSV replacement or
+6. Replay, seek, and rehearse the annotated music, then manage saved work and CSV replacement or
    export from Project Manager.
 
 Post-core stem separation may later enhance this workflow, but it is not part of the core promise.
@@ -62,6 +64,9 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Phone waveform canvas** — a fixed, non-scrolling full-song view. Its row count follows the
   available screen height and each row's timestamp span adapts to the loaded track duration. Gutter
   and waveform gestures seek or select; marker creation is exclusive to the bottom marker controls.
+- **Waveform display** — optional decoded amplitude artwork in the canvas and overview strip. It is
+  a Pro capability, persisted per project, and off by default; Lite renders solid timing/progress
+  bars without removing seeking, markers, loops, playhead, or annotations.
   One container-level scrub spans every row: a horizontal-first drag activates it (vertical-first
   movement does not), the finger then maps across adjacent rows, and holding in the trailing edge
   zone or over the leading gutter continues the scrub into the next or previous row.
@@ -89,6 +94,11 @@ All global state lives in `src/hooks/useStudioStore.ts` (Zustand). Do not introd
   performance and audible playback quality still need acceptance on representative files.
 - Open In, backup exclusion, third-party delivery, >100 MB import, restore/relink behavior, and
   near-full-disk handling passed the V1 physical-device acceptance matrix.
+- Automatic BPM is implemented locally and non-destructively; browser long-task/long-song evidence,
+  representative real-song accuracy, and physical-device acceptance remain open V1 gates.
+- Apple Music is a V2 feasibility candidate behind the existing source-capability boundary. Assume
+  a timing-bar/manual-BPM degraded mode until MusicKit proves decoded waveform/analysis access.
+  Spotify commercial streaming is not planned under its current published developer policy.
 - Stem separation is deliberately deferred to V3. The existing foundation is preserved under
   `src/features/stemSeparation/`; release sequencing and resumption gates live in
   `release-roadmap.md`.

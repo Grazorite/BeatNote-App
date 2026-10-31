@@ -110,8 +110,10 @@ dependency.
 Music Items carry a provider-specific `SourceIdentity`; resolution returns a playable URI and a
 `PlaybackCapabilities` contract. Playback, waveform, speed, repeat, queue, and shuffle surfaces
 gate themselves from those capabilities instead of branching on local-file assumptions.
-Rationale: Apple Music or Spotify providers can be added later without rewriting the annotation
-editor or weakening local-file behavior.
+Rationale: a compatible provider such as a feasible Apple Music integration can be added without
+rewriting the annotation editor or weakening local-file behavior. This is an extensibility boundary,
+not a promise that every provider is legally or technically viable; ADR-019 governs
+provider-specific release decisions.
 
 ### ADR-016: Custom detented bottom sheet without a navigation library
 
@@ -130,17 +132,46 @@ purchase, restore, refresh, offline-grace, and expiry behavior pass acceptance.
 Rationale: separating product entitlement from playback-source capability keeps Apple Music/Spotify
 integration independent of monetisation and prevents vendor details from spreading through the UI.
 
-### ADR-018 (proposed): Separate local tempo-analysis providers
+### ADR-018: Separate local tempo-analysis providers
 
 Automatic BPM analysis remains local-first and uses platform providers behind one TypeScript
 contract. Web uses a self-contained onset-envelope/autocorrelation detector in a worker after a
 shared waveform decode; iOS uses a separate `BeatNoteTempo` Expo Module that streams bounded windows
 through `AVAssetReader` and Accelerate rather than extending `BeatNoteWaveform`. The web decision is
-supported by the 2026-10-27 synthetic spike and retained 2026-10-28 worker workflow; the native pod
-now compiles with bounded windows and utility-priority work. This ADR remains proposed until the
-native prototype measures peak memory and cancellation latency on the 150-second fixture.
+supported by the 2026-10-27 synthetic spike and retained 2026-10-28 worker workflow. Native
+synthetic accuracy, cancellation/retry, and 150-second peak-memory acceptance now pass, so the ADR
+is accepted; representative-song and browser performance evidence remain release acceptance work,
+not architecture blockers.
 Rationale: BeatNote needs its own beat-phase anchor regardless of third-party tempo libraries, while
 the native analysis lifecycle and outputs differ materially from waveform rendering.
+
+### ADR-019: Apple Music is the first streaming candidate; Spotify commercial streaming is blocked
+
+V2 may run a MusicKit feasibility spike and, if it passes, offer Apple Music as a Pro playback-source
+integration. The source must declare its real capabilities; until decoded audio access is proven,
+assume no waveform extraction or local BPM analysis and use the timing-bar/manual-BPM fallback.
+Apple Music authorization and subscription state are separate from the `beatnote.pro` entitlement.
+
+Do not place Spotify streaming on the commercial roadmap under its current published terms. The
+Spotify iOS/Web Playback documentation prohibits commercial streaming integrations, App Remote
+controls the separate Spotify app, and Development Mode is not a scalable product foundation. Reopen
+the decision only with written Spotify approval/partnership or a material policy change.
+
+Rationale: provider-neutral code cannot remove provider policy, DRM, subscription, or decoded-audio
+constraints. Naming a blocked integration as a paid feature would create product and legal risk.
+
+### ADR-020: Waveform artwork is an optional Pro presentation layer
+
+Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is governed by
+the `waveform.display` product capability and a persisted `showWaveform` setting that defaults to
+false. Disabling it also prevents waveform extraction requests from those surfaces. The Lite
+presentation uses solid timing/progress bars while retaining the same seeking, scrubbing, marker,
+loop, playhead, BPM/count, and annotation behavior. V1's preview provider permits the toggle for
+testing; V2 purchase enforcement owns actual access.
+
+Rationale: waveform artwork adds useful visual precision and measurable extraction/drawing cost,
+but it is not required to complete BeatNote's core annotation and rehearsal workflow. Keeping the
+timeline interaction model identical avoids degrading Lite or creating incompatible projects.
 
 ## Patterns to follow
 

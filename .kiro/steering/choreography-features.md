@@ -4,117 +4,80 @@ inclusion: always
 
 # BeatNote — Choreography-Specific Features
 
-## Target user
+## Status
 
-Choreographers and dancers who need to map music structure to movement. The app must support their specific vocabulary and workflow, not just generic audio annotation.
+The original six choreography feature areas are implemented in the V1 preview: dance-count timing,
+custom layer names, PDF export, pitch-preserved speed, annotation vocabulary suggestions, and
+phrase/count CSV data. Remaining work is physical-device acceptance and Lite/Pro enforcement, not
+initial implementation.
 
-## 8-count grid mode
+## Dance-count grid and authored timing
 
-Dance is structured in 8-beat phrases (8-counts). Some styles use 6-count phrases (e.g. waltz, some Latin styles).
+- `countSize` supports 4, 6, or 8 counts and defaults to 8.
+- Project BPM, `beatAnchorMs`, and optional `phraseStartMs` are the source of truth for beat, phrase,
+  snapping, live count, waveform guidance, and export calculations.
+- The persisted `showDanceCounts` setting hides or shows phrase emphasis, waveform count labels, and
+  the live transport count. It does not change snapping or export semantics.
+- Automatic BPM analysis is assistance only. It offers a preview that the user can apply or decline;
+  it never silently replaces an authored grid.
+- Downbeat/phrase-start confidence is advisory. Users can always set Count 1 manually and use fine
+  anchor nudges.
 
-### 8-count implementation
+Basic automatic BPM assistance belongs to the proposed Lite workflow. V2 Pro may add advanced tempo
+maps, deeper phrase/downbeat assistance, and configurable or batch analysis.
 
-- Add `countSize: 4 | 6 | 8` to the store (default: `8`)
-- The rhythmic grid renders phrase boundaries at `countSize * (60000 / bpm)` ms intervals
-- Individual beats still render at `60000 / bpm` ms intervals (lighter visual weight)
-- Phrase boundaries render with higher opacity and a label (e.g. "1", "9", "17"...)
-- `generateSnapTargets` in `magneticSnapping.ts` must include phrase boundaries as snap targets
-- Add a count size selector to the sidebar (alongside BPM control)
-- Phrase/count guidance is controlled by the persisted `showDanceCounts` setting and is off by
-  default. The setting hides phrase emphasis, waveform count labels, and the live transport count;
-  it does not change phrase snapping or exported count semantics.
-- Counts, phrase boundaries, snapping, and exports are calculated from project BPM plus the authored
-  beat anchor and optional phrase start. Automatic analysis offers a declinable BPM/anchor preview;
-  it never moves the grid on its own. Downbeat remains confidence-based assistance, and users can
-  always use Set Count 1 Here or fine nudges to align the phrase grid manually.
+## Waveform display
 
-### Beat counting display
+- Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is controlled by
+  the `waveform.display` Pro capability and a persisted `showWaveform` project setting.
+- The toggle is off for new and older projects unless the user enables it.
+- With artwork off, the same timeline geometry renders as solid timing/progress bars. Seeking,
+  scrubbing, markers, loops, playhead, BPM/count guidance, and annotations remain fully usable in Lite.
+- V1's preview entitlement exposes the toggle for validation. Purchase enforcement begins only with
+  the V2 entitlement rollout.
 
-- When `showDanceCounts` is enabled, show the current beat number and phrase number in the transport bar
-- Format: `Phrase 3 | Beat 5` or `Bar 3 | Count 5` (use "Count" for dance context)
-- Update in real time during playback
+## Annotation lane names
 
-## Layer name customisation
-
-Users can rename any of the 6 layers to match their choreography vocabulary (e.g. rename "Guitar" to "Formation", "Other" to "Counts").
-
-### Layer name implementation
-
-- Add `customName?: string` to the `Layer` interface in `useStudioStore.ts`
-- Display `customName ?? name` everywhere a layer name is shown
-- Add an inline edit on the layer selector (long-press or edit icon)
-- Persist custom names in the project file (`BeatNoteProject.layers[].customName`)
-- Do not change the `LayerId` — it remains the internal key
+- `Layer.customName` is persisted without changing the stable `LayerId` schema.
+- The V1 phone editor exposes one lane, internally `vocals`, presented as **Annotations** unless the
+  user supplies a custom name.
+- Existing multi-layer projects remain readable. Multi-layer editing and naming are V2 Pro expansion
+  candidates.
 
 ## PDF choreography export
 
-Export a formatted PDF that a choreographer can print or share.
+The project export surface supports CSV and PDF in V1. The PDF can include:
 
-### Content (user-selectable, each section is a toggle)
+- project/song header;
+- timeline;
+- timestamped marker list;
+- phrase/count grid; and
+- notes/annotations.
 
-- **Header**: song title, BPM, duration, export date
-- **Timeline view**: horizontal bar showing phrase boundaries and marker positions per layer
-- **Marker list**: table sorted by timestamp — columns: Time (mm:ss), Count (phrase:beat), Layer, Annotation
-- **8-count grid layout**: grid with phrases as rows, counts 1–8 as columns, markers placed in cells
-- **Notes section**: blank lined area at the bottom for handwritten notes
+Web builds create printable HTML and open the browser print flow. iOS uses `expo-print` and the share
+sheet. MIDI generation remains in the engine for compatibility but is not exposed in the V1 UI.
 
-### PDF export implementation
+## Pitch-preserved rehearsal speed
 
-- Use `react-native-html-to-pdf` or a web-based approach (generate HTML → print/share)
-- On web: generate HTML string → `window.print()` or download as PDF via `html2pdf.js`
-- On iOS: generate HTML → `expo-print` → share via share sheet
-- Add PDF export option to `ExportModal` alongside existing CSV and MIDI options
-- PDF export lives in `src/utils/exportEngine.ts` as `exportToPDF(options: PDFExportOptions)`
+- Playback supports 0.5× through 2× in 0.05× increments, defaulting to 1×.
+- Common presets are `0.5×, 0.75×, 0.8×, 0.9×, 1×, 1.25×, 1.5×, 2×`.
+- `expo-audio` applies high-quality pitch correction at the player boundary.
+- Playback speed persists with project/draft content and survives play, pause, seek, loop, source,
+  queue, and background-audio lifecycle changes.
+- V1 physical acceptance still needs musical-quality checks across the range, live adjustment,
+  VoiceOver, Bluetooth, interruptions, background playback, and loops.
 
-### PDFExportOptions type
-
-```typescript
-interface PDFExportOptions {
-  projectName: string
-  bpm: number
-  songDuration: number
-  countSize: 4 | 6 | 8
-  layers: Layer[]
-  sections: {
-    header: boolean
-    timelineView: boolean
-    markerList: boolean
-    countGrid: boolean
-    notesSection: boolean
-  }
-}
-```
-
-## Slow-down / pitch-preserve playback
-
-Allows dancers to learn sections at reduced speed without the pitch shifting down.
-
-### Slow-down implementation
-
-- Use the existing `expo-audio` player on iOS, Android, and web; set `shouldCorrectPitch = true` and
-  apply `setPlaybackRate(speed, 'high')` at the audio-player boundary.
-- Support 0.5× through 2× in 0.05× increments, defaulting to 1×.
-- Offer common presets: `0.5×, 0.75×, 0.8×, 0.9×, 1×, 1.25×, 1.5×, 2×`.
-- Store `playbackSpeed` globally and persist it with the project, normalizing missing, invalid, or
-  out-of-range saved values to the supported contract.
-- Keep pitch preservation mandatory rather than exposing a pitch-shift toggle.
-- Reconsider a custom native time-stretch module only if a future product requirement exceeds 2×
-  or physical-device acceptance finds the built-in engine inadequate.
+Pitch-preserved speed is available in the V1 preview while `beatnote.pro` is not enforced. It remains
+a V2 Pro candidate; 1× playback must remain available in Lite.
 
 ## Annotation vocabulary
 
-Annotations are free-text but the UI should make common choreography terms easy to enter:
+Free-text annotations include built-in suggestion chips: `Hit`, `8-count`, `Formation`, `Freeze`,
+`Turn`, `Jump`, and `Accent`. Built-in suggestions remain available in Lite. User-defined vocabulary
+sets and reusable choreography templates are V2 Pro candidates.
 
-- Add a suggestion chip row above the annotation text field showing common terms
-- Default suggestions: `"Hit"`, `"8-count"`, `"Formation"`, `"Freeze"`, `"Turn"`, `"Jump"`, `"Accent"`
-- Tapping a chip appends it to the current annotation text
-- Suggestions are not persisted — they are static defaults for now
+## CSV choreography data
 
-## Export format for choreography notes (CSV)
-
-The existing CSV export should include a `Count (phrase:beat)` column alongside the existing `Marker Time (bars:beats)` column, using the `countSize` setting for phrase calculation.
-
-Update `ExportEngine.exportToCSV` to:
-
-- Accept `countSize` in `ExportOptions`
-- Add column: `Count (phrase:beat)` calculated as `Math.floor(timeMs / phraseMs) + 1 : beatWithinPhrase`
+CSV export includes stable timestamps, BPM-derived bar/beat timing, `Count (phrase:beat)`, layer name,
+and annotation. Count values use the same authored BPM/anchor/phrase-start contract as the editor and
+PDF export. CSV remains the baseline Lite export format.

@@ -12,7 +12,7 @@
 | Need | File |
 |------|------|
 | Product scope, users, workflow, domain glossary | [`.kiro/steering/project-overview.md`](./.kiro/steering/project-overview.md) |
-| Architecture decisions (ADR-001…016), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
+| Architecture decisions (ADR-001…020), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
 | Language, framework, and style conventions | [`.kiro/steering/coding-standards.md`](./.kiro/steering/coding-standards.md) |
 | Test strategy — what to unit-test vs E2E | [`.kiro/steering/testing-strategy.md`](./.kiro/steering/testing-strategy.md) |
 | Choreography feature designs (mostly planned) | [`.kiro/steering/choreography-features.md`](./.kiro/steering/choreography-features.md) |
@@ -49,9 +49,9 @@ potentially adding a hybrid path later.
 | Metric | Value |
 |--------|-------|
 | Annotation layers | 6 stable IDs (`vocals, drums, bass, piano, guitar, other`); stem controls hidden |
-| Export formats implemented | 2 of 3 (CSV exposed in V1; MIDI retained for V2; PDF planned) |
+| Export formats implemented | 3 engines; CSV/PDF exposed in V1 and MIDI retained for V2 |
 | Stem separation | Deferred; types, store fields, and cache preserved |
-| Choreography features implemented | 2 of 6 (section looping and pitch-preserved speed implemented; physical-device acceptance pending) |
+| Choreography features implemented | 6 of 6 in the V1 preview; physical-device acceptance remains |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
 | E2E spec files | 2 (Playwright, 8 critical journeys) |
@@ -65,7 +65,7 @@ potentially adding a hybrid path later.
    A first post-change scrub trace improved the ratio 71.8%, p90 14.3%, and max 60.9%, but ran at
    Serious thermal state and cannot decide keep/revert; repeat it at Nominal before proceeding.
    Gated counters and repeated latency/memory/energy/contention baselines also remain open.
-2. Finish `automatic-bpm-detection` runtime acceptance: browser long-task/long-song measurements
+2. Keep basic automatic BPM in the V1 Lite candidate and finish its runtime acceptance: browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
@@ -121,10 +121,22 @@ potentially adding a hybrid path later.
 ### ⏸ Deferred — V2/V3
 
 - [ ] V2 purchase/restore/entitlement enforcement after the V1 core acceptance and tier matrix are stable
+- [ ] V2 advanced tempo intelligence and Apple Music provider spike; Spotify commercial streaming
+      remains blocked unless its policy changes or BeatNote receives written approval
 - [ ] V3 managed cloud stem-separation beta — provider spike, backend job API, credits, progress/cancel, cache, limited UI
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Reorder the mobile media controls: portrait places annotation/speed/delete before the Play
+      block and First/Previous/Next song after it; landscape pairs add/annotation, speed/delete,
+      and Repeat/tri-state loop while keeping the speed chooser below the title bar and on-screen
+      <sub>**Key Artifacts:** `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Audit the V1 product/repository state, refresh stale documentation and package metadata,
+      remove unused source/dependencies, and add disabled-by-default Pro waveform artwork while
+      preserving solid timing bars and the complete Lite annotation/rehearsal workflow
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `package.json`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/features/entitlements/`, `src/hooks/useStudioStore.ts`, `src/utils/persistedContent.ts`, `tests/waveform-features.spec.ts`</sub>
 
 - [x] Make wrapped-waveform scrubbing continuous across rows: one container-level horizontal-first
       scrub that follows the finger between rows and auto-continues from the trailing edge or gutter
@@ -137,15 +149,6 @@ potentially adding a hybrid path later.
 - [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
       scrolling inside the half-height Music Library sheet
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Complete and archive `local-music-library-queue`, including Files/third-party Open_In,
-      app-owned storage, per-song drafts/projects, queue controls, Repeat/Shuffle completion,
-      restore/relink, low-storage behavior, and a 107,604,078-byte physical-device import
-      <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `src/features/library/`, `src/hooks/useAudioPlayer.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Complete simulator runtime automation for automatic BPM cancellation and 150-second memory,
-      and keep the iOS project sheet mounted across Files picker callbacks
-      <sub>**Key Artifacts:** `.kiro/specs/automatic-bpm-detection/tasks.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `scripts/ios-ui-test.js`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -223,6 +226,97 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-10-31 — Reorder the mobile media controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** mobile media-control ordering → Done
+
+**Changed:**
+
+- Portrait now keeps annotation, playback speed, and delete-previous-marker in that order on the
+  leading side of Play, with First, Previous, and Next song in that order on the trailing side.
+- Landscape now pairs Add marker with Annotation, Speed with Delete previous marker, and Repeat
+  with the tri-state loop; the other marker and queue rows retain their order.
+- Playback speed supports leading/trailing chooser alignment, and its raised landscape position is
+  offset below the Song Title toolbar while keeping the complete chooser inside the viewport.
+- The retained phone-dock journey now asserts both group orders, both landscape columns, chooser
+  bounds in portrait and landscape, and explicit landscape toolbar/popup separation.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused phone-dock Playwright journey → passed; full retained Playwright gate → 8/8 passed.
+- A freshly signed Release build succeeded, installed on physical iPhone `gæl (3)`, launched as
+  `com.beatnote.app`, and remained running as PID 84239; temporary DerivedData was removed afterward.
+
+**Not verified / known gaps:**
+
+- The reordered controls are installed on the physical iPhone but still need the user's visual and
+  interaction confirmation in both orientations.
+- The shared working tree remains intentionally uncommitted with the broader V1 review, waveform,
+  Settings, documentation, and performance work described by the preceding handover.
+
+**Next agent should:**
+
+- Confirm the portrait/landscape ordering and speed chooser placement with safe areas on the newly
+  installed physical build before the next combined commit.
+
+### 2026-10-31 — Review V1, clean the repository, and define the Pro waveform boundary
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1 product/repository review and waveform monetisation boundary → Done
+
+**Changed:**
+
+- Audited V1 against implemented code and active acceptance work. The core local
+  annotation/rehearsal workflow is implemented; performance, representative-song BPM evidence,
+  physical-device acceptance, Apple credentials, and TestFlight remain the release gates.
+- Kept one useful local automatic-BPM suggestion in Lite and reserved advanced tempo intelligence
+  for V2 Pro. Added Apple Music as a V2 feasibility candidate and explicitly blocked commercial
+  Spotify streaming under its current published developer policy.
+- Added `waveform.display` as a Pro capability plus a persisted, off-by-default setting. Wrapped and
+  detail canvases and the overview strip now skip waveform extraction and use solid timing/progress
+  bars while artwork is off; all core interactions remain available.
+- Removed six unreachable source/style files, three unused direct icon dependencies, two stale debug
+  logs, ignored `.DS_Store` files, placeholder repository metadata, and stale product documentation.
+- Regenerated the ignored iOS codegen/Pods state, produced a locally signed Release bundle from the
+  uncommitted working tree, and installed/launched it on the physical iPhone 15 Pro Max.
+- Reordered Settings into Basic and Advanced groups on phone and desktop. Basic begins with the
+  waveform toggle and annotation naming; Advanced contains BPM, anchor, dance counts, and count
+  size. Off toggles now use an opaque dark track and white thumb for legibility.
+- Replaced the toggle's separate state-driven colour and position animations with one shared
+  progress value, so the track colour and thumb movement remain synchronized through both states.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, version consistency, and dependency-tree checks passed.
+- Full retained Playwright gate passed 8/8, including the off-by-default solid bars and enabling the
+  Pro preview waveform toggle.
+- Jest reported no permanent unit tests, as expected. No native implementation changed; the retained
+  iOS journey was updated to enable waveform artwork before asserting native decoded peaks.
+- Release `xcodebuild` succeeded, `devicectl` installed `com.beatnote.app`, launch succeeded, and
+  process PID 84021 was observed on iPhone `gæl (3)` / iOS 27.0.1. The 2.0 GB temporary DerivedData
+  directory was removed after installation.
+- The reordered Settings web journey and full retained Playwright gate passed 8/8. A second signed
+  Release build was installed and launched on the same phone; its 1.9 GB temporary DerivedData and
+  Playwright artifacts were removed.
+- The toggle animation change passed TypeScript and the full retained Playwright gate 8/8. An
+  initial unrelated landscape playback-speed positioning flake passed focused and on the full
+  rerun. A third signed Release build was installed and launched on the same physical iPhone.
+
+**Not verified / known gaps:**
+
+- The updated iOS XCTest journey was not run. The build is installed and running physically, but the
+  synchronized toggle transition still needs the user's visual confirmation. Purchase enforcement
+  remains deliberately deferred to V2.
+- The working tree is intentionally uncommitted; the user's active performance measurements and
+  acceptance work remain the next release priority.
+
+**Next agent should:**
+
+- Confirm the synchronized Settings toggle transition on the installed phone, then continue the
+  thermally valid Nominal run without mixing waveform-off Lite evidence with waveform-on O-3.
 
 ### 2026-10-31 — Stabilise and physically accept the first waveform optimisations
 
@@ -335,68 +429,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Deploy an internal Release bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`, capture the scrub counter
   snapshot, then complete the Library-sheet and annotation/keyboard hitch baselines.
-
-### 2026-10-30 — Pass the steady-playback hitch baseline
-
-**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
-**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
-
-**Changed:**
-
-- Captured a clearly cued 65-second Animation Hitches run with S-medium/50 playing untouched and
-  evaluated the final 60 seconds as the steady-playback baseline.
-- Registered the passing result and narrowed the severe prior tail to scrub/recovery behavior rather
-  than ordinary playhead playback.
-
-**Verified:**
-
-- Four BeatNote hitches totalled 116.692 ms over 60 seconds: 1.94 ms/s, p50/p90/max 33.34 ms.
-  This passes the < 5 ms/s ratio and < 50 ms single-hitch targets at Nominal thermal state.
-- Trace `/private/tmp/beatnote-s-medium-50-steady-playback.trace` contains BeatNote PID 66779 and
-  ran 66.146213 seconds; the final 60 seconds were measured.
-- The repository remained clean at measured commit `7037118`; no product code changed.
-
-**Not verified / known gaps:**
-
-- The scrub hot path and post-release recovery still lack Time Profiler and render/path evidence.
-- Library-sheet and annotation/keyboard hitch baselines remain open, as do the other Phase 1
-  latency, memory, energy, contention, and render scenarios.
-
-**Next agent should:**
-
-- Capture the continuous cross-row scrub in Time Profiler with the existing signposts/counters,
-  then inspect the dominant JS/main-thread stacks before proposing any optimisation.
-
-### 2026-10-30 — Capture the continuous cross-row scrub baseline
-
-**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
-**Kanban moved:** none; `app-performance-optimization` Task 3.2 remains In Progress
-
-**Changed:**
-
-- Rejected the pre-fix and interrupted scrub traces, then captured a clearly cued 30-second
-  Animation Hitches run against Kiro's deployed cross-row scrub fix.
-- Registered the first required continuous-scrub hitch result and updated the findings without
-  attributing the failure to an unprofiled React, path, Fabric, or render-server cause.
-
-**Verified:**
-
-- The aligned ten-second scrub window contains 152 BeatNote hitches totalling 7,034.902 ms:
-  703.49 ms/s, p50 16.67 ms, p90 116.69 ms, and max 383.42 ms. The < 10 ms/s target fails.
-- Trace `/private/tmp/beatnote-s-medium-50-continuous-scrub-v4.trace` contains BeatNote PID 66779,
-  ran 31.244636 seconds, and remained in the Nominal thermal state.
-- The repository was clean at measurement commit `7037118`; no product code changed in this step.
-
-**Not verified / known gaps:**
-
-- Hitch activity continued after the instructed release, so a separate steady-playback trace must
-  distinguish ordinary playhead cost from scrub-specific work.
-- Time Profiler/render/path evidence and the Library-sheet and annotation/keyboard hitch scenarios
-  remain open; this result does not authorise an optimisation by itself.
-
-**Next agent should:**
-
-- Capture 60 seconds of steady Release-local playback in Animation Hitches, then profile the scrub
-  path with Time Profiler plus the existing render/path counters.
 
 <!-- end handover log -->
