@@ -158,6 +158,7 @@ const mergeStoredUnknownFields = (
       primaryView: current.settings.primaryView,
       countSize: current.settings.countSize,
       showDanceCounts: current.settings.showDanceCounts,
+      showWaveform: current.settings.showWaveform,
       beatAnchorMs: current.settings.beatAnchorMs,
       phraseStartMs: current.settings.phraseStartMs,
       appliedBpm: current.settings.appliedBpm,

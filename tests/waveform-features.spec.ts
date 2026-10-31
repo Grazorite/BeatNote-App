@@ -6,10 +6,16 @@ test.describe('Critical annotation workflow', () => {
     await page.goto('/');
     await loadTestAudio(page);
 
-    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666');
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveCount(0);
     await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
     await expect(page.getByTestId('loop-overview-playhead-underlay')).toHaveAttribute('stroke', '#000000');
     await expect(page.getByTestId('loop-overview-playhead-cap')).toHaveAttribute('fill', '#ff8c00');
+
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.getByTestId('waveform-visibility-toggle').click();
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666');
 
     const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
     const box = await gestureArea.boundingBox();

@@ -189,6 +189,7 @@ export interface StudioStore {
   primaryView: 'wrapped' | 'detail';
   countSize: 4 | 6 | 8;
   showDanceCounts: boolean;
+  showWaveform: boolean;
   beatAnchorMs: number;
   phraseStartMs: number | null;
   manuallyOverriddenBpm: boolean;
@@ -259,6 +260,7 @@ export interface StudioStore {
   setPrimaryView: (view: 'wrapped' | 'detail') => void;
   setCountSize: (size: 4 | 6 | 8) => void;
   setShowDanceCounts: (show: boolean) => void;
+  setShowWaveform: (show: boolean) => void;
   setRowDensity: (density: RowDensity) => void;
   setFollowPlayhead: (follow: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
@@ -453,6 +455,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   primaryView: 'wrapped',
   countSize: 8,
   showDanceCounts: false,
+  showWaveform: false,
   beatAnchorMs: 0,
   phraseStartMs: null,
   manuallyOverriddenBpm: false,
@@ -770,6 +773,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
   setShowDanceCounts: (show) => set({ showDanceCounts: show }),
+  setShowWaveform: (show) => set({ showWaveform: show }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: normalizePlaybackSpeed(speed) }),

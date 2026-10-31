@@ -4,7 +4,7 @@ export const PRODUCT_CAPABILITIES = [
   'projects.unlimited',
   'layers.multiple',
   'layers.customNames',
-  'waveform.detailed',
+  'waveform.display',
   'playback.pitchPreservingSpeed',
   'export.pdf',
   'export.midi',
@@ -12,6 +12,8 @@ export const PRODUCT_CAPABILITIES = [
   'projects.templates',
   'annotations.customVocabulary',
   'analysis.autoBpm',
+  'analysis.advancedTempo',
+  'sources.appleMusic',
 ] as const;
 
 export type ProductCapability = typeof PRODUCT_CAPABILITIES[number];

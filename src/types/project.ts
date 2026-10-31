@@ -36,6 +36,7 @@ export interface BeatNoteProject {
     primaryView?: 'wrapped' | 'detail';
     countSize?: 4 | 6 | 8;
     showDanceCounts?: boolean;
+    showWaveform?: boolean;
     beatAnchorMs?: number;
     phraseStartMs?: number | null;
     appliedBpm?: number;

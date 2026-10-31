@@ -1,35 +1,31 @@
-import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useEffect } from 'react';
 import { colors } from '../styles/common';
 
 export const useModernToggleAnimation = (isEnabled: boolean) => {
-  const thumbPosition = useSharedValue(isEnabled ? 1 : 0);
-  const trackOpacity = useSharedValue(isEnabled ? 1 : 0.3);
+  const progress = useSharedValue(isEnabled ? 1 : 0);
 
   useEffect(() => {
-    thumbPosition.value = withTiming(isEnabled ? 1 : 0, { duration: 150 });
-    trackOpacity.value = withTiming(isEnabled ? 1 : 0.3, { duration: 100 });
-  }, [isEnabled, thumbPosition, trackOpacity]);
+    progress.value = withTiming(isEnabled ? 1 : 0, { duration: 150 });
+  }, [isEnabled, progress]);
 
   const trackStyle = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(
-      isEnabled ? colors.accent : colors.border,
-      { duration: 100 }
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [colors.border, colors.accent],
     ),
-    opacity: trackOpacity.value,
-  }), [isEnabled, trackOpacity]);
+  }), [progress]);
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: thumbPosition.value * 20 }],
-    backgroundColor: colors.background,
-  }), [thumbPosition]);
+    transform: [{ translateX: progress.value * 20 }],
+    backgroundColor: colors.text,
+  }), [progress]);
 
-  const labelStyle = useAnimatedStyle(() => ({
-    color: withTiming(
-      isEnabled ? colors.text : colors.textSecondary,
-      { duration: 100 }
-    ),
-  }), [isEnabled]);
-
-  return { trackStyle, thumbStyle, labelStyle };
+  return { trackStyle, thumbStyle };
 };

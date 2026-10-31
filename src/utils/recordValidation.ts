@@ -93,6 +93,7 @@ const isProjectSettings = (value: unknown): boolean => {
     && value.countSize !== 6
     && value.countSize !== 8) return false;
   if (value.showDanceCounts !== undefined && !isBoolean(value.showDanceCounts)) return false;
+  if (value.showWaveform !== undefined && !isBoolean(value.showWaveform)) return false;
   if (value.beatAnchorMs !== undefined && !isFiniteNumber(value.beatAnchorMs)) return false;
   if (value.phraseStartMs !== undefined
     && value.phraseStartMs !== null

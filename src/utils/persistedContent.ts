@@ -51,6 +51,7 @@ export type PersistedContentSource = Pick<StudioStore,
   | 'primaryView'
   | 'countSize'
   | 'showDanceCounts'
+  | 'showWaveform'
   | 'beatAnchorMs'
   | 'phraseStartMs'
   | 'manuallyOverriddenBpm'
@@ -75,6 +76,7 @@ export type PersistedContentPatch = Pick<StudioStore,
   | 'primaryView'
   | 'countSize'
   | 'showDanceCounts'
+  | 'showWaveform'
   | 'beatAnchorMs'
   | 'phraseStartMs'
   | 'manuallyOverriddenBpm'
@@ -127,6 +129,7 @@ export function createEmptyPersistedContent(): PersistedContent {
       primaryView: 'wrapped',
       countSize: 8,
       showDanceCounts: false,
+      showWaveform: false,
       beatAnchorMs: 0,
       phraseStartMs: null,
       appliedBpm: 120,
@@ -161,6 +164,7 @@ export function extractPersistedContent(state: PersistedContentSource): Persiste
       primaryView: state.primaryView,
       countSize: state.countSize,
       showDanceCounts: state.showDanceCounts,
+      showWaveform: state.showWaveform,
       beatAnchorMs: state.beatAnchorMs,
       phraseStartMs: state.phraseStartMs,
       appliedBpm: state.bpm,
@@ -198,6 +202,7 @@ export function applyPersistedContent(content: PersistedContent): PersistedConte
     primaryView: content.settings.primaryView ?? 'wrapped',
     countSize: content.settings.countSize ?? 8,
     showDanceCounts: content.settings.showDanceCounts ?? false,
+    showWaveform: content.settings.showWaveform ?? false,
     beatAnchorMs: content.settings.beatAnchorMs ?? 0,
     phraseStartMs: content.settings.phraseStartMs ?? null,
     manuallyOverriddenBpm: content.settings.manuallyOverriddenBpm ?? false,

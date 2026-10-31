@@ -11,6 +11,7 @@ import { loopOverviewTrackStyles as styles } from '../../../styles/components/co
 import { msToOverviewX, overviewPlayheadX } from '../../../utils/loopRange';
 import { MARKER_SHIELD_LINE_START, MARKER_SHIELD_PATH, markerHeadTransform } from '../../../utils/markerShape';
 import { incrementPerfCounter } from '../../../utils/perfCounters';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import ClipReveal from '../common/ClipReveal';
 import MovingPlayhead from '../common/MovingPlayhead';
 
@@ -177,7 +178,9 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
   const layers = useStudioStore(state => state.allLayersData);
   const activeLayerId = useStudioStore(state => state.activeLayerId);
   const markerLoop = useMarkerLoopSegment();
-  const { waveformData } = useWaveformData(audioUri);
+  const showWaveform = useStudioStore(state => state.showWaveform);
+  const waveformAvailable = useProductCapability('waveform.display');
+  const { waveformData } = useWaveformData(showWaveform && waveformAvailable ? audioUri : null);
   const drawable = songLoaded && Number.isFinite(songDuration) && songDuration > 0 && width > 0;
   const activeLayerColor = layers.find(layer => layer.id === activeLayerId)?.color ?? colors.accent;
   const waveformPath = useMemo(() => {
@@ -192,6 +195,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
       waveformData.duration,
     );
   }, [drawable, songDuration, waveformData?.duration, waveformData?.peaks, waveformData?.source, width]);
+  const progressPath = waveformPath || `M 0 ${OVERVIEW_HEIGHT / 2} L ${Math.max(0, width)} ${OVERVIEW_HEIGHT / 2}`;
 
   return (
     <View testID="loop-overview-track" style={styles.track} pointerEvents="none">
@@ -214,7 +218,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
         activeLayerColor={activeLayerColor}
         drawable={drawable}
         songDuration={songDuration}
-        waveformPath={waveformPath}
+        waveformPath={progressPath}
         width={width}
       />
       <MemoizedMarkersLayer

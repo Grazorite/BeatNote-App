@@ -15,6 +15,7 @@ import { colors } from '../../../styles/common';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
 import { isValidLoopRange } from '../../../utils/loopRange';
 import { countPerfConstruction } from '../../../utils/perfCounters';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 
 interface WaveformCanvasProps {
   audioUri?: string;
@@ -76,7 +77,10 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const setViewportStartTime = useStudioStore(state => state.setViewportStartTime);
   const setCurrentTime = useStudioStore(state => state.setCurrentTime);
   const setGhostPlayheadTime = useStudioStore(state => state.setGhostPlayheadTime);
-  const { waveformData, loading } = useWaveformData(audioUri || null);
+  const showWaveform = useStudioStore(state => state.showWaveform);
+  const waveformAvailable = useProductCapability('waveform.display');
+  const waveformEnabled = showWaveform && waveformAvailable;
+  const { waveformData, loading } = useWaveformData(waveformEnabled ? audioUri || null : null);
   const pinchGesture = useZoomGesture();
   const waveformRef = useRef<View>(null);
   const { handleWheelZoom } = useScrollZoom(waveformRef);
@@ -392,20 +396,14 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                   strokeOpacity={0.6}
                 />
               ) : (
-                <Path
-                  d={(() => {
-                    const middle = WAVEFORM_HEIGHT / 2;
-                    let path = `M 0 ${middle}`;
-                    for (let x = 0; x < VIEWPORT_WIDTH; x += 4) {
-                      const y = middle + Math.sin(x * 0.01) * WAVEFORM_HEIGHT * 0.17 + Math.sin(x * 0.03) * WAVEFORM_HEIGHT * 0.07;
-                      path += ` L ${x} ${y}`;
-                    }
-                    return path;
-                  })()}
-                  stroke={colors.success}
-                  strokeWidth={1}
-                  fill="none"
-                  strokeOpacity={0.4}
+                <Rect
+                  x={0}
+                  y={(WAVEFORM_HEIGHT / 2) - 3}
+                  width={VIEWPORT_WIDTH}
+                  height={6}
+                  fill={colors.gridMinor}
+                  opacity={0.65}
+                  testID="waveform-solid-bar"
                 />
               )}
             </Svg>

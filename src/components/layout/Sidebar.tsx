@@ -21,6 +21,7 @@ import BpmSuggestionCard from '../ui/controls/BpmSuggestionCard';
 import BeatAnchorControl from '../ui/controls/BeatAnchorControl';
 import CountSizeControl from '../ui/controls/CountSizeControl';
 import DanceCountVisibilityControl from '../ui/controls/DanceCountVisibilityControl';
+import WaveformVisibilityControl from '../ui/controls/WaveformVisibilityControl';
 import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
@@ -132,17 +133,19 @@ const Sidebar: React.FC = () => {
                 contentContainerStyle={styles.mobileScrollContent}
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.sectionLabel}>Timing</Text>
+                <Text style={styles.sectionLabel}>Basic</Text>
+                <View style={styles.sidebarSection}>
+                  <WaveformVisibilityControl />
+                  <Text style={styles.subsectionLabel}>Annotation lane</Text>
+                  <LayerNameSettings singleAnnotationLane />
+                </View>
+                <Text style={styles.sectionLabel}>Advanced</Text>
                 <View style={styles.sidebarSection}>
                   <BpmControl />
                   <BpmSuggestionCard />
                   <BeatAnchorControl />
                   <DanceCountVisibilityControl />
                   <CountSizeControl />
-                </View>
-                <Text style={styles.sectionLabel}>Annotation lane</Text>
-                <View style={styles.sidebarSection}>
-                  <LayerNameSettings singleAnnotationLane />
                 </View>
                 <Text style={styles.sectionLabel}>Support</Text>
                 <View style={styles.sidebarSection}>
@@ -189,17 +192,19 @@ const Sidebar: React.FC = () => {
           showsVerticalScrollIndicator={true}
           indicatorStyle="default"
         >
-          <Text style={styles.sectionLabel}>Timing</Text>
+          <Text style={styles.sectionLabel}>Basic</Text>
+          <View style={styles.sidebarSection}>
+            <WaveformVisibilityControl />
+            <Text style={styles.subsectionLabel}>Layer names</Text>
+            <LayerNameSettings />
+          </View>
+          <Text style={styles.sectionLabel}>Advanced</Text>
           <View style={styles.sidebarSection}>
             <BpmControl />
             <BpmSuggestionCard />
             <BeatAnchorControl />
             <DanceCountVisibilityControl />
             <CountSizeControl />
-          </View>
-          <Text style={styles.sectionLabel}>Layer names</Text>
-          <View style={styles.sidebarSection}>
-            <LayerNameSettings />
           </View>
           <Text style={styles.sectionLabel}>Support</Text>
           <View style={styles.sidebarSection}>

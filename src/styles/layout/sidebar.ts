@@ -66,6 +66,13 @@ export const sidebarStyles = StyleSheet.create({
     marginBottom: 10,
     textTransform: 'uppercase',
   },
+  subsectionLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    marginBottom: 8,
+  },
   sidebar: {
     backgroundColor: colors.background,
     position: 'absolute',

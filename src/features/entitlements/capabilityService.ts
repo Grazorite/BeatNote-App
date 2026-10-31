@@ -8,16 +8,19 @@ import {
   type ProductTier,
 } from './types';
 
-const PRO_ONLY = new Set<ProductCapability>(PRODUCT_CAPABILITIES);
+const LITE_INCLUDED = new Set<ProductCapability>([
+  'analysis.autoBpm',
+]);
 
 /**
- * V1 product decision: the core Lite workflow remains available, while every capability listed
- * here is a V2 Pro expansion. This matrix declares future policy but does not activate a paywall.
+ * V1 product decision: basic local automatic BPM assistance is part of the complete Lite workflow.
+ * Waveform artwork, advanced tempo intelligence, and provider integrations remain V2 Pro
+ * capabilities. This matrix declares future policy but does not activate a paywall.
  */
 export const CAPABILITY_MATRIX: readonly CapabilityMatrixEntry[] = Object.freeze(
   PRODUCT_CAPABILITIES.map(capability => Object.freeze({
     capability,
-    lite: !PRO_ONLY.has(capability),
+    lite: LITE_INCLUDED.has(capability),
     pro: true,
   })),
 );

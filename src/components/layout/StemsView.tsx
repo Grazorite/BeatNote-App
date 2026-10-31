@@ -14,6 +14,7 @@ import { snapToNearestTarget, generateSnapTargets } from '../../utils/magneticSn
 import { stemsViewStyles as styles } from '../../styles/layout/stemsView';
 import { colors } from '../../styles/common';
 import { getLayerDisplayName } from '../../utils/layers';
+import { useProductCapability } from '../../features/entitlements/useProductCapability';
 
 interface StemsViewProps {
   layers: Layer[];
@@ -61,10 +62,11 @@ const StemsView: React.FC<StemsViewProps> = ({
     ? screenData.width - 32
     : Math.max(720, screenData.width - 350); // 350px for sidebar + margins
   
-  console.log('StemsView render:', { layers: layers?.length, audioUri: !!audioUri });
   
   const { viewportStartTime, viewportDuration, pixelsPerSecond, currentTime, ghostPlayheadTime, songDuration, setViewportStartTime, setCurrentTime, setGhostPlayheadTime, isPlaying, songLoaded, magneticSnapping, bpm, countSize, beatAnchorMs, phraseStartMs, allLayersData } = useStudioStore();
-  const { waveformData, loading } = useWaveformData(audioUri || null);
+  const showWaveform = useStudioStore(state => state.showWaveform);
+  const waveformAvailable = useProductCapability('waveform.display');
+  const { waveformData, loading } = useWaveformData(showWaveform && waveformAvailable ? audioUri || null : null);
   const pinchGesture = useZoomGesture();
   const stemsRef = useRef<View>(null);
   const { handleWheelZoom } = useScrollZoom(stemsRef);
@@ -75,7 +77,6 @@ const StemsView: React.FC<StemsViewProps> = ({
     color: layer.color,
   }));
   
-  console.log('StemsView visibleStems:', visibleStems.map(s => s.id));
   
   const updateTimeFromPosition = (x: number) => {
     const targetTime = viewportStartTime + (x / VIEWPORT_WIDTH) * viewportDuration;

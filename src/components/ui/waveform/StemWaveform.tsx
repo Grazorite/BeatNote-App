@@ -8,6 +8,7 @@ import { useZoomGesture } from '../../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
 import { snapToNearestTarget, generateSnapTargets } from '../../../utils/magneticSnapping';
 import { colors } from '../../../styles/common';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 
 interface StemWaveformProps {
   layers: Layer[];
@@ -43,9 +44,10 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
   
   const VIEWPORT_WIDTH = Math.max(720, screenData.width - 350); // 350px for sidebar + margins
   
-  console.log('StemWaveform render:', { stemId, audioUri: !!audioUri, layersCount: layers?.length });
   const { viewportStartTime, viewportDuration, currentTime, songDuration, setCurrentTime, setGhostPlayheadTime, songLoaded, isPlaying, magneticSnapping, bpm, countSize, beatAnchorMs, phraseStartMs, allLayersData } = useStudioStore();
-  const { waveformData } = useWaveformData(audioUri || null);
+  const showWaveform = useStudioStore(state => state.showWaveform);
+  const waveformAvailable = useProductCapability('waveform.display');
+  const { waveformData } = useWaveformData(showWaveform && waveformAvailable ? audioUri || null : null);
   const pinchGesture = useZoomGesture();
   const stemRef = useRef<View>(null);
   const { handleWheelZoom } = useScrollZoom(stemRef);

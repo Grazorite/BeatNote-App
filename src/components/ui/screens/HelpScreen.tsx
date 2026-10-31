@@ -61,7 +61,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
             1. Tap the music-note button and choose a song
           </Text>
           <Text style={styles.text}>
-            2. Play the song, or tap and drag the waveform to seek
+            2. Play the song, or tap and drag the timeline to seek
           </Text>
           <Text style={styles.text}>
             3. Add a marker at the playhead
@@ -94,13 +94,34 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
 
         <Section title="Waveform & Overview">
           <Text style={styles.text}>
-            • Tap or drag the waveform to seek without creating a marker
+            • Tap or drag the timeline to seek without creating a marker
+          </Text>
+          <Text style={styles.text}>
+            • Pro waveform artwork can be switched on in Settings and is off by default
+          </Text>
+          <Text style={styles.text}>
+            • Solid timing bars keep seeking, markers, loops, and the playhead available when it is off
           </Text>
           <Text style={styles.text}>
             • Drag the overview handles to select and adjust a loop range
           </Text>
           <Text style={styles.text}>
             • Timed annotations appear briefly as playback reaches their markers
+          </Text>
+        </Section>
+
+        <Section title="Tempo & Dance Counts">
+          <Text style={styles.text}>
+            • BeatNote may offer a local BPM and beat-anchor suggestion after import
+          </Text>
+          <Text style={styles.text}>
+            • Preview a suggestion before applying it; analysis never changes your grid silently
+          </Text>
+          <Text style={styles.text}>
+            • Use manual BPM, Set Count 1 Here, and anchor nudges whenever the suggestion needs correction
+          </Text>
+          <Text style={styles.text}>
+            • Choose 4, 6, or 8 counts and show or hide dance-count guidance from Settings
           </Text>
         </Section>
 
@@ -133,6 +154,9 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
         <Section title="Export Options">
           <Text style={styles.text}>
             • <Text style={styles.boldText}>CSV Export:</Text> timestamps, BPM-derived bar:beat timing, and annotations
+          </Text>
+          <Text style={styles.text}>
+            • <Text style={styles.boldText}>PDF Export:</Text> a printable choreography sheet with selectable timeline, marker, count-grid, and notes sections
           </Text>
           <Text style={styles.text}>
             On iOS, choose a destination from the share sheet. Web exports download to your browser.

@@ -12,6 +12,7 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useWaveformData } from '../../../hooks/useWaveformData';
 import { useWrappedRows } from '../../../hooks/useWrappedRows';
 import {
@@ -97,7 +98,10 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     : resolveRowHeight(isLandscape);
   const gutterWidth = resolveGutterWidth(isLandscape, isMobile ? MOBILE_GUTTER_WIDTH : undefined);
   const effectiveRowDensity = resolveRowDensity(rowDensity, isLandscape);
-  const { waveformData, loading } = useWaveformData(audioUri || null);
+  const showWaveform = useStudioStore(state => state.showWaveform);
+  const waveformAvailable = useProductCapability('waveform.display');
+  const waveformEnabled = showWaveform && waveformAvailable;
+  const { waveformData, loading } = useWaveformData(waveformEnabled ? audioUri || null : null);
   const { rows, visibleRange, rowPixelWidth, activeRowIndex } = useWrappedRows(
     availableWidth,
     isLandscape,
