@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.description    = package['description']
   s.license        = package['license']
   s.author         = 'BeatNote Contributors'
-  s.homepage       = 'https://github.com/yourusername/BeatNote-App'
+  s.homepage       = 'https://github.com/Grazorite/BeatNote-App'
   s.platforms      = { :ios => '15.1' }
   s.swift_version  = '5.9'
   s.source         = { :path => '.' }
