@@ -14,7 +14,7 @@ const WaveformVisibilityControl: React.FC = () => {
   return (
     <View style={styles.container} testID="settings-waveform">
       <ModernToggle
-        label="Show waveform (Pro)"
+        label="Show waveform"
         value={waveformAvailable && showWaveform}
         onToggle={() => {
           if (waveformAvailable) setShowWaveform(!showWaveform);

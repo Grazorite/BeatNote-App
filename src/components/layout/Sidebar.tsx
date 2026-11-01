@@ -22,6 +22,8 @@ import BeatAnchorControl from '../ui/controls/BeatAnchorControl';
 import CountSizeControl from '../ui/controls/CountSizeControl';
 import DanceCountVisibilityControl from '../ui/controls/DanceCountVisibilityControl';
 import WaveformVisibilityControl from '../ui/controls/WaveformVisibilityControl';
+import DebugTierControl from '../ui/controls/DebugTierControl';
+import { useProductCapability } from '../../features/entitlements/useProductCapability';
 import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
@@ -33,6 +35,7 @@ const Sidebar: React.FC = () => {
   const toggleSidebar = useStudioStore(state => state.toggleSidebar);
   const showHelpScreen = useStudioStore(state => state.showHelpScreen);
   const setShowHelpScreen = useStudioStore(state => state.setShowHelpScreen);
+  const bpmAvailable = useProductCapability('analysis.bpm');
   const insets = useSafeAreaInsets();
   const screenData = useWindowDimensions();
   
@@ -139,17 +142,25 @@ const Sidebar: React.FC = () => {
                   <Text style={styles.subsectionLabel}>Annotation lane</Text>
                   <LayerNameSettings singleAnnotationLane />
                 </View>
-                <Text style={styles.sectionLabel}>Advanced</Text>
-                <View style={styles.sidebarSection}>
-                  <BpmControl />
-                  <BpmSuggestionCard />
-                  <BeatAnchorControl />
-                  <DanceCountVisibilityControl />
-                  <CountSizeControl />
-                </View>
+                {bpmAvailable && (
+                  <>
+                    <Text style={styles.sectionLabel}>Advanced</Text>
+                    <View style={styles.sidebarSection}>
+                      <BpmControl />
+                      <BpmSuggestionCard />
+                      <BeatAnchorControl />
+                      <DanceCountVisibilityControl />
+                      <CountSizeControl />
+                    </View>
+                  </>
+                )}
                 <Text style={styles.sectionLabel}>Support</Text>
                 <View style={styles.sidebarSection}>
                   <HelpButton />
+                </View>
+                <Text style={styles.sectionLabel}>Debug</Text>
+                <View style={styles.sidebarSection}>
+                  <DebugTierControl />
                 </View>
               </ScrollView>
             </View>
@@ -198,17 +209,25 @@ const Sidebar: React.FC = () => {
             <Text style={styles.subsectionLabel}>Layer names</Text>
             <LayerNameSettings />
           </View>
-          <Text style={styles.sectionLabel}>Advanced</Text>
-          <View style={styles.sidebarSection}>
-            <BpmControl />
-            <BpmSuggestionCard />
-            <BeatAnchorControl />
-            <DanceCountVisibilityControl />
-            <CountSizeControl />
-          </View>
+          {bpmAvailable && (
+            <>
+              <Text style={styles.sectionLabel}>Advanced</Text>
+              <View style={styles.sidebarSection}>
+                <BpmControl />
+                <BpmSuggestionCard />
+                <BeatAnchorControl />
+                <DanceCountVisibilityControl />
+                <CountSizeControl />
+              </View>
+            </>
+          )}
           <Text style={styles.sectionLabel}>Support</Text>
           <View style={styles.sidebarSection}>
             <HelpButton />
+          </View>
+          <Text style={styles.sectionLabel}>Debug</Text>
+          <View style={styles.sidebarSection}>
+            <DebugTierControl />
           </View>
           {STEM_SEPARATION_UI_ENABLED && (
             <>

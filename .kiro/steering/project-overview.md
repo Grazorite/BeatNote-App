@@ -65,8 +65,8 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   available screen height and each row's timestamp span adapts to the loaded track duration. Gutter
   and waveform gestures seek or select; marker creation is exclusive to the bottom marker controls.
 - **Waveform display** — optional decoded amplitude artwork in the canvas and overview strip. It is
-  a Pro capability, persisted per project, and off by default; Lite renders solid timing/progress
-  bars without removing seeking, markers, loops, playhead, or annotations.
+  available in every tier, persisted per project, and off by default; when off, the canvas renders
+  solid timing/progress bars without removing seeking, markers, loops, playhead, or annotations.
   One container-level scrub spans every row: a horizontal-first drag activates it (vertical-first
   movement does not), the finger then maps across adjacent rows, and holding in the trailing edge
   zone or over the leading gutter continues the scrub into the next or previous row.

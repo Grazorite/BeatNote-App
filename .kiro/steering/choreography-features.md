@@ -23,18 +23,17 @@ initial implementation.
 - Downbeat/phrase-start confidence is advisory. Users can always set Count 1 manually and use fine
   anchor nudges.
 
-Basic automatic BPM assistance belongs to the proposed Lite workflow. V2 Pro may add advanced tempo
+All BPM tooling (manual BPM, beat anchor, count grid, and automatic detection) is a Pro-tier
+feature; Lite has no BPM dependence. V2 Pro may add advanced tempo
 maps, deeper phrase/downbeat assistance, and configurable or batch analysis.
 
 ## Waveform display
 
 - Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is controlled by
-  the `waveform.display` Pro capability and a persisted `showWaveform` project setting.
+  a persisted `showWaveform` project setting. It is available in Lite and Pro (not gated).
 - The toggle is off for new and older projects unless the user enables it.
 - With artwork off, the same timeline geometry renders as solid timing/progress bars. Seeking,
-  scrubbing, markers, loops, playhead, BPM/count guidance, and annotations remain fully usable in Lite.
-- V1's preview entitlement exposes the toggle for validation. Purchase enforcement begins only with
-  the V2 entitlement rollout.
+  scrubbing, markers, loops, playhead, and annotations remain fully usable.
 
 ## Annotation lane names
 

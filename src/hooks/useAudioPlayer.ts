@@ -4,6 +4,8 @@ import { Alert, Platform } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
+import { isCapabilityAvailable } from '../features/entitlements/capabilityService';
+import { useProductCapability } from '../features/entitlements/useProductCapability';
 import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
 import { isLoopRangeGestureActive } from '../features/playback/interactionActivity';
 import { incrementPerfCounter } from '../utils/perfCounters';
@@ -64,6 +66,8 @@ export const useCustomAudioPlayer = () => {
     [currentAudioUri],
   );
   const player = useAudioPlayer(audioSource);
+  const remoteControlsAvailable = useProductCapability('playback.remoteControls');
+  const lockScreenActiveRef = useRef(false);
   const playerStatusRef = useRef(player.currentStatus);
   const [playerIsLoaded, setPlayerIsLoaded] = useState(player.isLoaded);
   const {
@@ -137,7 +141,9 @@ export const useCustomAudioPlayer = () => {
 
     const state = useStudioStore.getState();
     const queue = state.queue;
-    const hasShuffledNext = queue?.shuffle === true
+    // Auto-advance is a Pro capability; Lite playback ends when the track does.
+    const hasShuffledNext = isCapabilityAvailable('playback.continuous')
+      && queue?.shuffle === true
       && queue.currentIndex !== null
       && queue.currentIndex + 1 < queue.order.length;
 
@@ -303,7 +309,20 @@ export const useCustomAudioPlayer = () => {
 
   useEffect(() => {
     if (Platform.OS === 'web' || !audioModeReady || currentAudioUri === null || !playerIsLoaded) return;
+    if (!remoteControlsAvailable) {
+      // Lite: drop Now Playing / headset / Control Centre registration if Pro was just switched off.
+      if (lockScreenActiveRef.current) {
+        lockScreenActiveRef.current = false;
+        try {
+          player.clearLockScreenControls();
+        } catch (lockScreenError) {
+          console.error('Lock screen controls clear error:', lockScreenError);
+        }
+      }
+      return;
+    }
     try {
+      lockScreenActiveRef.current = true;
       player.setActiveForLockScreen(true, {
         title: lockScreenTitle,
         artist: 'BeatNote',
@@ -317,7 +336,7 @@ export const useCustomAudioPlayer = () => {
     // Expo releases and unregisters the previous native player when its source changes or the hook
     // unmounts. Calling clearLockScreenControls from React cleanup races that release and can address
     // an already-disposed SharedObject on iOS.
-  }, [audioModeReady, currentAudioUri, lockScreenTitle, player, playerIsLoaded]);
+  }, [audioModeReady, currentAudioUri, lockScreenTitle, player, playerIsLoaded, remoteControlsAvailable]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;

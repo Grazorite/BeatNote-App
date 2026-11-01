@@ -4540,3 +4540,76 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Capture the continuous cross-row scrub in Time Profiler with the existing signposts/counters,
   then inspect the dominant JS/main-thread stacks before proposing any optimisation.
+
+## Archived handover — 2026-11-02 monetisation rotation
+
+### 2026-10-30 — Isolate scrub cost to native SVG drawing
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
+**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
+
+**Changed:**
+
+- Captured a coordinated physical Time Profiler trace with Points of Interest requested, exported
+  the 21 MB referenced sample table, and compared the active scrub burst with immediate recovery.
+- Revised H-3: wrapped JS path generation is memoized, but static peaks/progress/markers/playhead
+  share one SVG, so dynamic updates drive expensive native CoreGraphics redraws.
+- Promoted O-3 to the first evidence-backed candidate after Phase 1; no optimisation was applied.
+
+**Verified:**
+
+- In the aligned 11-second scrub window, BeatNote used 10,847 ms of running samples: main thread
+  9,799 ms (90.3%), CoreGraphics-inclusive 9,564 ms (88.2%), JS thread 857 ms (7.9%).
+- The following 3.293 seconds remained at 1.09 average cores and were still CoreGraphics-dominant,
+  matching the post-release hitch tail. Thermal state remained Nominal.
+- Trace `/private/tmp/beatnote-s-medium-50-scrub-time-profiler.trace` contains BeatNote PID 66779
+  and ran 31.293264 seconds.
+
+**Not verified / known gaps:**
+
+- The deployed `7037118` Release bundle emitted no BeatNote Points of Interest or fallback logs;
+  its instrumentation flag was not on/observable, so render/path counter totals remain open.
+- Library-sheet and annotation/keyboard hitch baselines, React commit counts, memory, energy,
+  contention, Allocations, and Leaks remain open; Phase 2 must not start yet.
+
+**Next agent should:**
+
+- Deploy an internal Release bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`, capture the scrub counter
+  snapshot, then complete the Library-sheet and annotation/keyboard hitch baselines.
+
+## Archived handover — 2026-11-02 tier-toggle rotation
+
+### 2026-10-30 — Complete the required frame/hitch baseline set
+
+**Agent:** orchestrator (Codex) · **Commit(s):** measured `ab697b7`; see `git log` (`docs: complete physical hitch baselines`)
+**Kanban moved:** `app-performance-optimization` task 3.2 → Done; Phase 1 remains In Progress
+
+**Changed:**
+
+- Built and installed a Release-local bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`; its physical
+  `seek.scrub` signpost confirms the native profiling bridge is active.
+- Completed the remaining Music Library sheet and annotation/software-keyboard Animation Hitches
+  scenarios and registered both results in the performance spec.
+- At the user's request, deleted all raw BeatNote trace bundles, exported tables/logs, four Xcode
+  DerivedData trees, and the temporary restored-documents folder after recording the summaries.
+
+**Verified:**
+
+- Five sheet open/settle/backdrop-dismiss cycles: one 16.670 ms hitch over 26.058 seconds
+  (0.64 ms/s), passing at Nominal thermal state.
+- Three annotation open/type/save cycles: seven hitches, 533.451 ms total over 36.240 seconds
+  (14.72 ms/s), p50 16.670 ms, p90/max 233.385 ms, failing at Nominal thermal state.
+- Cleanup increased internal free space from 104 MiB before trace relocation to 51 GiB after all
+  BeatNote temporary artifacts were removed; the ignored raw-trace archive is gone.
+
+**Not verified / known gaps:**
+
+- Release-local exposes the diagnostic global only through a DevTools console that was not
+  available in this run, so render/path/gesture counter totals still require Debug+Metro.
+- The keyboard failure still needs a layout-focused trace before O-10 is authorised. Raw traces are
+  intentionally unavailable after the user's cleanup request; only the registered metrics remain.
+
+**Next agent should:**
+
+- Run the Debug+Metro counter/React-profiler scenario, then capture a layout-focused annotation
+  keyboard trace before choosing between O-3 and O-10.

@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   PRODUCT_CAPABILITIES,
   PRO_ENTITLEMENT_KEY,
@@ -8,14 +10,17 @@ import {
   type ProductTier,
 } from './types';
 
+/**
+ * Lite includes only the waveform toggle (revised 2026-11-02). Every other capability, including
+ * all BPM tooling, continuous playback, resume play, and remote controls, is Pro.
+ */
 const LITE_INCLUDED = new Set<ProductCapability>([
-  'analysis.autoBpm',
+  'waveform.display',
 ]);
 
 /**
- * V1 product decision: basic local automatic BPM assistance is part of the complete Lite workflow.
- * Waveform artwork, advanced tempo intelligence, and provider integrations remain V2 Pro
- * capabilities. This matrix declares future policy but does not activate a paywall.
+ * Declares Lite/Pro policy. No purchase is enforced yet; the debug tier override below is the only
+ * way to observe Lite behaviour until the V2 purchase provider replaces this one.
  */
 export const CAPABILITY_MATRIX: readonly CapabilityMatrixEntry[] = Object.freeze(
   PRODUCT_CAPABILITIES.map(capability => Object.freeze({
@@ -38,26 +43,75 @@ export const snapshotAllows = (
   capability: ProductCapability,
 ): boolean => tierAllows(snapshot.tier, capability);
 
-const v1PreviewSnapshot = (): EntitlementSnapshot => ({
-  tier: 'pro',
-  activeEntitlements: [PRO_ENTITLEMENT_KEY],
+const DEBUG_TIER_KEY = 'beatnote_debug_tier';
+
+type SnapshotListener = (snapshot: EntitlementSnapshot) => void;
+
+const listeners = new Set<SnapshotListener>();
+// V1 preview default: everything is available until the user flips the debug toggle.
+let currentTier: ProductTier = 'pro';
+
+const snapshotFor = (tier: ProductTier): EntitlementSnapshot => ({
+  tier,
+  activeEntitlements: tier === 'pro' ? [PRO_ENTITLEMENT_KEY] : [],
   checkedAt: new Date().toISOString(),
   offline: true,
 });
 
+const notify = (): void => {
+  const snapshot = snapshotFor(currentTier);
+  listeners.forEach(listener => listener(snapshot));
+};
+
+// Restores the persisted debug choice so a Lite test session survives an app restart.
+const hydration: Promise<void> = AsyncStorage.getItem(DEBUG_TIER_KEY)
+  .then(stored => {
+    if ((stored === 'lite' || stored === 'pro') && stored !== currentTier) {
+      currentTier = stored;
+      notify();
+    }
+  })
+  .catch((error: unknown) => {
+    console.error('Debug tier restore failed:', error);
+  });
+
+/** Current tier for non-React callers such as playback event handlers. */
+export const getCurrentTier = (): ProductTier => currentTier;
+
+/** Synchronous capability check for event handlers; components should use useProductCapability. */
+export const isCapabilityAvailable = (capability: ProductCapability): boolean => (
+  tierAllows(currentTier, capability)
+);
+
+/** Debug-only tier override. Remove when the V2 purchase provider replaces the preview provider. */
+export const setDebugTier = async (tier: ProductTier): Promise<void> => {
+  currentTier = tier;
+  notify();
+  try {
+    await AsyncStorage.setItem(DEBUG_TIER_KEY, tier);
+  } catch (error) {
+    console.error('Debug tier save failed:', error);
+  }
+};
+
 /**
- * V1 deliberately exposes implemented preview features without purchases. Replace this provider
+ * V1 preview provider: no purchases, tier comes from the debug override (default Pro). Replace
  * at V2 launch; UI code continues to ask only whether a product capability is available.
  */
 export const v1PreviewEntitlementProvider: EntitlementProvider = {
   async getSnapshot() {
-    return v1PreviewSnapshot();
+    await hydration;
+    return snapshotFor(currentTier);
   },
   async restore() {
-    return v1PreviewSnapshot();
+    await hydration;
+    return snapshotFor(currentTier);
   },
-  subscribe() {
-    return () => undefined;
+  subscribe(listener) {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
   },
 };
 

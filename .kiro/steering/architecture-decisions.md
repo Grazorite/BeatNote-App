@@ -160,14 +160,13 @@ the decision only with written Spotify approval/partnership or a material policy
 Rationale: provider-neutral code cannot remove provider policy, DRM, subscription, or decoded-audio
 constraints. Naming a blocked integration as a paid feature would create product and legal risk.
 
-### ADR-020: Waveform artwork is an optional Pro presentation layer
+### ADR-020: Waveform artwork is an optional, ungated presentation layer
 
-Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is governed by
-the `waveform.display` product capability and a persisted `showWaveform` setting that defaults to
-false. Disabling it also prevents waveform extraction requests from those surfaces. The Lite
-presentation uses solid timing/progress bars while retaining the same seeking, scrubbing, marker,
-loop, playhead, BPM/count, and annotation behavior. V1's preview provider permits the toggle for
-testing; V2 purchase enforcement owns actual access.
+Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is a persisted
+`showWaveform` setting that defaults to false and is available to every tier (revised 2026-11-02;
+it was previously a Pro capability). Disabling it prevents waveform extraction requests from those
+surfaces. With artwork off, the same timeline renders solid timing/progress bars with identical
+seeking, scrubbing, marker, loop, playhead, and annotation behavior.
 
 Rationale: waveform artwork adds useful visual precision and measurable extraction/drawing cost,
 but it is not required to complete BeatNote's core annotation and rehearsal workflow. Keeping the

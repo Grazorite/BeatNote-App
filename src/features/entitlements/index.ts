@@ -1,5 +1,8 @@
 export {
   CAPABILITY_MATRIX,
+  getCurrentTier,
+  isCapabilityAvailable,
+  setDebugTier,
   snapshotAllows,
   tierAllows,
   v1PreviewEntitlementProvider,

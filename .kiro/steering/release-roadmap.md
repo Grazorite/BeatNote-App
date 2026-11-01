@@ -32,8 +32,9 @@ Goal: prove that annotation and rehearsal are reliable on a physical iPhone and 
 - One visible annotation lane in the V1 phone editor; preserve the six-layer project schema for
   compatibility and V2 expansion
 - Marker editing, navigation, undo, and redo
-- Solid timing bars, seeking, and BPM / 8-count guidance; decoded waveform artwork is a disabled-by-default Pro preview
-- One non-destructive local automatic-BPM suggestion with manual BPM/anchor correction
+- Solid timing bars and seeking; decoded waveform artwork is an optional, off-by-default toggle
+- BPM, beat anchor, 8-count guidance, and the non-destructive local automatic-BPM suggestion are
+  Pro-tier features, exposed as previews in V1
 - Section looping and practical rehearsal controls
 - Reliable local project save, reopen, and CSV export
 - Physical-device acceptance and adequate unit/E2E coverage
@@ -50,17 +51,22 @@ not depend on stem separation.
 
 Pro candidates:
 
-- Unlimited saved projects
-- All six layers and custom layer names
-- Toggleable decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip,
-  disabled by default. Lite retains solid timing/progress bars with the same seeking, markers,
-  loops, playhead, BPM grid, and annotation workflow. V1's preview provider exposes the toggle but
-  no purchase entitlement is enforced yet.
-- Pitch-preserving slow playback
+- Unlimited saved projects per song (Lite allows one; autosaved drafts are never limited)
+- All six layers and custom layer names (the six-layer expansion also anticipates V3 stems)
+- Fine-grained pitch-preserving playback speed (full 0.5×–2× range in 0.05× steps; Lite keeps
+  coarse presets)
+- BPM tooling as a whole: manual BPM, beat anchor, 8-count/phrase grid and guidance, and automatic
+  BPM detection. Most choreographers do not work from BPM, so this is a convenience tier.
+- Continuous playback: the next queued track loads automatically when the current one ends. Lite
+  stops at the end of the track unless Repeat is on.
+- Resume play: the last played track and playback position are saved and restored on launch
+- Remote playback control: headset buttons, lock-screen controls, and Control Centre / Now Playing
+  (background audio itself stays in Lite)
 - PDF choreography sheets and MIDI export
 - Advanced snapping, reusable project templates, and custom annotation vocabularies
 - Advanced tempo intelligence: tempo maps, deeper downbeat/phrase assistance, batch/configurable
   re-analysis, and professional confidence/diagnostic controls
+- Ad-free experience (see Lite advertising)
 - Apple Music as a provider integration if a V2 technical/policy spike proves acceptable seeking,
   playback lifecycle, catalog identity, and degraded-mode behavior
 
@@ -99,16 +105,33 @@ Goal: add a durable offline Pro workflow after cloud validation proves that user
 The Lite tier must complete a real project:
 
 - Import and play supported local audio
-- Seek, scrub, loop, and use solid timing/progress bars without decoded waveform artwork
+- Seek, scrub, loop, and use solid timing/progress bars
+- Optionally enable decoded waveform artwork (user-controlled, off by default)
 - Add, edit, navigate, and delete unlimited markers and annotations
-- Use the basic beat and 8-count workflow
-- Save a small number of local projects
-- Use one annotation lane on phone; additional layers are a V2 Pro expansion
+- Rehearse with coarse pitch-preserved speed presets (0.5×, 0.75×, 1×)
+- Play in the background; playback stops at the end of a track unless Repeat is on
+- Autosave a draft for every song, plus one named saved project per song
+- Use one annotation lane on phone; additional layers are a Pro expansion
 - Export basic CSV
 - Work without an account
+- See a static banner ad on library and project-management screens only
 
-The initial saved-project hypothesis is three projects. Validate that limit with users before
-hard-coding it; do not expose additional phone annotation lanes during V1 validation.
+Lite does not include BPM, beat anchor, or 8-count tooling. Markers, annotations, looping, seeking,
+and rehearsal speed remain complete without them.
+
+The saved-project limit is one per song, applied only to creating an additional Saved Project. It
+never blocks opening or editing an existing project, and never limits per-song drafts. Do not expose
+additional phone annotation lanes during V1 validation.
+
+### Lite advertising
+
+- A single static banner only, on the Music Library and Project Manager screens.
+- Never in the editor, transport, or any active annotation/rehearsal session. No interstitial,
+  video, audio, or full-screen ads, and nothing that touches the playback audio session.
+- `beatnote.pro` removes ads. Missing or failed ad loads must collapse silently.
+- Defer ad-SDK integration to V2 and review the App Tracking Transparency prompt, App Store privacy
+  label, and regional consent requirements first. Prefer non-personalised ads to avoid tracking
+  prompts where possible.
 
 ### Lite/Pro capability matrix
 
@@ -118,17 +141,22 @@ provider, which grants implemented preview features without enforcing a paywall.
 
 | Capability key | Lite | Pro |
 |---|---:|---:|
-| `projects.unlimited` | No (three-project hypothesis) | Yes |
+| `projects.unlimited` | No (one saved project per song; drafts unlimited) | Yes |
 | `layers.multiple` | No (one phone lane) | Yes |
 | `layers.customNames` | No | Yes |
-| `waveform.display` | No (solid timing/progress bars remain) | Yes; user-controlled and off by default |
-| `playback.pitchPreservingSpeed` | No (1× remains) | Yes |
+| `waveform.display` | Yes; user-controlled and off by default (ungated) | Yes |
+| `playback.pitchPreservingSpeed` | Coarse presets (0.5×, 0.75×, 1×) | Full range, 0.05× steps |
+| `playback.continuous` | No (stops at track end unless Repeat is on) | Yes |
+| `playback.resume` | No (launch restores the track, paused at the start) | Yes |
+| `playback.remoteControls` | No (in-app controls only) | Yes |
+| `ads.removed` | No (static banner on library/project screens) | Yes |
 | `export.pdf` | No (CSV remains) | Yes |
 | `export.midi` | No (CSV remains) | Yes |
-| `snapping.advanced` | No (basic beat/count guidance remains) | Yes |
+| `snapping.advanced` | No | Yes |
+| `analysis.bpm` | No (manual BPM, anchor, and 8-count grid) | Yes |
 | `projects.templates` | No | Yes |
 | `annotations.customVocabulary` | No (built-in suggestions remain) | Yes |
-| `analysis.autoBpm` | Yes (one local suggestion plus manual correction) | Yes |
+| `analysis.autoBpm` | No | Yes |
 | `analysis.advancedTempo` | No | Yes |
 | `sources.appleMusic` | No | Candidate, subject to V2 feasibility |
 

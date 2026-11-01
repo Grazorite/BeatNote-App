@@ -34,7 +34,7 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-02
 **Branch:** `master` (work happens here; no feature branches) · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
@@ -65,7 +65,7 @@ potentially adding a hybrid path later.
    A first post-change scrub trace improved the ratio 71.8%, p90 14.3%, and max 60.9%, but ran at
    Serious thermal state and cannot decide keep/revert; repeat it at Nominal before proceeding.
    Gated counters and repeated latency/memory/energy/contention baselines also remain open.
-2. Keep basic automatic BPM in the V1 Lite candidate and finish its runtime acceptance: browser long-task/long-song measurements
+2. Finish automatic-BPM runtime acceptance (now a Pro-tier feature per the 2026-11-02 roadmap): browser long-task/long-song measurements
    and representative real-song/physical-device evidence remain. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
@@ -127,6 +127,14 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Add Pro playback capabilities (continuous playback, resume play, remote controls) to the
+      roadmap and a persisted debug Lite/Pro toggle in Settings with the first gates wired
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/types.ts`, `src/features/entitlements/useProductTier.ts`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/layout/Sidebar.tsx`, `src/hooks/useAudioPlayer.ts`</sub>
+
+- [x] Revise the Lite/Pro monetisation plan: one saved project per song, ungated waveform toggle,
+      coarse free speed presets, all BPM tooling Pro, and a static Lite banner ad removed by Pro
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/architecture-decisions.md`</sub>
 
 - [x] Reorder the mobile media controls: portrait places annotation/speed/delete before the Play
       block and First/Previous/Next song after it; landscape pairs add/annotation, speed/delete,
@@ -226,6 +234,77 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Add Pro playback features and a debug Lite/Pro toggle
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** debug tier toggle and playback capability gates → Done
+
+**Changed:**
+
+- Roadmap: continuous playback, resume play, and remote playback control (headset, lock screen,
+  Control Centre) added as Pro; new `playback.continuous`, `playback.resume`,
+  `playback.remoteControls` keys and matrix rows.
+- `src/features/entitlements/`: Lite now includes only `waveform.display`; the provider takes its
+  tier from a persisted debug override (default Pro) and exposes `setDebugTier`,
+  `getCurrentTier`, and `isCapabilityAvailable`; new `useProductTier` hook.
+- Settings (phone and desktop): new Debug section with a Pro toggle (`DebugTierControl`); the
+  Advanced BPM section is hidden in Lite; the waveform label no longer says Pro.
+- `useAudioPlayer.ts`: auto-advance after a track ends and lock-screen registration require Pro.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed; full retained Playwright gate → 8/8 passed (default tier is Pro).
+
+**Not verified / known gaps:**
+
+- Lite behaviour was not exercised in a test or on a device. The toggle, hidden Advanced section,
+  and lock-screen clearing are unverified; the iOS lock-screen deregistration path is untested.
+- `playback.resume` is not implemented: launch restores the last track paused at the start, with
+  no saved position. `playback.continuous` currently gates only Shuffle auto-advance; a normal
+  queue already stops at track end.
+- Lite still renders any stored BPM grid and count labels in the waveform; only the Settings
+  controls are hidden. Ads, the saved-project limit, and coarse speed presets are not enforced.
+
+**Next agent should:**
+
+- Decide with the user whether sequential queues should auto-advance for Pro, then implement
+  position persistence for resume play and finish hiding BPM surfaces in Lite.
+
+### 2026-11-02 — Revise the Lite/Pro monetisation split
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** monetisation plan revision → Done
+
+**Changed:**
+
+- `release-roadmap.md`: Lite now allows one saved project per song (drafts unlimited); waveform
+  artwork is ungated but stays a user toggle, off by default; fine-grained pitch-preserved speed
+  is Pro while coarse presets (0.5×, 0.75×, 1×) stay free; all BPM tooling (manual BPM, anchor,
+  8-count grid, auto-detect) moves to Pro; a static banner ad is added to Lite on library and
+  project screens only, removed by Pro; new `analysis.bpm` and `ads.removed` capability keys.
+- `choreography-features.md`, `project-overview.md`, `architecture-decisions.md` (ADR-020):
+  waveform wording changed from Pro capability to ungated toggle; BPM tooling marked Pro.
+
+**Verified:**
+
+- Grepped steering files for stale three-project, Lite-BPM, and Pro-waveform wording; remaining
+  hits are updated. Markdown lint run on the changed files (see below).
+
+**Not verified / known gaps:**
+
+- No code changed. The preview entitlement provider, Settings, and BPM/count UI still expose BPM
+  and gate nothing; `waveform.display` is still checked in code and `analysis.bpm`, `ads.removed`,
+  and the coarse-speed rule are not implemented.
+- The Current Focus text in this file still describes automatic BPM as a Lite candidate where the
+  roadmap now treats it as Pro; the V1 acceptance work itself is unchanged.
+- Ad SDK choice, ATT/privacy-label impact, and the 8-count-without-BPM Lite experience are
+  unvalidated product decisions.
+
+**Next agent should:**
+
+- Align `src/features/entitlements/` with the revised capability keys before V2, and confirm with
+  the user that Lite without any BPM or 8-count grid still feels complete.
 
 ### 2026-10-31 — Reorder the mobile media controls
 
@@ -360,74 +439,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Once the phone is Nominal, repeat the coordinated continuous-scrub Animation Hitches capture on
   the installed Release build, then record the valid after-row before deciding keep/revert.
-
-### 2026-10-30 — Complete the required frame/hitch baseline set
-
-**Agent:** orchestrator (Codex) · **Commit(s):** measured `ab697b7`; see `git log` (`docs: complete physical hitch baselines`)
-**Kanban moved:** `app-performance-optimization` task 3.2 → Done; Phase 1 remains In Progress
-
-**Changed:**
-
-- Built and installed a Release-local bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`; its physical
-  `seek.scrub` signpost confirms the native profiling bridge is active.
-- Completed the remaining Music Library sheet and annotation/software-keyboard Animation Hitches
-  scenarios and registered both results in the performance spec.
-- At the user's request, deleted all raw BeatNote trace bundles, exported tables/logs, four Xcode
-  DerivedData trees, and the temporary restored-documents folder after recording the summaries.
-
-**Verified:**
-
-- Five sheet open/settle/backdrop-dismiss cycles: one 16.670 ms hitch over 26.058 seconds
-  (0.64 ms/s), passing at Nominal thermal state.
-- Three annotation open/type/save cycles: seven hitches, 533.451 ms total over 36.240 seconds
-  (14.72 ms/s), p50 16.670 ms, p90/max 233.385 ms, failing at Nominal thermal state.
-- Cleanup increased internal free space from 104 MiB before trace relocation to 51 GiB after all
-  BeatNote temporary artifacts were removed; the ignored raw-trace archive is gone.
-
-**Not verified / known gaps:**
-
-- Release-local exposes the diagnostic global only through a DevTools console that was not
-  available in this run, so render/path/gesture counter totals still require Debug+Metro.
-- The keyboard failure still needs a layout-focused trace before O-10 is authorised. Raw traces are
-  intentionally unavailable after the user's cleanup request; only the registered metrics remain.
-
-**Next agent should:**
-
-- Run the Debug+Metro counter/React-profiler scenario, then capture a layout-focused annotation
-  keyboard trace before choosing between O-3 and O-10.
-
-### 2026-10-30 — Isolate scrub cost to native SVG drawing
-
-**Agent:** orchestrator (Codex) · **Commit(s):** measured `7037118`
-**Kanban moved:** none; `app-performance-optimization` Phase 1 remains In Progress
-
-**Changed:**
-
-- Captured a coordinated physical Time Profiler trace with Points of Interest requested, exported
-  the 21 MB referenced sample table, and compared the active scrub burst with immediate recovery.
-- Revised H-3: wrapped JS path generation is memoized, but static peaks/progress/markers/playhead
-  share one SVG, so dynamic updates drive expensive native CoreGraphics redraws.
-- Promoted O-3 to the first evidence-backed candidate after Phase 1; no optimisation was applied.
-
-**Verified:**
-
-- In the aligned 11-second scrub window, BeatNote used 10,847 ms of running samples: main thread
-  9,799 ms (90.3%), CoreGraphics-inclusive 9,564 ms (88.2%), JS thread 857 ms (7.9%).
-- The following 3.293 seconds remained at 1.09 average cores and were still CoreGraphics-dominant,
-  matching the post-release hitch tail. Thermal state remained Nominal.
-- Trace `/private/tmp/beatnote-s-medium-50-scrub-time-profiler.trace` contains BeatNote PID 66779
-  and ran 31.293264 seconds.
-
-**Not verified / known gaps:**
-
-- The deployed `7037118` Release bundle emitted no BeatNote Points of Interest or fallback logs;
-  its instrumentation flag was not on/observable, so render/path counter totals remain open.
-- Library-sheet and annotation/keyboard hitch baselines, React commit counts, memory, energy,
-  contention, Allocations, and Leaks remain open; Phase 2 must not start yet.
-
-**Next agent should:**
-
-- Deploy an internal Release bundle with `EXPO_PUBLIC_BEATNOTE_PERF=1`, capture the scrub counter
-  snapshot, then complete the Library-sheet and annotation/keyboard hitch baselines.
 
 <!-- end handover log -->
