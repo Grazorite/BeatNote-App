@@ -14,6 +14,7 @@ export type SeekDurationSeconds = number;
 
 export interface SettingsPreferences {
   continuousPlay: boolean;
+  pauseOnHeadsetDisconnect: boolean;
   keepScreenOn: KeepScreenOnMode;
   seekButtonBehaviour: SeekButtonBehaviour;
   seekDurationSeconds: SeekDurationSeconds;
@@ -25,6 +26,7 @@ export interface SettingsPreferences {
 const STORAGE_KEY = 'beatnote.settings.v1';
 const DEFAULTS: SettingsPreferences = {
   continuousPlay: true,
+  pauseOnHeadsetDisconnect: true,
   keepScreenOn: 'disabled',
   seekButtonBehaviour: 'tapSeekHoldTrack',
   seekDurationSeconds: 5,
@@ -81,6 +83,9 @@ const hydration = AsyncStorage.getItem(STORAGE_KEY)
       continuousPlay: typeof parsed.continuousPlay === 'boolean'
         ? parsed.continuousPlay
         : DEFAULTS.continuousPlay,
+      pauseOnHeadsetDisconnect: typeof parsed.pauseOnHeadsetDisconnect === 'boolean'
+        ? parsed.pauseOnHeadsetDisconnect
+        : DEFAULTS.pauseOnHeadsetDisconnect,
       keepScreenOn: isKeepScreenOnMode(parsed.keepScreenOn)
         ? parsed.keepScreenOn
         : DEFAULTS.keepScreenOn,

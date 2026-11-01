@@ -27,6 +27,10 @@ export const settingsPageStyles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
+  settingWithCaption: {
+    gap: 0,
+    marginBottom: 4,
+  },
   infoRow: {
     minHeight: 58,
     paddingVertical: 8,
@@ -148,9 +152,13 @@ export const settingsPageStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surfaceGlass,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   segmentedOptionSelected: {
     backgroundColor: colors.surfaceRaised,
+    borderColor: colors.accent,
+    borderRadius: 8,
   },
   check: {
     color: colors.accent,

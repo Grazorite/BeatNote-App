@@ -254,6 +254,9 @@ async function main() {
     run('npx', ['expo', 'prebuild', '--platform', 'ios'], {
       env: { ...environment, CI: '1' },
     });
+    // Prebuild updates the workspace but does not reliably regenerate React codegen after a clean.
+    // CocoaPods owns those generated inputs and local Expo-module discovery.
+    run('pod', ['install'], { cwd: iosDirectory });
     const simulator = selectSimulator();
     const simulatorId = simulator.udid;
     metroPid = await startMetroIfNeeded();

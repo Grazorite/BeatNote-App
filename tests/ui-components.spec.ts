@@ -23,9 +23,19 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('pause-headset-toggle')).toHaveAttribute('aria-checked', 'true');
+    const continuousToggleBounds = await page.getByTestId('continuous-play-toggle').boundingBox();
+    const continuousCaptionBounds = await page.getByTestId('continuous-play-detail').boundingBox();
+    if (!continuousToggleBounds || !continuousCaptionBounds) {
+      throw new Error('Continuous-play setting geometry is unavailable');
+    }
+    expect(continuousCaptionBounds.y - (continuousToggleBounds.y + continuousToggleBounds.height))
+      .toBeLessThan(12);
     await page.getByTestId('continuous-play-toggle').click();
+    await page.getByTestId('pause-headset-toggle').click();
     await page.getByTestId('keep-screen-on-whilePlaying').click();
     await expect(page.getByTestId('continuous-play-toggle')).toHaveAttribute('aria-checked', 'false');
+    await expect(page.getByTestId('pause-headset-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('keep-screen-on-whilePlaying'))
       .toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('playback-settings-page-back').click();
@@ -42,7 +52,6 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('seek-behaviour-tapTrackHoldSeek').click();
     await expect(page.getByTestId('seek-behaviour-tapTrackHoldSeek'))
       .toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('speed-presets-included')).toContainText('playback speed chooser');
     await page.getByTestId('speed-range-extended').click();
     await page.getByTestId('speed-preset-count-12').click();
     await expect(page.getByTestId('speed-range-extended')).toHaveAttribute('aria-checked', 'true');
@@ -64,7 +73,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (12)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (13)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
 

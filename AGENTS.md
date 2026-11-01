@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (12)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (13)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -56,7 +56,7 @@ target; Android is a far-future possibility only.
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
 | E2E spec files | 2 (Playwright harness, 8 critical journeys) |
-| Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
+| Native Expo modules | 4 (`BeatNoteWaveform`, `LibraryStorage`, local `BeatNoteTempo` analysis, and `BeatNoteAudioSession`) |
 
 ### Current Focus
 
@@ -114,6 +114,11 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Remove non-actionable speed copy, emphasize selected preset counts, tighten playback captions,
+      implement persisted pause-on-headset-disconnect behavior, suppress duplicate annotation
+      callouts, lower standalone toasts, repair the Xcode 27 native gate, and install beta `1.0.0 (13)`
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-audio-session/`, `plugins/withIosPodDeploymentTarget.js`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Repair the retained annotation fade; simplify capability wording; add direct and accelerated
       seek/speed adjustment; implement Pro speed ranges, 4/8/12 presets, custom preset editing and
       default restoration; install Release beta `1.0.0 (12)` on the physical iPhone
@@ -133,12 +138,6 @@ target; Android is a far-future possibility only.
       deletion, annotated overview markers, smoother transient UI, current-project rename, flatter
       Settings subpages, sheet-native Music dismissal, and install Release beta `1.0.0 (9)`
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/`, `src/components/ui/modals/`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Match the overview delete glyph to the supplied rounded trash reference, add restrained Pro
-      sparkles, move waveform/annotation settings into a Display & Annotations page, add edge-swipe
-      Back navigation, add persisted bidirectional library sorting, and install Release beta
-      `1.0.0 (8)` on the physical iPhone
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/screens/DisplaySettingsScreen.tsx`, `src/features/library/`, `src/hooks/useStudioStore.ts`, `src/styles/components/library/musicLibrarySheet.ts`, `src/styles/layout/sidebar.ts`, `src/types/library.ts`, `src/types/queue.ts`, `src/utils/queueOrder.ts`, `src/utils/recordValidation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
 ---
 
@@ -216,6 +215,48 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Add headset safety and stabilise transient feedback
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** speed copy, headset disconnect, and popup retriggering → Done
+
+**Changed:**
+
+- Removed the two informational speed rows that did not change behavior, added an accent outline to
+  selected preset-count and speed buttons, and grouped Continuous Play with its caption without the large
+  intervening gap.
+- Added a persisted, default-on Pause on Headset Disconnect setting. The new
+  `BeatNoteAudioSession` Expo module reports iOS output-route loss; the audio hook pauses safely or,
+  when the user opts out, resumes after expo-audio's automatic route-change pause.
+- Suppressed native-clock jitter from retriggering the same timed annotation after its display
+  window closes. Standalone dock toasts now use the empty annotation slot instead of floating a row
+  too high, while annotation exits retain their in-place opacity fade.
+- Repaired Xcode 27.1 native builds by selecting source-built React Native, keeping only the
+  incompatible `fmt` pod on C++17, and making the XCTest harness refresh Pods/codegen after prebuild.
+  Incremented to `1.0.0 (13)` and installed the signed Release app
+  on the connected physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including persisted headset preference,
+  compact caption geometry, retained annotation fade, and lower no-annotation toast placement.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed after a clean source build. Signed
+  Release beta 13 built successfully and device services confirmed installation as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Physical wired/Bluetooth disconnect behavior, annotation jitter around a real device clock, and
+  the final visual spacing still need hands-on confirmation. The phone was locked after install, so
+  device services could not launch beta 13 automatically.
+- Expo-audio on iOS clamps playback above 2×. The existing experimental 4× configuration is not a
+  working physical-iOS guarantee until a native speed engine replaces that boundary.
+
+**Next agent should:**
+
+- Unlock and inspect beta 13, then physically verify both states of Pause on Headset Disconnect and
+  confirm annotations appear only once as playback crosses a marker.
 
 ### 2026-11-02 — Repair annotation fading and add Pro speed configuration
 
@@ -357,44 +398,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Incorporate the user's beta 9 physical feedback before widening navigation or animation scope.
-
-### 2026-11-02 — Add display navigation, reversible sorting, and beta 8 polish
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** display/navigation, overview glyph, Pro sparkle, and reversible sorting → Done
-
-**Changed:**
-
-- Redrew the overview Clear action as the supplied rounded, open trash can and reduced the mobile
-  Pro control while adding two restrained, low-amplitude looping sparkles around it.
-- Moved waveform visibility and annotation-label controls from the flat Settings root into a new
-  Display & Annotations submenu. Added native leading-edge, left-to-right Back gestures to the
-  Settings root and every Settings/detail page while keeping explicit Back controls.
-- Made each non-Custom Music Library sort reverse between ascending and descending when its selected
-  button is tapped again. The persisted direction now follows queue construction and migration;
-  Custom Order remains manually arranged and never reverses. Its selected direction arrow animates
-  through a half-turn.
-- Incremented iOS to `1.0.0 (8)`, installed the signed Release on `gæl (3)`, and launched it.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed before closeout.
-- Full retained Playwright regression harness → 8/8 passed in 16.3 seconds, covering the Display
-  submenu and both directions of non-Custom sorting.
-- The built app reports version/build `1.0.0/8`; device services confirmed installation, launch,
-  and running process 3780 as `com.beatnote.app`.
-
-**Not verified / known gaps:**
-
-- The delete glyph, Pro sparkle restraint, smaller Pro control, native edge-swipe feel, and sort
-  arrow transition still need the user's visual/touch confirmation on the installed phone.
-- The host's standalone strict code-sign verification reports `CSSMERR_TP_NOT_TRUSTED`, but the
-  device accepted and launched the signed build. No focused iOS XCTest was run because native module
-  behaviour did not change.
-
-**Next agent should:**
-
-- Incorporate the user's beta 8 visual/touch feedback, especially edge-swipe capture width and the
-  sparkle intensity, before expanding Settings further.
 
 <!-- end handover log -->

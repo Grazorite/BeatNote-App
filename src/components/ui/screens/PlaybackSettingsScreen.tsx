@@ -9,7 +9,6 @@ import {
 } from '../../../features/settings/preferences';
 import { settingsPageStyles as styles } from '../../../styles/components/settings/settingsPage';
 import ModernToggle from '../common/ModernToggle';
-import SettingsInfoRow from '../settings/SettingsInfoRow';
 import SettingsSubpage from '../settings/SettingsSubpage';
 
 interface PlaybackSettingsScreenProps {
@@ -30,29 +29,41 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
     <SettingsSubpage title="Playback" onBack={onBack} testID="playback-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Queue</Text>
-        <ModernToggle
-          label="Continuous Play"
-          value={continuousAvailable && preferences.continuousPlay}
-          disabled={!continuousAvailable}
-          onValueChange={continuousPlay => {
-            void updateSettingsPreferences({ continuousPlay });
-          }}
-          accessibilityHint={continuousAvailable
-            ? 'Automatically starts the next song in the queue.'
-            : 'Pro only'}
-          testID="continuous-play-toggle"
-        />
-        <Text style={styles.hint} testID="continuous-play-detail">
-          {continuousAvailable
-            ? 'Automatically starts the next song in the current queue.'
-            : 'Pro only'}
-        </Text>
-        <SettingsInfoRow
-          label="Pause on Headset Disconnect"
-          detail="Planned. BeatNote does not yet observe audio-route changes reliably."
-          disabled
-          testID="pause-headset-placeholder"
-        />
+        <View style={styles.settingWithCaption}>
+          <ModernToggle
+            label="Continuous Play"
+            value={continuousAvailable && preferences.continuousPlay}
+            disabled={!continuousAvailable}
+            onValueChange={continuousPlay => {
+              void updateSettingsPreferences({ continuousPlay });
+            }}
+            accessibilityHint={continuousAvailable
+              ? 'Automatically starts the next song in the queue.'
+              : 'Pro only'}
+            marginBottom={-6}
+            testID="continuous-play-toggle"
+          />
+          <Text style={styles.hint} testID="continuous-play-detail">
+            {continuousAvailable
+              ? 'Automatically starts the next song in the current queue.'
+              : 'Pro only'}
+          </Text>
+        </View>
+        <View style={styles.settingWithCaption}>
+          <ModernToggle
+            label="Pause on Headset Disconnect"
+            value={preferences.pauseOnHeadsetDisconnect}
+            onValueChange={pauseOnHeadsetDisconnect => {
+              void updateSettingsPreferences({ pauseOnHeadsetDisconnect });
+            }}
+            accessibilityHint="Pauses playback when wired headphones, Bluetooth headphones, or another active output disconnects."
+            marginBottom={-6}
+            testID="pause-headset-toggle"
+          />
+          <Text style={styles.hint}>
+            Prevents audio from unexpectedly continuing through the iPhone speaker.
+          </Text>
+        </View>
       </View>
 
       <View style={styles.section}>

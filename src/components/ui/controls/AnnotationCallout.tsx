@@ -8,12 +8,18 @@ interface AnnotationCalloutProps {
   text: string | null;
   onPress: () => void;
   stacked?: boolean;
+  onPresenceChange?: (present: boolean) => void;
 }
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 /** Show a bounded timed preview for the most recently reached annotated marker. */
-const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress, stacked = false }) => {
+const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({
+  text,
+  onPress,
+  stacked = false,
+  onPresenceChange,
+}) => {
   const visibleText = text?.trim() ?? '';
   const [renderedText, setRenderedText] = useState(visibleText || null);
   const opacity = useRef(new Animated.Value(visibleText ? 1 : 0)).current;
@@ -50,6 +56,10 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress, st
   }, [opacity, visibleText]);
 
   useEffect(() => () => animationRef.current?.stop(), []);
+
+  useEffect(() => {
+    onPresenceChange?.(renderedText !== null);
+  }, [onPresenceChange, renderedText]);
 
   if (renderedText === null) return null;
   return (

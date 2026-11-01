@@ -18,11 +18,13 @@ Rationale: avoids the complexity of React Native Testing Library for logic that 
 
 ### ADR-003: Expo Modules API for native iOS features
 
-All native iOS code (CoreML inference, AVAudioUnitTimePitch, waveform extraction) is written as Expo
+All native iOS code (CoreML inference, audio-session route observation, waveform extraction) is written as Expo
 Modules (Swift + TypeScript interface) under `modules/`. No bare `react-native` native modules.
 Native waveform extraction uses the `BeatNoteWaveform` module and an `AVAssetReader` streaming
 decoder. UI clients call the platform `waveformExtraction` provider with an explicit `basic` or
 `detailed` resolution; they do not import the native module or entitlement vendors directly.
+`BeatNoteAudioSession` reports `AVAudioSession` output-route loss through the platform
+`audioRoute` service so playback policy remains in the application hook rather than the module.
 Rationale: Expo Modules integrate cleanly with EAS Build and don't require ejecting from Expo managed
 workflow. The provider boundary keeps rendering portable and leaves future Lite/Pro policy separate
 from audio decoding.
@@ -78,6 +80,10 @@ for this range; reconsider a native engine only if a future requirement exceeds 
 Rationale: the installed cross-platform player already maps high-quality iOS correction to Apple's
 spectral time-pitch algorithm, preserves pitch on web, and keeps rate state through its existing
 play, pause, seek, loop, source, and background-audio lifecycle.
+
+The Pro configuration may preserve an experimental `0.25×–4.00×` preset range, but expo-audio on
+iOS currently clamps playback above 2×. Values beyond 2× are not accepted as working physical-iOS
+behavior until a native engine replaces that boundary.
 
 ### ADR-012: Music item identity and app-owned audio storage
 

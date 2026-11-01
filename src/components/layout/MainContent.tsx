@@ -114,6 +114,10 @@ const MainContent: React.FC<MainContentProps> = ({
   const [landscapeRailHeight, setLandscapeRailHeight] = useState(0);
   const [switchTransitionVisible, setSwitchTransitionVisible] = useState(false);
   const [switchTransitionTitle, setSwitchTransitionTitle] = useState('song');
+  const [annotationCalloutPresent, setAnnotationCalloutPresent] = useState(false);
+  const [timedAnnotationMarkerKey, setTimedAnnotationMarkerKey] = useState('');
+  const suppressedTimedAnnotationKeyRef = useRef('');
+  const previousAnnotationTimeRef = useRef(0);
   const productTier = useProductTier();
   const showLiteAd = productTier === 'lite';
   const toast = useDockToast();
@@ -137,9 +141,10 @@ const MainContent: React.FC<MainContentProps> = ({
   const currentMarkerKey = useStudioStore(state => markerKey(
     findMarkerNearTime(state.allLayersData, state.currentTime, state.activeLayerId),
   ));
-  const timedAnnotationMarkerKey = useStudioStore(state => markerKey(
+  const rawTimedAnnotationMarkerKey = useStudioStore(state => markerKey(
     findTimedAnnotationMarker(state.allLayersData, state.currentTime, state.activeLayerId),
   ));
+  const annotationCurrentTime = useStudioStore(state => state.currentTime);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const updateMarkerAnnotation = useStudioStore(state => state.updateMarkerAnnotation);
   const currentMarker = useMemo(() => markerFromKey(currentMarkerKey), [currentMarkerKey]);
@@ -150,6 +155,34 @@ const MainContent: React.FC<MainContentProps> = ({
   );
   const displayedAnnotation = getMarkerAnnotation(allLayersData, timedAnnotationMarker);
   const editingAnnotation = getMarkerAnnotation(allLayersData, editingMarker);
+
+  useEffect(() => {
+    suppressedTimedAnnotationKeyRef.current = '';
+    setTimedAnnotationMarkerKey('');
+  }, [audioUri]);
+
+  useEffect(() => {
+    const suppressedMarker = markerFromKey(suppressedTimedAnnotationKeyRef.current);
+    const movedBackward = annotationCurrentTime < previousAnnotationTimeRef.current - 250;
+    previousAnnotationTimeRef.current = annotationCurrentTime;
+    if (suppressedMarker !== null && (
+      annotationCurrentTime < suppressedMarker.timestamp - 100
+      || (movedBackward && annotationCurrentTime <= suppressedMarker.timestamp + 50)
+    )) {
+      suppressedTimedAnnotationKeyRef.current = '';
+    }
+
+    if (rawTimedAnnotationMarkerKey !== '') {
+      if (suppressedTimedAnnotationKeyRef.current !== rawTimedAnnotationMarkerKey) {
+        setTimedAnnotationMarkerKey(rawTimedAnnotationMarkerKey);
+      }
+      return;
+    }
+    setTimedAnnotationMarkerKey(current => {
+      if (current !== '') suppressedTimedAnnotationKeyRef.current = current;
+      return '';
+    });
+  }, [annotationCurrentTime, rawTimedAnnotationMarkerKey]);
 
   const openAnnotationEditor = (marker: SelectedMarker | null = currentMarker) => {
     if (!marker) return;
@@ -344,20 +377,33 @@ const MainContent: React.FC<MainContentProps> = ({
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
         <View style={styles.mobileFeedbackStack} pointerEvents="box-none">
-          <View style={styles.mobileToastSlot} pointerEvents="box-none">
+          <View
+            testID="dock-toast-slot"
+            style={[
+              styles.mobileToastSlot,
+              !annotationCalloutPresent && timedAnnotationMarkerKey === ''
+                && styles.mobileToastSlotWithoutAnnotation,
+            ]}
+            pointerEvents="box-none"
+          >
             <DockToast
               message={toast.message}
               action={toast.action}
               stacked
             />
           </View>
-          <View style={styles.mobileAnnotationSlot} pointerEvents="box-none">
+          <View
+            testID="annotation-callout-slot"
+            style={styles.mobileAnnotationSlot}
+            pointerEvents="box-none"
+          >
             <AnnotationCallout
               text={timedAnnotationMarker && displayedAnnotation.trim() ? displayedAnnotation : null}
               onPress={() => {
                 if (timedAnnotationMarker) openAnnotationEditor(timedAnnotationMarker);
               }}
               stacked
+              onPresenceChange={setAnnotationCalloutPresent}
             />
           </View>
         </View>

@@ -33,6 +33,13 @@ test.describe('Critical annotation workflow', () => {
     await annotationButton.click();
     await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Add a marker first');
     await expect(page.getByTestId('annotation-editor-input')).not.toBeVisible();
+    const toastSlotBounds = await page.getByTestId('dock-toast-slot').boundingBox();
+    const annotationSlotBounds = await page.getByTestId('annotation-callout-slot').boundingBox();
+    expect(toastSlotBounds).not.toBeNull();
+    expect(annotationSlotBounds).not.toBeNull();
+    if (toastSlotBounds && annotationSlotBounds) {
+      expect(toastSlotBounds.y).toBeGreaterThanOrEqual(annotationSlotBounds.y - 2);
+    }
 
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
     await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');

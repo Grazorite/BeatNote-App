@@ -88,6 +88,9 @@ export const mainContentStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
+  mobileToastSlotWithoutAnnotation: {
+    transform: [{ translateY: 64 }],
+  },
   mobileAnnotationSlot: {
     width: '100%',
     height: 58,

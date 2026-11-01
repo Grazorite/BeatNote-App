@@ -146,7 +146,8 @@ export const playbackSpeedControlStyles = StyleSheet.create({
   },
   optionSelected: {
     borderColor: colors.accent,
-    backgroundColor: colors.accent,
+    borderWidth: 2,
+    backgroundColor: colors.surfaceRaised,
   },
   optionText: {
     color: colors.text,
@@ -154,7 +155,7 @@ export const playbackSpeedControlStyles = StyleSheet.create({
     fontWeight: '700',
   },
   optionTextSelected: {
-    color: colors.onAccent,
+    color: colors.accent,
   },
   reset: {
     minHeight: 40,

@@ -5190,3 +5190,52 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Incorporate the user's beta 7 feedback, tuning only the spring/hysteresis values if native touch
   still feels off.
+
+## Archived Done checklist items — 2026-11-02 beta-13 rotation
+
+- [x] Match the overview delete glyph to the supplied rounded trash reference, add restrained Pro
+      sparkles, move waveform/annotation settings into a Display & Annotations page, add edge-swipe
+      Back navigation, add persisted bidirectional library sorting, and install Release beta
+      `1.0.0 (8)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/screens/DisplaySettingsScreen.tsx`, `src/features/library/`, `src/hooks/useStudioStore.ts`, `src/styles/components/library/musicLibrarySheet.ts`, `src/styles/layout/sidebar.ts`, `src/types/library.ts`, `src/types/queue.ts`, `src/utils/queueOrder.ts`, `src/utils/recordValidation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+## Archived handover — 2026-11-02 beta-13 rotation
+
+### 2026-11-02 — Add display navigation, reversible sorting, and beta 8 polish
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** display/navigation, overview glyph, Pro sparkle, and reversible sorting → Done
+
+**Changed:**
+
+- Redrew the overview Clear action as the supplied rounded, open trash can and reduced the mobile
+  Pro control while adding two restrained, low-amplitude looping sparkles around it.
+- Moved waveform visibility and annotation-label controls from the flat Settings root into a new
+  Display & Annotations submenu. Added native leading-edge, left-to-right Back gestures to the
+  Settings root and every Settings/detail page while keeping explicit Back controls.
+- Made each non-Custom Music Library sort reverse between ascending and descending when its selected
+  button is tapped again. The persisted direction now follows queue construction and migration;
+  Custom Order remains manually arranged and never reverses. Its selected direction arrow animates
+  through a half-turn.
+- Incremented iOS to `1.0.0 (8)`, installed the signed Release on `gæl (3)`, and launched it.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed before closeout.
+- Full retained Playwright regression harness → 8/8 passed in 16.3 seconds, covering the Display
+  submenu and both directions of non-Custom sorting.
+- The built app reports version/build `1.0.0/8`; device services confirmed installation, launch,
+  and running process 3780 as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- The delete glyph, Pro sparkle restraint, smaller Pro control, native edge-swipe feel, and sort
+  arrow transition still need the user's visual/touch confirmation on the installed phone.
+- The host's standalone strict code-sign verification reports `CSSMERR_TP_NOT_TRUSTED`, but the
+  device accepted and launched the signed build. No focused iOS XCTest was run because native module
+  behaviour did not change.
+
+**Next agent should:**
+
+- Incorporate the user's beta 8 visual/touch feedback, especially edge-swipe capture width and the
+  sparkle intensity, before expanding Settings further.

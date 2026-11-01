@@ -125,7 +125,11 @@ inclusion: always
 - Transient toast and annotation-callout replacements crossfade without exit-time layout motion:
   the mobile feedback stack retains fixed toast and annotation slots, and fades content fully at
   its anchored position before unmounting it. The annotation callout owns a retained native opacity
-  animation rather than relying on a disappearing marker selection to animate its presence.
+  animation rather than relying on a disappearing marker selection to animate its presence. Once a
+  timed annotation leaves its display window, suppress that marker until the playhead genuinely
+  seeks or loops back before it; native clock jitter must not retrigger the same callout. When the
+  annotation slot is empty, lower dock toasts into that space instead of reserving an unexplained
+  blank row above them.
   Playback choosers likewise fade in place and must
   never translate toward the overview strip while dismissing. Rapid successive feedback must not
   snap, stack-jump, or compete with playback.
@@ -139,9 +143,15 @@ inclusion: always
   usable when either operation remains available.
 - Advanced playback-speed configuration is Pro-only. It offers exactly two ranges (`0.5×–2.00×`
   and `0.25×–4.00×`) and 4, 8, or 12 preset buttons with useful defaults for each combination.
+  The chosen preset count and the active speed preset get an accent border without an accent fill,
+  and Settings exposes only choices that change behavior; do not add static rows describing
+  built-in presets or fine controls.
   Long-pressing a preset opens its numeric editor; saving persists that slot for the selected
   range/count, while Use Default clears the override. Holding the fine `−/+` controls accelerates
   their 0.05× repeats. Lite keeps the standard built-in presets and hides fine controls.
+- Playback settings group each toggle with its own caption without section-sized whitespace. Pause
+  on Headset Disconnect defaults on and persists independently of tier; an iOS output-route loss
+  pauses active playback, while opting out explicitly resumes after expo-audio's system pause.
 - The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
   be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
   teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.

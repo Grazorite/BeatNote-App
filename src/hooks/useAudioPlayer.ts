@@ -12,6 +12,7 @@ import { incrementPerfCounter } from '../utils/perfCounters';
 import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
 import { getSettingsPreferences } from '../features/settings/preferences';
+import { subscribeToOutputRouteUnavailable } from '../services/audioRoute';
 
 interface ErrorState {
   visible: boolean;
@@ -54,6 +55,7 @@ export const useCustomAudioPlayer = () => {
   const playbackRateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackRateSourceRef = useRef<string | null>(null);
   const appliedPlaybackSpeedRef = useRef<number | null>(null);
+  const lastPlaybackActiveAtRef = useRef(0);
   const currentAudioUri = useStudioStore(state => state.currentAudioUri);
   const currentAudioFilename = useStudioStore(state => state.currentAudioFilename);
   const lockScreenTitle = useStudioStore(state => (
@@ -210,6 +212,7 @@ export const useCustomAudioPlayer = () => {
       playerStatusRef.current = status;
       setPlayerIsLoaded(previous => previous === status.isLoaded ? previous : status.isLoaded);
       const currentState = useStudioStore.getState();
+      if (status.playing) lastPlaybackActiveAtRef.current = Date.now();
       const durationMs = status.duration * 1000;
       if (status.playing && status.currentTime * 1000 < durationMs - END_OF_TRACK_TOLERANCE_MS) {
         completionHandledRef.current = false;
@@ -245,6 +248,29 @@ export const useCustomAudioPlayer = () => {
     });
     return () => subscription.remove();
   }, [handleTrackCompletion, player, setSongDuration]);
+
+  useEffect(() => subscribeToOutputRouteUnavailable(() => {
+    const state = useStudioStore.getState();
+    const wasPlaying = state.isPlaying
+      || playerStatusRef.current.playing
+      || playbackIntentRef.current === true
+      || Date.now() - lastPlaybackActiveAtRef.current < 750;
+    if (!wasPlaying) return;
+
+    if (getSettingsPreferences().pauseOnHeadsetDisconnect) {
+      player.pause();
+      holdPlaybackIntent(false, PLAYBACK_INTENT_SETTLE_MS);
+      return;
+    }
+
+    // expo-audio pauses on iOS oldDeviceUnavailable before publishing the route event. When the
+    // user opts out, resume after that native pause settles so playback continues on the new route.
+    setTimeout(() => {
+      if (!mountedRef.current || getSettingsPreferences().pauseOnHeadsetDisconnect) return;
+      player.play();
+      holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
+    }, 120);
+  }), [holdPlaybackIntent, player]);
 
   useEffect(() => {
     updateTrackSwitchPlayer({

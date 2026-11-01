@@ -14,7 +14,6 @@ import {
   type PlaybackSpeedPresetCount,
   type PlaybackSpeedRange,
 } from '../../../utils/playbackSpeed';
-import SettingsInfoRow from '../settings/SettingsInfoRow';
 import SettingsSubpage from '../settings/SettingsSubpage';
 
 interface ButtonConfigurationScreenProps {
@@ -195,21 +194,6 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
           </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Playback Speed</Text>
-        <SettingsInfoRow
-          label="Built-in Speed Presets"
-          detail="Available in the playback speed chooser."
-          testID="speed-presets-included"
-        />
-        <SettingsInfoRow
-          label="Fine Slider and +/− Controls"
-          detail={advancedSpeed ? 'Adjust speed in 0.05× steps.' : 'Pro only'}
-          disabled={!advancedSpeed}
-          testID="fine-speed-status"
-        />
-      </View>
-
       <View style={[styles.section, !advancedSpeed && styles.disabled]} testID="speed-range-settings">
         <Text style={styles.sectionLabel}>Speed Setting Range</Text>
         {!advancedSpeed && <Text style={styles.proOnlyNote}>Pro only</Text>}

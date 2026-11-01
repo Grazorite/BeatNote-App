@@ -1,0 +1,10 @@
+{
+  "name": "beatnote-audio-session",
+  "version": "1.0.0",
+  "description": "BeatNote native audio-route lifecycle events",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

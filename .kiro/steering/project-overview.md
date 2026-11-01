@@ -82,6 +82,9 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Magnetic snapping** — auto-aligning the playhead/marker to the nearest beat grid line or existing marker.
 - **8-count** — standard dance phrase unit (8 beats). The grid should support 8-count alignment in addition to individual beats.
 - **Ghost playhead** — a secondary playhead showing the last clicked position without committing to it.
+- **Headset disconnect policy** — a persisted, default-on playback preference pauses when the active
+  wired, Bluetooth, or external output disappears so audio does not unexpectedly continue through
+  the iPhone speaker.
 
 ## State management
 
