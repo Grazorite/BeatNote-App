@@ -1,6 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, LinearTransition, ReduceMotion } from 'react-native-reanimated';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import type { DockToastAction } from '../../../hooks/useDockToast';
 import { controlDockStyles as styles } from '../../../styles/components/controls/controlDock';
 import GlassBackdrop from './GlassBackdrop';
@@ -13,19 +18,36 @@ interface DockToastProps {
 
 const DockToast: React.FC<DockToastProps> = ({ message, action, stacked = false }) => {
   const announcedRef = useRef<string | null>(null);
-  if (!message) return null;
-  const shouldAnnounce = announcedRef.current !== message;
-  announcedRef.current = message;
+  const [renderedMessage, setRenderedMessage] = useState(message);
+  const [renderedAction, setRenderedAction] = useState(action ?? null);
+  const opacity = useSharedValue(message ? 1 : 0);
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  useEffect(() => {
+    if (message) {
+      setRenderedMessage(message);
+      setRenderedAction(action ?? null);
+      opacity.value = withTiming(1, { duration: 160 });
+      return;
+    }
+    opacity.value = withTiming(0, { duration: 160 }, finished => {
+      if (finished) {
+        runOnJS(setRenderedMessage)(null);
+        runOnJS(setRenderedAction)(null);
+      }
+    });
+  }, [action, message, opacity]);
+
+  if (!renderedMessage) return null;
+  const shouldAnnounce = announcedRef.current !== renderedMessage;
+  announcedRef.current = renderedMessage;
   return (
     <Animated.View
       testID="dock-toast"
-      style={[styles.toast, stacked ? styles.toastStacked : styles.toastFloating]}
-      pointerEvents={action ? 'auto' : 'none'}
+      style={[styles.toast, stacked ? styles.toastStacked : styles.toastFloating, animatedStyle]}
+      pointerEvents={message && renderedAction ? 'auto' : 'none'}
       accessibilityLiveRegion={shouldAnnounce ? 'polite' : 'none'}
       aria-live={shouldAnnounce ? 'polite' : 'off'}
-      entering={FadeIn.duration(180).reduceMotion(ReduceMotion.System)}
-      exiting={FadeOut.duration(160).reduceMotion(ReduceMotion.System)}
-      layout={LinearTransition.duration(180).reduceMotion(ReduceMotion.System)}
     >
       <GlassBackdrop
         gradientId="dock-toast-glass"
@@ -33,15 +55,15 @@ const DockToast: React.FC<DockToastProps> = ({ message, action, stacked = false 
         testID="dock-toast-glass"
         variant="toast"
       />
-      <Text style={styles.toastText}>{message}</Text>
-      {action && (
+      <Text style={styles.toastText}>{renderedMessage}</Text>
+      {renderedAction && (
         <TouchableOpacity
           accessibilityRole="button"
-          onPress={action.onPress}
+          onPress={renderedAction.onPress}
           style={styles.toastAction}
           testID="dock-toast-action"
         >
-          <Text style={styles.toastActionText}>{action.label}</Text>
+          <Text style={styles.toastActionText}>{renderedAction.label}</Text>
         </TouchableOpacity>
       )}
     </Animated.View>

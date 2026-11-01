@@ -3,6 +3,53 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+## Archived Done checklist items — 2026-11-02 beta-10 rotation
+
+- [x] Build the remaining Settings information architecture, wire persisted Continuous Play and
+      Keep Screen On preferences, add safe Data and Pro previews, and repair the beta 5 breadcrumb
+      truncation and Custom Order native drag-responder regressions
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `package.json`, `package-lock.json`, `src/components/KeepScreenAwakeController.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/SettingsInfoRow.tsx`, `src/features/settings/preferences.ts`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/common/headerBackButton.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+## Archived handover — 2026-11-02 beta-10 rotation
+
+### 2026-11-02 — Complete Settings architecture and repair beta 5 regressions
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** Settings expansion and beta 5 breadcrumb/Custom Order regressions → Done
+
+**Changed:**
+
+- Added compact Playback, Button Configuration, Data Management, and BeatNote Pro destinations.
+  Continuous Play and Keep Screen On are persisted and functional; unfinished headset, seek,
+  custom-preset, bulk deletion, and StoreKit rows are visibly and truthfully labelled placeholders.
+- Continuous Play now controls actual Pro queue advancement. Keep Screen On uses Expo's native wake
+  lock for always or while-playing modes. Data Management reports imported-copy usage, clears only
+  derived waveform/BPM caches after confirmation, and confirms current-song marker deletion.
+- Reduced breadcrumb padding so the `Settings` label fits its balanced header slot. Kept each Music
+  Library row's PanResponder stable across live reorder renders so a held native drag is not lost as
+  neighbours move.
+- Repaired two new tests: radio choices now expose `aria-checked`, and the completion journey waits
+  for playback to stop before changing tier, eliminating a false timing failure.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, `git diff --check`, and the orchestrator contract
+  checker → passed.
+- Focused Settings, tier, Continuous Play, annotation/data-confirmation, and drag coverage passed;
+  full retained Playwright regression harness → 9/9 passed.
+
+**Not verified / known gaps:**
+
+- The smaller breadcrumb, uninterrupted held-row movement, native wake lock, and all new Settings
+  pages have not yet been installed or inspected on a physical iPhone.
+- Pause on headset disconnect, configurable seek buttons, configurable/custom speed presets, bulk
+  audio/project/all-data deletion, full dependency notices, and StoreKit remain labelled future work.
+
+**Next agent should:**
+
+- Build/install the next physical beta and verify the Settings breadcrumb, Custom Order drag feel,
+  Keep Screen On modes, and compact Settings pages before expanding another placeholder.
+
 ## Archived Done checklist items — 2026-11-02 beta-9 rotation
 
 - [x] Refine iOS Settings and navigation with a compact root, dedicated Pro Timing & BPM subpage,

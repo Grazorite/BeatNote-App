@@ -64,11 +64,40 @@ export const settingsPageStyles = StyleSheet.create({
     borderColor: colors.accent,
     backgroundColor: colors.surfaceRaised,
   },
-  optionText: {
+  optionWithDetail: {
+    minHeight: 64,
+    paddingVertical: 9,
+  },
+  optionCopy: {
     flex: 1,
+    minWidth: 0,
+  },
+  optionText: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '600',
+  },
+  optionDetail: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
+  },
+  durationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  durationOption: {
+    minWidth: 62,
+    minHeight: dimensions.touchTarget.minHeight,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceGlass,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: dimensions.borderRadius,
   },
   check: {
     color: colors.accent,

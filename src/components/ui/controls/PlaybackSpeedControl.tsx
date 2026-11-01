@@ -28,7 +28,7 @@ import { capabilitiesForLoadedItem } from '../../../features/library/sourceResol
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 
 const DRAG_CLOSE_DELAY_MS = 700;
-const DRAG_FADE_DURATION_MS = 420;
+const DRAG_FADE_DURATION_MS = 220;
 const POPUP_PRESENT_DURATION_MS = 180;
 /** Preferred overhang of the compact (landscape) chooser below the speed button's bottom edge. */
 const COMPACT_CHOOSER_BELOW_ANCHOR = 124;
@@ -224,13 +224,11 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     transform: compact
       ? [
         { scale: presentProgress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-        { translateX: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 84] }) },
-        { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.68] }) },
+        { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] }) },
       ]
       : [
         { scale: presentProgress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
-        { translateY: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 52] }) },
-        { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.68] }) },
+        { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] }) },
       ],
   };
 

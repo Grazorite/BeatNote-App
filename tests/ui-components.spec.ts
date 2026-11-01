@@ -31,7 +31,14 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('playback-settings-page-back').click();
 
     await page.getByTestId('settings-buttons').click();
-    await expect(page.getByTestId('seek-duration-placeholder')).toContainText('Planned options');
+    await expect(page.getByTestId('seek-behaviour-tapTrackHoldSeek'))
+      .toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('seek-behaviour-tapSeekHoldTrack').click();
+    await page.getByRole('radio', { name: '10 seconds' }).click();
+    await expect(page.getByTestId('seek-behaviour-tapSeekHoldTrack'))
+      .toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('radio', { name: '10 seconds' }))
+      .toHaveAttribute('aria-checked', 'true');
     await expect(page.getByTestId('speed-presets-included')).toContainText('Lite and Pro');
     await page.getByTestId('button-settings-page-back').click();
 
@@ -50,7 +57,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (9)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (10)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
 
@@ -175,10 +182,24 @@ test.describe('UI Components & Layout', () => {
     await expect(title).toContainText('background-audio');
     await nextTrack.click();
     await expect(title).toContainText('test-audio');
-    await expect(nextTrack).toBeDisabled();
-    await expect(nextTrack).toHaveAccessibleName('Next track, End of queue');
+    await expect(nextTrack).toBeEnabled();
+    await expect(nextTrack).toHaveAccessibleName('Next track, hold to seek forward 5 seconds');
     await page.getByTestId('first-track-control').click();
     await expect(title).toContainText('long-test-track');
+
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-buttons').click();
+    await page.getByTestId('seek-behaviour-tapSeekHoldTrack').click();
+    await page.getByRole('radio', { name: '10 seconds' }).click();
+    await page.getByTestId('button-settings-page-back').click();
+    await page.getByTestId('sidebar-toggle').click();
+
+    await expect(page.getByTestId('next-track-control')).toContainText('+10s');
+    await page.getByTestId('next-track-control').click();
+    await expect(title).toContainText('long-test-track');
+    await expect(page.getByTestId('playback-current-time')).toHaveText('Current: 0:05');
+    await page.getByTestId('previous-track-control').click();
+    await expect(page.getByTestId('playback-current-time')).toHaveText('Current: 0:00');
 
     const shuffle = page.getByTestId('shuffle-control');
     await shuffle.click();

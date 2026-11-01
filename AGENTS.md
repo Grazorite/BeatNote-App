@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (9)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (10)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -114,6 +114,11 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Keep annotation, toast, and speed-chooser exits anchored above the overview; add persisted
+      tap/hold seek-button behaviour and 0.5–30 second distances with signed on-button cues; install
+      Release beta `1.0.0 (10)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Repair the landscape annotation editor and Settings edge gestures; add reversible marker
       deletion, annotated overview markers, smoother transient UI, current-project rename, flatter
       Settings subpages, sheet-native Music dismissal, and install Release beta `1.0.0 (9)`
@@ -134,11 +139,6 @@ target; Android is a far-future possibility only.
       strip's Clear/Restore icons, reduce brittle browser UI coverage to eight core journeys, repair
       the two test-file lint issues, and install Release beta `1.0.0 (6)` on the physical iPhone
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/LoopClearControl.tsx`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Build the remaining Settings information architecture, wire persisted Continuous Play and
-      Keep Screen On preferences, add safe Data and Pro previews, and repair the beta 5 breadcrumb
-      truncation and Custom Order native drag-responder regressions
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `package.json`, `package-lock.json`, `src/components/KeepScreenAwakeController.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/SettingsInfoRow.tsx`, `src/features/settings/preferences.ts`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/common/headerBackButton.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 ---
 
@@ -216,6 +216,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Anchor transient exits and add seek-button configuration
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** anchored feedback exits and configurable transport seeking → Done
+
+**Changed:**
+
+- Replaced exit-time layout animation for annotations and dock toasts with retained, opacity-only
+  presence: each item fades fully where it is anchored before its layout slot is removed. Playback
+  speed dismissal now uses a short in-place fade and subtle scale instead of translating toward the
+  overview strip.
+- Replaced the Button Settings seek placeholders with persisted tap/hold behaviour and all requested
+  distances from 0.5 to 30 seconds. Previous/Next display signed `−/+Ns` cues under their track
+  icons, clamp seeks to track bounds, and remain accessible while either seeking or queue navigation
+  is available.
+- Updated Help and durable UI rules, incremented to `1.0.0 (10)`, and installed/launched the signed
+  physical Release build.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including persisted settings, default track
+  navigation, tap-to-seek, signed badge display, and boundary clamping.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed after regenerating the ignored React
+  Native codegen cache; Xcode Release build, physical install, and launch also succeeded.
+
+**Not verified / known gaps:**
+
+- Physical visual/touch confirmation remains for fade anchoring, badge legibility, and long-press
+  ergonomics in both orientations.
+
+**Next agent should:**
+
+- Incorporate the user's beta 10 physical feedback before adding another transport gesture mode.
 
 ### 2026-11-02 — Repair annotation, navigation, and project workflows in beta 9
 
@@ -363,43 +398,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Incorporate the user's physical beta 6 feedback, then continue the top physical-acceptance item.
-
-### 2026-11-02 — Complete Settings architecture and repair beta 5 regressions
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** Settings expansion and beta 5 breadcrumb/Custom Order regressions → Done
-
-**Changed:**
-
-- Added compact Playback, Button Configuration, Data Management, and BeatNote Pro destinations.
-  Continuous Play and Keep Screen On are persisted and functional; unfinished headset, seek,
-  custom-preset, bulk deletion, and StoreKit rows are visibly and truthfully labelled placeholders.
-- Continuous Play now controls actual Pro queue advancement. Keep Screen On uses Expo's native wake
-  lock for always or while-playing modes. Data Management reports imported-copy usage, clears only
-  derived waveform/BPM caches after confirmation, and confirms current-song marker deletion.
-- Reduced breadcrumb padding so the `Settings` label fits its balanced header slot. Kept each Music
-  Library row's PanResponder stable across live reorder renders so a held native drag is not lost as
-  neighbours move.
-- Repaired two new tests: radio choices now expose `aria-checked`, and the completion journey waits
-  for playback to stop before changing tier, eliminating a false timing failure.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `npm run check:version`, `git diff --check`, and the orchestrator contract
-  checker → passed.
-- Focused Settings, tier, Continuous Play, annotation/data-confirmation, and drag coverage passed;
-  full retained Playwright regression harness → 9/9 passed.
-
-**Not verified / known gaps:**
-
-- The smaller breadcrumb, uninterrupted held-row movement, native wake lock, and all new Settings
-  pages have not yet been installed or inspected on a physical iPhone.
-- Pause on headset disconnect, configurable seek buttons, configurable/custom speed presets, bulk
-  audio/project/all-data deletion, full dependency notices, and StoreKit remain labelled future work.
-
-**Next agent should:**
-
-- Build/install the next physical beta and verify the Settings breadcrumb, Custom Order drag feel,
-  Keep Screen On modes, and compact Settings pages before expanding another placeholder.
 
 <!-- end handover log -->

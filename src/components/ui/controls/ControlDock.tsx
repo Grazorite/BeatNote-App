@@ -53,7 +53,9 @@ const ControlDock: React.FC<ControlDockProps> = ({
     : 0;
   const cellStyle = isLandscape ? [styles.cell, styles.landscapeCell] : styles.cell;
   const queueControl = (action: 'first' | 'previous' | 'next' | 'shuffle') => (
-    <View style={cellStyle}><QueueTrackButton compact={isLandscape} action={action} /></View>
+    <View style={cellStyle}>
+      <QueueTrackButton compact={isLandscape} action={action} onSeek={onSeek} />
+    </View>
   );
   const marker = (action: 'previous' | 'add' | 'next' | 'removePrevious') => (
     <View style={cellStyle}>

@@ -349,13 +349,13 @@ const MainContent: React.FC<MainContentProps> = ({
             action={toast.action}
             stacked
           />
-          {timedAnnotationMarker && displayedAnnotation.trim() && (
-            <AnnotationCallout
-              text={displayedAnnotation}
-              onPress={() => openAnnotationEditor(timedAnnotationMarker)}
-              stacked
-            />
-          )}
+          <AnnotationCallout
+            text={timedAnnotationMarker && displayedAnnotation.trim() ? displayedAnnotation : null}
+            onPress={() => {
+              if (timedAnnotationMarker) openAnnotationEditor(timedAnnotationMarker);
+            }}
+            stacked
+          />
         </View>
         <DanceCountDisplay />
         {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (

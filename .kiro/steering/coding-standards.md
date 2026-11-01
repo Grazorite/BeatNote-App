@@ -119,8 +119,15 @@ inclusion: always
   hairlines. Shield geometry is shared via
   `src/utils/markerShape.ts`. In the strip, layer order is fixed: base peaks, played waveform,
   markers, playhead, so the played-waveform tint never recolours markers.
-- Transient toast and annotation-callout replacements crossfade and use restrained layout transitions
-  so rapid successive feedback does not snap, stack-jump, or compete with playback.
+- Transient toast and annotation-callout replacements crossfade without exit-time layout motion:
+  fade the content fully at its anchored position before removing its stack slot. Playback choosers
+  likewise fade in place and must never translate toward the overview strip while dismissing. Rapid
+  successive feedback must not snap, stack-jump, or compete with playback.
+- Previous/Next track controls combine queue navigation with configurable seeking. Their small
+  signed seconds label (`−5s` / `+5s`) communicates seek direction and persisted distance; Settings
+  chooses whether tap navigates and hold seeks or tap seeks and hold navigates. Preserve both
+  operations in accessible labels, clamp seeking to the track bounds, and keep the control usable
+  when either of its two operations remains available.
 - The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
   be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
   teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.

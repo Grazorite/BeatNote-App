@@ -87,6 +87,9 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
 
         <Section title="Music Library">
           <Text style={styles.text}>
+            • Track Previous/Next also seek by the signed seconds shown below each icon; choose tap and hold behaviour in Settings → Buttons
+          </Text>
+          <Text style={styles.text}>
             • Imported audio is copied into BeatNote; deleting it from BeatNote does not delete the original in Files
           </Text>
           <Text style={styles.text}>

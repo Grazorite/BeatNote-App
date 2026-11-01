@@ -15,7 +15,8 @@ The app is currently a personal tool with a clear path toward commercial release
 1. Import an audio file (MP3, WAV, M4A, AAC, OGG, FLAC) from the Music Library, Files picker, or
    iOS Open In; BeatNote keeps its own durable local copy.
 2. Select songs with the Song Title control or queue controls. First, Previous, Next, and Shuffle
-   navigate music items, not project files.
+   navigate music items, not project files; Previous/Next can alternatively seek by the configured
+   signed interval, with tap-versus-hold behaviour chosen in Button Settings.
 3. Tap to place beat markers during playback on the V1 annotation lane and add text annotations
    such as move names, choreography cues, and 8-counts.
 4. Accept, preview, correct, or ignore the local automatic-BPM/beat-anchor suggestion; the authored
