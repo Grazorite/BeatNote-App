@@ -41,13 +41,22 @@ export const sidebarStyles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  mobileHelpButton: {
+  mobileProButton: {
     width: HEADER_SIDE_WIDTH,
     minHeight: 44,
-    paddingHorizontal: 10,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
     justifyContent: 'center',
     borderRadius: dimensions.borderRadius,
+    backgroundColor: colors.accent,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  mobileProText: {
+    color: colors.onAccent,
+    fontSize: 14,
+    fontWeight: '800',
   },
   mobileScrollContent: {
     flexGrow: 1,

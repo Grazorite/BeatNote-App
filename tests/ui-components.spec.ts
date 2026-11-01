@@ -48,7 +48,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (6)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (7)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
 
@@ -342,6 +342,8 @@ test.describe('UI Components & Layout', () => {
     const handle = testAudioRow.locator('[data-testid^="music-library-row-reorder-"]');
     const handleBounds = await handle.boundingBox();
     if (!handleBounds) throw new Error('Custom-order handle is unavailable');
+    const titlesBeforeDrag = await page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
     await page.mouse.move(
       handleBounds.x + handleBounds.width / 2,
       handleBounds.y + handleBounds.height / 2,
@@ -352,10 +354,12 @@ test.describe('UI Components & Layout', () => {
       handleBounds.y - 72,
       { steps: 6 },
     );
-    await page.mouse.up();
-    const reorderedTitles = await page.locator('[data-testid^="music-library-row-main-"]')
+    const titlesWhileHeld = await page.locator('[data-testid^="music-library-row-main-"]')
       .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
-    expect(reorderedTitles[0]).toContain('test-audio');
+    expect(titlesWhileHeld).toEqual(titlesBeforeDrag);
+    await page.mouse.up();
+    await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
+      .first().textContent()).toContain('test-audio');
     await page.getByRole('button', { name: /^test-audio,/ }).click();
 
     await page.getByTestId('load-project').click();

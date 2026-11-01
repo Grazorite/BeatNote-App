@@ -1,8 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
-  LayoutAnimation,
   PanResponder,
   Text,
   TouchableOpacity,
@@ -23,6 +22,7 @@ import {
 } from '../common';
 
 const REORDER_ROW_HEIGHT = 64;
+const REORDER_HYSTERESIS = 6;
 
 export interface MusicLibraryRowProps {
   item: MusicItem;
@@ -39,7 +39,10 @@ export interface MusicLibraryRowProps {
   onRelink?: (returnFocusRef?: React.RefObject<unknown>) => void;
   customOrderIndex?: number;
   customOrderCount?: number;
+  reorderShift?: number;
+  reorderActive?: boolean;
   onReorderBy?: (offset: number) => void;
+  onReorderPreview?: (offset: number) => void;
   onReorderStart?: () => void;
   onReorderEnd?: () => void;
 }
@@ -67,7 +70,10 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   onRelink,
   customOrderIndex,
   customOrderCount,
+  reorderShift = 0,
+  reorderActive = false,
   onReorderBy,
+  onReorderPreview,
   onReorderStart,
   onReorderEnd,
 }) => {
@@ -76,17 +82,20 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   const [focused, setFocused] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragTranslateY = useRef(new Animated.Value(0)).current;
+  const reorderTranslateY = useRef(new Animated.Value(0)).current;
   const dragScale = useRef(new Animated.Value(1)).current;
   const dragOriginIndexRef = useRef(0);
   const appliedDragOffsetRef = useRef(0);
   const customOrderIndexRef = useRef(customOrderIndex);
   const customOrderCountRef = useRef(customOrderCount);
   const onReorderByRef = useRef(onReorderBy);
+  const onReorderPreviewRef = useRef(onReorderPreview);
   const onReorderStartRef = useRef(onReorderStart);
   const onReorderEndRef = useRef(onReorderEnd);
   customOrderIndexRef.current = customOrderIndex;
   customOrderCountRef.current = customOrderCount;
   onReorderByRef.current = onReorderBy;
+  onReorderPreviewRef.current = onReorderPreview;
   onReorderStartRef.current = onReorderStart;
   onReorderEndRef.current = onReorderEnd;
   const missing = item.availability === 'missing';
@@ -128,6 +137,20 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   const canReorder = customOrderIndex !== undefined
     && customOrderCount !== undefined
     && onReorderBy !== undefined;
+
+  useLayoutEffect(() => {
+    if (!reorderActive) {
+      reorderTranslateY.stopAnimation();
+      reorderTranslateY.setValue(0);
+      return;
+    }
+    Animated.timing(reorderTranslateY, {
+      toValue: reorderShift * REORDER_ROW_HEIGHT,
+      duration: 170,
+      useNativeDriver: true,
+    }).start();
+  }, [reorderActive, reorderShift, reorderTranslateY]);
+
   const dragResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_event, gestureState) => Math.abs(gestureState.dy) > 4,
@@ -149,24 +172,29 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       const originIndex = dragOriginIndexRef.current;
       const minOffset = -originIndex;
       const maxOffset = Math.max(0, (customOrderCountRef.current ?? 1) - originIndex - 1);
-      const desiredOffset = Math.max(
-        minOffset,
-        Math.min(maxOffset, Math.round(gestureState.dy / REORDER_ROW_HEIGHT)),
-      );
-      const delta = desiredOffset - appliedDragOffsetRef.current;
-      if (delta !== 0) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        onReorderByRef.current?.(delta);
+      let desiredOffset = appliedDragOffsetRef.current;
+      while (
+        desiredOffset < maxOffset
+        && gestureState.dy > (desiredOffset + 0.5) * REORDER_ROW_HEIGHT + REORDER_HYSTERESIS
+      ) desiredOffset += 1;
+      while (
+        desiredOffset > minOffset
+        && gestureState.dy < (desiredOffset - 0.5) * REORDER_ROW_HEIGHT - REORDER_HYSTERESIS
+      ) desiredOffset -= 1;
+      if (desiredOffset !== appliedDragOffsetRef.current) {
         appliedDragOffsetRef.current = desiredOffset;
+        onReorderPreviewRef.current?.(desiredOffset);
       }
-      // The list has moved the row's layout origin by the applied offset. Subtract that movement
-      // so the lifted row remains under the finger while its neighbours animate out of the way.
-      dragTranslateY.setValue(gestureState.dy - desiredOffset * REORDER_ROW_HEIGHT);
+      dragTranslateY.setValue(Math.max(
+        minOffset * REORDER_ROW_HEIGHT,
+        Math.min(maxOffset * REORDER_ROW_HEIGHT, gestureState.dy),
+      ));
     },
     onPanResponderRelease: () => {
+      const finalOffset = appliedDragOffsetRef.current;
       Animated.parallel([
         Animated.spring(dragTranslateY, {
-          toValue: 0,
+          toValue: finalOffset * REORDER_ROW_HEIGHT,
           damping: 22,
           stiffness: 280,
           useNativeDriver: true,
@@ -177,16 +205,20 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
           stiffness: 240,
           useNativeDriver: true,
         }),
-      ]).start();
-      setDragging(false);
-      appliedDragOffsetRef.current = 0;
-      onReorderEndRef.current?.();
+      ]).start(({ finished }) => {
+        if (finished && finalOffset !== 0) onReorderByRef.current?.(finalOffset);
+        dragTranslateY.setValue(0);
+        appliedDragOffsetRef.current = 0;
+        setDragging(false);
+        onReorderEndRef.current?.();
+      });
     },
     onPanResponderTerminate: () => {
       dragTranslateY.setValue(0);
       dragScale.setValue(1);
       appliedDragOffsetRef.current = 0;
       setDragging(false);
+      onReorderPreviewRef.current?.(0);
       onReorderEndRef.current?.();
     },
   }), [dragScale, dragTranslateY]);
@@ -198,7 +230,13 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
         current && styles.current,
         unavailable && styles.disabled,
         dragging && styles.dragging,
-        { transform: [{ translateY: dragTranslateY }, { scale: dragScale }] },
+        {
+          transform: [
+            { translateY: reorderTranslateY },
+            { translateY: dragTranslateY },
+            { scale: dragScale },
+          ],
+        },
       ]}
       testID={`music-library-row-${item.id}`}
     >

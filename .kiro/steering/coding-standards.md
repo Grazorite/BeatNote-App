@@ -80,8 +80,10 @@ inclusion: always
 - Page and menu headers keep their title optically centred with equal-width leading/trailing action
   slots and use the shared 20-point navigation-title token. Every menu/submenu return control is an
   iOS-style breadcrumb Back control in the leading/left slot; do not use a right-side Close action
-  for navigation. The Settings root keeps Back on the left and its Help icon on the right; Help is
-  not duplicated as a Settings list row. Do not place decorative icons beside page titles.
+  for navigation. The Settings root keeps Back on the left, uses a compact accent-filled Pro action
+  on the right, and exposes Help & Support as an ordinary navigation row. Keep the Settings root
+  flat without category headers; deeper Settings pages may retain headings that explain their local
+  controls. Do not place decorative icons beside page titles.
 - Native toggle feedback starts on the UI thread before capability or store work returns to
   JavaScript, and callbacks receive the intended next boolean instead of deriving it from a captured
   render. This keeps rapid taps deterministic and prevents heavy waveform/library renders from

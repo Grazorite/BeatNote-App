@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (6)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (7)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -114,6 +114,11 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Smooth Custom Order dragging with stable row slots, midpoint hysteresis, and animated
+      neighbour displacement; flatten the Settings root, restore Help & Support as a row, and move
+      BeatNote Pro to a styled trailing crown action; install signed Release beta `1.0.0 (7)`
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Remove the media-control liquid-glass backdrop in both phone orientations, redraw the overview
       strip's Clear/Restore icons, reduce brittle browser UI coverage to eight core journeys, repair
       the two test-file lint issues, and install Release beta `1.0.0 (6)` on the physical iPhone
@@ -136,11 +141,6 @@ target; Android is a far-future possibility only.
       titles with left-aligned Back controls, Debug-first Settings, iPhone-focused Help, and a
       freshly installed physical Release build
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`, `src/types/library.ts`, `src/utils/displayText.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Finalise the SGD V2 pricing hypothesis and iOS-only product direction, document Lite/Pro and
-      cache boundaries, add a Lite-only standard banner placeholder in both phone orientations,
-      complete the preview speed/continuous-play gates, and install beta `1.0.0 (2)` physically
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `app.json`, `src/components/layout/MainContent.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/ads/liteAdPlaceholder.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -218,6 +218,43 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Smooth Custom Order and flatten Settings
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** stable-slot Custom Order and flat Settings root → Done
+
+**Changed:**
+
+- Kept the dragged library row in its original list slot while held. Crossing a neighbour now
+  animates that neighbour into the open slot; the persisted array changes only after the lifted row
+  settles at release. Added six-point midpoint hysteresis to prevent boundary jitter.
+- Removed every category heading from the Settings root while retaining local headings inside its
+  deeper pages. Help & Support is again a normal root navigation row.
+- Replaced the trailing Help icon with an accent-filled `Pro` button and a crown glyph that opens
+  BeatNote Pro; the wider desktop Settings surface retains its Pro navigation row.
+- Kept the browser regression focused: the existing library journey now verifies that DOM order
+  stays stable while a row is held and that the order persists after release.
+- Incremented the iOS build to `1.0.0 (7)` and installed the signed Release on `gæl (3)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full retained Playwright regression harness → 8/8 passed in 14.6 seconds, including Settings,
+  held Custom Order movement, and post-release persistence.
+- Signed Release build `1.0.0 (7)` succeeded, its built Info.plist reports version/build `1.0.0/7`,
+  and device services confirmed installation, launch, and running process 3632 as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Native spring feel, neighbour motion, header spacing, and the flat Settings hierarchy are installed
+  but still need the user's physical-iPhone visual and touch confirmation.
+- No native module behaviour changed, so no focused iOS XCTest was run.
+
+**Next agent should:**
+
+- Incorporate the user's beta 7 feedback, tuning only the spring/hysteresis values if native touch
+  still feels off.
 
 ### 2026-11-02 — Simplify the media dock and install beta 6
 
@@ -377,41 +414,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Incorporate the user's feedback from the installed build, especially drag feel and row behaviour
   with a larger real music library.
-
-### 2026-11-02 — Finalise the iOS Lite/Pro preview and install beta 2
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** V2 pricing, tier preview, cache policy, and Lite ad layout → Done
-
-**Changed:**
-
-- Set the pricing hypothesis entirely in SGD: S$3.98 monthly, S$19.98 yearly with a seven-day
-  annual trial, S$49.98 founders lifetime, and S$79.98+ as a possible later public lifetime price.
-- Declared iOS the sole product/release target. The browser build remains only a fast regression
-  harness and Android is explicitly far future.
-- Added the Lite-only standard banner placeholder below the portrait controls and below the
-  landscape overview strip. Pro preserves the previous layout without reserved ad space.
-- Completed preview enforcement for Pro playback speed and continuous queue advancement, documented
-  the current import/waveform/BPM cache lifecycle, and bumped the iOS beta to `1.0.0 (2)`.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
-- Full retained Playwright regression harness → 9/9 passed, including both ad placements and tier
-  gates for Settings, playback speed, and track completion.
-- Signed Release build `1.0.0 (2)` built, installed on physical iPhone `gæl (3)`, and launched as
-  `com.beatnote.app`.
-
-**Not verified / known gaps:**
-
-- Physical visual/interaction confirmation of the Lite banner in both orientations and the final
-  speed/BPM gates remains with the user; no focused iOS XCTest suite was run.
-- StoreKit purchase/restore, a production ad provider, About/feedback pages, data-management UI,
-  and a user-facing derived-cache clear action remain future implementation work.
-
-**Next agent should:**
-
-- Incorporate the user's physical Lite/Pro visual feedback, then keep V1 work limited to concrete
-  iOS release blockers before implementing StoreKit and production ads in V2.
 
 <!-- end handover log -->

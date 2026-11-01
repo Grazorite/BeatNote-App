@@ -4901,3 +4901,48 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Do not resume performance profiling for V1 unless the user reports a regression; continue the
   top remaining product/physical-acceptance item instead.
+
+## Archived Done checklist items — 2026-11-02 Settings-drag rotation
+
+- [x] Finalise the SGD V2 pricing hypothesis and iOS-only product direction, document Lite/Pro and
+      cache boundaries, add a Lite-only standard banner placeholder in both phone orientations,
+      complete the preview speed/continuous-play gates, and install beta `1.0.0 (2)` physically
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `app.json`, `src/components/layout/MainContent.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/ads/liteAdPlaceholder.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-02 Settings-drag rotation
+
+### 2026-11-02 — Finalise the iOS Lite/Pro preview and install beta 2
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** V2 pricing, tier preview, cache policy, and Lite ad layout → Done
+
+**Changed:**
+
+- Set the pricing hypothesis entirely in SGD: S$3.98 monthly, S$19.98 yearly with a seven-day
+  annual trial, S$49.98 founders lifetime, and S$79.98+ as a possible later public lifetime price.
+- Declared iOS the sole product/release target. The browser build remains only a fast regression
+  harness and Android is explicitly far future.
+- Added the Lite-only standard banner placeholder below the portrait controls and below the
+  landscape overview strip. Pro preserves the previous layout without reserved ad space.
+- Completed preview enforcement for Pro playback speed and continuous queue advancement, documented
+  the current import/waveform/BPM cache lifecycle, and bumped the iOS beta to `1.0.0 (2)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full retained Playwright regression harness → 9/9 passed, including both ad placements and tier
+  gates for Settings, playback speed, and track completion.
+- Signed Release build `1.0.0 (2)` built, installed on physical iPhone `gæl (3)`, and launched as
+  `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Physical visual/interaction confirmation of the Lite banner in both orientations and the final
+  speed/BPM gates remains with the user; no focused iOS XCTest suite was run.
+- StoreKit purchase/restore, a production ad provider, About/feedback pages, data-management UI,
+  and a user-facing derived-cache clear action remain future implementation work.
+
+**Next agent should:**
+
+- Incorporate the user's physical Lite/Pro visual feedback, then keep V1 work limited to concrete
+  iOS release blockers before implementing StoreKit and production ads in V2.

@@ -28,6 +28,7 @@ import DataManagementScreen from '../ui/screens/DataManagementScreen';
 import ProSettingsScreen from '../ui/screens/ProSettingsScreen';
 import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
+import { colors } from '../../styles/common';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import AppModal from '../ui/common/AppModal';
 import HeaderBackButton from '../ui/common/HeaderBackButton';
@@ -43,6 +44,7 @@ interface SettingsRootSectionsProps {
   onOpenBpm: () => void;
   onOpenData: () => void;
   onOpenPro: () => void;
+  onOpenHelp: () => void;
   onOpenAbout: () => void;
 }
 
@@ -54,22 +56,17 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
   onOpenBpm,
   onOpenData,
   onOpenPro,
+  onOpenHelp,
   onOpenAbout,
 }) => (
   <>
-    <Text style={styles.sectionLabel}>Debug</Text>
     <View style={styles.sidebarSection}>
       <DebugTierControl />
     </View>
-    <Text style={styles.sectionLabel}>Basic</Text>
     <View style={styles.sidebarSection}>
       <WaveformVisibilityControl />
-      <Text style={styles.subsectionLabel}>
-        {singleAnnotationLane ? 'Annotation lane' : 'Layer names'}
-      </Text>
       <LayerNameSettings singleAnnotationLane={singleAnnotationLane} />
     </View>
-    <Text style={styles.sectionLabel}>Playback</Text>
     <View style={[styles.sidebarSection, styles.navigationRows]}>
       <SettingsNavigationRow
         label="Playback Settings"
@@ -81,9 +78,6 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         onPress={onOpenButtons}
         testID="settings-buttons"
       />
-    </View>
-    <Text style={styles.sectionLabel}>Advanced</Text>
-    <View style={[styles.sidebarSection, styles.navigationRows]}>
       <SettingsNavigationRow
         label="Timing & BPM"
         detail={bpmAvailable ? 'Pro' : 'Pro required'}
@@ -91,21 +85,22 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         disabled={!bpmAvailable}
         testID="settings-bpm-entry"
       />
-    </View>
-    <Text style={styles.sectionLabel}>Data</Text>
-    <View style={[styles.sidebarSection, styles.navigationRows]}>
       <SettingsNavigationRow
         label="Data Management"
         onPress={onOpenData}
         testID="settings-data"
       />
-    </View>
-    <Text style={styles.sectionLabel}>Support</Text>
-    <View style={[styles.sidebarSection, styles.navigationRows]}>
+      {singleAnnotationLane ? null : (
+        <SettingsNavigationRow
+          label="BeatNote Pro"
+          onPress={onOpenPro}
+          testID="settings-pro"
+        />
+      )}
       <SettingsNavigationRow
-        label="BeatNote Pro"
-        onPress={onOpenPro}
-        testID="settings-pro"
+        label="Help & Support"
+        onPress={onOpenHelp}
+        testID="settings-help"
       />
       <SettingsNavigationRow
         label="About BeatNote"
@@ -224,13 +219,14 @@ const Sidebar: React.FC = () => {
                 />
                 <Text style={styles.mobileTitle} testID="settings-title">Settings</Text>
                 <TouchableOpacity
-                  style={styles.mobileHelpButton}
-                  onPress={() => setShowHelpScreen(true)}
+                  style={styles.mobileProButton}
+                  onPress={() => setActiveDetail('pro')}
                   accessibilityRole="button"
-                  accessibilityLabel="Open Help and Support"
-                  testID="settings-help"
+                  accessibilityLabel="Open BeatNote Pro"
+                  testID="settings-pro"
                 >
-                  <BeatNoteIcon name="help" size={22} />
+                  <BeatNoteIcon name="pro" size={15} color={colors.onAccent} />
+                  <Text style={styles.mobileProText}>Pro</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView
@@ -246,6 +242,7 @@ const Sidebar: React.FC = () => {
                   onOpenBpm={() => setActiveDetail('bpm')}
                   onOpenData={() => setActiveDetail('data')}
                   onOpenPro={() => setActiveDetail('pro')}
+                  onOpenHelp={() => setShowHelpScreen(true)}
                   onOpenAbout={() => setActiveDetail('about')}
                 />
               </ScrollView>
@@ -299,7 +296,9 @@ const Sidebar: React.FC = () => {
       />
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
-        {activeDetail === 'bpm' ? (
+        {showHelpScreen ? (
+          <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
+        ) : activeDetail === 'bpm' ? (
           <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'playback' ? (
           <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
@@ -325,6 +324,7 @@ const Sidebar: React.FC = () => {
               onOpenBpm={() => setActiveDetail('bpm')}
               onOpenData={() => setActiveDetail('data')}
               onOpenPro={() => setActiveDetail('pro')}
+              onOpenHelp={() => setShowHelpScreen(true)}
               onOpenAbout={() => setActiveDetail('about')}
             />
             {STEM_SEPARATION_UI_ENABLED && (

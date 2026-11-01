@@ -3,7 +3,7 @@ import Svg, { Circle, Path, Rect, SvgProps } from 'react-native-svg';
 import { colors } from '../../styles/common';
 
 export type BeatNoteIconName =
-  | 'audio-file' | 'projects' | 'save' | 'import' | 'export' | 'settings' | 'help'
+  | 'audio-file' | 'projects' | 'save' | 'import' | 'export' | 'settings' | 'help' | 'pro'
   | 'play' | 'pause' | 'first' | 'previous' | 'next' | 'repeat' | 'shuffle' | 'range-loop'
   | 'marker' | 'marker-add' | 'marker-remove' | 'marker-previous' | 'marker-next'
   | 'marker-remove-previous' | 'marker-loop' | 'annotation' | 'clear' | 'restore'
@@ -59,6 +59,8 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <><Path d="m9.7 4.1.7-2.1h3.2l.7 2.1 1.7.7 2-1L20.2 6l-1 2 .7 1.7 2.1.7v3.2l-2.1.7-.7 1.7 1 2-2.2 2.2-2-1-1.7.7-.7 2.1h-3.2l-.7-2.1-1.7-.7-2 1L3.8 18l1-2-.7-1.7-2.1-.7v-3.2l2.1-.7L4.8 8l-1-2L6 3.8l2 1Z" {...common} /><Circle cx="12" cy="12" r="3" {...common} /></>;
       case 'help':
         return <><Circle cx="12" cy="12" r="8.5" {...common} /><Path d="M9.8 9.5a2.4 2.4 0 1 1 3.5 2.2c-.8.5-1.3 1-1.3 2M12 17h.01" {...common} /></>;
+      case 'pro':
+        return <><Path d="M4 7.5 8.5 11 12 4l3.5 7L20 7.5 18 19H6Z" {...common} /><Path d="M7 15.5h10" {...common} /></>;
       case 'play':
         return <Path d="M9.4 5.4c-.65-.4-1.4.08-1.4.85v11.5c0 .77.75 1.25 1.4.85l9.2-5.75c.6-.38.6-1.32 0-1.7Z" fill={color} />;
       case 'pause':

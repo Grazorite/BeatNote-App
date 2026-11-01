@@ -120,7 +120,11 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const [deletePrompt, setDeletePrompt] = useState<DeletePromptState | null>(null);
   const [actionBusyId, setActionBusyId] = useState<string | null>(null);
   const [relinkConfirmation, setRelinkConfirmation] = useState<RelinkPromptState | null>(null);
-  const [reorderingItemId, setReorderingItemId] = useState<string | null>(null);
+  const [reorderPreview, setReorderPreview] = useState<{
+    itemId: string;
+    originIndex: number;
+    targetIndex: number;
+  } | null>(null);
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -306,16 +310,27 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     setLibrarySort(sort);
   }, [collectionItems, libraryCustomOrder.length, librarySort, setLibraryCustomOrder, setLibrarySort]);
 
-  const beginReorder = useCallback((itemId: string) => {
+  const beginReorder = useCallback((itemId: string, originIndex: number) => {
     reorderScrollOffsetRef.current = listScrollOffsetRef.current;
     reorderingRef.current = true;
-    setReorderingItemId(itemId);
+    setReorderPreview({ itemId, originIndex, targetIndex: originIndex });
   }, []);
+
+  const previewReorder = useCallback((itemId: string, offset: number) => {
+    setReorderPreview(current => {
+      if (current === null || current.itemId !== itemId) return current;
+      const targetIndex = Math.max(
+        0,
+        Math.min(visibleItems.length - 1, current.originIndex + offset),
+      );
+      return targetIndex === current.targetIndex ? current : { ...current, targetIndex };
+    });
+  }, [visibleItems.length]);
 
   const endReorder = useCallback(() => {
     reorderingRef.current = false;
     listScrollOffsetRef.current = reorderScrollOffsetRef.current;
-    setReorderingItemId(null);
+    setReorderPreview(null);
   }, []);
 
   const handleListScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -328,8 +343,20 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     listRef.current?.scrollToOffset({ offset: reorderScrollOffsetRef.current, animated: false });
   }, []);
 
-  const renderItem = useCallback(({ item, index }: { item: MusicItem; index: number }) => (
-    <MusicLibraryRow
+  const renderItem = useCallback(({ item, index }: { item: MusicItem; index: number }) => {
+    const reorderShift = reorderPreview === null || reorderPreview.itemId === item.id
+      ? 0
+      : reorderPreview.originIndex < reorderPreview.targetIndex
+        && index > reorderPreview.originIndex
+        && index <= reorderPreview.targetIndex
+        ? -1
+        : reorderPreview.targetIndex < reorderPreview.originIndex
+          && index >= reorderPreview.targetIndex
+          && index < reorderPreview.originIndex
+          ? 1
+          : 0;
+
+    return <MusicLibraryRow
       item={item}
       projectCount={projectCounts[item.id] ?? 0}
       current={item.id === currentMusicItemId}
@@ -346,11 +373,16 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       onRelink={focusRef => { void relinkItem(item, focusRef); }}
       customOrderIndex={librarySort === 'custom' ? index : undefined}
       customOrderCount={librarySort === 'custom' ? visibleItems.length : undefined}
+      reorderShift={reorderShift}
+      reorderActive={reorderPreview !== null}
       onReorderBy={librarySort === 'custom' ? offset => reorderItem(item.id, offset) : undefined}
-      onReorderStart={librarySort === 'custom' ? () => beginReorder(item.id) : undefined}
+      onReorderPreview={librarySort === 'custom'
+        ? offset => previewReorder(item.id, offset)
+        : undefined}
+      onReorderStart={librarySort === 'custom' ? () => beginReorder(item.id, index) : undefined}
       onReorderEnd={librarySort === 'custom' ? endReorder : undefined}
-    />
-  ), [
+    />;
+  }, [
     currentMusicItemId,
     interactionsDisabled,
     librarySwitchFailure,
@@ -359,7 +391,9 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     endReorder,
     onShowProjects,
     openDeletePrompt,
+    previewReorder,
     projectCounts,
+    reorderPreview,
     relinkItem,
     librarySort,
     reorderItem,
@@ -419,7 +453,8 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
           data={libraryStatus === 'ready' ? visibleItems : []}
           renderItem={renderItem}
           keyExtractor={item => item.id}
-          scrollEnabled={reorderingItemId === null}
+          extraData={reorderPreview}
+          scrollEnabled={reorderPreview === null}
           removeClippedSubviews={false}
           onScroll={handleListScroll}
           scrollEventThrottle={16}
