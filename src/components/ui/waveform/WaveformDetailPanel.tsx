@@ -1,8 +1,9 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { Layer } from '../../../hooks/useStudioStore';
 import WaveformCanvas from './WaveformCanvas';
 import { waveformDetailPanelStyles as styles } from '../../../styles/components/waveform/waveformDetailPanel';
+import HeaderBackButton from '../common/HeaderBackButton';
 
 interface WaveformDetailPanelProps {
   audioUri?: string;
@@ -24,16 +25,14 @@ const WaveformDetailPanel: React.FC<WaveformDetailPanelProps> = ({
   return (
     <View style={styles.panel} testID="waveform-detail-panel">
       <View style={styles.header}>
-        <Text style={styles.title}>Waveform details</Text>
-        <Pressable
-          accessibilityLabel="Close waveform details"
-          accessibilityRole="button"
+        <HeaderBackButton
+          accessibilityLabel="Back from waveform details"
+          label="Back"
           testID="waveform-detail-close"
-          style={({ pressed }) => [styles.closeButton, pressed && styles.closePressed]}
           onPress={onClose}
-        >
-          <Text style={styles.closeText}>Close</Text>
-        </Pressable>
+        />
+        <Text style={styles.title}>Waveform details</Text>
+        <View style={styles.headerSide} />
       </View>
       <WaveformCanvas
         audioUri={audioUri}

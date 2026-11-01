@@ -1,5 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from '../common/headerBackButton';
 
 export const waveformDetailPanelStyles = StyleSheet.create({
   panel: {
@@ -16,7 +21,6 @@ export const waveformDetailPanelStyles = StyleSheet.create({
   header: {
     minHeight: 40,
     alignItems: 'center',
-    justifyContent: 'space-between',
     flexDirection: 'row',
     paddingHorizontal: dimensions.spacing.md,
     borderWidth: 0,
@@ -26,22 +30,13 @@ export const waveformDetailPanelStyles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  closeButton: {
-    minHeight: dimensions.touchTarget.minHeight,
-    minWidth: dimensions.touchTarget.minWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: dimensions.spacing.sm,
-  },
-  closeText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  closePressed: {
-    opacity: 0.6,
+  headerSide: {
+    width: HEADER_SIDE_WIDTH,
   },
 });

@@ -52,22 +52,24 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
-    await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
+    await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(1);
+    await expect(page.getByTestId('sidebar-toggle')).toContainText('Back');
+    await expect(page.getByTestId('settings-title')).toHaveCSS('font-size', '20px');
     await expect.poll(async () => (
       (await page.getByTestId('settings-page').boundingBox())?.x ?? -1
     )).toBeCloseTo(0, 0);
     const settingsHeader = await page.evaluate(() => {
       const title = document.querySelector('[data-testid="settings-title"]')?.getBoundingClientRect();
-      const close = document.querySelector('[data-testid="sidebar-toggle"]')?.getBoundingClientRect();
+      const back = document.querySelector('[data-testid="sidebar-toggle"]')?.getBoundingClientRect();
       const help = document.querySelector('[data-testid="settings-help"]')?.getBoundingClientRect();
       return {
         titleCenter: title ? title.left + title.width / 2 : 0,
-        closeCenter: close ? close.left + close.width / 2 : 0,
+        backCenter: back ? back.left + back.width / 2 : 0,
         helpCenter: help ? help.left + help.width / 2 : 0,
       };
     });
     expect(Math.abs(settingsHeader.titleCenter - 393 / 2)).toBeLessThan(2);
-    expect(settingsHeader.closeCenter).toBeLessThan(settingsHeader.titleCenter);
+    expect(settingsHeader.backCenter).toBeLessThan(settingsHeader.titleCenter);
     expect(settingsHeader.helpCenter).toBeGreaterThan(settingsHeader.titleCenter);
     await expect(page.getByText('Basic', { exact: true })).toBeVisible();
     const debugToggleY = (await page.getByTestId('debug-tier-toggle').boundingBox())?.y ?? -1;
@@ -77,6 +79,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
     await expect(page.getByTestId('settings-waveform')).toBeVisible();
     await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'false');
+    await expect(page.getByTestId('settings-layer-swatch-vocals'))
+      .toHaveCSS('background-color', 'rgb(192, 132, 252)');
     const settingsOrder = await page.evaluate(() => [
       'settings-waveform',
       'settings-layer-names',
@@ -88,6 +92,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
     await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('bpm-settings-page')).toBeVisible();
+    await expect(page.getByTestId('bpm-settings-page-title')).toHaveCSS('font-size', '20px');
     await expect.poll(async () => (
       (await page.getByTestId('bpm-settings-page').boundingBox())?.x ?? -1
     )).toBeCloseTo(0, 0);
@@ -121,7 +126,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await expect(page.getByTestId('about-settings-page')).toBeVisible();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (3)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (5)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-open-source-licences')).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
@@ -174,6 +179,11 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('debug-tier-toggle').evaluate(element => {
+      (element as HTMLElement).click();
+      (element as HTMLElement).click();
+    });
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
@@ -182,8 +192,14 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('settings-page')).toHaveCount(0);
-    await expect(page.getByTestId('playback-speed')).toBeDisabled();
-    await expect(page.getByTestId('playback-speed')).toContainText('Pro');
+    await expect(page.getByTestId('playback-speed')).toBeEnabled();
+    await page.getByTestId('playback-speed').click();
+    await expect(page.getByTestId('playback-speed-preset-0.75')).toBeVisible();
+    await expect(page.getByTestId('playback-speed-slider')).toHaveCount(0);
+    await expect(page.getByTestId('playback-speed-decrement')).toHaveCount(0);
+    await expect(page.getByTestId('playback-speed-increment')).toHaveCount(0);
+    await page.getByTestId('playback-speed-preset-0.75').click();
+    await expect(page.getByTestId('playback-speed')).toContainText('0.75×');
     const portraitDock = await page.getByTestId('portrait-control-dock').boundingBox();
     const portraitAd = await page.getByTestId('lite-ad-space').boundingBox();
     expect(portraitDock).not.toBeNull();
@@ -213,6 +229,9 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('playback-speed')).toBeEnabled();
+    await page.getByTestId('playback-speed').click();
+    await expect(page.getByTestId('playback-speed-slider')).toBeVisible();
+    await page.getByTestId('playback-speed-reset').click();
     await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
   });
 
@@ -770,21 +789,29 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('projects-modal-glass')).toBeVisible();
     const projectHeader = await page.evaluate(() => {
       const title = document.querySelector('[data-testid="projects-title"]')?.getBoundingClientRect();
-      const close = Array.from(document.querySelectorAll('*')).find(node => node.textContent === 'Close')?.getBoundingClientRect();
+      const back = document.querySelector('[data-testid="projects-back"]')?.getBoundingClientRect();
+      const titleSize = title
+        ? Number.parseFloat(getComputedStyle(document.querySelector('[data-testid="projects-title"]')!).fontSize)
+        : 0;
       return {
         titleCenter: title ? title.left + title.width / 2 : 0,
-        closeRight: close?.right ?? 0,
+        backLeft: back?.left ?? Number.POSITIVE_INFINITY,
+        titleLeft: title?.left ?? 0,
+        titleSize,
       };
     });
     expect(Math.abs(projectHeader.titleCenter - 740 / 2)).toBeLessThan(2);
-    expect(740 - projectHeader.closeRight).toBeGreaterThanOrEqual(20);
-    await page.getByText('Close', { exact: true }).click();
+    expect(projectHeader.backLeft).toBeLessThan(projectHeader.titleLeft);
+    expect(projectHeader.titleSize).toBe(20);
+    await page.getByTestId('projects-back').click();
 
     await page.setViewportSize({ width: 393, height: 852 });
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await page.getByTestId('settings-help').click();
     await expect(page.getByTestId('help-modal-glass')).toBeVisible();
+    await expect(page.getByTestId('help-title')).toHaveCSS('font-size', '20px');
+    await expect(page.getByTestId('settings-title')).toHaveCSS('font-size', '20px');
     await page.getByTestId('help-close').click();
     await page.getByTestId('sidebar-toggle').click();
 
@@ -839,7 +866,11 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('dance-count-display')).toHaveText('Phrase 1 | Count 1');
     const songTitleControl = page.getByTestId('song-title-control');
     await songTitleControl.click();
-    await expect(page.getByTestId('music-library-sheet-title')).toBeFocused();
+    await expect(page.getByTestId('music-library-sheet-title')).toBeVisible();
+    await expect(page.getByTestId('music-library-sheet-close')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (
+      document.querySelector('[data-testid="music-library-sheet"]')?.contains(document.activeElement)
+    ))).toBe(true);
     await expect(page.getByRole('button', { name: 'Import Audio' }).locator('path').last())
       .toHaveAttribute('d', /^M21 13H8m2\.5-2\.5L8 13l2\.5 2\.5$/);
     await expect(page.getByRole('button', { name: 'Import Audio' }).locator('path').last())
@@ -944,6 +975,9 @@ test.describe('UI Components & Layout', () => {
         .not.toBe('none');
       await expect.poll(() => page.getByTestId('music-library-list')
         .evaluate(element => element.scrollTop)).toBe(scrollBeforeDrag);
+      const heldTitles = await page.locator('[data-testid^="music-library-row-main-"]')
+        .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
+      expect(heldTitles[0]).toContain('test-audio');
       await page.mouse.up();
     }
     await expect.poll(() => page.evaluate(() => {
@@ -967,7 +1001,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await page.getByTestId('load-project').click();
     await expect(page.getByTestId('current-project-name')).toHaveText('Glass Surface Project 2');
-    await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('projects-back').click();
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Lead movement');
     await page.getByTestId('sidebar-toggle').click();
@@ -1016,7 +1050,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pdf-option-includeTimeline').click();
     await expect(page.getByTestId('pdf-option-includeTimeline')).toHaveAttribute('aria-checked', 'false');
     await page.getByText('Cancel', { exact: true }).last().click();
-    await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('projects-back').click();
 
     await page.addInitScript(() => {
       localStorage.clear();
@@ -1069,7 +1103,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('project-relink-confirm')).toBeVisible();
     await page.getByTestId('confirm-relink-use-file').click();
     await expect(legacyRow).not.toContainText('Audio missing');
-    await page.getByText('Close', { exact: true }).click();
+    await page.getByTestId('projects-back').click();
 
     await page.getByTestId('song-title-control').click();
     const onlyLibraryRow = page.locator('[data-testid^="music-library-row-"]')

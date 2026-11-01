@@ -6,7 +6,6 @@ import {
   KeyboardEvent,
   Platform,
   Text,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -28,8 +27,8 @@ import {
 import AppModal from './AppModal';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { resolveSheetRelease, type SheetReleaseTarget } from '../../../utils/sheetDetent';
-import { BeatNoteIcon } from '../../icons';
 import GlassBackdrop from '../controls/GlassBackdrop';
+import HeaderBackButton from './HeaderBackButton';
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -308,7 +307,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   <View style={styles.grabber} />
                 </View>
                 <View style={styles.titleRow}>
-                  <View style={styles.titleSide} />
+                  <HeaderBackButton
+                    onPress={requestClose}
+                    accessibilityLabel={`Back from ${title}`}
+                    label="Back"
+                    testID={`${testID}-close`}
+                  />
                   <Text
                     ref={titleRef}
                     style={styles.title}
@@ -321,15 +325,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   >
                     {title}
                   </Text>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={requestClose}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Close ${title}`}
-                    testID={`${testID}-close`}
-                  >
-                    <BeatNoteIcon name="close" size={18} />
-                  </TouchableOpacity>
+                  <View style={styles.titleSide} />
                 </View>
               </View>
             </GestureDetector>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 import GlassBackdrop from '../controls/GlassBackdrop';
@@ -30,25 +30,16 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
           paddingRight: Math.max(insets.right, 16),
         },
       ]}>
-        {embedded ? (
-          <HeaderBackButton
-            onPress={onClose}
-            accessibilityLabel="Back to Settings from Help and Support"
-            testID="help-close"
-          />
-        ) : <View style={styles.headerSide} />}
+        <HeaderBackButton
+          onPress={onClose}
+          accessibilityLabel={embedded
+            ? 'Back to Settings from Help and Support'
+            : 'Back from Help and Support'}
+          label={embedded ? 'Settings' : 'Back'}
+          testID="help-close"
+        />
         <Text style={styles.title} numberOfLines={1} testID="help-title">Help & Support</Text>
-        {embedded ? <View style={styles.headerSide} /> : (
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel="Close help"
-            testID="help-close"
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerSide} />
       </View>
 
           <ScrollView

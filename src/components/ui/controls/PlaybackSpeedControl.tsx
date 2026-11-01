@@ -55,6 +55,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     state.songLoaded && state.currentAudioUri !== null,
   ).pitchPreservingSpeed);
   const productSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
+  const advancedSpeedAvailable = useProductCapability('playback.advancedSpeed');
   const speedAvailable = sourceSpeedAvailable && productSpeedAvailable;
   const [localValue, setLocalValue] = useState(DEFAULT_PLAYBACK_SPEED);
   const [open, setOpen] = useState(false);
@@ -232,7 +233,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
             <Text style={styles.title}>Playback speed</Text>
             <Text style={styles.currentValue} testID="playback-speed-value">{formatSpeedLabel(value)}</Text>
           </View>
-          <View style={styles.sliderControls}>
+          {advancedSpeedAvailable && <View style={styles.sliderControls}>
             <TouchableOpacity
               testID="playback-speed-decrement"
               style={[styles.stepButton, value <= MIN_PLAYBACK_SPEED && styles.stepButtonDisabled]}
@@ -308,7 +309,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
             >
               <Text style={styles.stepButtonText}>+</Text>
             </TouchableOpacity>
-          </View>
+          </View>}
           <View style={styles.presets}>
             {options.map(option => {
               const normalizedOption = normalizePlaybackSpeed(option);
@@ -348,14 +349,16 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         hint={!songLoaded
           ? 'Choose music to adjust playback speed'
           : !productSpeedAvailable
-            ? 'Available with BeatNote Pro'
+            ? 'Playback speed is unavailable'
             : speedAvailable
-            ? 'Opens playback speed controls'
+            ? advancedSpeedAvailable
+              ? 'Opens preset and fine playback speed controls'
+              : 'Opens preset playback speeds'
             : 'Playback speed is unavailable for this audio source'}
         description={songLoaded && !speedAvailable
           ? productSpeedAvailable
             ? 'Not available for this source: playback speed'
-            : 'Pro'
+            : 'Unavailable'
           : undefined}
         state={songLoaded && speedAvailable
           ? (presentedValue === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active')
@@ -371,11 +374,11 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
           }
           showPopup();
         }}
-        accessibilityActions={[
+        accessibilityActions={advancedSpeedAvailable ? [
           { name: 'increment', label: 'Increase playback speed' },
           { name: 'decrement', label: 'Decrease playback speed' },
-        ]}
-        onAccessibilityAction={onAdjust}
+        ] : undefined}
+        onAccessibilityAction={advancedSpeedAvailable ? onAdjust : undefined}
       >
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.label}>{formatSpeedLabel(presentedValue)}</Text>
       </DockButton>

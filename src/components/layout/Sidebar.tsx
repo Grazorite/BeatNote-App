@@ -26,6 +26,7 @@ import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import AppModal from '../ui/common/AppModal';
+import HeaderBackButton from '../ui/common/HeaderBackButton';
 import { BeatNoteIcon } from '../icons';
 
 type SettingsDetail = 'bpm' | 'about' | null;
@@ -177,15 +178,12 @@ const Sidebar: React.FC = () => {
               ]}
             >
               <View style={styles.mobileHeader}>
-                <TouchableOpacity
-                  style={styles.mobileCloseButton}
+                <HeaderBackButton
                   onPress={closeMobileSettings}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close settings"
+                  accessibilityLabel="Back to editor from Settings"
+                  label="Back"
                   testID="sidebar-toggle"
-                >
-                  <Text style={styles.mobileCloseText}>Close</Text>
-                </TouchableOpacity>
+                />
                 <Text style={styles.mobileTitle} testID="settings-title">Settings</Text>
                 <TouchableOpacity
                   style={styles.mobileHelpButton}

@@ -1,7 +1,11 @@
 import { StyleSheet } from 'react-native';
 
 import { colors } from '../../common';
-import { HEADER_SIDE_WIDTH } from '../common/headerBackButton';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from '../common/headerBackButton';
 
 export const settingsSubpageStyles = StyleSheet.create({
   page: {
@@ -25,7 +29,8 @@ export const settingsSubpageStyles = StyleSheet.create({
   title: {
     flex: 1,
     color: colors.text,
-    fontSize: 18,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
     fontWeight: '700',
     textAlign: 'center',
   },

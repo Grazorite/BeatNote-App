@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (3)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (5)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -114,12 +114,15 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
-- [x] Refine iOS Settings with a compact root, dedicated Pro Timing & BPM subpage, About/support
-      page, and optimistic UI-thread toggle feedback; install and launch beta `1.0.0 (3)` physically
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/settings/`, `src/hooks/useModernToggleAnimation.ts`, `src/styles/components/settings/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+- [x] Refine iOS Settings and navigation with a compact root, dedicated Pro Timing & BPM subpage,
+      About/support page, native UI-thread toggle feedback, marker-violet annotation identity,
+      standard 20-point menu titles, leading breadcrumb Back controls, Lite speed presets with Pro
+      fine controls, and physically installed beta `1.0.0 (5)`
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/release-roadmap.md`, `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/`, `src/components/ui/waveform/WaveformDetailPanel.tsx`, `src/features/entitlements/`, `src/hooks/useModernToggleAnimation.ts`, `src/styles/`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Polish the iOS library and utility surfaces with 36-character middle title truncation,
-      persisted lifted drag-defined Custom Order, equal-height Lite ad slots, centred menu/page
+      persisted lifted Custom Order with neighbouring rows shifting during the held drag,
+      equal-height Lite ad slots, centred menu/page
       titles with left-aligned Back controls, Debug-first Settings, iPhone-focused Help, and a
       freshly installed physical Release build
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`, `src/types/library.ts`, `src/utils/displayText.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
@@ -216,42 +219,52 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-11-02 — Split Settings into focused pages and harden toggle feedback
+### 2026-11-02 — Polish Settings, navigation, ordering, and tier controls
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** iOS Settings navigation and toggle responsiveness → Done
+**Kanban moved:** iOS Settings/navigation, live custom ordering, and speed tier split → Done
 
 **Changed:**
 
-- Kept the Settings root compact: Debug and Basic remain inline, Advanced now links to a dedicated
-  Pro Timing & BPM page, and Support links to Help and About BeatNote.
+- Kept the Settings root compact: Debug and Basic remain inline, Advanced links to a dedicated Pro
+  Timing & BPM page, Support links only to About BeatNote, and Help lives in the trailing header
+  icon instead of taking another list row.
 - Added an About page with the real version/build, current licence status, the GitHub feedback
   channel, and an explicit statement that no crash or usage diagnostics are currently collected.
-- Modern toggles now schedule optimistic visual movement immediately on tap, then reconcile with
-  the controlled store/entitlement value so expensive renders do not make a successful tap appear
-  stuck. Persistence and capability state remain authoritative.
-- Updated browser/native Settings journeys and installed signed Release beta `1.0.0 (3)` on the
-  connected physical iPhone.
+- On iOS, modern toggles now recognize the tap and animate entirely on the native UI thread before
+  sending the explicit intended value to JavaScript. Rapid debug-tier taps no longer derive from a
+  stale captured tier, while persistence and capability state remain authoritative.
+- The single annotation-lane swatch now uses the same shared violet as its visible markers instead
+  of the legacy vocals-layer red.
+- Standardised menu/submenu titles on the shared 20-point token and replaced navigation Close
+  actions with leading iOS-style breadcrumb Back controls across Settings, Help, Music, Projects,
+  and waveform detail.
+- Custom Order now updates as the held row crosses each neighbour, using layout animation so the
+  other rows move before release while the lifted row stays under the finger.
+- Lite now retains every built-in pitch-preserved speed preset. Pro adds the fine slider and
+  increment/decrement controls; long-press custom preset editing is reserved for its planned Pro
+  implementation. Installed signed Release beta `1.0.0 (5)` on the connected physical iPhone.
 
 **Verified:**
 
-- `npx tsc --noEmit` and `git diff --check` → passed.
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
 - Full retained Playwright regression harness → 9/9 passed, including root/subpage navigation,
-  About content, Lite/Pro BPM discovery, and existing library/custom-order journeys.
-- Signed Release build `1.0.0 (3)` succeeded, installed on iPhone `gæl (3)`, and launched as
-  `com.beatnote.app`.
+  rapid debug-tier changes, marker-violet identity, Lite/Pro speed surfaces, standard header sizes,
+  leading Back controls, and live pre-release custom-order movement.
+- Signed Release build `1.0.0 (5)` succeeded after regenerating ignored React Native codegen and
+  installed and launched on iPhone `gæl (3)` as `com.beatnote.app`.
 
 **Not verified / known gaps:**
 
-- Focused iOS XCTest could not start because CoreSimulatorService was unavailable on this host;
-  physical visual/touch confirmation of the pages and toggle feel remains with the user.
+- Physical confirmation of breadcrumb layout, held-drag animation, heavy-load toggles, violet
+  identity, and Lite/Pro speed surfaces remains with the user.
 - Full dependency licence notices, an in-app feedback composer, Playback/Button Configuration, and
   Data Management pages remain future work; current feedback opens the project issue form.
 
 **Next agent should:**
 
-- Incorporate physical feedback from beta 3, then add only the next user-selected Settings group
-  rather than expanding the root page.
+- Unlock and inspect beta 5 on the physical phone, especially held-row movement and the Lite/Pro
+  speed chooser, before expanding Settings further.
 
 ### 2026-11-02 — Polish the iOS library and utility surfaces
 
@@ -271,7 +284,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 - Debug moved to the top of Settings, and Help & Support now documents the iPhone/Files/share-sheet
   workflow without browser shortcuts.
 - Settings/detail, Help, Music Library, bottom-sheet, and Projects headers now keep their titles
-  centred while Back or Close actions remain left-aligned and accessible.
+  centred. All menu titles share the 20-point navigation token and every return action uses a
+  left-side iOS breadcrumb Back control; Settings retains Help in the balanced trailing slot.
 
 **Verified:**
 

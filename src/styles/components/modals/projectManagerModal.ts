@@ -1,5 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from '../common/headerBackButton';
 
 export const projectManagerModalStyles = StyleSheet.create({
   container: {
@@ -18,25 +23,13 @@ export const projectManagerModalStyles = StyleSheet.create({
   title: {
     flex: 1,
     color: colors.text,
-    fontSize: 18,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   headerSide: {
-    width: 76,
-  },
-  closeButton: {
-    width: 76,
-    backgroundColor: colors.surfaceGlass,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: dimensions.borderRadius,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-  },
-  closeButtonText: {
-    color: colors.text,
-    fontWeight: '600',
+    width: HEADER_SIDE_WIDTH,
   },
   content: {
     flex: 1,

@@ -1,6 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
-import { HEADER_SIDE_WIDTH } from '../common/headerBackButton';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from '../common/headerBackButton';
 
 export const helpScreenStyles = StyleSheet.create({
   overlay: {
@@ -49,7 +53,8 @@ export const helpScreenStyles = StyleSheet.create({
   title: {
     flex: 1,
     color: colors.text,
-    fontSize: 20,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
     fontWeight: 'bold',
     textAlign: 'center',
   },

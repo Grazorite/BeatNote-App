@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 
 import { headerBackButtonStyles as styles } from '../../../styles/components/common/headerBackButton';
+import { colors } from '../../../styles/common';
 import { BeatNoteIcon } from '../../icons';
 
 interface HeaderBackButtonProps {
@@ -14,7 +15,7 @@ interface HeaderBackButtonProps {
 const HeaderBackButton: React.FC<HeaderBackButtonProps> = ({
   onPress,
   accessibilityLabel,
-  label = 'Settings',
+  label = 'Back',
   testID,
 }) => (
   <TouchableOpacity
@@ -24,7 +25,7 @@ const HeaderBackButton: React.FC<HeaderBackButtonProps> = ({
     accessibilityLabel={accessibilityLabel}
     testID={testID}
   >
-    <BeatNoteIcon name="chevron-left" size={18} />
+    <BeatNoteIcon name="chevron-left" size={20} color={colors.accent} />
     <Text style={styles.label} numberOfLines={1}>{label}</Text>
   </TouchableOpacity>
 );

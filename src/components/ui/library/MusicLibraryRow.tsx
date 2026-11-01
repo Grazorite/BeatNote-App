@@ -22,6 +22,8 @@ import {
   type OverflowMenuAction,
 } from '../common';
 
+const REORDER_ROW_HEIGHT = 64;
+
 export interface MusicLibraryRowProps {
   item: MusicItem;
   projectCount: number;
@@ -75,6 +77,8 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   const [dragging, setDragging] = useState(false);
   const dragTranslateY = useRef(new Animated.Value(0)).current;
   const dragScale = useRef(new Animated.Value(1)).current;
+  const dragOriginIndexRef = useRef(0);
+  const appliedDragOffsetRef = useRef(0);
   const missing = item.availability === 'missing';
   const unavailable = disabled || loading;
   const duration = formatDuration(item.durationMs);
@@ -120,6 +124,8 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     onPanResponderTerminationRequest: () => false,
     onShouldBlockNativeResponder: () => true,
     onPanResponderGrant: () => {
+      dragOriginIndexRef.current = customOrderIndex ?? 0;
+      appliedDragOffsetRef.current = 0;
       setDragging(true);
       onReorderStart?.();
       Animated.spring(dragScale, {
@@ -130,29 +136,58 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       }).start();
     },
     onPanResponderMove: (_event, gestureState) => {
-      dragTranslateY.setValue(gestureState.dy);
+      const originIndex = dragOriginIndexRef.current;
+      const minOffset = -originIndex;
+      const maxOffset = Math.max(0, (customOrderCount ?? 1) - originIndex - 1);
+      const desiredOffset = Math.max(
+        minOffset,
+        Math.min(maxOffset, Math.round(gestureState.dy / REORDER_ROW_HEIGHT)),
+      );
+      const delta = desiredOffset - appliedDragOffsetRef.current;
+      if (delta !== 0) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        onReorderBy?.(delta);
+        appliedDragOffsetRef.current = desiredOffset;
+      }
+      // The list has moved the row's layout origin by the applied offset. Subtract that movement
+      // so the lifted row remains under the finger while its neighbours animate out of the way.
+      dragTranslateY.setValue(gestureState.dy - desiredOffset * REORDER_ROW_HEIGHT);
     },
-    onPanResponderRelease: (_event, gestureState) => {
-      const offset = Math.round(gestureState.dy / 64);
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      dragTranslateY.setValue(0);
-      Animated.spring(dragScale, {
-        toValue: 1,
-        damping: 18,
-        stiffness: 240,
-        useNativeDriver: true,
-      }).start();
+    onPanResponderRelease: () => {
+      Animated.parallel([
+        Animated.spring(dragTranslateY, {
+          toValue: 0,
+          damping: 22,
+          stiffness: 280,
+          useNativeDriver: true,
+        }),
+        Animated.spring(dragScale, {
+          toValue: 1,
+          damping: 18,
+          stiffness: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
       setDragging(false);
-      if (offset !== 0) onReorderBy?.(offset);
+      appliedDragOffsetRef.current = 0;
       onReorderEnd?.();
     },
     onPanResponderTerminate: () => {
       dragTranslateY.setValue(0);
       dragScale.setValue(1);
+      appliedDragOffsetRef.current = 0;
       setDragging(false);
       onReorderEnd?.();
     },
-  }), [dragScale, dragTranslateY, onReorderBy, onReorderEnd, onReorderStart]);
+  }), [
+    customOrderCount,
+    customOrderIndex,
+    dragScale,
+    dragTranslateY,
+    onReorderBy,
+    onReorderEnd,
+    onReorderStart,
+  ]);
 
   return (
     <Animated.View

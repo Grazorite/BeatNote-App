@@ -31,6 +31,7 @@ const SettingsSubpage: React.FC<SettingsSubpageProps> = ({ title, onBack, testID
           <HeaderBackButton
             onPress={onBack}
             accessibilityLabel={`Back to Settings from ${title}`}
+            label="Settings"
             testID={`${testID}-back`}
           />
           <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>{title}</Text>

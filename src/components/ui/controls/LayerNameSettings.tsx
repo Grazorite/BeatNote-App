@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
+import { colors } from '../../../styles/common';
 import { layerNameSettingsStyles as styles } from '../../../styles/components/controls/layerNameSettings';
 import {
   DEFAULT_ANNOTATION_LANE_NAME,
@@ -40,7 +41,10 @@ const LayerNameRow: React.FC<LayerNameRowProps> = ({ layer, disabled, annotation
 
   return (
     <View style={styles.row}>
-      <View style={[styles.swatch, { backgroundColor: layer.color }]} />
+      <View
+        style={[styles.swatch, { backgroundColor: annotationLane ? colors.marker : layer.color }]}
+        testID={`settings-layer-swatch-${layer.id}`}
+      />
       {!annotationLane && <Text style={styles.defaultName}>{layer.name}</Text>}
       <TextInput
         value={value}

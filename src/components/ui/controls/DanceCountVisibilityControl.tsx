@@ -14,7 +14,7 @@ const DanceCountVisibilityControl: React.FC = () => {
       <ModernToggle
         label="Show dance counts"
         value={showDanceCounts}
-        onToggle={() => setShowDanceCounts(!showDanceCounts)}
+        onValueChange={setShowDanceCounts}
         accessibilityHint="Shows phrase and count guidance on the waveform and transport"
         testID="dance-counts-toggle"
       />

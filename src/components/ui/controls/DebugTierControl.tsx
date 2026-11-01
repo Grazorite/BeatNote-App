@@ -19,7 +19,7 @@ const DebugTierControl: React.FC = () => {
       <ModernToggle
         label="Pro features"
         value={isPro}
-        onToggle={() => { void setDebugTier(isPro ? 'lite' : 'pro'); }}
+        onValueChange={enabled => { void setDebugTier(enabled ? 'pro' : 'lite'); }}
         accessibilityHint="Debug only. Switches between the Lite and Pro feature sets."
         testID="debug-tier-toggle"
       />

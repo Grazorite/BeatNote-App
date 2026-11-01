@@ -1,5 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../common';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from '../components/common/headerBackButton';
 
 export const sidebarStyles = StyleSheet.create({
   settingsPage: {
@@ -31,35 +36,18 @@ export const sidebarStyles = StyleSheet.create({
   mobileTitle: {
     flex: 1,
     color: colors.text,
-    fontSize: 22,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
     fontWeight: '700',
     textAlign: 'center',
   },
   mobileHelpButton: {
-    width: 92,
+    width: HEADER_SIDE_WIDTH,
     minHeight: 44,
     paddingHorizontal: 10,
     alignItems: 'flex-end',
     justifyContent: 'center',
     borderRadius: dimensions.borderRadius,
-  },
-  mobileCloseButton: {
-    width: 92,
-    minHeight: 44,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: dimensions.borderRadius,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    backgroundColor: colors.surfaceGlass,
-  },
-  mobileCloseText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
   },
   mobileScrollContent: {
     flexGrow: 1,

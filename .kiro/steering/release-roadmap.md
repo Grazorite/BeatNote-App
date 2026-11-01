@@ -53,8 +53,9 @@ Pro candidates:
 
 - Unlimited saved projects per song (Lite allows one; autosaved drafts are never limited)
 - All six layers and custom layer names (the six-layer expansion also anticipates V3 stems)
-- Pitch-preserving playback-speed controls: speed adjustment, range selection, preset buttons,
-  preset count, and custom preset values. Lite playback remains at 1×.
+- Advanced pitch-preserving playback-speed controls: fine slider/button adjustment, range and
+  preset-count configuration, and long-press custom preset values. Lite retains the built-in
+  pitch-preserved speed presets.
 - BPM tooling as a whole: manual BPM, beat anchor, 8-count/phrase grid and guidance, and automatic
   BPM detection. Most choreographers do not work from BPM, so this is a convenience tier.
 - Continuous playback: the next queued track loads automatically when the current one ends. Lite
@@ -108,7 +109,7 @@ The Lite tier must complete a real project:
 - Seek, scrub, loop, and use solid timing/progress bars
 - Optionally enable decoded waveform artwork (user-controlled, off by default)
 - Add, edit, navigate, and delete unlimited markers and annotations
-- Play at the original 1× speed; playback-speed adjustment and preset configuration are Pro
+- Choose from the built-in pitch-preserved speed presets; fine increments and preset editing are Pro
 - Play in the background; playback stops at the end of a track unless Repeat is on
 - Autosave a draft for every song, plus one named saved project per song
 - Use one annotation lane on phone; additional layers are a Pro expansion
@@ -150,7 +151,8 @@ provider, which grants implemented preview features without enforcing a paywall.
 | `layers.multiple` | No (one phone lane) | Yes |
 | `layers.customNames` | No | Yes |
 | `waveform.display` | Yes; user-controlled and off by default (ungated) | Yes |
-| `playback.pitchPreservingSpeed` | No (1× playback remains) | Speed adjustment, range and custom presets |
+| `playback.pitchPreservingSpeed` | Yes; built-in pitch-preserved presets | Yes |
+| `playback.advancedSpeed` | No | Fine slider/buttons, adjustable range, and long-press custom preset editing |
 | `playback.continuous` | No (stops at track end unless Repeat is on) | Yes |
 | `playback.resume` | No (launch restores the track, paused at the start) | Yes |
 | `playback.remoteControls` | No (in-app controls only) | Yes |
@@ -257,7 +259,7 @@ Remaining planned groups are:
 
 - Playback: continuous play (Pro), pause on headset disconnect (Lite), and keep-screen-on (Lite)
 - Button configuration: seek-button mapping and seek duration (Lite); speed range, preset count,
-  preset buttons, and preset editing (Pro)
+  fine slider/buttons, and long-press preset editing (Pro)
 - Data management (Lite): import/export entry points, delete imported copies, clear derived caches,
   and destructive marker/project actions with explicit confirmation
 - About (Lite): expand dependency licence notices before App Store release; any future crash or

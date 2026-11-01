@@ -16,8 +16,8 @@ const WaveformVisibilityControl: React.FC = () => {
       <ModernToggle
         label="Show waveform"
         value={waveformAvailable && showWaveform}
-        onToggle={() => {
-          if (waveformAvailable) setShowWaveform(!showWaveform);
+        onValueChange={enabled => {
+          if (waveformAvailable) setShowWaveform(enabled);
         }}
         disabled={!waveformAvailable}
         accessibilityHint={waveformAvailable

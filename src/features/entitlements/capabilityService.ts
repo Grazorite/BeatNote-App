@@ -11,11 +11,13 @@ import {
 } from './types';
 
 /**
- * Lite includes only the waveform toggle (revised 2026-11-02). Every other capability, including
- * all BPM tooling, continuous playback, resume play, and remote controls, is Pro.
+ * Lite includes waveform artwork and the built-in pitch-preserved speed presets. Fine speed
+ * adjustment, custom presets, all BPM tooling, continuous playback, resume, and remote controls
+ * remain Pro.
  */
 const LITE_INCLUDED = new Set<ProductCapability>([
   'waveform.display',
+  'playback.pitchPreservingSpeed',
 ]);
 
 /**

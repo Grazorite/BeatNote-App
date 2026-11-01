@@ -32,13 +32,13 @@ const MarkerOptionsToggle: React.FC = () => {
           <ModernToggle
             label="Active Layer Only"
             value={layerSpecificNavigation}
-            onToggle={() => setLayerSpecificNavigation(!layerSpecificNavigation)}
+            onValueChange={setLayerSpecificNavigation}
             marginBottom={8}
           />
           <ModernToggle
             label="Show Annotations"
             value={showAnnotations}
-            onToggle={() => setShowAnnotations(!showAnnotations)}
+            onValueChange={setShowAnnotations}
           />
         </Animated.View>
       )}

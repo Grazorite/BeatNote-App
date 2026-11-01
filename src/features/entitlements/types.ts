@@ -6,6 +6,7 @@ export const PRODUCT_CAPABILITIES = [
   'layers.customNames',
   'waveform.display',
   'playback.pitchPreservingSpeed',
+  'playback.advancedSpeed',
   'playback.continuous',
   'playback.resume',
   'playback.remoteControls',

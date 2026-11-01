@@ -9,12 +9,14 @@ import { colors } from '../styles/common';
 
 export const useModernToggleAnimation = (isEnabled: boolean) => {
   const progress = useSharedValue(isEnabled ? 1 : 0);
+  const target = useSharedValue(isEnabled ? 1 : 0);
 
   const setVisualValue = useCallback((enabled: boolean) => {
     // Schedule the visual response immediately instead of waiting for a potentially expensive
     // parent/store render to commit the controlled value.
-    progress.value = withTiming(enabled ? 1 : 0, { duration: 150 });
-  }, [progress]);
+    target.value = enabled ? 1 : 0;
+    progress.value = withTiming(target.value, { duration: 150 });
+  }, [progress, target]);
 
   useEffect(() => {
     setVisualValue(isEnabled);
@@ -33,5 +35,5 @@ export const useModernToggleAnimation = (isEnabled: boolean) => {
     backgroundColor: colors.text,
   }), [progress]);
 
-  return { setVisualValue, trackStyle, thumbStyle };
+  return { progress, target, setVisualValue, trackStyle, thumbStyle };
 };

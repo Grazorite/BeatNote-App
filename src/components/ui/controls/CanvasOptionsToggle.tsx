@@ -32,25 +32,25 @@ const CanvasOptionsToggle: React.FC = () => {
           <ModernToggle
             label="Ghost Playhead in Timeline"
             value={showGhostInTimeline}
-            onToggle={() => setShowGhostInTimeline(!showGhostInTimeline)}
+            onValueChange={setShowGhostInTimeline}
             marginBottom={8}
           />
           <ModernToggle
             label="Show Loop Overview"
             value={showTimeline}
-            onToggle={() => setShowTimeline(!showTimeline)}
+            onValueChange={setShowTimeline}
             marginBottom={8}
           />
           <ModernToggle
             label="Show Grid Lines"
             value={showGridLines}
-            onToggle={() => setShowGridLines(!showGridLines)}
+            onValueChange={setShowGridLines}
             marginBottom={8}
           />
           <ModernToggle
             label="Magnetic Snapping"
             value={magneticSnapping}
-            onToggle={() => setMagneticSnapping(!magneticSnapping)}
+            onValueChange={setMagneticSnapping}
           />
         </Animated.View>
       )}

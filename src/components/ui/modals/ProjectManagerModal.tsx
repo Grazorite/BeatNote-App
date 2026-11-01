@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import HeaderBackButton from '../common/HeaderBackButton';
 import { useShallow } from 'zustand/react/shallow';
 import {
   enqueueImport,
@@ -606,7 +607,12 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             paddingRight: Math.max(20, insets.right + 12),
           },
         ]}>
-          <View style={styles.headerSide} />
+          <HeaderBackButton
+            onPress={onClose}
+            accessibilityLabel="Back from Projects"
+            label="Back"
+            testID="projects-back"
+          />
           <Text
             ref={titleRef}
             style={styles.title}
@@ -617,14 +623,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           >
             Projects
           </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel="Close Projects"
-          >
-            <Text style={styles.closeButtonText} maxFontSizeMultiplier={MAX_TEXT_SCALE}>Close</Text>
-          </TouchableOpacity>
+          <View style={styles.headerSide} />
         </View>
 
         <SectionList

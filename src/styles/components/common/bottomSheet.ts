@@ -1,5 +1,10 @@
 import { StyleSheet, type ViewStyle } from 'react-native';
 import { colors, dimensions } from '../../common';
+import {
+  HEADER_SIDE_WIDTH,
+  NAVIGATION_TITLE_FONT_SIZE,
+  NAVIGATION_TITLE_LINE_HEIGHT,
+} from './headerBackButton';
 
 export const bottomSheetStyles = StyleSheet.create({
   root: {
@@ -48,24 +53,14 @@ export const bottomSheetStyles = StyleSheet.create({
   title: {
     flex: 1,
     color: colors.text,
-    fontSize: 20,
-    lineHeight: 25,
+    fontSize: NAVIGATION_TITLE_FONT_SIZE,
+    lineHeight: NAVIGATION_TITLE_LINE_HEIGHT,
     fontWeight: '700',
     textAlign: 'center',
   },
   titleSide: {
-    width: dimensions.touchTarget.minWidth,
+    width: HEADER_SIDE_WIDTH,
     height: dimensions.touchTarget.minHeight,
-  },
-  closeButton: {
-    width: dimensions.touchTarget.minWidth,
-    height: dimensions.touchTarget.minHeight,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceGlass,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
   },
   content: {
     flex: 1,

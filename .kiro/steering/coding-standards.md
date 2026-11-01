@@ -71,14 +71,20 @@ inclusion: always
   secondary text on the bright accent. Avoid isolated opaque greys or unrelated blue/green action fills.
 - On phones, top-level utility destinations such as Settings and Help are full-screen pages rather
   than partial drawers or centered desktop dialogs. They must fill both portrait and landscape,
-  respect every safe-area edge, retain an obvious 44-point Close action, and put touch guidance
-  before desktop keyboard shortcuts. Nested utility navigation swaps content inside the existing
-  full-screen surface instead of stacking another native modal; use Back only for that nested return,
-  and do not add a directional arrow to a true Close action.
+  respect every safe-area edge, retain an obvious 44-point breadcrumb Back action, and put touch
+  guidance before desktop keyboard shortcuts. Nested utility navigation swaps content inside the
+  existing full-screen surface instead of stacking another native modal.
 - Page and menu headers keep their title optically centred with equal-width leading/trailing action
-  slots. Nested Back controls always occupy the leading/left slot and use the shared Settings-back
-  component. The Settings root keeps Close on the left and its Help icon on the right; Help is not
-  duplicated as a Settings list row. Do not place decorative icons beside page titles.
+  slots and use the shared 20-point navigation-title token. Every menu/submenu return control is an
+  iOS-style breadcrumb Back control in the leading/left slot; do not use a right-side Close action
+  for navigation. The Settings root keeps Back on the left and its Help icon on the right; Help is
+  not duplicated as a Settings list row. Do not place decorative icons beside page titles.
+- Native toggle feedback starts on the UI thread before capability or store work returns to
+  JavaScript, and callbacks receive the intended next boolean instead of deriving it from a captured
+  render. This keeps rapid taps deterministic and prevents heavy waveform/library renders from
+  leaving the thumb between states. In the single annotation-lane Settings view, use the shared
+  marker colour for the swatch because that lane's visible identity is its marker, not the hidden
+  legacy stem-layer palette.
 - Place mobile Settings at the trailing/rightmost end of a horizontal global toolbar. Full-screen
   utility pages enter from the trailing edge, and deeper pages use the same horizontal push/reveal
   direction; do not use the platform modal's bottom-up sheet transition for this navigation stack.
