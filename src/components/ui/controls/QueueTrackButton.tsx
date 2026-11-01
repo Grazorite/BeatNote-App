@@ -168,10 +168,10 @@ const QueueTrackButton: React.FC<QueueTrackButtonProps> = ({ action, compact = f
       state={unavailable ? 'unavailable' : checked ? 'active' : 'inactive'}
       checked={checked}
       hint={hint}
-      description={!capabilityAvailable
-        ? `Not available for this source: ${action === 'shuffle' ? 'shuffle' : 'queue control'}`
-        : configurableSeekButton
-          ? `${action === 'previous' ? '−' : '+'}${preferences.seekDurationSeconds}s`
+      description={configurableSeekButton && tapSeeks
+        ? `${action === 'previous' ? '−' : '+'}${preferences.seekDurationSeconds}s`
+        : !capabilityAvailable
+          ? `Not available for this source: ${action === 'shuffle' ? 'shuffle' : 'queue control'}`
           : undefined}
       onPress={press}
       onLongPress={longPress}

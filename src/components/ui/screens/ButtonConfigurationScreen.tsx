@@ -1,10 +1,9 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { AccessibilityActionEvent, Text, TouchableOpacity, View } from 'react-native';
 
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import {
   type SeekButtonBehaviour,
-  type SeekDurationSeconds,
   updateSettingsPreferences,
   useSettingsPreferences,
 } from '../../../features/settings/preferences';
@@ -22,30 +21,37 @@ const SEEK_BEHAVIOURS: ReadonlyArray<{
   detail: string;
 }> = [
   {
-    value: 'tapTrackHoldSeek',
-    label: 'Tap changes track',
-    detail: 'Hold seeks backward or forward.',
-  },
-  {
     value: 'tapSeekHoldTrack',
     label: 'Tap seeks',
     detail: 'Hold changes to the previous or next track.',
   },
-];
-
-const SEEK_DURATIONS: ReadonlyArray<SeekDurationSeconds> = [
-  0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 10, 15, 20, 25, 30,
+  {
+    value: 'tapTrackHoldSeek',
+    label: 'Tap changes track',
+    detail: 'Hold seeks backward or forward.',
+  },
 ];
 
 const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ onBack }) => {
   const advancedSpeed = useProductCapability('playback.advancedSpeed');
   const preferences = useSettingsPreferences();
+  const adjustSeekDistance = (delta: -0.5 | 0.5): void => {
+    const seekDurationSeconds = Math.max(
+      0.5,
+      Math.min(30, Math.round((preferences.seekDurationSeconds + delta) * 2) / 2),
+    );
+    void updateSettingsPreferences({ seekDurationSeconds });
+  };
+  const onSeekDistanceAccessibilityAction = (event: AccessibilityActionEvent): void => {
+    if (event.nativeEvent.actionName === 'increment') adjustSeekDistance(0.5);
+    if (event.nativeEvent.actionName === 'decrement') adjustSeekDistance(-0.5);
+  };
   return (
     <SettingsSubpage title="Buttons" onBack={onBack} testID="button-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Previous & Next</Text>
         <Text style={styles.hint}>
-          The small −/+ seconds label on each track button shows its seek distance.
+          In Tap Seeks mode, a small −/+ seconds label below each track icon shows its distance.
         </Text>
         <View style={styles.options} accessibilityRole="radiogroup">
           {SEEK_BEHAVIOURS.map(option => {
@@ -75,26 +81,55 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Seek Distance</Text>
-        <View style={styles.durationGrid} accessibilityRole="radiogroup">
-          {SEEK_DURATIONS.map(duration => {
-            const selected = preferences.seekDurationSeconds === duration;
-            return (
-              <TouchableOpacity
-                key={duration}
-                style={[styles.durationOption, selected && styles.optionSelected]}
-                onPress={() => {
-                  void updateSettingsPreferences({ seekDurationSeconds: duration });
-                }}
-                accessibilityRole="radio"
-                accessibilityLabel={`${duration} seconds`}
-                accessibilityState={{ selected }}
-                aria-checked={selected}
-                testID={`seek-duration-${duration}`}
-              >
-                <Text style={styles.optionText}>{duration}s</Text>
-              </TouchableOpacity>
-            );
-          })}
+        <Text style={styles.hint}>Adjust from 0.5 to 30 seconds in 0.5-second steps.</Text>
+        <View
+          style={styles.seekStepper}
+          testID="seek-duration-stepper"
+        >
+          <TouchableOpacity
+            style={styles.seekStepperButton}
+            onPress={() => adjustSeekDistance(-0.5)}
+            disabled={preferences.seekDurationSeconds <= 0.5}
+            accessibilityRole="button"
+            accessibilityLabel="Decrease seek distance by 0.5 seconds"
+            accessibilityState={{ disabled: preferences.seekDurationSeconds <= 0.5 }}
+            testID="seek-duration-decrement"
+          >
+            <Text style={styles.seekStepperButtonText}>−</Text>
+          </TouchableOpacity>
+          <View
+            style={styles.seekStepperValue}
+            accessible
+            accessibilityRole="adjustable"
+            accessibilityLabel="Seek distance"
+            accessibilityValue={{
+              min: 0.5,
+              max: 30,
+              now: preferences.seekDurationSeconds,
+              text: `${preferences.seekDurationSeconds} seconds`,
+            }}
+            accessibilityActions={[
+              { name: 'decrement', label: 'Decrease seek distance' },
+              { name: 'increment', label: 'Increase seek distance' },
+            ]}
+            onAccessibilityAction={onSeekDistanceAccessibilityAction}
+            testID="seek-duration-adjuster"
+          >
+            <Text style={styles.seekStepperValueText} testID="seek-duration-value">
+              {preferences.seekDurationSeconds}s
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.seekStepperButton}
+            onPress={() => adjustSeekDistance(0.5)}
+            disabled={preferences.seekDurationSeconds >= 30}
+            accessibilityRole="button"
+            accessibilityLabel="Increase seek distance by 0.5 seconds"
+            accessibilityState={{ disabled: preferences.seekDurationSeconds >= 30 }}
+            testID="seek-duration-increment"
+          >
+            <Text style={styles.seekStepperButtonText}>+</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.section}>

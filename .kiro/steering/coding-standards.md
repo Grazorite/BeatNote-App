@@ -120,14 +120,16 @@ inclusion: always
   `src/utils/markerShape.ts`. In the strip, layer order is fixed: base peaks, played waveform,
   markers, playhead, so the played-waveform tint never recolours markers.
 - Transient toast and annotation-callout replacements crossfade without exit-time layout motion:
-  fade the content fully at its anchored position before removing its stack slot. Playback choosers
-  likewise fade in place and must never translate toward the overview strip while dismissing. Rapid
-  successive feedback must not snap, stack-jump, or compete with playback.
+  the mobile feedback stack retains fixed toast and annotation slots, and fades content fully at
+  its anchored position before unmounting it. Playback choosers likewise fade in place and must
+  never translate toward the overview strip while dismissing. Rapid successive feedback must not
+  snap, stack-jump, or compete with playback.
 - Previous/Next track controls combine queue navigation with configurable seeking. Their small
-  signed seconds label (`−5s` / `+5s`) communicates seek direction and persisted distance; Settings
-  chooses whether tap navigates and hold seeks or tap seeks and hold navigates. Preserve both
-  operations in accessible labels, clamp seeking to the track bounds, and keep the control usable
-  when either of its two operations remains available.
+  signed seconds label (`−5s` / `+5s`) appears only in the default Tap Seeks mode and communicates
+  direction and persisted distance. Settings lists Tap Seeks first, offers Tap Changes Track as the
+  alternative, and adjusts distance from 0.5 through 30 seconds in exact 0.5-second steps. Preserve
+  both tap/hold operations in accessible labels, clamp seeking to track bounds, and keep the control
+  usable when either operation remains available.
 - The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
   be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
   teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.
@@ -153,6 +155,8 @@ inclusion: always
   `4…20`; default glyphs are unfilled, while primary transport shapes may use a simple solid fill.
 - Keep each icon to one recognizable silhouette plus at most one semantic modifier. Prefer removing
   detail to adding decoration; labels and accessibility carry precision that a small icon cannot.
+- The annotation action uses a filled rounded speech bubble with a short list cut out of its body,
+  retaining the supplied reference's broad silhouette while remaining legible at dock size.
 - Project/data icons use quiet object silhouettes, transport icons use basic kinetic geometry, and
   choreography actions reuse one single-border shield marker. Marker navigation places the arrow on
   the opposite side of its travel direction so the marker remains the visual destination.

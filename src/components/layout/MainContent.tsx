@@ -344,18 +344,22 @@ const MainContent: React.FC<MainContentProps> = ({
     const mobileTimeline = (
       <View style={styles.mobileTimeline}>
         <View style={styles.mobileFeedbackStack} pointerEvents="box-none">
-          <DockToast
-            message={toast.message}
-            action={toast.action}
-            stacked
-          />
-          <AnnotationCallout
-            text={timedAnnotationMarker && displayedAnnotation.trim() ? displayedAnnotation : null}
-            onPress={() => {
-              if (timedAnnotationMarker) openAnnotationEditor(timedAnnotationMarker);
-            }}
-            stacked
-          />
+          <View style={styles.mobileToastSlot} pointerEvents="box-none">
+            <DockToast
+              message={toast.message}
+              action={toast.action}
+              stacked
+            />
+          </View>
+          <View style={styles.mobileAnnotationSlot} pointerEvents="box-none">
+            <AnnotationCallout
+              text={timedAnnotationMarker && displayedAnnotation.trim() ? displayedAnnotation : null}
+              onPress={() => {
+                if (timedAnnotationMarker) openAnnotationEditor(timedAnnotationMarker);
+              }}
+              stacked
+            />
+          </View>
         </View>
         <DanceCountDisplay />
         {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (

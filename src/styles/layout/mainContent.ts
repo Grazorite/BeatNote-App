@@ -82,6 +82,18 @@ export const mainContentStyles = StyleSheet.create({
     gap: 6,
     marginBottom: 6,
   },
+  mobileToastSlot: {
+    width: '100%',
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  mobileAnnotationSlot: {
+    width: '100%',
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
   mobileControlDock: {
     position: 'relative',
     zIndex: 2,

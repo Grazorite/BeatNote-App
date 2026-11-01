@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (10)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (11)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -114,6 +114,11 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Redraw the annotation action from the supplied bubble/list reference, make Tap Seeks the
+      default with conditional signed badges and 0.5-second custom distance steps, keep annotation
+      fades in a fixed overview slot, and install Release beta `1.0.0 (11)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Keep annotation, toast, and speed-chooser exits anchored above the overview; add persisted
       tap/hold seek-button behaviour and 0.5–30 second distances with signed on-button cues; install
       Release beta `1.0.0 (10)` on the physical iPhone
@@ -134,11 +139,6 @@ target; Android is a far-future possibility only.
       neighbour displacement; flatten the Settings root, restore Help & Support as a row, and move
       BeatNote Pro to a styled trailing crown action; install signed Release beta `1.0.0 (7)`
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Remove the media-control liquid-glass backdrop in both phone orientations, redraw the overview
-      strip's Clear/Restore icons, reduce brittle browser UI coverage to eight core journeys, repair
-      the two test-file lint issues, and install Release beta `1.0.0 (6)` on the physical iPhone
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/LoopClearControl.tsx`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -216,6 +216,39 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Refine the annotation action and Tap Seeks defaults
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** annotation icon, fixed fade slot, and configurable Tap Seeks → Done
+
+**Changed:**
+
+- Replaced the annotation action with a themeable filled rounded speech bubble and inset list marks,
+  matching the supplied reference without introducing a raster asset.
+- Made Tap Seeks the first and default transport behaviour. Signed distances appear only in that
+  mode; Tap Changes Track keeps the transport icons uncluttered. Seek distance is now adjustable
+  from 0.5 to 30 seconds in exact 0.5-second steps, including accessible increment/decrement paths.
+- Kept persistent toast and annotation layout slots above the overview so opacity exits cannot move
+  downward when either child finishes unmounting. Updated durable UI rules and Help accordingly.
+- Incremented to `1.0.0 (11)` and installed the signed Release build on the connected physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including the Tap Seeks default, conditional
+  badge visibility, actual seek behaviour, Tap Changes Track, and a persisted 5.5-second distance.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed. The signed Release app reports
+  `1.0.0/11`, and device services confirmed installation as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Automatic launch was denied because the physical iPhone was locked. Physical visual/touch
+  confirmation remains for the new icon, in-place fade, badge legibility, and distance stepper.
+
+**Next agent should:**
+
+- Incorporate the user's physical beta 11 feedback before adding more transport modes.
 
 ### 2026-11-02 — Anchor transient exits and add seek-button configuration
 
@@ -363,40 +396,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Incorporate the user's beta 7 feedback, tuning only the spring/hysteresis values if native touch
   still feels off.
-
-### 2026-11-02 — Simplify the media dock and install beta 6
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** transparent media dock, overview icons, and core browser coverage → Done
-
-**Changed:**
-
-- Removed the shared liquid-glass gradient behind the phone media controls in portrait and
-  landscape while retaining each control's own contrast and grouping.
-- Redrew the overview strip's Clear action as a conventional trash can and Restore as a clean
-  counter-clockwise arrow, increasing both glyphs to 18 points for legibility.
-- Reduced the Playwright harness from nine broad journeys to eight core behavioural journeys and
-  narrowed assertion sets to persisted outcomes and meaningful failure boundaries. Removed the two
-  reported test-file lint issues: import ordering and a fixed animation timeout.
-- Incremented the iOS build to `1.0.0 (6)`, regenerated native codegen including RNWorklets, and
-  installed and launched the signed Release build on physical iPhone `gæl (3)`.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
-- Full reduced Playwright regression harness → 8/8 passed in 15.8 seconds.
-- Signed Release build `1.0.0 (6)` succeeded, its built Info.plist reports version/build `1.0.0/6`,
-  and device services confirmed both installation and launch as `com.beatnote.app`.
-
-**Not verified / known gaps:**
-
-- The user still needs to visually confirm the transparent dock and revised Clear/Restore glyphs in
-  both orientations, plus the Settings breadcrumb and Custom Order drag fixes bundled into beta 6.
-- No focused iOS XCTest was run because this task changed React Native UI/assets rather than native
-  module behaviour.
-
-**Next agent should:**
-
-- Incorporate the user's physical beta 6 feedback, then continue the top physical-acceptance item.
 
 <!-- end handover log -->

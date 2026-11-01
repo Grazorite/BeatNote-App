@@ -5100,3 +5100,47 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Incorporate the user's physical Lite/Pro visual feedback, then keep V1 work limited to concrete
   iOS release blockers before implementing StoreKit and production ads in V2.
+
+## Archived Done checklist items — 2026-11-02 beta-11 rotation
+
+- [x] Remove the media-control liquid-glass backdrop in both phone orientations, redraw the overview
+      strip's Clear/Restore icons, reduce brittle browser UI coverage to eight core journeys, repair
+      the two test-file lint issues, and install Release beta `1.0.0 (6)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/LoopClearControl.tsx`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-02 beta-11 rotation
+
+### 2026-11-02 — Simplify the media dock and install beta 6
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** transparent media dock, overview icons, and core browser coverage → Done
+
+**Changed:**
+
+- Removed the shared liquid-glass gradient behind the phone media controls in portrait and
+  landscape while retaining each control's own contrast and grouping.
+- Redrew the overview strip's Clear action as a conventional trash can and Restore as a clean
+  counter-clockwise arrow, increasing both glyphs to 18 points for legibility.
+- Reduced the Playwright harness from nine broad journeys to eight core behavioural journeys and
+  narrowed assertion sets to persisted outcomes and meaningful failure boundaries. Removed the two
+  reported test-file lint issues: import ordering and a fixed animation timeout.
+- Incremented the iOS build to `1.0.0 (6)`, regenerated native codegen including RNWorklets, and
+  installed and launched the signed Release build on physical iPhone `gæl (3)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full reduced Playwright regression harness → 8/8 passed in 15.8 seconds.
+- Signed Release build `1.0.0 (6)` succeeded, its built Info.plist reports version/build `1.0.0/6`,
+  and device services confirmed both installation and launch as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- The user still needs to visually confirm the transparent dock and revised Clear/Restore glyphs in
+  both orientations, plus the Settings breadcrumb and Custom Order drag fixes bundled into beta 6.
+- No focused iOS XCTest was run because this task changed React Native UI/assets rather than native
+  module behaviour.
+
+**Next agent should:**
+
+- Incorporate the user's physical beta 6 feedback, then continue the top physical-acceptance item.

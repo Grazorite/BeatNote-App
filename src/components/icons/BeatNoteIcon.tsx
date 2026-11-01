@@ -107,7 +107,14 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
       case 'marker-loop':
         return <>{loopFrame}<Path d="M9 8h6v5.5l-3 3-3-3Z" fill={color} /></>;
       case 'annotation':
-        return <><Path d="M5 5h14v11H9l-4 4Z" {...common} /><Path d="M8 9h8M8 12.5h5" {...common} /></>;
+        return (
+          <Path
+            d="M7 3.5h10A3.5 3.5 0 0 1 20.5 7v7A3.5 3.5 0 0 1 17 17.5h-2.4L12 21l-2.6-3.5H7A3.5 3.5 0 0 1 3.5 14V7A3.5 3.5 0 0 1 7 3.5Zm1.25 5.25h7.5v1.5h-7.5Zm0 3.5h4.75v1.5H8.25Z"
+            fill={color}
+            fillRule="evenodd"
+            clipRule="evenodd"
+          />
+        );
       case 'clear':
         return <><Path d="M4 7h16M9 7V4h6v3" {...common} strokeWidth={2.1} /><Path d="M6.5 10v7.5A2.5 2.5 0 0 0 9 20h6a2.5 2.5 0 0 0 2.5-2.5V10M10 11.5v5M14 11.5v5" {...common} strokeWidth={2.1} /></>;
       case 'restore':
