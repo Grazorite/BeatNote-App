@@ -61,9 +61,11 @@ flashback, and prompt ordinary play/pause response. VoiceOver remains untested.
 ## Optimisation decisions
 
 For each O-1…O-11 change, link the matching before/after rows and record `keep` or `revert` with the
-Requirement 10.4 reason. No decision has been made yet.
+Requirement 10.4 reason. On 2026-11-02 the user stopped the review and accepted the current V1
+state. The two implemented changes are therefore retained by product decision, while the missing
+Nominal after-measurements remain an explicit evidence gap rather than a claimed formal pass.
 
 | Change | Before rows | After rows | Decision |
 |---|---|---|---|
-| O-3 static row/overview artwork with `ClipReveal` progress and `MovingPlayhead` (task 7) | `7037118` continuous cross-row scrub (703.49 ms/s; 88.2% CoreGraphics) and steady playback (1.94 ms/s) | Serious-thermal diagnostic: 198.38 ms/s, p90 100.02 ms, max 150.03 ms; physical geometry/tint passed. Repeat scrub and steady playback at Nominal. | Open — thermal-valid comparison pending |
-| Per-frame scrub publishing and latest-wins tap seeks (task 7.1) | `a3df85f` slow-then-rapid tap seek (32.30 ms/s, 550.12 ms longest hitch) and paced seek (p90 51.20 ms) | Physical latest-target/resume, large-jump response, waveform stability, and transport response passed. Repeat rapid and paced tap measurements at Nominal. | Open — measured after-rows pending |
+| O-3 static row/overview artwork with `ClipReveal` progress and `MovingPlayhead` (task 7) | `7037118` continuous cross-row scrub (703.49 ms/s; 88.2% CoreGraphics) and steady playback (1.94 ms/s) | Serious-thermal diagnostic: 198.38 ms/s, p90 100.02 ms, max 150.03 ms; physical geometry/tint passed. Nominal repeat not run. | Keep for V1 by user acceptance; formal Requirement 10.4 comparison incomplete |
+| Per-frame scrub publishing and latest-wins tap seeks (task 7.1) | `a3df85f` slow-then-rapid tap seek (32.30 ms/s, 550.12 ms longest hitch) and paced seek (p90 51.20 ms) | Physical latest-target/resume, large-jump response, waveform stability, and transport response passed. Nominal rapid/paced after-rows not run. | Keep for V1 by user acceptance; formal measured comparison incomplete |

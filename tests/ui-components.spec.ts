@@ -115,6 +115,53 @@ test.describe('UI Components & Layout', () => {
     }
   });
 
+  test('debug tier toggle previews Lite and Pro gates', async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.goto('/');
+    await loadTestAudio(page);
+
+    await expect(page.getByTestId('playback-speed')).toBeEnabled();
+    await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('debug-tier-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+    await expect(page.getByText('Advanced', { exact: true })).toHaveCount(0);
+    await expect(page.getByText(/Currently Lite/)).toBeVisible();
+
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('settings-page')).toHaveCount(0);
+    await expect(page.getByTestId('playback-speed')).toBeDisabled();
+    await expect(page.getByTestId('playback-speed')).toContainText('Pro');
+    const portraitDock = await page.getByTestId('portrait-control-dock').boundingBox();
+    const portraitAd = await page.getByTestId('lite-ad-space').boundingBox();
+    expect(portraitDock).not.toBeNull();
+    expect(portraitAd).not.toBeNull();
+    if (portraitDock && portraitAd) {
+      expect(portraitAd.y).toBeGreaterThanOrEqual(portraitDock.y + portraitDock.height - 1);
+    }
+
+    await page.setViewportSize({ width: 740, height: 390 });
+    const landscapeOverview = await page.getByTestId('loop-overview').boundingBox();
+    const landscapeAd = await page.getByTestId('lite-ad-space').boundingBox();
+    expect(landscapeOverview).not.toBeNull();
+    expect(landscapeAd).not.toBeNull();
+    if (landscapeOverview && landscapeAd) {
+      expect(landscapeAd.y).toBeGreaterThanOrEqual(
+        landscapeOverview.y + landscapeOverview.height - 1,
+      );
+    }
+    expect(landscapeAd?.height).toBeCloseTo(portraitAd?.height ?? 0, 0);
+
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('debug-tier-toggle').click();
+    await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('playback-speed')).toBeEnabled();
+    await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
+  });
+
   test('phone dock consolidates controls, reflows in landscape, and shares overview feedback', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
@@ -564,7 +611,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('next-track-icon').locator('path')).toHaveCount(2);
   });
 
-  test('track completion repeats or advances through the shuffled queue', async ({ page }) => {
+  test('track completion repeats, stops in Lite, and advances in Pro', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
     await page.evaluate(() => {
@@ -589,7 +636,6 @@ test.describe('UI Components & Layout', () => {
 
     const title = page.getByTestId('song-title-control');
     const repeat = page.getByTestId('repeat-toggle');
-    const shuffle = page.getByTestId('shuffle-control');
     const finishActiveTrack = async () => {
       await page.evaluate(async () => {
         const monitoredWindow = window as typeof window & {
@@ -615,7 +661,21 @@ test.describe('UI Components & Layout', () => {
       .toMatch(/^Current: 0:0[0-2]$/);
 
     await repeat.click();
-    await shuffle.click();
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('debug-tier-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('settings-page')).toHaveCount(0);
+    await finishActiveTrack();
+    await expect(title).toContainText('long-test-track');
+
+    await page.getByTestId('sidebar-open-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.getByTestId('debug-tier-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('settings-page')).toHaveCount(0);
     await finishActiveTrack();
     await expect.poll(async () => title.textContent()).not.toContain('long-test-track');
     await expect(page.getByTestId('track-switch-transition')).toHaveCount(0, { timeout: 1000 });

@@ -5,6 +5,11 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Audit the V1 product/repository state, refresh stale documentation and package metadata,
+      remove unused source/dependencies, and add disabled-by-default Pro waveform artwork while
+      preserving solid timing bars and the complete Lite annotation/rehearsal workflow
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `package.json`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/features/entitlements/`, `src/hooks/useStudioStore.ts`, `src/utils/persistedContent.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Add bounded 0.05× decrement/increment buttons beside an inset playback-speed slider with 44×44
       targets, clear endpoint separation, accessible states, repeated-step dwell, and responsive coverage
       <sub>**Key Artifacts:** `docs/context/archive/specs/playback-marker-control-dock/requirements.md`, `docs/context/archive/specs/playback-marker-control-dock/tasks.md`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
@@ -266,6 +271,62 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
 
 ## Archived Handover Log
+
+### 2026-10-31 — Review V1, clean the repository, and define the Pro waveform boundary
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1 product/repository review and waveform monetisation boundary → Done
+
+**Changed:**
+
+- Audited V1 against implemented code and active acceptance work. The core local
+  annotation/rehearsal workflow is implemented; performance, representative-song BPM evidence,
+  physical-device acceptance, Apple credentials, and TestFlight remain the release gates.
+- Kept one useful local automatic-BPM suggestion in Lite and reserved advanced tempo intelligence
+  for V2 Pro. Added Apple Music as a V2 feasibility candidate and explicitly blocked commercial
+  Spotify streaming under its current published developer policy.
+- Added `waveform.display` as a Pro capability plus a persisted, off-by-default setting. Wrapped and
+  detail canvases and the overview strip now skip waveform extraction and use solid timing/progress
+  bars while artwork is off; all core interactions remain available.
+- Removed six unreachable source/style files, three unused direct icon dependencies, two stale debug
+  logs, ignored `.DS_Store` files, placeholder repository metadata, and stale product documentation.
+- Regenerated the ignored iOS codegen/Pods state, produced a locally signed Release bundle from the
+  uncommitted working tree, and installed/launched it on the physical iPhone 15 Pro Max.
+- Reordered Settings into Basic and Advanced groups on phone and desktop. Basic begins with the
+  waveform toggle and annotation naming; Advanced contains BPM, anchor, dance counts, and count
+  size. Off toggles now use an opaque dark track and white thumb for legibility.
+- Replaced the toggle's separate state-driven colour and position animations with one shared
+  progress value, so the track colour and thumb movement remain synchronized through both states.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, version consistency, and dependency-tree checks passed.
+- Full retained Playwright gate passed 8/8, including the off-by-default solid bars and enabling the
+  Pro preview waveform toggle.
+- Jest reported no permanent unit tests, as expected. No native implementation changed; the retained
+  iOS journey was updated to enable waveform artwork before asserting native decoded peaks.
+- Release `xcodebuild` succeeded, `devicectl` installed `com.beatnote.app`, launch succeeded, and
+  process PID 84021 was observed on iPhone `gæl (3)` / iOS 27.0.1. The 2.0 GB temporary DerivedData
+  directory was removed after installation.
+- The reordered Settings web journey and full retained Playwright gate passed 8/8. A second signed
+  Release build was installed and launched on the same phone; its 1.9 GB temporary DerivedData and
+  Playwright artifacts were removed.
+- The toggle animation change passed TypeScript and the full retained Playwright gate 8/8. An
+  initial unrelated landscape playback-speed positioning flake passed focused and on the full
+  rerun. A third signed Release build was installed and launched on the same physical iPhone.
+
+**Not verified / known gaps:**
+
+- The updated iOS XCTest journey was not run. The build is installed and running physically, but the
+  synchronized toggle transition still needs the user's visual confirmation. Purchase enforcement
+  remains deliberately deferred to V2.
+- The working tree is intentionally uncommitted; the user's active performance measurements and
+  acceptance work remain the next release priority.
+
+**Next agent should:**
+
+- Confirm the synchronized Settings toggle transition on the installed phone, then continue the
+  thermally valid Nominal run without mixing waveform-off Lite evidence with waveform-on O-3.
 
 ### 2026-10-30 — Scrub continuously across wrapped waveform rows
 
@@ -4613,3 +4674,62 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Run the Debug+Metro counter/React-profiler scenario, then capture a layout-focused annotation
   keyboard trace before choosing between O-3 and O-10.
+
+## Archived handover — 2026-11-02 performance-closeout rotation
+
+### 2026-10-31 — Stabilise and physically accept the first waveform optimisations
+
+**Agent:** orchestrator (Codex + Kiro + DSH-Qwen) · **Commit(s):** this commit
+**Kanban moved:** none; `app-performance-optimization` tasks 7 and 7.1 remain In Progress pending thermally valid after-rows
+
+**Changed:**
+
+- Wrapped rows and the overview now keep waveform/marker/loop artwork static, reveal a fixed
+  played-colour copy with `ClipReveal`, and move the playhead with a transform. Scrub writes publish
+  at most once per frame and flush on release.
+- Tap seeks are latest-wins and lifecycle-safe. Scrub completion shares the seek drain; native
+  pre-seek clock/status events cannot flash the waveform backwards or toggle the transport icon.
+- Played waveform layers are pre-mounted for the fitted mobile rows, avoiding SVG-tree creation on
+  large jumps. Ordinary Play no longer performs a redundant seek before starting audio.
+- The profiling/testing docs now require temporary-artifact cleanup and record the preliminary
+  after-trace plus the physical functional evidence.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate → passed (8/8).
+- Earlier focused iPhone 17 Pro simulator journeys for landscape gestures and audio annotation /
+  restore passed; DSH-Qwen review `session-95fd531c-fdd4-467a-a92c-dd6ab7063d1f` found the seek
+  lifecycle/race hazards that were repaired before the final build.
+- Signed Release-local build installed on iPhone 15 Pro Max / iOS 27.0.1. The user confirmed correct
+  tint/playhead alignment, continuous cross-row scrub, final-target rapid seeks with audible resume,
+  noticeably faster large jumps, no play-icon or waveform flicker, and prompt play/pause response.
+- Serious-thermal diagnostic scrub trace: 198.38 ms/s, p90 100.02 ms, max 150.03 ms, improving the
+  respective baseline metrics 71.8%, 14.3%, and 60.9%; invalid for keep/revert until Nominal repeat.
+- Deleted every raw trace/export, `ios/build`, `/private/tmp/beatnote-release-dd`, Playwright report,
+  and test-results directory after extracting results; no temporary build/trace cache was retained.
+
+**Not verified / known gaps:**
+
+- Repeat continuous scrub, steady playback, rapid taps, and paced seeks at Nominal thermal state;
+  Requirement 10.4 keep/revert decisions remain open. The phone was deliberately left to cool.
+- VoiceOver row values, gated counter totals, and repeated latency/memory/energy/contention evidence
+  remain open. The view-level ablation was skipped at the user's direction.
+
+**Next agent should:**
+
+- Once the phone is Nominal, repeat the coordinated continuous-scrub Animation Hitches capture on
+  the installed Release build, then record the valid after-row before deciding keep/revert.
+
+## Archived Done checklist items — 2026-11-02 performance-closeout rotation
+
+- [x] Make wrapped-waveform scrubbing continuous across rows: one container-level horizontal-first
+      scrub that follows the finger between rows and auto-continues from the trailing edge or gutter
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/utils/timelineMapping.ts`</sub>
+
+- [x] Keep dock tooltips readable above annotation callouts in portrait and landscape, and dismiss
+      the half-height Music Library by tapping its exposed backdrop without breaking modal focus
+      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/styles/components/common/bottomSheet.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/controls/controlDock.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
+      scrolling inside the half-height Music Library sheet
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>

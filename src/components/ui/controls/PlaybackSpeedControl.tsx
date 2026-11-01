@@ -25,6 +25,7 @@ import GlassBackdrop from './GlassBackdrop';
 import { playbackSpeedControlStyles as styles } from '../../../styles/components/controls/playbackSpeedControl';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { capabilitiesForLoadedItem } from '../../../features/library/sourceResolver';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 
 const DRAG_CLOSE_DELAY_MS = 700;
 const DRAG_FADE_DURATION_MS = 420;
@@ -49,10 +50,12 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   chooserSide = 'trailing',
 }) => {
   const songLoaded = useStudioStore(state => state.songLoaded);
-  const speedAvailable = useStudioStore(state => capabilitiesForLoadedItem(
+  const sourceSpeedAvailable = useStudioStore(state => capabilitiesForLoadedItem(
     state.currentMusicItemId === null ? null : state.libraryItems[state.currentMusicItemId] ?? null,
     state.songLoaded && state.currentAudioUri !== null,
   ).pitchPreservingSpeed);
+  const productSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
+  const speedAvailable = sourceSpeedAvailable && productSpeedAvailable;
   const [localValue, setLocalValue] = useState(DEFAULT_PLAYBACK_SPEED);
   const [open, setOpen] = useState(false);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -65,6 +68,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const dismissingRef = useRef(false);
   const dismissProgress = useRef(new Animated.Value(0)).current;
   const value = normalizePlaybackSpeed(controlledValue ?? localValue);
+  const presentedValue = productSpeedAvailable ? value : DEFAULT_PLAYBACK_SPEED;
   const progress = (value - MIN_PLAYBACK_SPEED) / (MAX_PLAYBACK_SPEED - MIN_PLAYBACK_SPEED);
 
   const clearCloseTimer = useCallback(() => {
@@ -339,18 +343,22 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
       <DockButton
         compact={compact}
         testID="playback-speed"
-        label={`Playback speed ${formatSpeedLabel(value)}`}
-        valueText={formatSpeedLabel(value)}
+        label={`Playback speed ${formatSpeedLabel(presentedValue)}`}
+        valueText={formatSpeedLabel(presentedValue)}
         hint={!songLoaded
           ? 'Choose music to adjust playback speed'
-          : speedAvailable
+          : !productSpeedAvailable
+            ? 'Available with BeatNote Pro'
+            : speedAvailable
             ? 'Opens playback speed controls'
             : 'Playback speed is unavailable for this audio source'}
         description={songLoaded && !speedAvailable
-          ? 'Not available for this source: playback speed'
+          ? productSpeedAvailable
+            ? 'Not available for this source: playback speed'
+            : 'Pro'
           : undefined}
         state={songLoaded && speedAvailable
-          ? (value === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active')
+          ? (presentedValue === DEFAULT_PLAYBACK_SPEED ? 'inactive' : 'active')
           : 'unavailable'}
         onPress={() => {
           if (dismissingRef.current) {
@@ -369,7 +377,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         ]}
         onAccessibilityAction={onAdjust}
       >
-        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.label}>{formatSpeedLabel(value)}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.label}>{formatSpeedLabel(presentedValue)}</Text>
       </DockButton>
     </View>
   );

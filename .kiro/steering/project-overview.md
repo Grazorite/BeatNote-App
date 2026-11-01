@@ -29,9 +29,10 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 
 ## Platforms
 
-- **Web** — primary development and test target (Playwright E2E)
-- **iOS** — primary mobile target (TestFlight → App Store)
-- **Android** — secondary, supported via Expo
+- **iOS** — sole product and release target (physical iPhone → TestFlight → App Store)
+- **Web** — retained only as a fast automated regression harness where it reduces iteration time;
+  do not schedule web-specific product work or treat browser acceptance as a release goal
+- **Android** — far-future possibility only; no current implementation or acceptance focus
 
 ## Key domain concepts
 

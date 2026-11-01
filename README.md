@@ -6,9 +6,10 @@ BeatNote imports a song into an app-owned local library, presents a wrapped full
 lets a choreographer place markers, write movement cues, align dance counts, loop sections, rehearse
 at pitch-preserved speeds, and export the work as CSV or a choreography PDF.
 
-The project is in V1 stabilisation. The core workflow is implemented on web and iOS; performance,
-representative-song tempo analysis, physical-device audio behavior, external sharing, and TestFlight
-remain release gates. See [AGENTS.md](./AGENTS.md) for live status.
+The project is in V1 iOS stabilisation. The core workflow is implemented for iPhone; representative-
+song tempo analysis, physical-device audio behavior, external sharing, and TestFlight remain release
+gates. The web build is retained only as a fast automated regression harness, not as a product
+target. Android is a far-future possibility. See [AGENTS.md](./AGENTS.md) for live status.
 
 ## Core workflow
 
@@ -23,7 +24,7 @@ remain release gates. See [AGENTS.md](./AGENTS.md) for live status.
 - App-owned local music library with durable import, relink, rename, removal, search, sort, and queue controls
 - Per-song autosaved drafts plus named, revisioned projects
 - Fixed-height wrapped timeline with continuous cross-row scrubbing and a full-song loop overview
-- Optional decoded waveform artwork in the canvas and overview strip (Pro preview, off by default); solid timing bars preserve the complete Lite workflow
+- Optional decoded waveform artwork in the canvas and overview strip (available to both tiers and off by default); solid timing bars preserve the complete Lite workflow
 - Unlimited markers and free-text annotations on the V1 phone annotation lane
 - Marker navigation, undo/redo, vocabulary suggestions, and timed annotation callouts
 - BPM, beat-anchor, phrase-start, 4/6/8-count guidance, snapping, and non-destructive automatic BPM suggestions
@@ -38,8 +39,9 @@ the V1 phone editor exposes one annotation lane and CSV/PDF export only.
 ## Release direction
 
 - **V1:** finish performance work, automatic-BPM runtime evidence, physical-device acceptance, and TestFlight setup.
-- **V2 Pro:** purchases/restore, multiple layers, professional workflow depth, advanced tempo tools,
-  toggleable waveform artwork, and an Apple Music feasibility spike/integration if MusicKit satisfies BeatNote's seeking and lifecycle requirements.
+- **V2 Pro:** subscription purchases/restore, multiple layers, continuous playback, playback-speed
+  controls, BPM/tempo tools, professional exports, and an Apple Music feasibility spike/integration
+  if MusicKit satisfies BeatNote's seeking and lifecycle requirements.
 - **Spotify:** not currently scheduled. Spotify's published developer policy prohibits commercial
   streaming integrations, so it cannot honestly be sold as a BeatNote paid feature without an
   approved partnership or a policy change.

@@ -5,6 +5,12 @@ Labels: `[device]` needs a physical iPhone (usually the human), `[sim]` simulato
 reverted with one `git revert`. Requirement references are to [`requirements.md`](./requirements.md);
 section references are to [`design.md`](./design.md).
 
+> **V1 closeout (2026-11-02):** The user accepted the current physical-iPhone performance and
+> stopped this review. Tasks 7 and 7.1 are retained; their physical functional checks passed and
+> the only after-trace showed a strong improvement, but its Serious thermal state means the formal
+> Requirement 10.4 comparison was not completed. All other unchecked tasks are intentionally
+> unplanned unless a concrete regression or a later release reopens this spec.
+
 ## Phase 0 — Measurement foundation
 
 - [x] 1. Fixtures, scripts, and tooling
@@ -116,7 +122,7 @@ metric worsens > 10%, any preserved behaviour regresses, or a new crash appears)
   - Rollback also if any control shows stale state in a retained journey.
 - [ ] 6. `[desk]` + `[device]` O-2 Stabilise callbacks to memoised children; remove memos with no
       measured effect.
-- [ ] 7. `[desk]` + `[device]` O-3 Separate static waveform paths from dynamic overlays, if 4.3
+- [x] 7. `[desk]` + `[device]` O-3 Separate static waveform paths from dynamic overlays, if 4.3
       confirms H-3.
   - Rollback also on any playhead, marker, or loop misalignment in portrait or landscape.
   - Status 2026-10-30: implemented at the user's direction before Phase 1 closed, on the subsystem
@@ -126,15 +132,17 @@ metric worsens > 10%, any preserved behaviour regresses, or a new crash appears)
     use the same primitives. Web gate passes. On 2026-10-31 the physical geometry, tint, cross-row
     following, and seek stability checks passed; a first after-trace improved scrub ratio 71.8%,
     p90 14.3%, and max 60.9%, but ran entirely at Serious thermal state. A Nominal after-row and
-    keep/revert decision remain open.
-  - [ ] 7.1 Coalesce interaction writes (O-7 variant): scrub store writes are published at most
+    formal thermal-valid keep/revert decision was waived when the user accepted the V1 state and
+    stopped the review on 2026-11-02.
+  - [x] 7.1 Coalesce interaction writes (O-7 variant): scrub store writes are published at most
         once per frame and flushed on release; rapid tap seeks are latest-wins with one player seek
         in flight and a single resume. Same status and rollback rule as task 7; additionally revert
         if rapid taps land on an older target or audible playback fails to resume after seeking.
     - Physical acceptance 2026-10-31: rapid taps resumed at the final target, large jumps became
       noticeably faster, play/pause no longer flickered, stale native positions no longer flashed
       the waveform backwards during a playing seek, and ordinary play/pause response improved.
-      Nominal rapid/paced seek after-measurements remain open.
+      Nominal rapid/paced seek after-measurements were not run before the user accepted the V1
+      state and stopped the review.
 - [ ] 8. `[desk]` + `[device]` O-5 Immediate pressed feedback for dock and transport controls.
   - Rollback also on any change to accessible name, role, state, or 44×44 target.
 

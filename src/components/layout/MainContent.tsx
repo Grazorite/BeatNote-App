@@ -45,6 +45,8 @@ import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 import { capabilitiesForLoadedItem } from '../../features/library/sourceResolver';
 import { getLayerDisplayName } from '../../utils/layers';
 import { perfBegin, perfEnd } from '../../utils/perfMarks';
+import { useProductTier } from '../../features/entitlements/useProductTier';
+import LiteAdPlaceholder from '../ui/ads/LiteAdPlaceholder';
 
 interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
@@ -113,6 +115,8 @@ const MainContent: React.FC<MainContentProps> = ({
   const [landscapeRailHeight, setLandscapeRailHeight] = useState(0);
   const [switchTransitionVisible, setSwitchTransitionVisible] = useState(false);
   const [switchTransitionTitle, setSwitchTransitionTitle] = useState('song');
+  const productTier = useProductTier();
+  const showLiteAd = productTier === 'lite';
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
   const hasLoadedSong = useStudioStore(state => state.songLoaded);
@@ -360,6 +364,7 @@ const MainContent: React.FC<MainContentProps> = ({
         {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (
           <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
         )}
+        {isLandscapePhone && showLiteAd && <LiteAdPlaceholder />}
       </View>
     );
     const mobileCanvas = (
@@ -405,7 +410,11 @@ const MainContent: React.FC<MainContentProps> = ({
       <View
         style={[
           styles.mobileControlDock,
-          { paddingBottom: isLandscapePhone ? 0 : Math.max(safeAreaBottom, 34) },
+          {
+            paddingBottom: isLandscapePhone
+              ? 0
+              : showLiteAd ? 6 : Math.max(safeAreaBottom, 34),
+          },
           isLandscapePhone && styles.landscapeControlRail,
         ]}
         testID={isLandscapePhone ? 'landscape-control-rail' : 'portrait-control-dock'}
@@ -446,6 +455,9 @@ const MainContent: React.FC<MainContentProps> = ({
         <View style={[styles.mobileBody, isLandscapePhone && styles.landscapeBody]}>
           {mobileCanvas}
           {controlDock}
+          {!isLandscapePhone && showLiteAd && (
+            <LiteAdPlaceholder safeAreaBottom={Math.max(safeAreaBottom, 8)} />
+          )}
         </View>
         <AnnotationEditorModal
           visible={editingMarker !== null}

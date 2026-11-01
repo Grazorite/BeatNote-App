@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.beatnote.app",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "requireFullScreen": false,
       "infoPlist": {
         "UIFileSharingEnabled": true,

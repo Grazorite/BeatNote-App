@@ -35,16 +35,17 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Deploy:** Web (Netlify) · simulator and physical iOS dev launch verified · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · physical beta `1.0.0 (2)` installed · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
 ### Milestone: M2 — Core choreography and rehearsal workflow (in progress)
 
-M1 (core annotation MVP for web) is shipped. M2 makes annotation, rehearsal, persistence, and
+M1 (core annotation MVP) is shipped. M2 makes annotation, rehearsal, persistence, and
 sharing dependable on physical iOS devices, then adds the dance-specific features needed for a V2
 Pro launch. Stem separation is deferred entirely to V3, beginning with a cloud-first beta and
-potentially adding a hybrid path later.
+potentially adding a hybrid path later. The browser build is a regression harness, not a product
+target; Android is a far-future possibility only.
 
 | Metric | Value |
 |--------|-------|
@@ -54,30 +55,24 @@ potentially adding a hybrid path later.
 | Choreography features implemented | 6 of 6 in the V1 preview; physical-device acceptance remains |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
-| E2E spec files | 2 (Playwright, 8 critical journeys) |
+| E2E spec files | 2 (Playwright harness, 9 critical journeys) |
 | Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
 
 ### Current Focus
 
-1. Complete `app-performance-optimization` Phase 1 and validate the first evidence-backed changes.
-   Phase 0 and all four required hitch baselines are recorded. O-3 static waveform artwork plus
-   per-frame scrub/latest-wins seek coalescing are implemented and pass physical functional checks.
-   A first post-change scrub trace improved the ratio 71.8%, p90 14.3%, and max 60.9%, but ran at
-   Serious thermal state and cannot decide keep/revert; repeat it at Nominal before proceeding.
-   Gated counters and repeated latency/memory/energy/contention baselines also remain open.
-2. Finish automatic-BPM runtime acceptance (now a Pro-tier feature per the 2026-11-02 roadmap): browser long-task/long-song measurements
-   and representative real-song/physical-device evidence remain. Native cancellation/retry,
+1. Finish automatic-BPM runtime acceptance (now a Pro-tier feature per the 2026-11-02 roadmap):
+   representative real-song/physical-device evidence remains. Native cancellation/retry,
    150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
    downbeat estimation remains deliberately open.
-3. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
+2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
    interruptions, and completing a share to an external destination. Simulator automation covers
    background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
    landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
    uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
    app on this host.
-4. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
+3. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
    range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-5. Keep the completed local choreography workflow stable while physical-device acceptance and the
+4. Keep the completed local choreography workflow stable while physical-device acceptance and the
    Apple Developer account remain outstanding; do not resume stem separation until the gates in
    `.kiro/steering/release-roadmap.md` are satisfied.
 
@@ -99,23 +94,18 @@ potentially adding a hybrid path later.
 
 ### 🚧 In Progress
 
-- [ ] Execute `app-performance-optimization` Phase 0–1: fixtures, instrumentation, and physical
-      Release-local baselines before any optimisation; Phase 0 measurement foundation is complete,
-      paced seek and all four required frame/hitch scenarios are registered, scrub-profiler evidence
-      identifies CoreGraphics saturation, and keyboard editing fails its target; counters plus
-      repeated latency/memory/energy and contention baselines remain pending. O-3 static artwork
-      and per-frame scrub / latest-wins seek coalescing (tasks 7, 7.1) are implemented at the
-      user's direction and pass physical functional acceptance; the first after-trace improved
-      substantially but was thermally invalid, so Nominal after-measurements and keep/revert remain
-      open
+- [ ] Polish the iOS library and utility surfaces: middle-truncate long song titles, add persisted
+      drag-defined custom Music ordering, equalise Lite ad height across orientations, move Debug
+      Settings first, refresh iOS-focused Help, and install the verified build physically
+
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
-- [ ] Complete `automatic-bpm-detection` runtime acceptance; web provider, shared decode/worker,
+- [ ] Complete `automatic-bpm-detection` runtime acceptance; shared decode/worker,
       lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
       exports, retained browser flow, octave-resolved native synthetic XCTest, cancellation/retry,
-      and 150-second simulator memory are implemented; browser measurements, real-song accuracy,
-      and physical acceptance remain
+      and 150-second simulator memory are implemented; real-song accuracy and physical acceptance
+      remain
 - [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
 
 ### ⏸ Deferred — V2/V3
@@ -127,6 +117,17 @@ potentially adding a hybrid path later.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Finalise the SGD V2 pricing hypothesis and iOS-only product direction, document Lite/Pro and
+      cache boundaries, add a Lite-only standard banner placeholder in both phone orientations,
+      complete the preview speed/continuous-play gates, and install beta `1.0.0 (2)` physically
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `app.json`, `src/components/layout/MainContent.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/ads/liteAdPlaceholder.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Close the V1 performance review at the user's direction and retain the accepted waveform and
+      seek optimisations; formal Nominal keep/revert captures, counters, and extended
+      latency/memory/energy/contention baselines remain intentionally incomplete rather than claimed
+      as passing
+      <sub>**Key Artifacts:** `.kiro/specs/app-performance-optimization/tasks.md`, `.kiro/specs/app-performance-optimization/results.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 - [x] Add Pro playback capabilities (continuous playback, resume play, remote controls) to the
       roadmap and a persisted debug Lite/Pro toggle in Settings with the first gates wired
@@ -140,23 +141,6 @@ potentially adding a hybrid path later.
       block and First/Previous/Next song after it; landscape pairs add/annotation, speed/delete,
       and Repeat/tri-state loop while keeping the speed chooser below the title bar and on-screen
       <sub>**Key Artifacts:** `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Audit the V1 product/repository state, refresh stale documentation and package metadata,
-      remove unused source/dependencies, and add disabled-by-default Pro waveform artwork while
-      preserving solid timing bars and the complete Lite annotation/rehearsal workflow
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `package.json`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/features/entitlements/`, `src/hooks/useStudioStore.ts`, `src/utils/persistedContent.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Make wrapped-waveform scrubbing continuous across rows: one container-level horizontal-first
-      scrub that follows the finger between rows and auto-continues from the trailing edge or gutter
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/utils/timelineMapping.ts`</sub>
-
-- [x] Keep dock tooltips readable above annotation callouts in portrait and landscape, and dismiss
-      the half-height Music Library by tapping its exposed backdrop without breaking modal focus
-      <sub>**Key Artifacts:** `src/components/layout/MainContent.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/styles/components/common/bottomSheet.ts`, `src/styles/components/controls/annotationCallout.ts`, `src/styles/components/controls/controlDock.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
-      scrolling inside the half-height Music Library sheet
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -234,6 +218,75 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Finalise the iOS Lite/Pro preview and install beta 2
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** V2 pricing, tier preview, cache policy, and Lite ad layout → Done
+
+**Changed:**
+
+- Set the pricing hypothesis entirely in SGD: S$3.98 monthly, S$19.98 yearly with a seven-day
+  annual trial, S$49.98 founders lifetime, and S$79.98+ as a possible later public lifetime price.
+- Declared iOS the sole product/release target. The browser build remains only a fast regression
+  harness and Android is explicitly far future.
+- Added the Lite-only standard banner placeholder below the portrait controls and below the
+  landscape overview strip. Pro preserves the previous layout without reserved ad space.
+- Completed preview enforcement for Pro playback speed and continuous queue advancement, documented
+  the current import/waveform/BPM cache lifecycle, and bumped the iOS beta to `1.0.0 (2)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full retained Playwright regression harness → 9/9 passed, including both ad placements and tier
+  gates for Settings, playback speed, and track completion.
+- Signed Release build `1.0.0 (2)` built, installed on physical iPhone `gæl (3)`, and launched as
+  `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Physical visual/interaction confirmation of the Lite banner in both orientations and the final
+  speed/BPM gates remains with the user; no focused iOS XCTest suite was run.
+- StoreKit purchase/restore, a production ad provider, About/feedback pages, data-management UI,
+  and a user-facing derived-cache clear action remain future implementation work.
+
+**Next agent should:**
+
+- Incorporate the user's physical Lite/Pro visual feedback, then keep V1 work limited to concrete
+  iOS release blockers before implementing StoreKit and production ads in V2.
+
+### 2026-11-02 — Close the V1 performance review
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → Done by user acceptance
+
+**Changed:**
+
+- Stopped the coordinated physical-device capture and removed performance work from Current Focus
+  and In Progress at the user's direction.
+- Kept the static waveform artwork and coalesced seek changes for V1 based on their physical
+  functional acceptance and encouraging diagnostic trace, while recording that the formal thermal-
+  valid Requirement 10.4 comparison was not completed.
+- Closed the spec without converting the remaining counters, latency, memory, energy, contention,
+  VoiceOver, or TestFlight gaps into passing results.
+
+**Verified:**
+
+- No new capture was started after the stop request; the failed and smoke-test trace bundles from
+  the interrupted attempt had already been deleted.
+- Documentation-only closeout passed `git diff --check` and the orchestrator contract checker.
+
+**Not verified / known gaps:**
+
+- Nominal after-measurements for continuous scrub, steady playback, rapid taps, and paced seeks were
+  not captured. The Serious-thermal after-trace remains diagnostic only.
+- The unchecked tasks in the performance spec are intentionally unplanned unless a concrete
+  regression or later release reopens the review.
+
+**Next agent should:**
+
+- Do not resume performance profiling for V1 unless the user reports a regression; continue the
+  top remaining product/physical-acceptance item instead.
 
 ### 2026-11-02 — Add Pro playback features and a debug Lite/Pro toggle
 
@@ -340,104 +393,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Confirm the portrait/landscape ordering and speed chooser placement with safe areas on the newly
   installed physical build before the next combined commit.
-
-### 2026-10-31 — Review V1, clean the repository, and define the Pro waveform boundary
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** V1 product/repository review and waveform monetisation boundary → Done
-
-**Changed:**
-
-- Audited V1 against implemented code and active acceptance work. The core local
-  annotation/rehearsal workflow is implemented; performance, representative-song BPM evidence,
-  physical-device acceptance, Apple credentials, and TestFlight remain the release gates.
-- Kept one useful local automatic-BPM suggestion in Lite and reserved advanced tempo intelligence
-  for V2 Pro. Added Apple Music as a V2 feasibility candidate and explicitly blocked commercial
-  Spotify streaming under its current published developer policy.
-- Added `waveform.display` as a Pro capability plus a persisted, off-by-default setting. Wrapped and
-  detail canvases and the overview strip now skip waveform extraction and use solid timing/progress
-  bars while artwork is off; all core interactions remain available.
-- Removed six unreachable source/style files, three unused direct icon dependencies, two stale debug
-  logs, ignored `.DS_Store` files, placeholder repository metadata, and stale product documentation.
-- Regenerated the ignored iOS codegen/Pods state, produced a locally signed Release bundle from the
-  uncommitted working tree, and installed/launched it on the physical iPhone 15 Pro Max.
-- Reordered Settings into Basic and Advanced groups on phone and desktop. Basic begins with the
-  waveform toggle and annotation naming; Advanced contains BPM, anchor, dance counts, and count
-  size. Off toggles now use an opaque dark track and white thumb for legibility.
-- Replaced the toggle's separate state-driven colour and position animations with one shared
-  progress value, so the track colour and thumb movement remain synchronized through both states.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `git diff --check`, version consistency, and dependency-tree checks passed.
-- Full retained Playwright gate passed 8/8, including the off-by-default solid bars and enabling the
-  Pro preview waveform toggle.
-- Jest reported no permanent unit tests, as expected. No native implementation changed; the retained
-  iOS journey was updated to enable waveform artwork before asserting native decoded peaks.
-- Release `xcodebuild` succeeded, `devicectl` installed `com.beatnote.app`, launch succeeded, and
-  process PID 84021 was observed on iPhone `gæl (3)` / iOS 27.0.1. The 2.0 GB temporary DerivedData
-  directory was removed after installation.
-- The reordered Settings web journey and full retained Playwright gate passed 8/8. A second signed
-  Release build was installed and launched on the same phone; its 1.9 GB temporary DerivedData and
-  Playwright artifacts were removed.
-- The toggle animation change passed TypeScript and the full retained Playwright gate 8/8. An
-  initial unrelated landscape playback-speed positioning flake passed focused and on the full
-  rerun. A third signed Release build was installed and launched on the same physical iPhone.
-
-**Not verified / known gaps:**
-
-- The updated iOS XCTest journey was not run. The build is installed and running physically, but the
-  synchronized toggle transition still needs the user's visual confirmation. Purchase enforcement
-  remains deliberately deferred to V2.
-- The working tree is intentionally uncommitted; the user's active performance measurements and
-  acceptance work remain the next release priority.
-
-**Next agent should:**
-
-- Confirm the synchronized Settings toggle transition on the installed phone, then continue the
-  thermally valid Nominal run without mixing waveform-off Lite evidence with waveform-on O-3.
-
-### 2026-10-31 — Stabilise and physically accept the first waveform optimisations
-
-**Agent:** orchestrator (Codex + Kiro + DSH-Qwen) · **Commit(s):** this commit
-**Kanban moved:** none; `app-performance-optimization` tasks 7 and 7.1 remain In Progress pending thermally valid after-rows
-
-**Changed:**
-
-- Wrapped rows and the overview now keep waveform/marker/loop artwork static, reveal a fixed
-  played-colour copy with `ClipReveal`, and move the playhead with a transform. Scrub writes publish
-  at most once per frame and flush on release.
-- Tap seeks are latest-wins and lifecycle-safe. Scrub completion shares the seek drain; native
-  pre-seek clock/status events cannot flash the waveform backwards or toggle the transport icon.
-- Played waveform layers are pre-mounted for the fitted mobile rows, avoiding SVG-tree creation on
-  large jumps. Ordinary Play no longer performs a redundant seek before starting audio.
-- The profiling/testing docs now require temporary-artifact cleanup and record the preliminary
-  after-trace plus the physical functional evidence.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `git diff --check`, and the full retained Playwright gate → passed (8/8).
-- Earlier focused iPhone 17 Pro simulator journeys for landscape gestures and audio annotation /
-  restore passed; DSH-Qwen review `session-95fd531c-fdd4-467a-a92c-dd6ab7063d1f` found the seek
-  lifecycle/race hazards that were repaired before the final build.
-- Signed Release-local build installed on iPhone 15 Pro Max / iOS 27.0.1. The user confirmed correct
-  tint/playhead alignment, continuous cross-row scrub, final-target rapid seeks with audible resume,
-  noticeably faster large jumps, no play-icon or waveform flicker, and prompt play/pause response.
-- Serious-thermal diagnostic scrub trace: 198.38 ms/s, p90 100.02 ms, max 150.03 ms, improving the
-  respective baseline metrics 71.8%, 14.3%, and 60.9%; invalid for keep/revert until Nominal repeat.
-- Deleted every raw trace/export, `ios/build`, `/private/tmp/beatnote-release-dd`, Playwright report,
-  and test-results directory after extracting results; no temporary build/trace cache was retained.
-
-**Not verified / known gaps:**
-
-- Repeat continuous scrub, steady playback, rapid taps, and paced seeks at Nominal thermal state;
-  Requirement 10.4 keep/revert decisions remain open. The phone was deliberately left to cool.
-- VoiceOver row values, gated counter totals, and repeated latency/memory/energy/contention evidence
-  remain open. The view-level ablation was skipped at the user's direction.
-
-**Next agent should:**
-
-- Once the phone is Nominal, repeat the coordinated continuous-scrub Animation Hitches capture on
-  the installed Release build, then record the valid after-row before deciding keep/revert.
 
 <!-- end handover log -->

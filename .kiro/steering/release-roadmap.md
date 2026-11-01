@@ -53,8 +53,8 @@ Pro candidates:
 
 - Unlimited saved projects per song (Lite allows one; autosaved drafts are never limited)
 - All six layers and custom layer names (the six-layer expansion also anticipates V3 stems)
-- Fine-grained pitch-preserving playback speed (full 0.5×–2× range in 0.05× steps; Lite keeps
-  coarse presets)
+- Pitch-preserving playback-speed controls: speed adjustment, range selection, preset buttons,
+  preset count, and custom preset values. Lite playback remains at 1×.
 - BPM tooling as a whole: manual BPM, beat anchor, 8-count/phrase grid and guidance, and automatic
   BPM detection. Most choreographers do not work from BPM, so this is a convenience tier.
 - Continuous playback: the next queued track loads automatically when the current one ends. Lite
@@ -108,13 +108,18 @@ The Lite tier must complete a real project:
 - Seek, scrub, loop, and use solid timing/progress bars
 - Optionally enable decoded waveform artwork (user-controlled, off by default)
 - Add, edit, navigate, and delete unlimited markers and annotations
-- Rehearse with coarse pitch-preserved speed presets (0.5×, 0.75×, 1×)
+- Play at the original 1× speed; playback-speed adjustment and preset configuration are Pro
 - Play in the background; playback stops at the end of a track unless Repeat is on
 - Autosave a draft for every song, plus one named saved project per song
 - Use one annotation lane on phone; additional layers are a Pro expansion
 - Export basic CSV
 - Work without an account
 - See a static banner ad on library and project-management screens only
+- Pause safely when a connected headset or audio route disconnects
+- Choose whether the screen stays awake while using the app or only while playing
+- Configure seek-button behaviour and seek duration
+- Use data-management actions, including removing imported copies and clearing derived caches
+- View About, licences, version, privacy choices, and a future Send Feedback entry
 
 Lite does not include BPM, beat anchor, or 8-count tooling. Markers, annotations, looping, seeking,
 and rehearsal speed remain complete without them.
@@ -145,7 +150,7 @@ provider, which grants implemented preview features without enforcing a paywall.
 | `layers.multiple` | No (one phone lane) | Yes |
 | `layers.customNames` | No | Yes |
 | `waveform.display` | Yes; user-controlled and off by default (ungated) | Yes |
-| `playback.pitchPreservingSpeed` | Coarse presets (0.5×, 0.75×, 1×) | Full range, 0.05× steps |
+| `playback.pitchPreservingSpeed` | No (1× playback remains) | Speed adjustment, range and custom presets |
 | `playback.continuous` | No (stops at track end unless Repeat is on) | Yes |
 | `playback.resume` | No (launch restores the track, paused at the start) | Yes |
 | `playback.remoteControls` | No (in-app controls only) | Yes |
@@ -217,7 +222,78 @@ Start the architecture during V1, then activate charging in V2:
    considered reliable.
 
 Stem credits are separate from the local Pro entitlement because cloud processing has recurring
-cost. The final store products and prices remain a product decision and are not fixed by this roadmap.
+cost.
+
+### Initial pricing hypothesis
+
+BeatNote will use an auto-renewing subscription for the public Pro launch. Singapore storefront
+launch prices are provisional until App Store price-point mapping and willingness-to-pay testing:
+
+- S$3.98 monthly
+- S$19.98 yearly, positioned as the default and best-value option
+- A 7-day Pro trial on the yearly plan, subject to App Store configuration and conversion testing
+
+Singapore App Store evidence observed on 2026-11-02 includes Music Speed Changer at S$14.98 yearly
+and S$29.98 lifetime, and Capo at S$19.98 yearly with monthly price points of S$3.98 and S$6.98.
+BeatNote should launch near the lower-middle of that range while its V2 feature set and reliability
+mature.
+
+Pricing evidence: [Music Speed Changer](https://apps.apple.com/sg/app/music-speed-changer-audio/id6738125207)
+and [Capo](https://apps.apple.com/sg/app/capo-learn-music-by-ear/id887497388).
+
+For beta testers, founders, and early supporters, offer a limited S$49.98 lifetime unlock. It
+should be time- or cohort-limited, clearly exclude metered cloud stem-processing credits, and not be
+the default public offer. If a public lifetime product is introduced later, test S$79.98 or higher
+so it does not undermine the yearly subscription.
+
+### Settings and support roadmap
+
+The Settings information architecture may use the supplied Audipo screens as a functional reference
+without copying its visual design. Ignore Audipo's mark-display mode. Planned groups are:
+
+- Playback: continuous play (Pro), pause on headset disconnect (Lite), and keep-screen-on (Lite)
+- Button configuration: seek-button mapping and seek duration (Lite); speed range, preset count,
+  preset buttons, and preset editing (Pro)
+- Data management (Lite): import/export entry points, delete imported copies, clear derived caches,
+  and destructive marker/project actions with explicit confirmation
+- About (Lite): app name/icon, version/build, open-source licences, privacy/diagnostic choices, and
+  Send Feedback. Feedback transport and diagnostics wiring may ship after the static page.
+
+### Lite banner placement
+
+V1 reserves a Lite-only placeholder for an eventual standard banner. Pro does not allocate this
+space, so its editor keeps the current layout. The placeholder follows Apple's iPhone standard
+banner creative ratio of 1242 × 166 pixels:
+
+- Portrait: below the transport/control dock and above the bottom safe area
+- Landscape: below the loop overview strip inside the canvas column, not beneath the side controls
+- Never overlay the waveform, transport, annotation editor, toast, or playback controls
+
+The initial `Ad space` placeholder validates layout only. An ad SDK, consent flow, fill/collapse
+behaviour, and production creative are V2 work.
+
+Reference: [Apple standard banner specifications](https://ads.apple.com/apple-news/publishers/help/ad-specs/0045-standard-double-large-mrec-banner-specs).
+
+### Current cache and storage policy
+
+- Imported audio is not a disposable cache. Native imports are copied into BeatNote's
+  backup-excluded Application Support music directory and remain until the user removes the song.
+- Temporary picker/Open_In copies in the OS cache or Inbox are deleted after a successful managed
+  import. Staging files and unreferenced managed audio are swept after startup once they are old
+  enough to avoid racing an active import.
+- Native/web waveform data is derived and held in memory for reuse during the app session; it is not
+  a user-managed persistent waveform cache today.
+- Web decoded-audio work is bounded to two recent decode requests and is evicted after analysis
+  consumes it. Browser audio originals remain in IndexedDB as library content, not cache.
+- Automatic-BPM analysis is persisted per music item in AsyncStorage, versioned/fingerprinted, and
+  removed when its source song is deleted or analysis is invalidated.
+- Stem-cache metadata and deletion helpers exist only for the deferred V3 foundation and are not
+  user-facing in V1.
+
+Before exposing “Clear derived caches,” implement one coordinated action that clears BPM analysis,
+session waveform/decode caches, and future stem derivatives without deleting imported audio,
+projects, markers, or annotations. “Delete imported files” must remain a separate destructive action
+that explains BeatNote removes only its managed copies, not the originals in Files.
 
 ## Gates for resuming stem work
 

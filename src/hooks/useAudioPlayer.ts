@@ -10,6 +10,7 @@ import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
 import { isLoopRangeGestureActive } from '../features/playback/interactionActivity';
 import { incrementPerfCounter } from '../utils/perfCounters';
 import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
+import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
 
 interface ErrorState {
   visible: boolean;
@@ -67,6 +68,7 @@ export const useCustomAudioPlayer = () => {
   );
   const player = useAudioPlayer(audioSource);
   const remoteControlsAvailable = useProductCapability('playback.remoteControls');
+  const playbackSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const lockScreenActiveRef = useRef(false);
   const playerStatusRef = useRef(player.currentStatus);
   const [playerIsLoaded, setPlayerIsLoaded] = useState(player.isLoaded);
@@ -142,8 +144,8 @@ export const useCustomAudioPlayer = () => {
     const state = useStudioStore.getState();
     const queue = state.queue;
     // Auto-advance is a Pro capability; Lite playback ends when the track does.
-    const hasShuffledNext = isCapabilityAvailable('playback.continuous')
-      && queue?.shuffle === true
+    const hasContinuousNext = isCapabilityAvailable('playback.continuous')
+      && queue !== null
       && queue.currentIndex !== null
       && queue.currentIndex + 1 < queue.order.length;
 
@@ -167,9 +169,9 @@ export const useCustomAudioPlayer = () => {
       return;
     }
 
-    if (hasShuffledNext) {
+    if (hasContinuousNext) {
       state.setCurrentTime(durationMs);
-      // Preserve the playing intent so an unguarded Track_Switch_Transaction starts the shuffled
+      // Preserve the playing intent so an unguarded Track_Switch_Transaction starts the next
       // destination. A dirty saved project can still raise the normal switch guard; in that case
       // the completed source remains paused while the user decides.
       state.setIsPlaying(true);
@@ -259,17 +261,21 @@ export const useCustomAudioPlayer = () => {
       clearTimeout(playbackRateTimerRef.current);
       playbackRateTimerRef.current = null;
     }
+    const effectivePlaybackSpeed = playbackSpeedAvailable
+      ? playbackSpeed
+      : DEFAULT_PLAYBACK_SPEED;
     const sourceChanged = playbackRateSourceRef.current !== currentAudioUri;
-    const alreadyApplied = !sourceChanged && appliedPlaybackSpeedRef.current === playbackSpeed;
+    const alreadyApplied = !sourceChanged
+      && appliedPlaybackSpeedRef.current === effectivePlaybackSpeed;
     if (alreadyApplied) return;
 
     const applyPlaybackRate = () => {
       playbackRateTimerRef.current = null;
       try {
         player.shouldCorrectPitch = true;
-        player.setPlaybackRate(playbackSpeed, 'high');
+        player.setPlaybackRate(effectivePlaybackSpeed, 'high');
         playbackRateSourceRef.current = currentAudioUri;
-        appliedPlaybackSpeedRef.current = playbackSpeed;
+        appliedPlaybackSpeedRef.current = effectivePlaybackSpeed;
       } catch (playbackRateError) {
         console.error('Playback speed configuration error:', playbackRateError);
         showError(
@@ -290,7 +296,7 @@ export const useCustomAudioPlayer = () => {
         playbackRateTimerRef.current = null;
       }
     };
-  }, [currentAudioUri, isPlaying, player, playbackSpeed, showError]);
+  }, [currentAudioUri, isPlaying, playbackSpeed, playbackSpeedAvailable, player, showError]);
 
   useEffect(() => {
     let mounted = true;
