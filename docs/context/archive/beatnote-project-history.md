@@ -4814,3 +4814,90 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Confirm the portrait/landscape ordering and speed chooser placement with safe areas on the newly
   installed physical build before the next combined commit.
+
+## Archived Done checklist items — 2026-11-02 Settings-expansion rotation
+
+- [x] Add Pro playback capabilities (continuous playback, resume play, remote controls) to the
+      roadmap and a persisted debug Lite/Pro toggle in Settings with the first gates wired
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/types.ts`, `src/features/entitlements/useProductTier.ts`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/layout/Sidebar.tsx`, `src/hooks/useAudioPlayer.ts`</sub>
+
+## Archived handover — 2026-11-02 Settings-expansion rotation
+
+### 2026-11-02 — Add Pro playback features and a debug Lite/Pro toggle
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** debug tier toggle and playback capability gates → Done
+
+**Changed:**
+
+- Roadmap: continuous playback, resume play, and remote playback control (headset, lock screen,
+  Control Centre) added as Pro; new `playback.continuous`, `playback.resume`,
+  `playback.remoteControls` keys and matrix rows.
+- `src/features/entitlements/`: Lite now includes only `waveform.display`; the provider takes its
+  tier from a persisted debug override (default Pro) and exposes `setDebugTier`,
+  `getCurrentTier`, and `isCapabilityAvailable`; new `useProductTier` hook.
+- Settings (phone and desktop): new Debug section with a Pro toggle (`DebugTierControl`); the
+  Advanced BPM section is hidden in Lite; the waveform label no longer says Pro.
+- `useAudioPlayer.ts`: auto-advance after a track ends and lock-screen registration require Pro.
+
+**Verified:**
+
+- `npx tsc --noEmit` → passed; full retained Playwright gate → 8/8 passed (default tier is Pro).
+
+**Not verified / known gaps:**
+
+- Lite behaviour was not exercised in a test or on a device. The toggle, hidden Advanced section,
+  and lock-screen clearing are unverified; the iOS lock-screen deregistration path is untested.
+- `playback.resume` is not implemented: launch restores the last track paused at the start, with
+  no saved position. `playback.continuous` currently gates only Shuffle auto-advance; a normal
+  queue already stops at track end.
+- Lite still renders any stored BPM grid and count labels in the waveform; only the Settings
+  controls are hidden. Ads, the saved-project limit, and coarse speed presets are not enforced.
+
+**Next agent should:**
+
+- Decide with the user whether sequential queues should auto-advance for Pro, then implement
+  position persistence for resume play and finish hiding BPM surfaces in Lite.
+
+## Archived Done checklist items — 2026-11-02 beta-6 rotation
+
+- [x] Close the V1 performance review at the user's direction and retain the accepted waveform and
+      seek optimisations; formal Nominal keep/revert captures, counters, and extended
+      latency/memory/energy/contention baselines remain intentionally incomplete rather than claimed
+      as passing
+      <sub>**Key Artifacts:** `.kiro/specs/app-performance-optimization/tasks.md`, `.kiro/specs/app-performance-optimization/results.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+## Archived handover — 2026-11-02 beta-6 rotation
+
+### 2026-11-02 — Close the V1 performance review
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** `app-performance-optimization` Phase 0–1 → Done by user acceptance
+
+**Changed:**
+
+- Stopped the coordinated physical-device capture and removed performance work from Current Focus
+  and In Progress at the user's direction.
+- Kept the static waveform artwork and coalesced seek changes for V1 based on their physical
+  functional acceptance and encouraging diagnostic trace, while recording that the formal thermal-
+  valid Requirement 10.4 comparison was not completed.
+- Closed the spec without converting the remaining counters, latency, memory, energy, contention,
+  VoiceOver, or TestFlight gaps into passing results.
+
+**Verified:**
+
+- No new capture was started after the stop request; the failed and smoke-test trace bundles from
+  the interrupted attempt had already been deleted.
+- Documentation-only closeout passed `git diff --check` and the orchestrator contract checker.
+
+**Not verified / known gaps:**
+
+- Nominal after-measurements for continuous scrub, steady playback, rapid taps, and paced seeks were
+  not captured. The Serious-thermal after-trace remains diagnostic only.
+- The unchecked tasks in the performance spec are intentionally unplanned unless a concrete
+  regression or later release reopens the review.
+
+**Next agent should:**
+
+- Do not resume performance profiling for V1 unless the user reports a regression; continue the
+  top remaining product/physical-acceptance item instead.

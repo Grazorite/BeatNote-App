@@ -10,10 +10,10 @@ export const headerBackButtonStyles = StyleSheet.create({
   button: {
     width: HEADER_SIDE_WIDTH,
     minHeight: dimensions.touchTarget.minHeight,
-    paddingHorizontal: dimensions.spacing.sm,
+    paddingRight: dimensions.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: dimensions.spacing.xs,
+    gap: 2,
     borderRadius: dimensions.borderRadius,
   },
   label: {

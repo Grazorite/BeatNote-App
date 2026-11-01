@@ -11,6 +11,11 @@ export interface WaveformData {
 const waveformCache = new Map<string, WaveformData>();
 const waveformRequestCache = new Map<string, Promise<WaveformData | null>>();
 
+/** Clear decoded in-memory peaks. Active requests may finish and repopulate their result. */
+export const clearWaveformCache = (): void => {
+  waveformCache.clear();
+};
+
 const loadWaveform = (
   audioUri: string,
   resolution: WaveformResolution,

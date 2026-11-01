@@ -22,6 +22,10 @@ import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import AboutSettingsScreen from '../ui/screens/AboutSettingsScreen';
 import BpmSettingsScreen from '../ui/screens/BpmSettingsScreen';
+import PlaybackSettingsScreen from '../ui/screens/PlaybackSettingsScreen';
+import ButtonConfigurationScreen from '../ui/screens/ButtonConfigurationScreen';
+import DataManagementScreen from '../ui/screens/DataManagementScreen';
+import ProSettingsScreen from '../ui/screens/ProSettingsScreen';
 import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
@@ -29,19 +33,27 @@ import AppModal from '../ui/common/AppModal';
 import HeaderBackButton from '../ui/common/HeaderBackButton';
 import { BeatNoteIcon } from '../icons';
 
-type SettingsDetail = 'bpm' | 'about' | null;
+type SettingsDetail = 'playback' | 'buttons' | 'bpm' | 'data' | 'pro' | 'about' | null;
 
 interface SettingsRootSectionsProps {
   bpmAvailable: boolean;
   singleAnnotationLane?: boolean;
+  onOpenPlayback: () => void;
+  onOpenButtons: () => void;
   onOpenBpm: () => void;
+  onOpenData: () => void;
+  onOpenPro: () => void;
   onOpenAbout: () => void;
 }
 
 const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
   bpmAvailable,
   singleAnnotationLane = false,
+  onOpenPlayback,
+  onOpenButtons,
   onOpenBpm,
+  onOpenData,
+  onOpenPro,
   onOpenAbout,
 }) => (
   <>
@@ -57,6 +69,19 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
       </Text>
       <LayerNameSettings singleAnnotationLane={singleAnnotationLane} />
     </View>
+    <Text style={styles.sectionLabel}>Playback</Text>
+    <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="Playback Settings"
+        onPress={onOpenPlayback}
+        testID="settings-playback"
+      />
+      <SettingsNavigationRow
+        label="Button Configuration"
+        onPress={onOpenButtons}
+        testID="settings-buttons"
+      />
+    </View>
     <Text style={styles.sectionLabel}>Advanced</Text>
     <View style={[styles.sidebarSection, styles.navigationRows]}>
       <SettingsNavigationRow
@@ -67,8 +92,21 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         testID="settings-bpm-entry"
       />
     </View>
+    <Text style={styles.sectionLabel}>Data</Text>
+    <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="Data Management"
+        onPress={onOpenData}
+        testID="settings-data"
+      />
+    </View>
     <Text style={styles.sectionLabel}>Support</Text>
     <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="BeatNote Pro"
+        onPress={onOpenPro}
+        testID="settings-pro"
+      />
       <SettingsNavigationRow
         label="About BeatNote"
         onPress={onOpenAbout}
@@ -203,7 +241,11 @@ const Sidebar: React.FC = () => {
                 <SettingsRootSections
                   bpmAvailable={bpmAvailable}
                   singleAnnotationLane
+                  onOpenPlayback={() => setActiveDetail('playback')}
+                  onOpenButtons={() => setActiveDetail('buttons')}
                   onOpenBpm={() => setActiveDetail('bpm')}
+                  onOpenData={() => setActiveDetail('data')}
+                  onOpenPro={() => setActiveDetail('pro')}
                   onOpenAbout={() => setActiveDetail('about')}
                 />
               </ScrollView>
@@ -220,6 +262,18 @@ const Sidebar: React.FC = () => {
             )}
             {!showHelpScreen && activeDetail === 'bpm' && (
               <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+            )}
+            {!showHelpScreen && activeDetail === 'playback' && (
+              <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
+            )}
+            {!showHelpScreen && activeDetail === 'buttons' && (
+              <ButtonConfigurationScreen onBack={() => setActiveDetail(null)} />
+            )}
+            {!showHelpScreen && activeDetail === 'data' && (
+              <DataManagementScreen onBack={() => setActiveDetail(null)} />
+            )}
+            {!showHelpScreen && activeDetail === 'pro' && (
+              <ProSettingsScreen onBack={() => setActiveDetail(null)} />
             )}
             {!showHelpScreen && activeDetail === 'about' && (
               <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
@@ -247,6 +301,14 @@ const Sidebar: React.FC = () => {
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         {activeDetail === 'bpm' ? (
           <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+        ) : activeDetail === 'playback' ? (
+          <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
+        ) : activeDetail === 'buttons' ? (
+          <ButtonConfigurationScreen onBack={() => setActiveDetail(null)} />
+        ) : activeDetail === 'data' ? (
+          <DataManagementScreen onBack={() => setActiveDetail(null)} />
+        ) : activeDetail === 'pro' ? (
+          <ProSettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'about' ? (
           <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
         ) : (
@@ -258,7 +320,11 @@ const Sidebar: React.FC = () => {
           >
             <SettingsRootSections
               bpmAvailable={bpmAvailable}
+              onOpenPlayback={() => setActiveDetail('playback')}
+              onOpenButtons={() => setActiveDetail('buttons')}
               onOpenBpm={() => setActiveDetail('bpm')}
+              onOpenData={() => setActiveDetail('data')}
+              onOpenPro={() => setActiveDetail('pro')}
               onOpenAbout={() => setActiveDetail('about')}
             />
             {STEM_SEPARATION_UI_ENABLED && (

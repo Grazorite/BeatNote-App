@@ -32,7 +32,6 @@ import AudioControls from '../ui/controls/AudioControls';
 import ControlDock from '../ui/controls/ControlDock';
 import AnnotationCallout from '../ui/controls/AnnotationCallout';
 import DockToast from '../ui/controls/DockToast';
-import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import HorizontalLayerSelector from '../ui/controls/HorizontalLayerSelector';
 import AnnotationField, { AnnotationFieldRef } from '../ui/controls/AnnotationField';
 import DanceCountDisplay from '../ui/controls/DanceCountDisplay';
@@ -426,11 +425,6 @@ const MainContent: React.FC<MainContentProps> = ({
           ));
         } : undefined}
       >
-        <GlassBackdrop
-          testID="control-dock-glass"
-          gradientId={isLandscapePhone ? 'control-dock-glass-landscape' : 'control-dock-glass-portrait'}
-          radius={isLandscapePhone ? 0 : 14}
-        />
         <ControlDock
           isLandscape={isLandscapePhone}
           landscapeHeight={isLandscapePhone ? Math.max(

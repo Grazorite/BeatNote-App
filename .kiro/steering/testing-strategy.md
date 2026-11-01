@@ -74,6 +74,9 @@ does, document the exception here and keep the smallest possible test.
 
 - No `test.only` or `test.skip` in committed code.
 - Tests describe user-visible outcomes, not internal state or styling implementation.
+- Keep assertion sets narrow: prove the critical outcome and one meaningful failure boundary, then
+  stop. Do not enumerate every visible control, icon path, colour, intermediate animation state, or
+  pixel relationship when the same journey is already usable end to end.
 - Do not add standalone smoke tests when an existing end-to-end journey proves the same surface.
 - Avoid pixel-perfect assertions; retain only geometry checks that prevent controls from becoming
   clipped, unsafe, or unusable.

@@ -13,6 +13,7 @@ import { ErrorModal, PersistenceBanner } from '../../components/ui/common';
 import { studioScreenStyles as styles } from '../../styles/features/studioScreen';
 import { useLibraryLifecycle } from '../library/useLibraryLifecycle';
 import SwitchGuardDialog from '../../components/ui/modals/SwitchGuardDialog';
+import KeepScreenAwakeController from '../../components/KeepScreenAwakeController';
 
 export default function StudioScreen() {
   useRenderCounter('render.StudioScreen');
@@ -67,6 +68,7 @@ export default function StudioScreen() {
 
   return (
     <View style={styles.mainContainer}>
+      <KeepScreenAwakeController />
       <View
         style={[
           styles.scrollView,

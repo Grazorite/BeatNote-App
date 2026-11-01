@@ -66,8 +66,8 @@ const LoopClearControl = forwardRef<React.ElementRef<typeof Pressable>, LoopClea
       style={[styles.button, inactive && styles.buttonDisabled]}
     >
       {restoring
-        ? <BeatNoteIcon name="restore" size={15} />
-        : <BeatNoteIcon name="clear" size={15} color={inactive ? colors.textSecondary : colors.text} />}
+        ? <BeatNoteIcon name="restore" size={18} />
+        : <BeatNoteIcon name="clear" size={18} color={inactive ? colors.textSecondary : colors.text} />}
     </Pressable>
   );
 });

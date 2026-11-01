@@ -252,16 +252,22 @@ so it does not undermine the yearly subscription.
 
 The Settings information architecture uses the supplied Audipo screens as a functional reference
 without copying its visual design. Ignore Audipo's mark-display mode. The root stays deliberately
-small: Debug, Basic, one Advanced navigation row, and Support. Timing/BPM/count controls live on a
-dedicated Pro subpage rather than expanding inline. The About page currently exposes the real
-version/build, licence status, the project feedback link, and the truthful current diagnostic policy.
-Remaining planned groups are:
+small: Debug and Basic controls remain inline; Playback, Advanced, Data, and Support use navigation
+rows. Timing/BPM/count controls live on a dedicated Pro subpage rather than expanding inline. The
+About page exposes the real version/build, licence status, the project feedback link, and the
+truthful current diagnostic policy. The current implementation includes:
 
-- Playback: continuous play (Pro), pause on headset disconnect (Lite), and keep-screen-on (Lite)
-- Button configuration: seek-button mapping and seek duration (Lite); speed range, preset count,
-  fine slider/buttons, and long-press preset editing (Pro)
-- Data management (Lite): import/export entry points, delete imported copies, clear derived caches,
-  and destructive marker/project actions with explicit confirmation
+- Playback: a persisted Pro Continuous Play switch wired to queue completion, plus a persisted Lite
+  Keep Screen On choice for disabled, always, or while-playing wake locks. Pause on headset
+  disconnect remains a truthful disabled placeholder until audio-route observation is reliable.
+- Button configuration: the Lite built-in speed-preset boundary and the existing Pro fine controls
+  are described accurately. Seek-button mapping/duration, configurable speed range/count, and
+  long-press custom presets remain labelled placeholders and do not accept discarded changes.
+- Data management (Lite): imported-copy count/size, confirmed derived waveform/BPM cache clearing,
+  confirmed current-song marker/annotation deletion, and guidance to the existing safe per-song and
+  per-project deletion flows. Bulk audio/project/all-data deletion remains a labelled placeholder.
+- BeatNote Pro: the current SGD pricing hypothesis, feature split, future Apple Music caveat, and a
+  disabled Restore Purchases placeholder. It does not advertise stem separation as available.
 - About (Lite): expand dependency licence notices before App Store release; any future crash or
   usage diagnostics must be opt-in and reflected on this page before collection begins
 

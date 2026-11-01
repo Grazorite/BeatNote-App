@@ -1312,7 +1312,11 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     return { currentTime: newTime };
   }),
   clearAllMarkers: () => set((state) => {
-    const clearedAllLayers = state.allLayersData.map(layer => ({ ...layer, markers: [] }));
+    const clearedAllLayers = state.allLayersData.map(layer => ({
+      ...layer,
+      markers: [],
+      annotations: [],
+    }));
     return {
       allLayersData: clearedAllLayers,
       layers: getLayersForDisplay(clearedAllLayers, state.stemCount),

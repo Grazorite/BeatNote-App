@@ -69,6 +69,9 @@ inclusion: always
   primary actions use the app accent, neutral actions use quiet glass, and destructive actions retain
   their semantic colour. Text on an accent-filled action uses `colors.onAccent`; never reuse muted
   secondary text on the bright accent. Avoid isolated opaque greys or unrelated blue/green action fills.
+- The phone media-control dock is deliberately transparent in both orientations. Do not place a shared
+  liquid-glass gradient behind its controls; the individual controls and surrounding layout provide the
+  required grouping and contrast.
 - On phones, top-level utility destinations such as Settings and Help are full-screen pages rather
   than partial drawers or centered desktop dialogs. They must fill both portrait and landscape,
   respect every safe-area edge, retain an obvious 44-point breadcrumb Back action, and put touch

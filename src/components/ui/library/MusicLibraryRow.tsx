@@ -79,6 +79,16 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
   const dragScale = useRef(new Animated.Value(1)).current;
   const dragOriginIndexRef = useRef(0);
   const appliedDragOffsetRef = useRef(0);
+  const customOrderIndexRef = useRef(customOrderIndex);
+  const customOrderCountRef = useRef(customOrderCount);
+  const onReorderByRef = useRef(onReorderBy);
+  const onReorderStartRef = useRef(onReorderStart);
+  const onReorderEndRef = useRef(onReorderEnd);
+  customOrderIndexRef.current = customOrderIndex;
+  customOrderCountRef.current = customOrderCount;
+  onReorderByRef.current = onReorderBy;
+  onReorderStartRef.current = onReorderStart;
+  onReorderEndRef.current = onReorderEnd;
   const missing = item.availability === 'missing';
   const unavailable = disabled || loading;
   const duration = formatDuration(item.durationMs);
@@ -124,10 +134,10 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     onPanResponderTerminationRequest: () => false,
     onShouldBlockNativeResponder: () => true,
     onPanResponderGrant: () => {
-      dragOriginIndexRef.current = customOrderIndex ?? 0;
+      dragOriginIndexRef.current = customOrderIndexRef.current ?? 0;
       appliedDragOffsetRef.current = 0;
       setDragging(true);
-      onReorderStart?.();
+      onReorderStartRef.current?.();
       Animated.spring(dragScale, {
         toValue: 1.025,
         damping: 18,
@@ -138,7 +148,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     onPanResponderMove: (_event, gestureState) => {
       const originIndex = dragOriginIndexRef.current;
       const minOffset = -originIndex;
-      const maxOffset = Math.max(0, (customOrderCount ?? 1) - originIndex - 1);
+      const maxOffset = Math.max(0, (customOrderCountRef.current ?? 1) - originIndex - 1);
       const desiredOffset = Math.max(
         minOffset,
         Math.min(maxOffset, Math.round(gestureState.dy / REORDER_ROW_HEIGHT)),
@@ -146,7 +156,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       const delta = desiredOffset - appliedDragOffsetRef.current;
       if (delta !== 0) {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        onReorderBy?.(delta);
+        onReorderByRef.current?.(delta);
         appliedDragOffsetRef.current = desiredOffset;
       }
       // The list has moved the row's layout origin by the applied offset. Subtract that movement
@@ -170,24 +180,16 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
       ]).start();
       setDragging(false);
       appliedDragOffsetRef.current = 0;
-      onReorderEnd?.();
+      onReorderEndRef.current?.();
     },
     onPanResponderTerminate: () => {
       dragTranslateY.setValue(0);
       dragScale.setValue(1);
       appliedDragOffsetRef.current = 0;
       setDragging(false);
-      onReorderEnd?.();
+      onReorderEndRef.current?.();
     },
-  }), [
-    customOrderCount,
-    customOrderIndex,
-    dragScale,
-    dragTranslateY,
-    onReorderBy,
-    onReorderEnd,
-    onReorderStart,
-  ]);
+  }), [dragScale, dragTranslateY]);
 
   return (
     <Animated.View

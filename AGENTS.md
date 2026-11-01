@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (5)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (6)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -55,7 +55,7 @@ target; Android is a far-future possibility only.
 | Choreography features implemented | 6 of 6 in the V1 preview; physical-device acceptance remains |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
 | iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
-| E2E spec files | 2 (Playwright harness, 9 critical journeys) |
+| E2E spec files | 2 (Playwright harness, 8 critical journeys) |
 | Native Expo modules | 3 (`BeatNoteWaveform`, `LibraryStorage`, and local `BeatNoteTempo` analysis) |
 
 ### Current Focus
@@ -114,6 +114,16 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Remove the media-control liquid-glass backdrop in both phone orientations, redraw the overview
+      strip's Clear/Restore icons, reduce brittle browser UI coverage to eight core journeys, repair
+      the two test-file lint issues, and install Release beta `1.0.0 (6)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/testing-strategy.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/LoopClearControl.tsx`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Build the remaining Settings information architecture, wire persisted Continuous Play and
+      Keep Screen On preferences, add safe Data and Pro previews, and repair the beta 5 breadcrumb
+      truncation and Custom Order native drag-responder regressions
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `package.json`, `package-lock.json`, `src/components/KeepScreenAwakeController.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/SettingsInfoRow.tsx`, `src/features/settings/preferences.ts`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/common/headerBackButton.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
 - [x] Refine iOS Settings and navigation with a compact root, dedicated Pro Timing & BPM subpage,
       About/support page, native UI-thread toggle feedback, marker-violet annotation identity,
       standard 20-point menu titles, leading breadcrumb Back controls, Lite speed presets with Pro
@@ -131,16 +141,6 @@ target; Android is a far-future possibility only.
       cache boundaries, add a Lite-only standard banner placeholder in both phone orientations,
       complete the preview speed/continuous-play gates, and install beta `1.0.0 (2)` physically
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `README.md`, `app.json`, `src/components/layout/MainContent.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/hooks/useAudioPlayer.ts`, `src/styles/components/ads/liteAdPlaceholder.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Close the V1 performance review at the user's direction and retain the accepted waveform and
-      seek optimisations; formal Nominal keep/revert captures, counters, and extended
-      latency/memory/energy/contention baselines remain intentionally incomplete rather than claimed
-      as passing
-      <sub>**Key Artifacts:** `.kiro/specs/app-performance-optimization/tasks.md`, `.kiro/specs/app-performance-optimization/results.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
-
-- [x] Add Pro playback capabilities (continuous playback, resume play, remote controls) to the
-      roadmap and a persisted debug Lite/Pro toggle in Settings with the first gates wired
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/types.ts`, `src/features/entitlements/useProductTier.ts`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/layout/Sidebar.tsx`, `src/hooks/useAudioPlayer.ts`</sub>
 
 ---
 
@@ -218,6 +218,79 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Simplify the media dock and install beta 6
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** transparent media dock, overview icons, and core browser coverage → Done
+
+**Changed:**
+
+- Removed the shared liquid-glass gradient behind the phone media controls in portrait and
+  landscape while retaining each control's own contrast and grouping.
+- Redrew the overview strip's Clear action as a conventional trash can and Restore as a clean
+  counter-clockwise arrow, increasing both glyphs to 18 points for legibility.
+- Reduced the Playwright harness from nine broad journeys to eight core behavioural journeys and
+  narrowed assertion sets to persisted outcomes and meaningful failure boundaries. Removed the two
+  reported test-file lint issues: import ordering and a fixed animation timeout.
+- Incremented the iOS build to `1.0.0 (6)`, regenerated native codegen including RNWorklets, and
+  installed and launched the signed Release build on physical iPhone `gæl (3)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full reduced Playwright regression harness → 8/8 passed in 15.8 seconds.
+- Signed Release build `1.0.0 (6)` succeeded, its built Info.plist reports version/build `1.0.0/6`,
+  and device services confirmed both installation and launch as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- The user still needs to visually confirm the transparent dock and revised Clear/Restore glyphs in
+  both orientations, plus the Settings breadcrumb and Custom Order drag fixes bundled into beta 6.
+- No focused iOS XCTest was run because this task changed React Native UI/assets rather than native
+  module behaviour.
+
+**Next agent should:**
+
+- Incorporate the user's physical beta 6 feedback, then continue the top physical-acceptance item.
+
+### 2026-11-02 — Complete Settings architecture and repair beta 5 regressions
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** Settings expansion and beta 5 breadcrumb/Custom Order regressions → Done
+
+**Changed:**
+
+- Added compact Playback, Button Configuration, Data Management, and BeatNote Pro destinations.
+  Continuous Play and Keep Screen On are persisted and functional; unfinished headset, seek,
+  custom-preset, bulk deletion, and StoreKit rows are visibly and truthfully labelled placeholders.
+- Continuous Play now controls actual Pro queue advancement. Keep Screen On uses Expo's native wake
+  lock for always or while-playing modes. Data Management reports imported-copy usage, clears only
+  derived waveform/BPM caches after confirmation, and confirms current-song marker deletion.
+- Reduced breadcrumb padding so the `Settings` label fits its balanced header slot. Kept each Music
+  Library row's PanResponder stable across live reorder renders so a held native drag is not lost as
+  neighbours move.
+- Repaired two new tests: radio choices now expose `aria-checked`, and the completion journey waits
+  for playback to stop before changing tier, eliminating a false timing failure.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, `git diff --check`, and the orchestrator contract
+  checker → passed.
+- Focused Settings, tier, Continuous Play, annotation/data-confirmation, and drag coverage passed;
+  full retained Playwright regression harness → 9/9 passed.
+
+**Not verified / known gaps:**
+
+- The smaller breadcrumb, uninterrupted held-row movement, native wake lock, and all new Settings
+  pages have not yet been installed or inspected on a physical iPhone.
+- Pause on headset disconnect, configurable seek buttons, configurable/custom speed presets, bulk
+  audio/project/all-data deletion, full dependency notices, and StoreKit remain labelled future work.
+
+**Next agent should:**
+
+- Build/install the next physical beta and verify the Settings breadcrumb, Custom Order drag feel,
+  Keep Screen On modes, and compact Settings pages before expanding another placeholder.
 
 ### 2026-11-02 — Polish Settings, navigation, ordering, and tier controls
 
@@ -340,74 +413,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Incorporate the user's physical Lite/Pro visual feedback, then keep V1 work limited to concrete
   iOS release blockers before implementing StoreKit and production ads in V2.
-
-### 2026-11-02 — Close the V1 performance review
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** `app-performance-optimization` Phase 0–1 → Done by user acceptance
-
-**Changed:**
-
-- Stopped the coordinated physical-device capture and removed performance work from Current Focus
-  and In Progress at the user's direction.
-- Kept the static waveform artwork and coalesced seek changes for V1 based on their physical
-  functional acceptance and encouraging diagnostic trace, while recording that the formal thermal-
-  valid Requirement 10.4 comparison was not completed.
-- Closed the spec without converting the remaining counters, latency, memory, energy, contention,
-  VoiceOver, or TestFlight gaps into passing results.
-
-**Verified:**
-
-- No new capture was started after the stop request; the failed and smoke-test trace bundles from
-  the interrupted attempt had already been deleted.
-- Documentation-only closeout passed `git diff --check` and the orchestrator contract checker.
-
-**Not verified / known gaps:**
-
-- Nominal after-measurements for continuous scrub, steady playback, rapid taps, and paced seeks were
-  not captured. The Serious-thermal after-trace remains diagnostic only.
-- The unchecked tasks in the performance spec are intentionally unplanned unless a concrete
-  regression or later release reopens the review.
-
-**Next agent should:**
-
-- Do not resume performance profiling for V1 unless the user reports a regression; continue the
-  top remaining product/physical-acceptance item instead.
-
-### 2026-11-02 — Add Pro playback features and a debug Lite/Pro toggle
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
-**Kanban moved:** debug tier toggle and playback capability gates → Done
-
-**Changed:**
-
-- Roadmap: continuous playback, resume play, and remote playback control (headset, lock screen,
-  Control Centre) added as Pro; new `playback.continuous`, `playback.resume`,
-  `playback.remoteControls` keys and matrix rows.
-- `src/features/entitlements/`: Lite now includes only `waveform.display`; the provider takes its
-  tier from a persisted debug override (default Pro) and exposes `setDebugTier`,
-  `getCurrentTier`, and `isCapabilityAvailable`; new `useProductTier` hook.
-- Settings (phone and desktop): new Debug section with a Pro toggle (`DebugTierControl`); the
-  Advanced BPM section is hidden in Lite; the waveform label no longer says Pro.
-- `useAudioPlayer.ts`: auto-advance after a track ends and lock-screen registration require Pro.
-
-**Verified:**
-
-- `npx tsc --noEmit` → passed; full retained Playwright gate → 8/8 passed (default tier is Pro).
-
-**Not verified / known gaps:**
-
-- Lite behaviour was not exercised in a test or on a device. The toggle, hidden Advanced section,
-  and lock-screen clearing are unverified; the iOS lock-screen deregistration path is untested.
-- `playback.resume` is not implemented: launch restores the last track paused at the start, with
-  no saved position. `playback.continuous` currently gates only Shuffle auto-advance; a normal
-  queue already stops at track end.
-- Lite still renders any stored BPM grid and count labels in the waveform; only the Settings
-  controls are hidden. Ads, the saved-project limit, and coarse speed presets are not enforced.
-
-**Next agent should:**
-
-- Decide with the user whether sequential queues should auto-advance for Pro, then implement
-  position persistence for resume play and finish hiding BPM surfaces in Lite.
 
 <!-- end handover log -->

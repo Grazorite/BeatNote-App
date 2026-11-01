@@ -11,6 +11,7 @@ import { isLoopRangeGestureActive } from '../features/playback/interactionActivi
 import { incrementPerfCounter } from '../utils/perfCounters';
 import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
+import { getSettingsPreferences } from '../features/settings/preferences';
 
 interface ErrorState {
   visible: boolean;
@@ -145,6 +146,7 @@ export const useCustomAudioPlayer = () => {
     const queue = state.queue;
     // Auto-advance is a Pro capability; Lite playback ends when the track does.
     const hasContinuousNext = isCapabilityAvailable('playback.continuous')
+      && getSettingsPreferences().continuousPlay
       && queue !== null
       && queue.currentIndex !== null
       && queue.currentIndex + 1 < queue.order.length;
