@@ -58,6 +58,12 @@ test.describe('Critical annotation workflow', () => {
 
     await page.getByTestId('add-marker').click();
     await expect.poll(markerCount).toBe(0);
+    await page.waitForTimeout(150);
+    const fadingOpacity = await page.getByTestId('annotation-callout').evaluate(element => (
+      Number.parseFloat(window.getComputedStyle(element).opacity)
+    ));
+    expect(fadingOpacity).toBeGreaterThan(0);
+    expect(fadingOpacity).toBeLessThan(1);
     const activeToast = page.locator('[data-testid="dock-toast"][aria-live="polite"]');
     await expect(activeToast).toContainText('Marker removed');
     await activeToast.getByTestId('dock-toast-action').click();

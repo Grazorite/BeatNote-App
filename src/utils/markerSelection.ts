@@ -1,7 +1,7 @@
 import type { Layer, LayerId, SelectedMarker } from '../hooks/useStudioStore';
 
 export const ANNOTATION_DWELL_MS = 2000;
-export const ANNOTATION_FADE_MS = 350;
+export const ANNOTATION_FADE_MS = 650;
 
 /** Return the closest marker within the playhead tolerance, preferring the active layer on ties. */
 export const findMarkerNearTime = (

@@ -91,6 +91,9 @@ inclusion: always
   the editor. Do not place decorative icons beside page titles.
 - Settings subpages keep standalone toggles and informational rows directly on the page instead of
   boxing every setting. Reserve bordered cards for meaningful groups, selected options, and actions.
+- Settings describe what an available feature does without repeating Lite or Pro labels. When a
+  Pro capability is unavailable in Lite, retain its position, grey it out, and show the short note
+  `Pro only`; do not mix tier-comparison copy into ordinary setting descriptions.
 - Keep the Settings Pro action visually smaller than its balanced header slot. A pair of tiny,
   low-amplitude sparkles may loop around it, but the animation must not obscure the label or compete
   with navigation.
@@ -121,15 +124,24 @@ inclusion: always
   markers, playhead, so the played-waveform tint never recolours markers.
 - Transient toast and annotation-callout replacements crossfade without exit-time layout motion:
   the mobile feedback stack retains fixed toast and annotation slots, and fades content fully at
-  its anchored position before unmounting it. Playback choosers likewise fade in place and must
+  its anchored position before unmounting it. The annotation callout owns a retained native opacity
+  animation rather than relying on a disappearing marker selection to animate its presence.
+  Playback choosers likewise fade in place and must
   never translate toward the overview strip while dismissing. Rapid successive feedback must not
   snap, stack-jump, or compete with playback.
 - Previous/Next track controls combine queue navigation with configurable seeking. Their small
   signed seconds label (`−5s` / `+5s`) appears only in the default Tap Seeks mode and communicates
   direction and persisted distance. Settings lists Tap Seeks first, offers Tap Changes Track as the
-  alternative, and adjusts distance from 0.5 through 30 seconds in exact 0.5-second steps. Preserve
+  alternative, and adjusts distance from 0.5 through 30 seconds in exact 0.5-second steps. The
+  number is directly editable; holding either step button repeats at an exponentially increasing
+  rate. Preserve
   both tap/hold operations in accessible labels, clamp seeking to track bounds, and keep the control
   usable when either operation remains available.
+- Advanced playback-speed configuration is Pro-only. It offers exactly two ranges (`0.5×–2.00×`
+  and `0.25×–4.00×`) and 4, 8, or 12 preset buttons with useful defaults for each combination.
+  Long-pressing a preset opens its numeric editor; saving persists that slot for the selected
+  range/count, while Use Default clears the override. Holding the fine `−/+` controls accelerates
+  their 0.05× repeats. Lite keeps the standard built-in presets and hides fine controls.
 - The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
   be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
   teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.

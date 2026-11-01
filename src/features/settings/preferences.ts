@@ -1,6 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
+import {
+  DEFAULT_PLAYBACK_SPEED_PRESET_COUNT,
+  DEFAULT_PLAYBACK_SPEED_RANGE,
+  type PlaybackSpeedPresetCount,
+  type PlaybackSpeedRange,
+} from '../../utils/playbackSpeed';
+
 export type KeepScreenOnMode = 'disabled' | 'always' | 'whilePlaying';
 export type SeekButtonBehaviour = 'tapTrackHoldSeek' | 'tapSeekHoldTrack';
 export type SeekDurationSeconds = number;
@@ -10,6 +17,9 @@ export interface SettingsPreferences {
   keepScreenOn: KeepScreenOnMode;
   seekButtonBehaviour: SeekButtonBehaviour;
   seekDurationSeconds: SeekDurationSeconds;
+  playbackSpeedRange: PlaybackSpeedRange;
+  playbackSpeedPresetCount: PlaybackSpeedPresetCount;
+  playbackSpeedPresetOverrides: Readonly<Record<string, number>>;
 }
 
 const STORAGE_KEY = 'beatnote.settings.v1';
@@ -18,6 +28,9 @@ const DEFAULTS: SettingsPreferences = {
   keepScreenOn: 'disabled',
   seekButtonBehaviour: 'tapSeekHoldTrack',
   seekDurationSeconds: 5,
+  playbackSpeedRange: DEFAULT_PLAYBACK_SPEED_RANGE,
+  playbackSpeedPresetCount: DEFAULT_PLAYBACK_SPEED_PRESET_COUNT,
+  playbackSpeedPresetOverrides: Object.freeze({}),
 };
 let snapshot = DEFAULTS;
 const listeners = new Set<() => void>();
@@ -39,6 +52,27 @@ const isSeekDurationSeconds = (value: unknown): value is SeekDurationSeconds => 
   && Number.isInteger(value * 2)
 );
 
+const isPlaybackSpeedRange = (value: unknown): value is PlaybackSpeedRange => (
+  value === 'focused' || value === 'extended'
+);
+
+const isPlaybackSpeedPresetCount = (value: unknown): value is PlaybackSpeedPresetCount => (
+  value === 4 || value === 8 || value === 12
+);
+
+const playbackSpeedPresetOverridesFrom = (value: unknown): Readonly<Record<string, number>> => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return Object.freeze({});
+  return Object.freeze(Object.fromEntries(
+    Object.entries(value).filter(([key, entry]) => (
+      /^(focused|extended):(4|8|12):([0-9]|1[01])$/.test(key)
+      && typeof entry === 'number'
+      && Number.isFinite(entry)
+      && entry >= 0.25
+      && entry <= 4
+    )),
+  ));
+};
+
 const hydration = AsyncStorage.getItem(STORAGE_KEY)
   .then(raw => {
     if (raw === null) return;
@@ -56,6 +90,15 @@ const hydration = AsyncStorage.getItem(STORAGE_KEY)
       seekDurationSeconds: isSeekDurationSeconds(parsed.seekDurationSeconds)
         ? parsed.seekDurationSeconds
         : DEFAULTS.seekDurationSeconds,
+      playbackSpeedRange: isPlaybackSpeedRange(parsed.playbackSpeedRange)
+        ? parsed.playbackSpeedRange
+        : DEFAULTS.playbackSpeedRange,
+      playbackSpeedPresetCount: isPlaybackSpeedPresetCount(parsed.playbackSpeedPresetCount)
+        ? parsed.playbackSpeedPresetCount
+        : DEFAULTS.playbackSpeedPresetCount,
+      playbackSpeedPresetOverrides: playbackSpeedPresetOverridesFrom(
+        parsed.playbackSpeedPresetOverrides,
+      ),
     };
     emit();
   })

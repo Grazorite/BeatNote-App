@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  configuredPlaybackSpeedPresets,
   DEFAULT_PLAYBACK_SPEED,
+  defaultPlaybackSpeedPreset,
   formatSpeedLabel,
-  MAX_PLAYBACK_SPEED,
-  MIN_PLAYBACK_SPEED,
   normalizePlaybackSpeed,
+  playbackSpeedBounds,
+  playbackSpeedPresetOverrideKey,
   PLAYBACK_SPEED_PRESETS,
   PLAYBACK_SPEED_STEP,
 } from '../../../utils/playbackSpeed';
@@ -26,6 +28,12 @@ import { playbackSpeedControlStyles as styles } from '../../../styles/components
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { capabilitiesForLoadedItem } from '../../../features/library/sourceResolver';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
+import {
+  updateSettingsPreferences,
+  useSettingsPreferences,
+} from '../../../features/settings/preferences';
+import { useAcceleratingPress } from '../../../hooks/useAcceleratingPress';
+import PlaybackSpeedPresetEditor from '../modals/PlaybackSpeedPresetEditor';
 
 const DRAG_CLOSE_DELAY_MS = 700;
 const DRAG_FADE_DURATION_MS = 220;
@@ -45,7 +53,7 @@ interface PlaybackSpeedControlProps {
 
 const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   value: controlledValue,
-  options = PLAYBACK_SPEED_PRESETS,
+  options,
   onSelect,
   compact,
   chooserSide = 'trailing',
@@ -57,11 +65,13 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   ).pitchPreservingSpeed);
   const productSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const advancedSpeedAvailable = useProductCapability('playback.advancedSpeed');
+  const preferences = useSettingsPreferences();
   const speedAvailable = sourceSpeedAvailable && productSpeedAvailable;
   const [localValue, setLocalValue] = useState(DEFAULT_PLAYBACK_SPEED);
   const [open, setOpen] = useState(false);
   const [trackWidth, setTrackWidth] = useState(0);
   const [compactTop, setCompactTop] = useState<number | null>(null);
+  const [editingPresetIndex, setEditingPresetIndex] = useState<number | null>(null);
   const wrapperRef = useRef<View>(null);
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -71,9 +81,20 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const dismissingRef = useRef(false);
   const dismissProgress = useRef(new Animated.Value(0)).current;
   const presentProgress = useRef(new Animated.Value(0)).current;
-  const value = normalizePlaybackSpeed(controlledValue ?? localValue);
+  const activeRange = advancedSpeedAvailable ? preferences.playbackSpeedRange : 'focused';
+  const activeBounds = playbackSpeedBounds(activeRange);
+  const configuredOptions = advancedSpeedAvailable
+    ? configuredPlaybackSpeedPresets(
+      activeRange,
+      preferences.playbackSpeedPresetCount,
+      preferences.playbackSpeedPresetOverrides,
+    )
+    : PLAYBACK_SPEED_PRESETS;
+  const displayedOptions = options ?? configuredOptions;
+  const rawValue = normalizePlaybackSpeed(controlledValue ?? localValue);
+  const value = normalizePlaybackSpeed(rawValue, activeBounds);
   const presentedValue = productSpeedAvailable ? value : DEFAULT_PLAYBACK_SPEED;
-  const progress = (value - MIN_PLAYBACK_SPEED) / (MAX_PLAYBACK_SPEED - MIN_PLAYBACK_SPEED);
+  const progress = (value - activeBounds.min) / (activeBounds.max - activeBounds.min);
 
   const clearCloseTimer = useCallback(() => {
     if (!closeTimerRef.current) return;
@@ -124,15 +145,31 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   }, [clearCloseTimer, dismissProgress, presentProgress, stopDismissAnimation]);
 
   const applySpeed = useCallback((next: number, dismiss = false) => {
-    const normalized = normalizePlaybackSpeed(next);
+    const normalized = normalizePlaybackSpeed(next, activeBounds);
     if (controlledValue === undefined) setLocalValue(normalized);
     onSelect?.(normalized);
     if (dismiss) animateDismiss();
-  }, [animateDismiss, controlledValue, onSelect]);
+  }, [activeBounds, animateDismiss, controlledValue, onSelect]);
 
   const stepSpeed = useCallback((direction: -1 | 1) => {
     applySpeed(value + direction * PLAYBACK_SPEED_STEP);
   }, [applySpeed, value]);
+  const decrementDisabled = value <= activeBounds.min;
+  const incrementDisabled = value >= activeBounds.max;
+  const decrementSpeed = useAcceleratingPress(() => {
+    restorePopup();
+    stepSpeed(-1);
+  }, decrementDisabled);
+  const incrementSpeed = useAcceleratingPress(() => {
+    restorePopup();
+    stepSpeed(1);
+  }, incrementDisabled);
+
+  useEffect(() => {
+    if (rawValue === value) return;
+    if (controlledValue === undefined) setLocalValue(value);
+    onSelect?.(value);
+  }, [controlledValue, onSelect, rawValue, value]);
 
   /** Schedule the deferred auto-close after a completed drag; cancels any pending timer. */
   const scheduleCloseAfterDrag = useCallback(() => {
@@ -185,8 +222,8 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const updateFromTrackX = useCallback((trackX: number) => {
     if (trackWidth <= 0) return;
     const ratio = Math.max(0, Math.min(1, trackX / trackWidth));
-    applySpeed(MIN_PLAYBACK_SPEED + ratio * (MAX_PLAYBACK_SPEED - MIN_PLAYBACK_SPEED));
-  }, [applySpeed, trackWidth]);
+    applySpeed(activeBounds.min + ratio * (activeBounds.max - activeBounds.min));
+  }, [activeBounds, applySpeed, trackWidth]);
 
   const onTrackLayout = (event: LayoutChangeEvent) => setTrackWidth(event.nativeEvent.layout.width);
   // The compact chooser grows with its content, so a fixed offset can push it past the top of a
@@ -266,17 +303,18 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
           {advancedSpeedAvailable && <View style={styles.sliderControls}>
             <TouchableOpacity
               testID="playback-speed-decrement"
-              style={[styles.stepButton, value <= MIN_PLAYBACK_SPEED && styles.stepButtonDisabled]}
-              onPress={() => {
-                restorePopup();
-                stepSpeed(-1);
+              style={[styles.stepButton, decrementDisabled && styles.stepButtonDisabled]}
+              onPress={decrementSpeed.onPress}
+              onPressIn={decrementSpeed.onPressIn}
+              onPressOut={() => {
+                decrementSpeed.onPressOut();
                 scheduleCloseAfterDrag();
               }}
-              disabled={value <= MIN_PLAYBACK_SPEED}
+              disabled={decrementDisabled}
               accessibilityRole="button"
               accessibilityLabel={`Decrease playback speed by ${PLAYBACK_SPEED_STEP}×`}
-              accessibilityHint={`Current speed ${formatSpeedLabel(value)}`}
-              accessibilityState={{ disabled: value <= MIN_PLAYBACK_SPEED }}
+              accessibilityHint={`Current speed ${formatSpeedLabel(value)}. Press and hold to accelerate.`}
+              accessibilityState={{ disabled: decrementDisabled }}
             >
               <Text style={styles.stepButtonText}>−</Text>
             </TouchableOpacity>
@@ -295,13 +333,13 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
                 accessibilityRole="adjustable"
                 accessibilityLabel="Playback speed slider"
                 accessibilityValue={{
-                  min: MIN_PLAYBACK_SPEED,
-                  max: MAX_PLAYBACK_SPEED,
+                  min: activeBounds.min,
+                  max: activeBounds.max,
                   now: value,
                   text: formatSpeedLabel(value),
                 }}
-                aria-valuemin={MIN_PLAYBACK_SPEED}
-                aria-valuemax={MAX_PLAYBACK_SPEED}
+                aria-valuemin={activeBounds.min}
+                aria-valuemax={activeBounds.max}
                 aria-valuenow={value}
                 aria-valuetext={formatSpeedLabel(value)}
                 accessibilityActions={[
@@ -319,36 +357,43 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
                 </View>
               </View>
               <View style={styles.rangeLabels}>
-                <Text style={styles.rangeLabel}>{formatSpeedLabel(MIN_PLAYBACK_SPEED)}</Text>
-                <Text style={styles.rangeLabel}>{formatSpeedLabel(MAX_PLAYBACK_SPEED)}</Text>
+                <Text style={styles.rangeLabel} testID="playback-speed-range-min">
+                  {formatSpeedLabel(activeBounds.min)}
+                </Text>
+                <Text style={styles.rangeLabel} testID="playback-speed-range-max">
+                  {formatSpeedLabel(activeBounds.max)}
+                </Text>
               </View>
             </View>
             <TouchableOpacity
               testID="playback-speed-increment"
-              style={[styles.stepButton, value >= MAX_PLAYBACK_SPEED && styles.stepButtonDisabled]}
-              onPress={() => {
-                restorePopup();
-                stepSpeed(1);
+              style={[styles.stepButton, incrementDisabled && styles.stepButtonDisabled]}
+              onPress={incrementSpeed.onPress}
+              onPressIn={incrementSpeed.onPressIn}
+              onPressOut={() => {
+                incrementSpeed.onPressOut();
                 scheduleCloseAfterDrag();
               }}
-              disabled={value >= MAX_PLAYBACK_SPEED}
+              disabled={incrementDisabled}
               accessibilityRole="button"
               accessibilityLabel={`Increase playback speed by ${PLAYBACK_SPEED_STEP}×`}
-              accessibilityHint={`Current speed ${formatSpeedLabel(value)}`}
-              accessibilityState={{ disabled: value >= MAX_PLAYBACK_SPEED }}
+              accessibilityHint={`Current speed ${formatSpeedLabel(value)}. Press and hold to accelerate.`}
+              accessibilityState={{ disabled: incrementDisabled }}
             >
               <Text style={styles.stepButtonText}>+</Text>
             </TouchableOpacity>
           </View>}
           <View style={styles.presets}>
-            {options.map(option => {
-              const normalizedOption = normalizePlaybackSpeed(option);
+            {displayedOptions.map((option, index) => {
+              const normalizedOption = normalizePlaybackSpeed(option, activeBounds);
               return (
                 <TouchableOpacity
-                  key={option}
+                  key={`${index}-${option}`}
                   testID={`playback-speed-preset-${option}`}
                   style={[styles.option, normalizedOption === value && styles.optionSelected]}
                   onPress={() => applySpeed(normalizedOption, true)}
+                  onLongPress={advancedSpeedAvailable ? () => setEditingPresetIndex(index) : undefined}
+                  delayLongPress={450}
                   accessibilityRole="button"
                   accessibilityLabel={`Select ${formatSpeedLabel(normalizedOption)} playback speed`}
                   accessibilityState={{ selected: normalizedOption === value }}
@@ -412,6 +457,44 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
       >
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.label}>{formatSpeedLabel(presentedValue)}</Text>
       </DockButton>
+      {editingPresetIndex !== null && (
+        <PlaybackSpeedPresetEditor
+          visible
+          value={displayedOptions[editingPresetIndex] ?? DEFAULT_PLAYBACK_SPEED}
+          defaultValue={defaultPlaybackSpeedPreset(
+            activeRange,
+            preferences.playbackSpeedPresetCount,
+            editingPresetIndex,
+          )}
+          bounds={activeBounds}
+          onClose={() => setEditingPresetIndex(null)}
+          onSave={nextValue => {
+            const key = playbackSpeedPresetOverrideKey(
+              activeRange,
+              preferences.playbackSpeedPresetCount,
+              editingPresetIndex,
+            );
+            void updateSettingsPreferences({
+              playbackSpeedPresetOverrides: {
+                ...preferences.playbackSpeedPresetOverrides,
+                [key]: nextValue,
+              },
+            });
+            setEditingPresetIndex(null);
+          }}
+          onUseDefault={() => {
+            const key = playbackSpeedPresetOverrideKey(
+              activeRange,
+              preferences.playbackSpeedPresetCount,
+              editingPresetIndex,
+            );
+            const nextOverrides = { ...preferences.playbackSpeedPresetOverrides };
+            delete nextOverrides[key];
+            void updateSettingsPreferences({ playbackSpeedPresetOverrides: nextOverrides });
+            setEditingPresetIndex(null);
+          }}
+        />
+      )}
     </View>
   );
 };

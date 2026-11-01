@@ -39,17 +39,17 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
           }}
           accessibilityHint={continuousAvailable
             ? 'Automatically starts the next song in the queue.'
-            : 'Pro required.'}
+            : 'Pro only'}
           testID="continuous-play-toggle"
         />
         <Text style={styles.hint} testID="continuous-play-detail">
           {continuousAvailable
-            ? 'Pro · Automatically starts the next song in the current queue.'
-            : 'Pro required · Lite stops when the current song ends.'}
+            ? 'Automatically starts the next song in the current queue.'
+            : 'Pro only'}
         </Text>
         <SettingsInfoRow
           label="Pause on Headset Disconnect"
-          detail="Lite · Planned. BeatNote does not yet observe audio-route changes reliably."
+          detail="Planned. BeatNote does not yet observe audio-route changes reliably."
           disabled
           testID="pause-headset-placeholder"
         />
@@ -57,7 +57,7 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Keep Screen On</Text>
-        <Text style={styles.hint}>Lite · Choose when BeatNote prevents the display from sleeping.</Text>
+        <Text style={styles.hint}>Choose when BeatNote prevents the display from sleeping.</Text>
         <View style={styles.options} accessibilityRole="radiogroup">
           {KEEP_SCREEN_OPTIONS.map(option => {
             const selected = preferences.keepScreenOn === option.value;

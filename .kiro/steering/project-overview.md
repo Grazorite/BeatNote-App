@@ -17,7 +17,8 @@ The app is currently a personal tool with a clear path toward commercial release
 2. Select songs with the Song Title control or queue controls. First, Previous, Next, and Shuffle
    navigate music items, not project files; Previous/Next can alternatively seek by the configured
    signed interval by default, with tap-versus-hold behaviour and a custom 0.5-second-step distance
-   chosen in Button Settings.
+   chosen by typing or accelerated step buttons in Button Settings. Pro can also choose a focused
+   or extended speed range, show 4/8/12 presets, and replace or restore individual preset values.
 3. Tap to place beat markers during playback on the V1 annotation lane and add text annotations
    such as move names, choreography cues, and 8-counts.
 4. Accept, preview, correct, or ignore the local automatic-BPM/beat-anchor suggestion; the authored

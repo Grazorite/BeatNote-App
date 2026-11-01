@@ -87,7 +87,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
 
         <Section title="Music Library">
           <Text style={styles.text}>
-            • In Tap Seeks mode, Track Previous/Next show their signed seek distance; choose tap/hold behaviour and 0.5-second steps in Settings → Buttons
+            • In Tap Seeks mode, Track Previous/Next show their signed seek distance; type it directly or hold −/+ to adjust faster in Settings → Buttons
           </Text>
           <Text style={styles.text}>
             • Imported audio is copied into BeatNote; deleting it from BeatNote does not delete the original in Files

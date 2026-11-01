@@ -43,6 +43,11 @@ export const settingsPageStyles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
+  proOnlyNote: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   disabled: {
     opacity: 0.55,
   },
@@ -109,16 +114,43 @@ export const settingsPageStyles = StyleSheet.create({
   seekStepperValue: {
     flex: 1,
     minHeight: dimensions.touchTarget.minHeight,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderColor: colors.borderSubtle,
   },
-  seekStepperValueText: {
+  seekStepperValueInput: {
+    minWidth: 42,
+    minHeight: dimensions.touchTarget.minHeight,
+    paddingHorizontal: 2,
     color: colors.text,
     fontSize: 18,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  seekStepperValueSuffix: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  segmentedOptions: {
+    flexDirection: 'row',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: dimensions.borderRadius,
+  },
+  segmentedOption: {
+    flex: 1,
+    minHeight: dimensions.touchTarget.minHeight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceGlass,
+  },
+  segmentedOptionSelected: {
+    backgroundColor: colors.surfaceRaised,
   },
   check: {
     color: colors.accent,

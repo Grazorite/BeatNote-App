@@ -5144,3 +5144,49 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Incorporate the user's physical beta 6 feedback, then continue the top physical-acceptance item.
+
+## Archived Done checklist items — 2026-11-02 beta-12 rotation
+
+- [x] Smooth Custom Order dragging with stable row slots, midpoint hysteresis, and animated
+      neighbour displacement; flatten the Settings root, restore Help & Support as a row, and move
+      BeatNote Pro to a styled trailing crown action; install signed Release beta `1.0.0 (7)`
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/styles/layout/sidebar.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-02 beta-12 rotation
+
+### 2026-11-02 — Smooth Custom Order and flatten Settings
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** stable-slot Custom Order and flat Settings root → Done
+
+**Changed:**
+
+- Kept the dragged library row in its original list slot while held. Crossing a neighbour now
+  animates that neighbour into the open slot; the persisted array changes only after the lifted row
+  settles at release. Added six-point midpoint hysteresis to prevent boundary jitter.
+- Removed every category heading from the Settings root while retaining local headings inside its
+  deeper pages. Help & Support is again a normal root navigation row.
+- Replaced the trailing Help icon with an accent-filled `Pro` button and a crown glyph that opens
+  BeatNote Pro; the wider desktop Settings surface retains its Pro navigation row.
+- Kept the browser regression focused: the existing library journey now verifies that DOM order
+  stays stable while a row is held and that the order persists after release.
+- Incremented the iOS build to `1.0.0 (7)` and installed the signed Release on `gæl (3)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed.
+- Full retained Playwright regression harness → 8/8 passed in 14.6 seconds, including Settings,
+  held Custom Order movement, and post-release persistence.
+- Signed Release build `1.0.0 (7)` succeeded, its built Info.plist reports version/build `1.0.0/7`,
+  and device services confirmed installation, launch, and running process 3632 as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Native spring feel, neighbour motion, header spacing, and the flat Settings hierarchy are installed
+  but still need the user's physical-iPhone visual and touch confirmation.
+- No native module behaviour changed, so no focused iOS XCTest was run.
+
+**Next agent should:**
+
+- Incorporate the user's beta 7 feedback, tuning only the spring/hysteresis values if native touch
+  still feels off.

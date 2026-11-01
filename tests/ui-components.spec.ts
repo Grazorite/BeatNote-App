@@ -33,13 +33,20 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-buttons').click();
     await expect(page.getByTestId('seek-behaviour-tapSeekHoldTrack'))
       .toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('seek-duration-value')).toHaveText('5s');
+    await expect(page.getByTestId('seek-duration-value')).toHaveValue('5');
     await page.getByTestId('seek-duration-increment').click();
-    await expect(page.getByTestId('seek-duration-value')).toHaveText('5.5s');
+    await expect(page.getByTestId('seek-duration-value')).toHaveValue('5.5');
+    await page.getByTestId('seek-duration-value').fill('7.5');
+    await page.getByTestId('seek-duration-value').press('Enter');
+    await expect(page.getByTestId('seek-duration-value')).toHaveValue('7.5');
     await page.getByTestId('seek-behaviour-tapTrackHoldSeek').click();
     await expect(page.getByTestId('seek-behaviour-tapTrackHoldSeek'))
       .toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('speed-presets-included')).toContainText('Lite and Pro');
+    await expect(page.getByTestId('speed-presets-included')).toContainText('playback speed chooser');
+    await page.getByTestId('speed-range-extended').click();
+    await page.getByTestId('speed-preset-count-12').click();
+    await expect(page.getByTestId('speed-range-extended')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('speed-preset-count-12')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('button-settings-page-back').click();
 
     await page.getByTestId('settings-data').click();
@@ -57,7 +64,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (11)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (12)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
 
@@ -99,9 +106,15 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-bpm-entry')).toBeDisabled();
+    await expect(page.getByTestId('settings-bpm-entry')).toContainText('Pro only');
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toBeDisabled();
+    await expect(page.getByTestId('continuous-play-detail')).toHaveText('Pro only');
     await page.getByTestId('playback-settings-page-back').click();
+    await page.getByTestId('settings-buttons').click();
+    await expect(page.getByTestId('speed-range-focused')).toBeDisabled();
+    await expect(page.getByTestId('speed-range-settings')).toContainText('Pro only');
+    await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
     await page.getByTestId('playback-speed').click();
@@ -118,10 +131,31 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
+    await page.getByTestId('settings-buttons').click();
+    await page.getByTestId('speed-range-extended').click();
+    await page.getByTestId('speed-preset-count-4').click();
+    await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await page.getByTestId('playback-speed').click();
     await expect(page.getByTestId('playback-speed-slider')).toBeVisible();
-    await page.getByTestId('playback-speed-reset').click();
+    await expect(page.getByTestId('playback-speed-range-min')).toHaveText('0.25×');
+    await expect(page.getByTestId('playback-speed-range-max')).toHaveText('4×');
+    const longPress = async (testID: string) => {
+      const bounds = await page.getByTestId(testID).boundingBox();
+      if (!bounds) throw new Error(`${testID} is unavailable`);
+      await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+      await page.mouse.down();
+      await page.waitForTimeout(500);
+      await page.mouse.up();
+    };
+    await longPress('playback-speed-preset-0.25');
+    await expect(page.getByTestId('speed-preset-editor')).toBeVisible();
+    await page.getByTestId('speed-preset-input').fill('0.3');
+    await page.getByTestId('speed-preset-save').click();
+    await expect(page.getByTestId('playback-speed-preset-0.3')).toBeVisible();
+    await longPress('playback-speed-preset-0.3');
+    await page.getByTestId('speed-preset-use-default').click();
+    await expect(page.getByTestId('playback-speed-preset-0.25')).toBeVisible();
     await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
   });
   test('phone controls keep core editing and queue state through rotation', async ({ page }) => {

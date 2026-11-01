@@ -1,5 +1,5 @@
-import React from 'react';
-import { AccessibilityActionEvent, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityActionEvent, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import {
@@ -7,7 +7,13 @@ import {
   updateSettingsPreferences,
   useSettingsPreferences,
 } from '../../../features/settings/preferences';
+import { useAcceleratingPress } from '../../../hooks/useAcceleratingPress';
+import { colors } from '../../../styles/common';
 import { settingsPageStyles as styles } from '../../../styles/components/settings/settingsPage';
+import {
+  type PlaybackSpeedPresetCount,
+  type PlaybackSpeedRange,
+} from '../../../utils/playbackSpeed';
 import SettingsInfoRow from '../settings/SettingsInfoRow';
 import SettingsSubpage from '../settings/SettingsSubpage';
 
@@ -35,6 +41,18 @@ const SEEK_BEHAVIOURS: ReadonlyArray<{
 const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ onBack }) => {
   const advancedSpeed = useProductCapability('playback.advancedSpeed');
   const preferences = useSettingsPreferences();
+  const [seekDraft, setSeekDraft] = useState(String(preferences.seekDurationSeconds));
+  const [seekEditing, setSeekEditing] = useState(false);
+  const seekDraftRef = useRef(seekDraft);
+
+  useEffect(() => {
+    if (!seekEditing) {
+      const nextDraft = String(preferences.seekDurationSeconds);
+      seekDraftRef.current = nextDraft;
+      setSeekDraft(nextDraft);
+    }
+  }, [preferences.seekDurationSeconds, seekEditing]);
+
   const adjustSeekDistance = (delta: -0.5 | 0.5): void => {
     const seekDurationSeconds = Math.max(
       0.5,
@@ -42,9 +60,36 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
     );
     void updateSettingsPreferences({ seekDurationSeconds });
   };
+  const commitSeekDistance = (submittedText?: string): void => {
+    const rawValue = submittedText ?? seekDraftRef.current;
+    const parsed = Number.parseFloat(rawValue.replace(',', '.'));
+    const seekDurationSeconds = Number.isFinite(parsed)
+      ? Math.max(0.5, Math.min(30, Math.round(parsed * 2) / 2))
+      : preferences.seekDurationSeconds;
+    setSeekEditing(false);
+    setSeekDraft(String(seekDurationSeconds));
+    void updateSettingsPreferences({ seekDurationSeconds });
+  };
   const onSeekDistanceAccessibilityAction = (event: AccessibilityActionEvent): void => {
     if (event.nativeEvent.actionName === 'increment') adjustSeekDistance(0.5);
     if (event.nativeEvent.actionName === 'decrement') adjustSeekDistance(-0.5);
+  };
+  const decrementDisabled = preferences.seekDurationSeconds <= 0.5;
+  const incrementDisabled = preferences.seekDurationSeconds >= 30;
+  const decrementSeek = useAcceleratingPress(
+    () => adjustSeekDistance(-0.5),
+    decrementDisabled,
+  );
+  const incrementSeek = useAcceleratingPress(
+    () => adjustSeekDistance(0.5),
+    incrementDisabled,
+  );
+
+  const setSpeedRange = (playbackSpeedRange: PlaybackSpeedRange): void => {
+    if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedRange });
+  };
+  const setPresetCount = (playbackSpeedPresetCount: PlaybackSpeedPresetCount): void => {
+    if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedPresetCount });
   };
   return (
     <SettingsSubpage title="Buttons" onBack={onBack} testID="button-settings-page">
@@ -88,44 +133,62 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
         >
           <TouchableOpacity
             style={styles.seekStepperButton}
-            onPress={() => adjustSeekDistance(-0.5)}
-            disabled={preferences.seekDurationSeconds <= 0.5}
+            {...decrementSeek}
+            disabled={decrementDisabled}
             accessibilityRole="button"
             accessibilityLabel="Decrease seek distance by 0.5 seconds"
-            accessibilityState={{ disabled: preferences.seekDurationSeconds <= 0.5 }}
+            accessibilityHint="Press and hold to accelerate"
+            accessibilityState={{ disabled: decrementDisabled }}
             testID="seek-duration-decrement"
           >
             <Text style={styles.seekStepperButtonText}>−</Text>
           </TouchableOpacity>
           <View
             style={styles.seekStepperValue}
-            accessible
-            accessibilityRole="adjustable"
-            accessibilityLabel="Seek distance"
-            accessibilityValue={{
-              min: 0.5,
-              max: 30,
-              now: preferences.seekDurationSeconds,
-              text: `${preferences.seekDurationSeconds} seconds`,
-            }}
-            accessibilityActions={[
-              { name: 'decrement', label: 'Decrease seek distance' },
-              { name: 'increment', label: 'Increase seek distance' },
-            ]}
-            onAccessibilityAction={onSeekDistanceAccessibilityAction}
             testID="seek-duration-adjuster"
           >
-            <Text style={styles.seekStepperValueText} testID="seek-duration-value">
-              {preferences.seekDurationSeconds}s
-            </Text>
+            <TextInput
+              style={styles.seekStepperValueInput}
+              value={seekDraft}
+              onChangeText={text => {
+                seekDraftRef.current = text;
+                setSeekDraft(text);
+              }}
+              onFocus={() => {
+                setSeekEditing(true);
+              }}
+              onBlur={() => commitSeekDistance()}
+              onSubmitEditing={event => commitSeekDistance(event.nativeEvent.text)}
+              keyboardType="decimal-pad"
+              returnKeyType="done"
+              selectTextOnFocus
+              maxLength={4}
+              placeholderTextColor={colors.textSecondary}
+              accessibilityRole="adjustable"
+              accessibilityLabel="Seek distance in seconds"
+              accessibilityValue={{
+                min: 0.5,
+                max: 30,
+                now: preferences.seekDurationSeconds,
+                text: `${preferences.seekDurationSeconds} seconds`,
+              }}
+              accessibilityActions={[
+                { name: 'decrement', label: 'Decrease seek distance' },
+                { name: 'increment', label: 'Increase seek distance' },
+              ]}
+              onAccessibilityAction={onSeekDistanceAccessibilityAction}
+              testID="seek-duration-value"
+            />
+            <Text style={styles.seekStepperValueSuffix}>s</Text>
           </View>
           <TouchableOpacity
             style={styles.seekStepperButton}
-            onPress={() => adjustSeekDistance(0.5)}
-            disabled={preferences.seekDurationSeconds >= 30}
+            {...incrementSeek}
+            disabled={incrementDisabled}
             accessibilityRole="button"
             accessibilityLabel="Increase seek distance by 0.5 seconds"
-            accessibilityState={{ disabled: preferences.seekDurationSeconds >= 30 }}
+            accessibilityHint="Press and hold to accelerate"
+            accessibilityState={{ disabled: incrementDisabled }}
             testID="seek-duration-increment"
           >
             <Text style={styles.seekStepperButtonText}>+</Text>
@@ -136,21 +199,70 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
         <Text style={styles.sectionLabel}>Playback Speed</Text>
         <SettingsInfoRow
           label="Built-in Speed Presets"
-          detail="Available in Lite and Pro with pitch preservation."
+          detail="Available in the playback speed chooser."
           testID="speed-presets-included"
         />
         <SettingsInfoRow
           label="Fine Slider and +/− Controls"
-          detail={advancedSpeed ? 'Pro · Available in the playback speed chooser.' : 'Pro required.'}
+          detail={advancedSpeed ? 'Adjust speed in 0.05× steps.' : 'Pro only'}
           disabled={!advancedSpeed}
           testID="fine-speed-status"
         />
-        <SettingsInfoRow
-          label="Custom Range, Count, and Presets"
-          detail="Planned for Pro · Includes long-press preset editing."
-          disabled
-          testID="custom-speed-placeholder"
-        />
+      </View>
+
+      <View style={[styles.section, !advancedSpeed && styles.disabled]} testID="speed-range-settings">
+        <Text style={styles.sectionLabel}>Speed Setting Range</Text>
+        {!advancedSpeed && <Text style={styles.proOnlyNote}>Pro only</Text>}
+        <View style={styles.options} accessibilityRole="radiogroup">
+          {([
+            ['focused', '0.5× – 2.00×'],
+            ['extended', '0.25× – 4.00×'],
+          ] as const).map(([range, label]) => {
+            const selected = preferences.playbackSpeedRange === range;
+            return (
+              <TouchableOpacity
+                key={range}
+                style={[styles.option, selected && styles.optionSelected]}
+                onPress={() => setSpeedRange(range)}
+                disabled={!advancedSpeed}
+                accessibilityRole="radio"
+                accessibilityState={{ selected, disabled: !advancedSpeed }}
+                aria-checked={selected}
+                testID={`speed-range-${range}`}
+              >
+                <Text style={styles.optionText}>{label}</Text>
+                {selected && <Text style={styles.check}>✓</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={[styles.section, !advancedSpeed && styles.disabled]} testID="speed-count-settings">
+        <Text style={styles.sectionLabel}>Preset Speed Buttons</Text>
+        {!advancedSpeed && <Text style={styles.proOnlyNote}>Pro only</Text>}
+        <View style={styles.segmentedOptions} accessibilityRole="radiogroup">
+          {([4, 8, 12] as const).map(count => {
+            const selected = preferences.playbackSpeedPresetCount === count;
+            return (
+              <TouchableOpacity
+                key={count}
+                style={[styles.segmentedOption, selected && styles.segmentedOptionSelected]}
+                onPress={() => setPresetCount(count)}
+                disabled={!advancedSpeed}
+                accessibilityRole="radio"
+                accessibilityState={{ selected, disabled: !advancedSpeed }}
+                aria-checked={selected}
+                testID={`speed-preset-count-${count}`}
+              >
+                <Text style={styles.optionText}>{count}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={styles.hint}>
+          Long-press a preset in the speed chooser to replace it. Choose Use Default there to clear a custom value.
+        </Text>
       </View>
     </SettingsSubpage>
   );

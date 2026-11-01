@@ -109,7 +109,7 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
       />
       <SettingsNavigationRow
         label="Timing & BPM"
-        detail={bpmAvailable ? 'Pro' : 'Pro required'}
+        detail={bpmAvailable ? undefined : 'Pro only'}
         onPress={onOpenBpm}
         disabled={!bpmAvailable}
         testID="settings-bpm-entry"
