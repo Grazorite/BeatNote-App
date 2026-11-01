@@ -54,6 +54,7 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   Item. It survives song switches and app restarts.
 - **Saved Project** — a named, revisioned snapshot associated with one Music Item. A song may have
   multiple Saved Projects; the newest is selected by default when no dirty draft takes precedence.
+  Project Manager can rename both saved-list entries and the currently loaded saved baseline.
 - **Draft baseline** — the Saved Project revision and content fingerprint used to decide whether a
   draft is saved or dirty and whether a song switch needs confirmation.
 - **Playback queue** — an ordered snapshot of Music Item IDs. First, Previous, Next, and Shuffle
@@ -62,7 +63,8 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   middle-truncated so both identifying ends remain visible. It opens the detented Music Library for
   import, search, sorting, rename, removal, relink, and project routing. The library includes a
   persisted custom order: drag handles are exposed only in Custom Order mode, and choosing another
-  sort never discards the saved arrangement.
+  sort never discards the saved arrangement. Tapping the selected non-custom sort reverses its
+  persisted ascending/descending direction; Custom Order is never reversed.
 - **Stem count** — 2, 4, or 6 stems visible at once.
 - **Viewport** — the visible time window on the waveform canvas (start time + duration).
 - **Phone waveform canvas** — a fixed, non-scrolling full-song view. Its row count follows the

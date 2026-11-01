@@ -29,6 +29,7 @@ import { useProductCapability } from '../../../features/entitlements/useProductC
 
 const DRAG_CLOSE_DELAY_MS = 700;
 const DRAG_FADE_DURATION_MS = 420;
+const POPUP_PRESENT_DURATION_MS = 180;
 /** Preferred overhang of the compact (landscape) chooser below the speed button's bottom edge. */
 const COMPACT_CHOOSER_BELOW_ANCHOR = 124;
 /** Minimum gap between the compact chooser and the safe-area edges. */
@@ -66,8 +67,10 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const insets = useSafeAreaInsets();
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const presentAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const dismissingRef = useRef(false);
   const dismissProgress = useRef(new Animated.Value(0)).current;
+  const presentProgress = useRef(new Animated.Value(0)).current;
   const value = normalizePlaybackSpeed(controlledValue ?? localValue);
   const presentedValue = productSpeedAvailable ? value : DEFAULT_PLAYBACK_SPEED;
   const progress = (value - MIN_PLAYBACK_SPEED) / (MAX_PLAYBACK_SPEED - MIN_PLAYBACK_SPEED);
@@ -81,6 +84,12 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const stopDismissAnimation = useCallback(() => {
     const runningAnimation = dismissAnimationRef.current;
     dismissAnimationRef.current = null;
+    runningAnimation?.stop();
+  }, []);
+
+  const stopPresentAnimation = useCallback(() => {
+    const runningAnimation = presentAnimationRef.current;
+    presentAnimationRef.current = null;
     runningAnimation?.stop();
   }, []);
 
@@ -110,8 +119,9 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
       stopDismissAnimation();
       setOpen(false);
       dismissProgress.setValue(0);
+      presentProgress.setValue(0);
     }, DRAG_FADE_DURATION_MS);
-  }, [clearCloseTimer, dismissProgress, stopDismissAnimation]);
+  }, [clearCloseTimer, dismissProgress, presentProgress, stopDismissAnimation]);
 
   const applySpeed = useCallback((next: number, dismiss = false) => {
     const normalized = normalizePlaybackSpeed(next);
@@ -136,8 +146,9 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   useEffect(() => () => {
     clearCloseTimer();
     stopDismissAnimation();
+    stopPresentAnimation();
     dismissingRef.current = false;
-  }, [clearCloseTimer, stopDismissAnimation]);
+  }, [clearCloseTimer, stopDismissAnimation, stopPresentAnimation]);
 
   useEffect(() => {
     if (!open) dismissingRef.current = false;
@@ -147,13 +158,29 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     if (speedAvailable) return;
     clearCloseTimer();
     stopDismissAnimation();
+    stopPresentAnimation();
     setOpen(false);
-  }, [clearCloseTimer, speedAvailable, stopDismissAnimation]);
+    presentProgress.setValue(0);
+  }, [clearCloseTimer, presentProgress, speedAvailable, stopDismissAnimation, stopPresentAnimation]);
 
   const showPopup = useCallback(() => {
     restorePopup();
     setOpen(true);
-  }, [restorePopup]);
+    stopPresentAnimation();
+    presentProgress.setValue(0);
+    requestAnimationFrame(() => {
+      const animation = Animated.timing(presentProgress, {
+        toValue: 1,
+        duration: POPUP_PRESENT_DURATION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      });
+      presentAnimationRef.current = animation;
+      animation.start(() => {
+        if (presentAnimationRef.current === animation) presentAnimationRef.current = null;
+      });
+    });
+  }, [presentProgress, restorePopup, stopPresentAnimation]);
 
   const updateFromTrackX = useCallback((trackX: number) => {
     if (trackWidth <= 0) return;
@@ -190,13 +217,18 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   };
 
   const animatedChooserStyle = {
-    opacity: dismissProgress.interpolate({ inputRange: [0, 0.85, 1], outputRange: [1, 0.25, 0] }),
+    opacity: Animated.multiply(
+      presentProgress,
+      dismissProgress.interpolate({ inputRange: [0, 0.85, 1], outputRange: [1, 0.25, 0] }),
+    ),
     transform: compact
       ? [
+        { scale: presentProgress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
         { translateX: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 84] }) },
         { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.68] }) },
       ]
       : [
+        { scale: presentProgress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
         { translateY: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 52] }) },
         { scale: dismissProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0.68] }) },
       ],

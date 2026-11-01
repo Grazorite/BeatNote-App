@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, LinearTransition, ReduceMotion } from 'react-native-reanimated';
 import { annotationCalloutStyles as styles } from '../../../styles/components/controls/annotationCallout';
 import { ANNOTATION_FADE_MS } from '../../../utils/markerSelection';
 import GlassBackdrop from './GlassBackdrop';
@@ -25,8 +25,9 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ text, onPress, st
       activeOpacity={0.86}
       onPress={onPress}
       style={[styles.container, stacked ? styles.stacked : styles.floating]}
-      entering={FadeIn.duration(160)}
-      exiting={FadeOut.duration(ANNOTATION_FADE_MS)}
+      entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)}
+      exiting={FadeOut.duration(ANNOTATION_FADE_MS).reduceMotion(ReduceMotion.System)}
+      layout={LinearTransition.duration(220).reduceMotion(ReduceMotion.System)}
     >
       <GlassBackdrop gradientId="annotation-callout-glass" radius={12} variant="callout" />
       <Text numberOfLines={2} ellipsizeMode="tail" style={styles.text} testID="annotation-callout-text">

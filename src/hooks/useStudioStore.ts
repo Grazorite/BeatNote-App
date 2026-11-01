@@ -16,6 +16,7 @@ import { DEFAULT_PLAYBACK_SPEED, normalizePlaybackSpeed } from '../utils/playbac
 import type { DockToastAction } from './useDockToast';
 import type {
   ImportJobView,
+  LibrarySortDirection,
   LibrarySortKey,
   MusicItem,
 } from '../types/library';
@@ -145,6 +146,7 @@ export interface TrackCommitPayload {
 export interface StudioStore {
   libraryItems: Record<string, MusicItem>;
   librarySort: LibrarySortKey;
+  librarySortDirection: LibrarySortDirection;
   libraryCustomOrder: string[];
   projectSummaries: Record<string, SavedProjectSummary>;
   readOnlyLegacyProjects: ReadOnlyLegacyProjectSummary[];
@@ -223,7 +225,7 @@ export interface StudioStore {
   showAnnotations: boolean;
   isTextInputFocused: boolean;
   setLibraryItems: (items: Record<string, MusicItem>) => void;
-  setLibrarySort: (sort: LibrarySortKey) => void;
+  setLibrarySort: (sort: LibrarySortKey, direction: LibrarySortDirection) => void;
   setLibraryCustomOrder: (order: readonly string[]) => void;
   setCurrentAudioSource: (uri: string | null, filename: string | null) => void;
   setQueue: (queue: PlaybackQueue | null) => void;
@@ -413,6 +415,7 @@ const restoreDeletedMarkers = (layers: Layer[], batch: MarkerDeletionBatch): Lay
 export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   libraryItems: {},
   librarySort: 'recentlyAdded',
+  librarySortDirection: 'descending',
   libraryCustomOrder: [],
   projectSummaries: {},
   readOnlyLegacyProjects: [],
@@ -494,9 +497,9 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   stemSeparationProgress: 0,
   separatedStemUris: {},
   setLibraryItems: (items) => set({ libraryItems: items }),
-  setLibrarySort: (sort) => {
-    set({ librarySort: sort });
-    void updateLibrarySort(sort, {
+  setLibrarySort: (sort, direction) => {
+    set({ librarySort: sort, librarySortDirection: direction });
+    void updateLibrarySort(sort, direction, {
       onIssue: issue => set((state) => ({
         persistenceIssues: [
           ...state.persistenceIssues.filter(existing => (

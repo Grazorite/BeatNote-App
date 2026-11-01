@@ -19,8 +19,7 @@ const OVERVIEW_HEIGHT = 34;
 const PLAYHEAD_HEAD_Y = 5;
 const OVERVIEW_PLAYHEAD_BOTTOM = 33;
 const MARKER_LOOP_BAR_HEIGHT = 3;
-// Simplified marker for the strip: a small solid shield on a hairline, with no annotated/plain
-// distinction because the heads are too small for an outline to stay legible.
+// The compact strip keeps the same filled/outlined annotation distinction as the wrapped waveform.
 const OVERVIEW_MARKER_HEAD_SCALE = 0.55;
 const OVERVIEW_MARKER_HEAD_TOP = 2;
 const OVERVIEW_MARKER_LINE_TOP = OVERVIEW_MARKER_HEAD_TOP + MARKER_SHIELD_LINE_START * OVERVIEW_MARKER_HEAD_SCALE;
@@ -121,6 +120,10 @@ const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, markerLoo
         ? layer.markers.filter(marker => Number.isFinite(marker) && marker >= 0 && marker <= songDuration)
             .map((marker, index) => {
               const x = msToOverviewX(marker, songDuration, width);
+              const annotated = layer.annotations.some(annotation => (
+                annotation.text.trim().length > 0
+                && Math.abs(annotation.timestamp - marker) < 100
+              ));
               return (
                 <G key={`${layer.id}-${marker}-${index}`}>
                   <Line
@@ -136,10 +139,11 @@ const MarkersLayer: React.FC<MarkersLayerProps> = ({ drawable, layers, markerLoo
                   <Path
                     d={MARKER_SHIELD_PATH}
                     transform={markerHeadTransform(x, OVERVIEW_MARKER_HEAD_TOP, OVERVIEW_MARKER_HEAD_SCALE)}
-                    fill={colors.marker}
+                    fill={annotated ? colors.marker : "none"}
                     stroke={colors.marker}
-                    strokeWidth={1.5}
+                    strokeWidth={annotated ? 1.5 : 1.8}
                     strokeLinejoin="round"
+                    testID={`loop-overview-${annotated ? 'annotation' : 'marker'}-${layer.id}-${marker}`}
                   />
                 </G>
               );

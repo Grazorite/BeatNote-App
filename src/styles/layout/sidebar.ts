@@ -24,6 +24,14 @@ export const sidebarStyles = StyleSheet.create({
     left: 0,
     overflow: 'hidden',
   },
+  edgeSwipeCapture: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: 28,
+    zIndex: 100,
+  },
   mobileHeader: {
     minHeight: 64,
     paddingHorizontal: 20,
@@ -41,11 +49,17 @@ export const sidebarStyles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  mobileProButton: {
+  mobileProSlot: {
     width: HEADER_SIDE_WIDTH,
-    minHeight: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileProButton: {
+    width: 54,
+    minHeight: 34,
     flexDirection: 'row',
-    gap: 5,
+    gap: 4,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: dimensions.borderRadius,
@@ -57,6 +71,20 @@ export const sidebarStyles = StyleSheet.create({
     color: colors.onAccent,
     fontSize: 14,
     fontWeight: '800',
+  },
+  proSparkle: {
+    position: 'absolute',
+    color: colors.accent,
+    fontSize: 9,
+    lineHeight: 10,
+  },
+  proSparkleFirst: {
+    top: 0,
+    right: 4,
+  },
+  proSparkleSecond: {
+    bottom: 0,
+    left: 3,
   },
   mobileScrollContent: {
     flexGrow: 1,

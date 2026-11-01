@@ -1,4 +1,4 @@
-import type { LibrarySortKey, MusicItem } from '../types/library';
+import type { LibrarySortDirection, LibrarySortKey, MusicItem } from '../types/library';
 import type { PlaybackQueue } from '../types/queue';
 import { PREVIOUS_RESTART_THRESHOLD_MS } from './libraryConstants';
 
@@ -10,6 +10,12 @@ const compareIds = (left: MusicItem, right: MusicItem): number => (
 
 const descendingDate = (left: string, right: string): number => (
   right < left ? -1 : right > left ? 1 : 0
+);
+
+export const defaultLibrarySortDirection = (
+  sortKey: LibrarySortKey,
+): LibrarySortDirection => (
+  sortKey === 'recentlyAdded' || sortKey === 'recentlyPlayed' ? 'descending' : 'ascending'
 );
 
 export function compareLibraryItems(
@@ -48,6 +54,7 @@ export function sortLibraryItems(
   items: readonly MusicItem[],
   sortKey: LibrarySortKey,
   customOrder: readonly string[] = [],
+  direction: LibrarySortDirection = defaultLibrarySortDirection(sortKey),
 ): MusicItem[] {
   if (sortKey === 'custom') {
     const positions = new Map(customOrder.map((id, index) => [id, index]));
@@ -62,7 +69,8 @@ export function sortLibraryItems(
       return compareLibraryItems(left, right, 'recentlyAdded');
     });
   }
-  return [...items].sort((left, right) => compareLibraryItems(left, right, sortKey));
+  const multiplier = direction === defaultLibrarySortDirection(sortKey) ? 1 : -1;
+  return [...items].sort((left, right) => multiplier * compareLibraryItems(left, right, sortKey));
 }
 
 export function normalizeForSearch(value: string): string {
@@ -85,11 +93,13 @@ export function buildQueue(
   sortKey: LibrarySortKey,
   currentId: string,
   customOrder: readonly string[] = [],
+  sortDirection: LibrarySortDirection = defaultLibrarySortDirection(sortKey),
 ): PlaybackQueue {
   const snapshot = sortLibraryItems(
     items.filter(item => !item.removed && item.collectionIds.includes(collectionId)),
     sortKey,
     customOrder,
+    sortDirection,
   ).map(item => item.id);
   const currentIndex = snapshot.indexOf(currentId);
 
@@ -101,6 +111,7 @@ export function buildQueue(
     shuffle: false,
     collectionId,
     sortKey,
+    sortDirection,
   };
 }
 

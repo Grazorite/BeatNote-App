@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (7)` Release build installed physically · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (9)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -114,6 +114,17 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Repair the landscape annotation editor and Settings edge gestures; add reversible marker
+      deletion, annotated overview markers, smoother transient UI, current-project rename, flatter
+      Settings subpages, sheet-native Music dismissal, and install Release beta `1.0.0 (9)`
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/`, `src/components/ui/modals/`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Match the overview delete glyph to the supplied rounded trash reference, add restrained Pro
+      sparkles, move waveform/annotation settings into a Display & Annotations page, add edge-swipe
+      Back navigation, add persisted bidirectional library sorting, and install Release beta
+      `1.0.0 (8)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/screens/DisplaySettingsScreen.tsx`, `src/features/library/`, `src/hooks/useStudioStore.ts`, `src/styles/components/library/musicLibrarySheet.ts`, `src/styles/layout/sidebar.ts`, `src/types/library.ts`, `src/types/queue.ts`, `src/utils/queueOrder.ts`, `src/utils/recordValidation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Smooth Custom Order dragging with stable row slots, midpoint hysteresis, and animated
       neighbour displacement; flatten the Settings root, restore Help & Support as a row, and move
       BeatNote Pro to a styled trailing crown action; install signed Release beta `1.0.0 (7)`
@@ -128,19 +139,6 @@ target; Android is a far-future possibility only.
       Keep Screen On preferences, add safe Data and Pro previews, and repair the beta 5 breadcrumb
       truncation and Custom Order native drag-responder regressions
       <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `package.json`, `package-lock.json`, `src/components/KeepScreenAwakeController.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/SettingsInfoRow.tsx`, `src/features/settings/preferences.ts`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/common/headerBackButton.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
-
-- [x] Refine iOS Settings and navigation with a compact root, dedicated Pro Timing & BPM subpage,
-      About/support page, native UI-thread toggle feedback, marker-violet annotation identity,
-      standard 20-point menu titles, leading breadcrumb Back controls, Lite speed presets with Pro
-      fine controls, and physically installed beta `1.0.0 (5)`
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/release-roadmap.md`, `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/`, `src/components/ui/waveform/WaveformDetailPanel.tsx`, `src/features/entitlements/`, `src/hooks/useModernToggleAnimation.ts`, `src/styles/`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Polish the iOS library and utility surfaces with 36-character middle title truncation,
-      persisted lifted Custom Order with neighbouring rows shifting during the held drag,
-      equal-height Lite ad slots, centred menu/page
-      titles with left-aligned Back controls, Debug-first Settings, iPhone-focused Help, and a
-      freshly installed physical Release build
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`, `src/types/library.ts`, `src/utils/displayText.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -218,6 +216,81 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Repair annotation, navigation, and project workflows in beta 9
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** annotation/navigation/project polish → Done
+
+**Changed:**
+
+- Made the landscape annotation editor keyboard-safe with a compact, scrolling body, fixed actions,
+  and an explicit keyboard Done control. Marker removal now offers Undo and preserves annotations;
+  the overview uses filled heads for annotated markers and outlined heads for plain markers.
+- Smoothed annotation callout, toast, and speed-control transitions without remounting successive
+  annotation content. Settings now uses a dedicated native edge responder for both submenu-to-root
+  and root-to-app gestures; the Music Library sheet relies on its grabber, backdrop, and downward
+  dismissal rather than a redundant Back button.
+- Added Rename to the loaded project's own actions, reusing the atomic project rename path. Flattened
+  standalone Settings toggles and informational rows while retaining cards for real option groups
+  and actions. Incremented, signed, installed, and launched physical Release beta `1.0.0 (9)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and full retained Playwright regression → passed, 8/8.
+- Focused iOS `testLandscapeGesturesAndCompactControls` and
+  `testStudioLaunchesAndDocumentPickerOpens` → passed, covering the compact editor, sheet dismissal,
+  transparent dock assertions, and both Settings edge-swipe levels.
+- Xcode Release build succeeded; device services confirmed install and launch as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Physical touch/visual confirmation remains for the editor keyboard ergonomics, popup timing,
+  marker head distinction, edge capture width, flattened subpages, and project rename affordance.
+- This commit also includes the preceding beta 8 work, which had not yet been committed separately.
+
+**Next agent should:**
+
+- Incorporate the user's beta 9 physical feedback before widening navigation or animation scope.
+
+### 2026-11-02 — Add display navigation, reversible sorting, and beta 8 polish
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** display/navigation, overview glyph, Pro sparkle, and reversible sorting → Done
+
+**Changed:**
+
+- Redrew the overview Clear action as the supplied rounded, open trash can and reduced the mobile
+  Pro control while adding two restrained, low-amplitude looping sparkles around it.
+- Moved waveform visibility and annotation-label controls from the flat Settings root into a new
+  Display & Annotations submenu. Added native leading-edge, left-to-right Back gestures to the
+  Settings root and every Settings/detail page while keeping explicit Back controls.
+- Made each non-Custom Music Library sort reverse between ascending and descending when its selected
+  button is tapped again. The persisted direction now follows queue construction and migration;
+  Custom Order remains manually arranged and never reverses. Its selected direction arrow animates
+  through a half-turn.
+- Incremented iOS to `1.0.0 (8)`, installed the signed Release on `gæl (3)`, and launched it.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` → passed before closeout.
+- Full retained Playwright regression harness → 8/8 passed in 16.3 seconds, covering the Display
+  submenu and both directions of non-Custom sorting.
+- The built app reports version/build `1.0.0/8`; device services confirmed installation, launch,
+  and running process 3780 as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- The delete glyph, Pro sparkle restraint, smaller Pro control, native edge-swipe feel, and sort
+  arrow transition still need the user's visual/touch confirmation on the installed phone.
+- The host's standalone strict code-sign verification reports `CSSMERR_TP_NOT_TRUSTED`, but the
+  device accepted and launched the signed build. No focused iOS XCTest was run because native module
+  behaviour did not change.
+
+**Next agent should:**
+
+- Incorporate the user's beta 8 visual/touch feedback, especially edge-swipe capture width and the
+  sparkle intensity, before expanding Settings further.
 
 ### 2026-11-02 — Smooth Custom Order and flatten Settings
 
@@ -328,91 +401,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Build/install the next physical beta and verify the Settings breadcrumb, Custom Order drag feel,
   Keep Screen On modes, and compact Settings pages before expanding another placeholder.
-
-### 2026-11-02 — Polish Settings, navigation, ordering, and tier controls
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** iOS Settings/navigation, live custom ordering, and speed tier split → Done
-
-**Changed:**
-
-- Kept the Settings root compact: Debug and Basic remain inline, Advanced links to a dedicated Pro
-  Timing & BPM page, Support links only to About BeatNote, and Help lives in the trailing header
-  icon instead of taking another list row.
-- Added an About page with the real version/build, current licence status, the GitHub feedback
-  channel, and an explicit statement that no crash or usage diagnostics are currently collected.
-- On iOS, modern toggles now recognize the tap and animate entirely on the native UI thread before
-  sending the explicit intended value to JavaScript. Rapid debug-tier taps no longer derive from a
-  stale captured tier, while persistence and capability state remain authoritative.
-- The single annotation-lane swatch now uses the same shared violet as its visible markers instead
-  of the legacy vocals-layer red.
-- Standardised menu/submenu titles on the shared 20-point token and replaced navigation Close
-  actions with leading iOS-style breadcrumb Back controls across Settings, Help, Music, Projects,
-  and waveform detail.
-- Custom Order now updates as the held row crosses each neighbour, using layout animation so the
-  other rows move before release while the lifted row stays under the finger.
-- Lite now retains every built-in pitch-preserved speed preset. Pro adds the fine slider and
-  increment/decrement controls; long-press custom preset editing is reserved for its planned Pro
-  implementation. Installed signed Release beta `1.0.0 (5)` on the connected physical iPhone.
-
-**Verified:**
-
-- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
-- Full retained Playwright regression harness → 9/9 passed, including root/subpage navigation,
-  rapid debug-tier changes, marker-violet identity, Lite/Pro speed surfaces, standard header sizes,
-  leading Back controls, and live pre-release custom-order movement.
-- Signed Release build `1.0.0 (5)` succeeded after regenerating ignored React Native codegen and
-  installed and launched on iPhone `gæl (3)` as `com.beatnote.app`.
-
-**Not verified / known gaps:**
-
-- Physical confirmation of breadcrumb layout, held-drag animation, heavy-load toggles, violet
-  identity, and Lite/Pro speed surfaces remains with the user.
-- Full dependency licence notices, an in-app feedback composer, Playback/Button Configuration, and
-  Data Management pages remain future work; current feedback opens the project issue form.
-
-**Next agent should:**
-
-- Unlock and inspect beta 5 on the physical phone, especially held-row movement and the Lite/Pro
-  speed chooser, before expanding Settings further.
-
-### 2026-11-02 — Polish the iOS library and utility surfaces
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** iOS library and utility polish → Done
-
-**Changed:**
-
-- Long song names now middle-truncate after 36 characters while accessibility retains the full
-  title; the toolbar and library row both keep recognisable beginnings and endings.
-- Music Library now has a persisted Custom Order sort. First activation adopts the current order,
-  the full-width final sort choice exposes lifted drag handles without scrolling the sheet,
-  VoiceOver increment/decrement actions rearrange songs, and other sort modes do not discard the
-  saved custom arrangement.
-- Lite ad creatives now reserve the same 50-point height in portrait and landscape, with the
-  portrait safe-area spacer kept outside the measured ad slot.
-- Debug moved to the top of Settings, and Help & Support now documents the iPhone/Files/share-sheet
-  workflow without browser shortcuts.
-- Settings/detail, Help, Music Library, bottom-sheet, and Projects headers now keep their titles
-  centred. All menu titles share the 20-point navigation token and every return action uses a
-  left-side iOS breadcrumb Back control; Settings retains Help in the balanced trailing slot.
-
-**Verified:**
-
-- `npx tsc --noEmit`, version consistency, diff checks, and the orchestrator contract check passed;
-  full retained Playwright regression harness → 9/9 passed after settling animated page transitions.
-- Signed Release build succeeded, installed on physical iPhone `gæl (3)`, launched as
-  `com.beatnote.app`, and remained running as PID 2665; temporary DerivedData was removed.
-
-**Not verified / known gaps:**
-
-- Physical visual and touch confirmation of title truncation, custom-order dragging, ad height,
-  Debug placement, and Help content remains with the user; no native implementation changed, so no
-  focused iOS XCTest was run.
-
-**Next agent should:**
-
-- Incorporate the user's feedback from the installed build, especially drag feel and row behaviour
-  with a larger real music library.
 
 <!-- end handover log -->

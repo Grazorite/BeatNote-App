@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as DocumentPicker from 'expo-document-picker';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Keyboard,
   type NativeScrollEvent,
@@ -32,6 +33,7 @@ import { musicLibrarySheetStyles as styles } from '../../../styles/components/li
 import { colors } from '../../../styles/common';
 import {
   IMPORTED_MUSIC_COLLECTION_ID,
+  type LibrarySortDirection,
   type LibrarySortKey,
   type MusicItem,
 } from '../../../types/library';
@@ -39,7 +41,11 @@ import {
   MAX_TEXT_SCALE,
   SUPPORTED_AUDIO_EXTENSIONS,
 } from '../../../utils/libraryConstants';
-import { filterLibraryItems, sortLibraryItems } from '../../../utils/queueOrder';
+import {
+  defaultLibrarySortDirection,
+  filterLibraryItems,
+  sortLibraryItems,
+} from '../../../utils/queueOrder';
 import { BeatNoteIcon } from '../../icons';
 import { BottomSheet } from '../common';
 import ConfirmDialog from '../modals/ConfirmDialog';
@@ -66,7 +72,7 @@ interface RelinkPromptState extends RelinkConfirmation {
 const SORT_OPTIONS: ReadonlyArray<{ value: LibrarySortKey; label: string }> = [
   { value: 'recentlyAdded', label: 'Recently Added' },
   { value: 'recentlyPlayed', label: 'Recently Played' },
-  { value: 'title', label: 'Title (A–Z)' },
+  { value: 'title', label: 'Title' },
   { value: 'duration', label: 'Duration' },
   { value: 'custom', label: 'Custom Order' },
 ];
@@ -94,6 +100,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const visible = useStudioStore(state => state.isLibrarySheetOpen);
   const libraryItems = useStudioStore(state => state.libraryItems);
   const librarySort = useStudioStore(state => state.librarySort);
+  const librarySortDirection = useStudioStore(state => state.librarySortDirection);
   const libraryCustomOrder = useStudioStore(state => state.libraryCustomOrder);
   const projectSummaries = useStudioStore(state => state.projectSummaries);
   const importJobs = useStudioStore(state => state.importJobs);
@@ -125,6 +132,9 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     originIndex: number;
     targetIndex: number;
   } | null>(null);
+  const sortArrowRotation = useRef(new Animated.Value(
+    librarySortDirection === 'ascending' ? 0 : 1,
+  )).current;
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -134,7 +144,23 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     filterLibraryItems(collectionItems, searchIsVisible ? query : ''),
     librarySort,
     libraryCustomOrder,
-  ), [collectionItems, libraryCustomOrder, librarySort, query, searchIsVisible]);
+    librarySortDirection,
+  ), [
+    collectionItems,
+    libraryCustomOrder,
+    librarySort,
+    librarySortDirection,
+    query,
+    searchIsVisible,
+  ]);
+
+  useEffect(() => {
+    Animated.timing(sortArrowRotation, {
+      toValue: librarySortDirection === 'ascending' ? 0 : 1,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [librarySortDirection, sortArrowRotation]);
   const projectCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     Object.values(projectSummaries).forEach(project => {
@@ -305,10 +331,25 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
 
   const selectSort = useCallback((sort: LibrarySortKey) => {
     if (sort === 'custom' && libraryCustomOrder.length === 0) {
-      setLibraryCustomOrder(sortLibraryItems(collectionItems, librarySort).map(item => item.id));
+      setLibraryCustomOrder(sortLibraryItems(
+        collectionItems,
+        librarySort,
+        [],
+        librarySortDirection,
+      ).map(item => item.id));
     }
-    setLibrarySort(sort);
-  }, [collectionItems, libraryCustomOrder.length, librarySort, setLibraryCustomOrder, setLibrarySort]);
+    const direction: LibrarySortDirection = sort !== 'custom' && librarySort === sort
+      ? (librarySortDirection === 'ascending' ? 'descending' : 'ascending')
+      : defaultLibrarySortDirection(sort);
+    setLibrarySort(sort, direction);
+  }, [
+    collectionItems,
+    libraryCustomOrder.length,
+    librarySort,
+    librarySortDirection,
+    setLibraryCustomOrder,
+    setLibrarySort,
+  ]);
 
   const beginReorder = useCallback((itemId: string, originIndex: number) => {
     reorderScrollOffsetRef.current = listScrollOffsetRef.current;
@@ -540,17 +581,38 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                           onFocus={() => setFocused(`sort-${option.value}`)}
                           onBlur={() => setFocused(value => value === `sort-${option.value}` ? null : value)}
                           accessibilityRole="radio"
-                          accessibilityLabel={`Sort by ${option.label}`}
+                          accessibilityLabel={option.value === 'custom'
+                            ? 'Sort by Custom Order'
+                            : `Sort by ${option.label}, ${selected
+                              ? librarySortDirection
+                              : defaultLibrarySortDirection(option.value)}`}
+                          accessibilityHint={option.value === 'custom'
+                            ? 'Uses the order you arrange by dragging rows.'
+                            : 'Tap again to reverse the order.'}
                           accessibilityState={{ selected }}
                           testID={`music-library-sort-${option.value}`}
                         >
-                          <Text
-                            style={[styles.sortOptionText, selected && styles.sortOptionTextSelected]}
-                            numberOfLines={2}
-                            maxFontSizeMultiplier={MAX_TEXT_SCALE}
-                          >
-                            {option.label}
-                          </Text>
+                          <View style={styles.sortOptionContent}>
+                            <Text
+                              style={[styles.sortOptionText, selected && styles.sortOptionTextSelected]}
+                              numberOfLines={2}
+                              maxFontSizeMultiplier={MAX_TEXT_SCALE}
+                            >
+                              {option.label}
+                            </Text>
+                            {selected && option.value !== 'custom' && (
+                              <Animated.View style={{
+                                transform: [{
+                                  rotate: sortArrowRotation.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['0deg', '180deg'],
+                                  }),
+                                }],
+                              }}>
+                                <BeatNoteIcon name="chevron-up" size={16} color={colors.accent} />
+                              </Animated.View>
+                            )}
+                          </View>
                         </TouchableOpacity>
                       );
                     })}

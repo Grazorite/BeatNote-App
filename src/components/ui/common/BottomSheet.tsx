@@ -28,7 +28,6 @@ import AppModal from './AppModal';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
 import { resolveSheetRelease, type SheetReleaseTarget } from '../../../utils/sheetDetent';
 import GlassBackdrop from '../controls/GlassBackdrop';
-import HeaderBackButton from './HeaderBackButton';
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -307,12 +306,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   <View style={styles.grabber} />
                 </View>
                 <View style={styles.titleRow}>
-                  <HeaderBackButton
-                    onPress={requestClose}
-                    accessibilityLabel={`Back from ${title}`}
-                    label="Back"
-                    testID={`${testID}-close`}
-                  />
+                  <View style={styles.titleSide} />
                   <Text
                     ref={titleRef}
                     style={styles.title}

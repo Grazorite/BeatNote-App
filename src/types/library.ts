@@ -50,6 +50,7 @@ export interface MusicItem {
 }
 
 export type LibrarySortKey = 'custom' | 'title' | 'recentlyAdded' | 'recentlyPlayed' | 'duration';
+export type LibrarySortDirection = 'ascending' | 'descending';
 
 export interface LibraryRecord {
   schemaVersion: 1;
@@ -60,6 +61,7 @@ export interface LibraryRecord {
 export interface LibraryPrefs {
   schemaVersion: 1;
   sort: LibrarySortKey;
+  sortDirection: LibrarySortDirection;
   customOrder: string[];
   missingAudioNoticeShownForMigration: number | null;
 }

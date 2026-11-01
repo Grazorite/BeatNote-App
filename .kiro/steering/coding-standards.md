@@ -69,6 +69,8 @@ inclusion: always
   primary actions use the app accent, neutral actions use quiet glass, and destructive actions retain
   their semantic colour. Text on an accent-filled action uses `colors.onAccent`; never reuse muted
   secondary text on the bright accent. Avoid isolated opaque greys or unrelated blue/green action fills.
+- The Music import/library surface is a dismissible bottom sheet. Its grabber, downward swipe, and
+  outside tap are the close affordances; do not add a redundant breadcrumb Back button to its header.
 - The phone media-control dock is deliberately transparent in both orientations. Do not place a shared
   liquid-glass gradient behind its controls; the individual controls and surrounding layout provide the
   required grouping and contrast.
@@ -83,7 +85,15 @@ inclusion: always
   for navigation. The Settings root keeps Back on the left, uses a compact accent-filled Pro action
   on the right, and exposes Help & Support as an ordinary navigation row. Keep the Settings root
   flat without category headers; deeper Settings pages may retain headings that explain their local
-  controls. Do not place decorative icons beside page titles.
+  controls. Waveform visibility and the annotation-lane label belong in Display & Annotations, not
+  inline on the root. A dedicated 28-point leading-edge responder captures Back swipes above nested
+  scroll/content responders: it returns one level in submenus and closes the Settings root back to
+  the editor. Do not place decorative icons beside page titles.
+- Settings subpages keep standalone toggles and informational rows directly on the page instead of
+  boxing every setting. Reserve bordered cards for meaningful groups, selected options, and actions.
+- Keep the Settings Pro action visually smaller than its balanced header slot. A pair of tiny,
+  low-amplitude sparkles may loop around it, but the animation must not obscure the label or compete
+  with navigation.
 - Native toggle feedback starts on the UI thread before capability or store work returns to
   JavaScript, and callbacks receive the intended next boolean instead of deriving it from a captured
   render. This keeps rapid taps deterministic and prevents heavy waveform/library renders from
@@ -97,15 +107,20 @@ inclusion: always
   moving page—never expose the platform modal's default white background during the transition.
 - Annotation indicators use the shared violet marker colour without a dark outline. On phones,
   annotation editing is an explicit marker-gated modal draft with Save/Cancel; the selected marker's
-  read-only callout is bounded to two lines and truncates at the tail above the overview.
+  read-only callout is bounded to two lines and truncates at the tail above the overview. Landscape
+  annotation editing keeps its title and actions visible above the keyboard, scrolls the editor body,
+  and exposes an explicit keyboard-dismiss action.
 - Waveform markers are a 2-point rounded violet line topped by the in-app marker shield (the same
   silhouette as the toolbar marker icon). A solid shield means annotated and an outlined shield means
   plain, so the distinction never rests on colour alone; the selected marker gets a soft glow, and
   clustered annotations collapse into a quiet glass pill containing a small shield and a count. Keep
   the `wrapped-row-marker-*` and `wrapped-row-annotation-*` test IDs; heads use `wrapped-row-head-*`.
-  The overview strip uses a simplified solid shield on a hairline. Shield geometry is shared via
+  The overview strip preserves the same filled annotated / outlined plain shield distinction on its
+  hairlines. Shield geometry is shared via
   `src/utils/markerShape.ts`. In the strip, layer order is fixed: base peaks, played waveform,
   markers, playhead, so the played-waveform tint never recolours markers.
+- Transient toast and annotation-callout replacements crossfade and use restrained layout transitions
+  so rapid successive feedback does not snap, stack-jump, or compete with playback.
 - The playhead is a round-capped orange line with a small rounded head (never a shield, so it cannot
   be mistaken for a marker) over a soft dark shadow. The loop range uses rounded corners, the muted
   teal roles `loopFill`, `loopBorder`, and `loopEnabled`, and slim capsule handles with a grip notch.

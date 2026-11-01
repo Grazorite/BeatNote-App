@@ -1,11 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  PanResponder,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Animated, {
   Easing,
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,10 +24,8 @@ import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 
-import WaveformVisibilityControl from '../ui/controls/WaveformVisibilityControl';
 import DebugTierControl from '../ui/controls/DebugTierControl';
 import { useProductCapability } from '../../features/entitlements/useProductCapability';
-import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
 import AboutSettingsScreen from '../ui/screens/AboutSettingsScreen';
 import BpmSettingsScreen from '../ui/screens/BpmSettingsScreen';
@@ -26,6 +33,7 @@ import PlaybackSettingsScreen from '../ui/screens/PlaybackSettingsScreen';
 import ButtonConfigurationScreen from '../ui/screens/ButtonConfigurationScreen';
 import DataManagementScreen from '../ui/screens/DataManagementScreen';
 import ProSettingsScreen from '../ui/screens/ProSettingsScreen';
+import DisplaySettingsScreen from '../ui/screens/DisplaySettingsScreen';
 import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import { colors } from '../../styles/common';
@@ -34,11 +42,30 @@ import AppModal from '../ui/common/AppModal';
 import HeaderBackButton from '../ui/common/HeaderBackButton';
 import { BeatNoteIcon } from '../icons';
 
-type SettingsDetail = 'playback' | 'buttons' | 'bpm' | 'data' | 'pro' | 'about' | null;
+type SettingsDetail = 'display' | 'playback' | 'buttons' | 'bpm' | 'data' | 'pro' | 'about' | null;
+
+const useEdgeSwipeBack = (onBack: () => void) => {
+  const onBackRef = useRef(onBack);
+  onBackRef.current = onBack;
+  return useMemo(() => PanResponder.create({
+    // This responder is mounted on a dedicated 28-point leading-edge strip. Claim immediately so
+    // nested ScrollViews cannot take the gesture before horizontal intent becomes measurable.
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderRelease: (_event, gesture) => {
+      if (
+        (gesture.dx >= 64 || gesture.vx >= 0.5)
+        && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.2
+      ) onBackRef.current();
+    },
+    onPanResponderTerminationRequest: () => false,
+  }).panHandlers, []);
+};
 
 interface SettingsRootSectionsProps {
   bpmAvailable: boolean;
-  singleAnnotationLane?: boolean;
+  showProRow?: boolean;
+  onOpenDisplay: () => void;
   onOpenPlayback: () => void;
   onOpenButtons: () => void;
   onOpenBpm: () => void;
@@ -50,7 +77,8 @@ interface SettingsRootSectionsProps {
 
 const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
   bpmAvailable,
-  singleAnnotationLane = false,
+  showProRow = true,
+  onOpenDisplay,
   onOpenPlayback,
   onOpenButtons,
   onOpenBpm,
@@ -63,11 +91,12 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
     <View style={styles.sidebarSection}>
       <DebugTierControl />
     </View>
-    <View style={styles.sidebarSection}>
-      <WaveformVisibilityControl />
-      <LayerNameSettings singleAnnotationLane={singleAnnotationLane} />
-    </View>
     <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="Display & Annotations"
+        onPress={onOpenDisplay}
+        testID="settings-display"
+      />
       <SettingsNavigationRow
         label="Playback Settings"
         onPress={onOpenPlayback}
@@ -90,13 +119,13 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         onPress={onOpenData}
         testID="settings-data"
       />
-      {singleAnnotationLane ? null : (
+      {showProRow ? (
         <SettingsNavigationRow
           label="BeatNote Pro"
           onPress={onOpenPro}
           testID="settings-pro"
         />
-      )}
+      ) : null}
       <SettingsNavigationRow
         label="Help & Support"
         onPress={onOpenHelp}
@@ -129,6 +158,7 @@ const Sidebar: React.FC = () => {
   const settingsEntryX = useSharedValue(pageWidth);
   const detailVisible = showHelpScreen || activeDetail !== null;
   const detailProgress = useSharedValue(detailVisible ? 1 : 0);
+  const proSparkleProgress = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -156,6 +186,10 @@ const Sidebar: React.FC = () => {
     if (!bpmAvailable && activeDetail === 'bpm') setActiveDetail(null);
   }, [activeDetail, bpmAvailable]);
 
+  useEffect(() => {
+    proSparkleProgress.value = withRepeat(withTiming(1, { duration: 1800 }), -1, false);
+  }, [proSparkleProgress]);
+
   const mobileEntryStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: settingsEntryX.value }],
   }));
@@ -175,6 +209,32 @@ const Sidebar: React.FC = () => {
       if (finished) runOnJS(toggleSidebar)();
     });
   };
+
+  const edgeSwipeHandlers = useEdgeSwipeBack(() => {
+    if (!detailVisible) {
+      closeMobileSettings();
+    } else if (showHelpScreen) {
+      setShowHelpScreen(false);
+    } else {
+      setActiveDetail(null);
+    }
+  });
+  const firstSparkleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(proSparkleProgress.value, [0, 0.32, 0.62, 1], [0.1, 1, 0.1, 0.1]),
+    transform: [{ scale: interpolate(
+      proSparkleProgress.value,
+      [0, 0.32, 0.62, 1],
+      [0.7, 1.15, 0.7, 0.7],
+    ) }],
+  }));
+  const secondSparkleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(proSparkleProgress.value, [0, 0.48, 0.78, 1], [0.1, 0.1, 1, 0.1]),
+    transform: [{ scale: interpolate(
+      proSparkleProgress.value,
+      [0, 0.48, 0.78, 1],
+      [0.7, 0.7, 1.1, 0.7],
+    ) }],
+  }));
 
   if (isMobile) {
     return (
@@ -218,16 +278,26 @@ const Sidebar: React.FC = () => {
                   testID="sidebar-toggle"
                 />
                 <Text style={styles.mobileTitle} testID="settings-title">Settings</Text>
-                <TouchableOpacity
-                  style={styles.mobileProButton}
-                  onPress={() => setActiveDetail('pro')}
-                  accessibilityRole="button"
-                  accessibilityLabel="Open BeatNote Pro"
-                  testID="settings-pro"
-                >
-                  <BeatNoteIcon name="pro" size={15} color={colors.onAccent} />
-                  <Text style={styles.mobileProText}>Pro</Text>
-                </TouchableOpacity>
+                <View style={styles.mobileProSlot}>
+                  <Animated.Text
+                    pointerEvents="none"
+                    style={[styles.proSparkle, styles.proSparkleFirst, firstSparkleStyle]}
+                  >✦</Animated.Text>
+                  <Animated.Text
+                    pointerEvents="none"
+                    style={[styles.proSparkle, styles.proSparkleSecond, secondSparkleStyle]}
+                  >✦</Animated.Text>
+                  <TouchableOpacity
+                    style={styles.mobileProButton}
+                    onPress={() => setActiveDetail('pro')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Open BeatNote Pro"
+                    testID="settings-pro"
+                  >
+                    <BeatNoteIcon name="pro" size={14} color={colors.onAccent} />
+                    <Text style={styles.mobileProText}>Pro</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <ScrollView
                 style={styles.scrollContainer}
@@ -236,7 +306,8 @@ const Sidebar: React.FC = () => {
               >
                 <SettingsRootSections
                   bpmAvailable={bpmAvailable}
-                  singleAnnotationLane
+                  showProRow={false}
+                  onOpenDisplay={() => setActiveDetail('display')}
                   onOpenPlayback={() => setActiveDetail('playback')}
                   onOpenButtons={() => setActiveDetail('buttons')}
                   onOpenBpm={() => setActiveDetail('bpm')}
@@ -260,6 +331,9 @@ const Sidebar: React.FC = () => {
             {!showHelpScreen && activeDetail === 'bpm' && (
               <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
             )}
+            {!showHelpScreen && activeDetail === 'display' && (
+              <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
+            )}
             {!showHelpScreen && activeDetail === 'playback' && (
               <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
             )}
@@ -276,6 +350,15 @@ const Sidebar: React.FC = () => {
               <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
             )}
           </Animated.View>
+          <View
+            {...edgeSwipeHandlers}
+            style={styles.edgeSwipeCapture}
+            pointerEvents="box-only"
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            testID="settings-edge-swipe"
+          />
         </Animated.View>
       </AppModal>
     );
@@ -298,6 +381,8 @@ const Sidebar: React.FC = () => {
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         {showHelpScreen ? (
           <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
+        ) : activeDetail === 'display' ? (
+          <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'bpm' ? (
           <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'playback' ? (
@@ -319,6 +404,7 @@ const Sidebar: React.FC = () => {
           >
             <SettingsRootSections
               bpmAvailable={bpmAvailable}
+              onOpenDisplay={() => setActiveDetail('display')}
               onOpenPlayback={() => setActiveDetail('playback')}
               onOpenButtons={() => setActiveDetail('buttons')}
               onOpenBpm={() => setActiveDetail('bpm')}

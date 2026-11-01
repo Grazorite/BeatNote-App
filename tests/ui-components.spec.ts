@@ -9,9 +9,11 @@ test.describe('UI Components & Layout', () => {
 
     await expect(page.getByTestId('settings-page')).toBeVisible();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('settings-display').click();
     await expect(page.getByTestId('waveform-visibility-toggle'))
       .toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Annotations');
+    await page.getByTestId('display-settings-page-back').click();
 
     await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('bpm-settings-page')).toBeVisible();
@@ -48,7 +50,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (7)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (9)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-settings-page-back').click();
 
@@ -65,6 +67,21 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-help').click();
     await expect(page.getByText('Start on iPhone', { exact: true })).toBeVisible();
     await expect(page.getByText('Playback & Markers', { exact: true })).toBeVisible();
+    const swipeFromLeadingEdge = async () => {
+      const edge = await page.getByTestId('settings-edge-swipe').boundingBox();
+      if (!edge) throw new Error('Settings edge-swipe target is unavailable');
+      const startX = edge.x + Math.min(8, edge.width / 2);
+      const y = edge.y + edge.height / 2;
+      await page.mouse.move(startX, y);
+      await page.mouse.down();
+      await page.mouse.move(startX + 120, y, { steps: 6 });
+      await page.mouse.up();
+    };
+    await swipeFromLeadingEdge();
+    await expect(page.getByText('Start on iPhone', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('settings-title')).toBeVisible();
+    await swipeFromLeadingEdge();
+    await expect(page.getByTestId('settings-page')).toHaveCount(0);
   });
   test('Lite and Pro expose the intended feature gates', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
@@ -318,22 +335,49 @@ test.describe('UI Components & Layout', () => {
     await expect(songTitleControl).toBeFocused();
 
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-display').click();
     await page.getByTestId('settings-layer-name-vocals').fill('Lead movement');
     await page.getByTestId('settings-layer-name-vocals').press('Enter');
+    await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
     await page.getByTestId('save-project').click();
     await page.getByTestId('save-project-name').fill('Core Project');
     await page.getByTestId('confirm-save-project').click();
-    await expect(page.getByTestId('dock-toast')).toHaveText('Saved “Core Project”');
+    await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Saved “Core Project”');
     await page.getByTestId('load-project').click();
     await page.getByTestId('current-project-save-as-new').click();
     await page.getByTestId('save-project-name').fill('Core Project Copy');
     await page.getByTestId('confirm-save-project').click();
-    await expect(page.getByTestId('dock-toast')).toHaveText('Saved “Core Project Copy”');
+    await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Saved “Core Project Copy”');
+    await expect(page.getByTestId('save-project-name')).toHaveCount(0);
+    await page.getByTestId('load-project').click();
+    await expect(page.getByTestId('current-project-name')).toHaveText('Core Project Copy');
+    await page.getByTestId('current-project-rename').click();
+    const renameInput = page.getByTestId('save-project-name');
+    await expect(renameInput).toHaveValue('Core Project Copy');
+    await page.waitForTimeout(350);
+    await renameInput.click();
+    await renameInput.fill('Renamed Current');
+    await expect(page.getByTestId('save-project-name')).toHaveValue('Renamed Current');
+    await page.getByTestId('confirm-save-project').click();
+    await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Renamed project to “Renamed Current”');
+    await expect(page.getByTestId('current-project-name')).toHaveText('Renamed Current');
+    await page.getByTestId('projects-back').click();
 
     await loadTestAudio(page, 'second-song.wav', 'test-audio.wav');
     await songTitleControl.click();
+    await page.getByTestId('music-library-sort-title').click();
+    const ascendingTitles = await page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
+    await page.getByTestId('music-library-sort-title').click();
+    await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.textContent ?? '')))
+      .toEqual([...ascendingTitles].reverse());
+    await page.getByTestId('music-library-sort-title').click();
+    await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.textContent ?? '')))
+      .toEqual(ascendingTitles);
     await page.getByTestId('music-library-sort-custom').click();
     await expect(page.locator('[data-testid^="music-library-row-reorder-"]')).toHaveCount(2);
     const testAudioRow = page.locator('[data-testid^="music-library-row-"]')
@@ -363,10 +407,12 @@ test.describe('UI Components & Layout', () => {
     await page.getByRole('button', { name: /^test-audio,/ }).click();
 
     await page.getByTestId('load-project').click();
-    await expect(page.getByTestId('current-project-name')).toHaveText('Core Project Copy');
+    await expect(page.getByTestId('current-project-name')).toHaveText('Renamed Current');
     await page.getByTestId('projects-back').click();
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-display').click();
     await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Lead movement');
+    await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
     await page.getByTestId('add-marker').click();
@@ -390,8 +436,9 @@ test.describe('UI Components & Layout', () => {
     });
     await expect(page.getByTestId('csv-imported-counts')).toContainText('1 marker');
     await page.getByTestId('csv-replace-apply').click();
-    await expect(page.getByTestId('dock-toast')).toContainText('CSV imported');
-    await page.getByTestId('dock-toast-action').click();
+    const activeToast = page.locator('[data-testid="dock-toast"][aria-live="polite"]');
+    await expect(activeToast).toContainText('CSV imported');
+    await activeToast.getByTestId('dock-toast-action').click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
     await page.getByTestId('load-project').click();
     await page.getByTestId('current-project-export-csv').click();

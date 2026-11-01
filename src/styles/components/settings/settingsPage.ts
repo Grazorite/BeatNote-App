@@ -29,13 +29,8 @@ export const settingsPageStyles = StyleSheet.create({
   },
   infoRow: {
     minHeight: 58,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 8,
     justifyContent: 'center',
-    backgroundColor: colors.surfaceGlass,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    borderRadius: dimensions.borderRadius,
   },
   rowLabel: {
     color: colors.text,

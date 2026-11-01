@@ -27,6 +27,7 @@ export interface ValidationResult<T> {
 const LAYER_IDS = new Set(['vocals', 'drums', 'bass', 'piano', 'guitar', 'other']);
 const EXTENSIONS = new Set(['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac']);
 const SORT_KEYS = new Set(['custom', 'title', 'recentlyAdded', 'recentlyPlayed', 'duration']);
+const SORT_DIRECTIONS = new Set(['ascending', 'descending']);
 const MIGRATION_STATUSES = new Set([
   'pending',
   'importing',
@@ -264,7 +265,9 @@ export function isPlaybackQueue(value: unknown): value is PlaybackQueue {
     || !isBoolean(value.shuffle)
     || !isString(value.collectionId)
     || !isString(value.sortKey)
-    || !SORT_KEYS.has(value.sortKey)) return false;
+    || !SORT_KEYS.has(value.sortKey)
+    || (value.sortDirection !== undefined
+      && (!isString(value.sortDirection) || !SORT_DIRECTIONS.has(value.sortDirection)))) return false;
   if (value.currentIndex !== null && value.currentIndex >= value.order.length) return false;
   const snapshot = [...value.snapshot].sort();
   const order = [...value.order].sort();
@@ -328,6 +331,8 @@ export function validateLibraryPrefs(
     || value.schemaVersion !== 1
     || !isString(value.sort)
     || !SORT_KEYS.has(value.sort)
+    || (value.sortDirection !== undefined
+      && (!isString(value.sortDirection) || !SORT_DIRECTIONS.has(value.sortDirection)))
     || (value.customOrder !== undefined && !isStringArray(value.customOrder))
     || (value.missingAudioNoticeShownForMigration !== null
       && !isNonNegativeInteger(value.missingAudioNoticeShownForMigration))) {
@@ -337,6 +342,11 @@ export function validateLibraryPrefs(
     valid: {
       schemaVersion: 1,
       sort: value.sort as LibraryPrefs['sort'],
+      sortDirection: (value.sortDirection ?? (
+        value.sort === 'recentlyAdded' || value.sort === 'recentlyPlayed'
+          ? 'descending'
+          : 'ascending'
+      )) as LibraryPrefs['sortDirection'],
       customOrder: value.customOrder === undefined ? [] : value.customOrder,
       missingAudioNoticeShownForMigration: value.missingAudioNoticeShownForMigration,
     },

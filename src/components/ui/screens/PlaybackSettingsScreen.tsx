@@ -30,25 +30,23 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
     <SettingsSubpage title="Playback" onBack={onBack} testID="playback-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Queue</Text>
-        <View style={styles.card}>
-          <ModernToggle
-            label="Continuous Play"
-            value={continuousAvailable && preferences.continuousPlay}
-            disabled={!continuousAvailable}
-            onValueChange={continuousPlay => {
-              void updateSettingsPreferences({ continuousPlay });
-            }}
-            accessibilityHint={continuousAvailable
-              ? 'Automatically starts the next song in the queue.'
-              : 'Pro required.'}
-            testID="continuous-play-toggle"
-          />
-          <Text style={styles.hint} testID="continuous-play-detail">
-            {continuousAvailable
-              ? 'Pro · Automatically starts the next song in the current queue.'
-              : 'Pro required · Lite stops when the current song ends.'}
-          </Text>
-        </View>
+        <ModernToggle
+          label="Continuous Play"
+          value={continuousAvailable && preferences.continuousPlay}
+          disabled={!continuousAvailable}
+          onValueChange={continuousPlay => {
+            void updateSettingsPreferences({ continuousPlay });
+          }}
+          accessibilityHint={continuousAvailable
+            ? 'Automatically starts the next song in the queue.'
+            : 'Pro required.'}
+          testID="continuous-play-toggle"
+        />
+        <Text style={styles.hint} testID="continuous-play-detail">
+          {continuousAvailable
+            ? 'Pro · Automatically starts the next song in the current queue.'
+            : 'Pro required · Lite stops when the current song ends.'}
+        </Text>
         <SettingsInfoRow
           label="Pause on Headset Disconnect"
           detail="Lite · Planned. BeatNote does not yet observe audio-route changes reliably."

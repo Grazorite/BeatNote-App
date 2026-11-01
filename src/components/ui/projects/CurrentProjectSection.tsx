@@ -20,6 +20,7 @@ export interface CurrentProjectSectionProps {
   newerProjectName?: string | null;
   onOpenNewerProject?: ActionCallback;
   onChooseMusic: ActionCallback;
+  onRename?: ActionCallback;
   onSave: ActionCallback;
   onSaveAsNewProject: ActionCallback;
   onImportCsv: ActionCallback;
@@ -34,6 +35,7 @@ export interface CurrentProjectSectionProps {
   showUndoCsvImport?: boolean;
   undoCsvImportDisabled?: boolean;
   openNewerProjectDisabled?: boolean;
+  renameDisabled?: boolean;
 }
 
 interface SectionActionProps {
@@ -106,6 +108,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
   newerProjectName = null,
   onOpenNewerProject,
   onChooseMusic,
+  onRename,
   onSave,
   onSaveAsNewProject,
   onImportCsv,
@@ -120,6 +123,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
   showUndoCsvImport = false,
   undoCsvImportDisabled = false,
   openNewerProjectDisabled = false,
+  renameDisabled = false,
 }) => {
   const [focusedControl, setFocusedControl] = useState<string | null>(null);
   const { fontScale } = useWindowDimensions();
@@ -229,6 +233,16 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
       </View>
 
       <View style={styles.contextActions}>
+        {projectName !== null && onRename !== undefined && (
+          <SectionAction
+            label="Rename"
+            onPress={onRename}
+            disabled={renameDisabled}
+            testID="current-project-rename"
+            emphasis="secondary"
+            fullWidth={useSingleColumnActions}
+          />
+        )}
         <SectionAction
           label="Revert to Saved"
           onPress={onRevertToSaved}

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -92,6 +93,7 @@ const SaveProjectPrompt: React.FC<SaveProjectPromptProps> = ({
             onChangeText={setProjectName}
             placeholder="Enter project name"
             placeholderTextColor={colors.textSecondary}
+            selectTextOnFocus={confirmLabel === 'Rename' && Platform.OS !== 'web'}
             accessibilityLabel="Project name"
             testID="save-project-name"
           />

@@ -112,6 +112,12 @@ export const musicLibrarySheetStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.accent,
   },
+  sortOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
   sortOptionText: {
     color: colors.textSecondary,
     fontSize: 13,

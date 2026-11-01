@@ -109,7 +109,7 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
       case 'annotation':
         return <><Path d="M5 5h14v11H9l-4 4Z" {...common} /><Path d="M8 9h8M8 12.5h5" {...common} /></>;
       case 'clear':
-        return <><Path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13" {...common} /><Path d="M10 11v5M14 11v5" {...common} /></>;
+        return <><Path d="M4 7h16M9 7V4h6v3" {...common} strokeWidth={2.1} /><Path d="M6.5 10v7.5A2.5 2.5 0 0 0 9 20h6a2.5 2.5 0 0 0 2.5-2.5V10M10 11.5v5M14 11.5v5" {...common} strokeWidth={2.1} /></>;
       case 'restore':
         return <><Path d="M4 4v4h4" {...common} /><Path d="M4.8 7.2A8 8 0 1 1 4 15" {...common} /></>;
       case 'chevron-left':

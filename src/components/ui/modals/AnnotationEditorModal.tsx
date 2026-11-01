@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import type { SelectedMarker } from '../../../hooks/useStudioStore';
 import { annotationEditorModalStyles as styles } from '../../../styles/components/modals/annotationEditorModal';
 import { colors } from '../../../styles/common';
@@ -34,6 +44,8 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
   onDismiss,
 }) => {
   const [draft, setDraft] = useState(initialText);
+  const { width, height } = useWindowDimensions();
+  const isLandscapePhone = Math.min(width, height) < 768 && width > height;
 
   useEffect(() => {
     if (visible) setDraft(initialText);
@@ -48,47 +60,74 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
       onRequestClose={onCancel}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? (isLandscapePhone ? 'height' : 'padding') : 'height'}
+        style={[styles.overlay, isLandscapePhone && styles.overlayLandscape]}
       >
-        <View style={styles.container} testID="annotation-editor">
+        <View
+          style={[styles.container, isLandscapePhone && styles.containerLandscape]}
+          testID="annotation-editor"
+        >
           <GlassBackdrop gradientId="annotation-editor-glass" radius={16} testID="annotation-editor-glass" />
-          <Text style={styles.title}>{initialText.trim() ? 'Edit Annotation' : 'Add Annotation'}</Text>
-          {marker && (
-            <Text style={styles.timestamp}>Marker at {formatMarkerTime(marker.timestamp)}</Text>
-          )}
-          <TextInput
-            key={`${marker?.layerId ?? 'none'}-${marker?.timestamp ?? 0}`}
-            autoFocus
-            multiline
-            maxLength={500}
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Enter movement cue or note"
-            placeholderTextColor={colors.textSecondary}
-            style={styles.input}
-            textAlignVertical="top"
-            blurOnSubmit={false}
-            testID="annotation-editor-input"
-          />
-          <AnnotationSuggestionChips value={draft} onChange={setDraft} maxLength={500} />
-          <View style={styles.draftMeta}>
-            {draft.length > 0 && (
+          <View style={styles.titleRow}>
+            {isLandscapePhone && <View style={styles.titleActionSpacer} />}
+            <Text style={styles.title}>{initialText.trim() ? 'Edit Annotation' : 'Add Annotation'}</Text>
+            {isLandscapePhone && (
               <TouchableOpacity
-                style={styles.clearButton}
-                onPress={() => setDraft('')}
+                style={styles.keyboardDoneButton}
+                onPress={Keyboard.dismiss}
                 accessibilityRole="button"
-                accessibilityLabel="Clear annotation text"
-                accessibilityHint="Clears the draft. Save to remove the annotation from this marker."
-                testID="clear-annotation-text"
+                accessibilityLabel="Hide keyboard"
+                testID="annotation-keyboard-done"
               >
-                <BeatNoteIcon name="clear" size={15} color={colors.textSecondary} />
-                <Text style={styles.clearButtonText}>Clear text</Text>
+                <Text style={styles.keyboardDoneText}>Done</Text>
               </TouchableOpacity>
             )}
-            <Text style={styles.count}>{draft.length}/500</Text>
           </View>
-          <View style={styles.actions}>
+          {marker && (
+            <Text style={[styles.timestamp, isLandscapePhone && styles.timestampLandscape]}>
+              Marker at {formatMarkerTime(marker.timestamp)}
+            </Text>
+          )}
+          <ScrollView
+            style={styles.editorScroll}
+            contentContainerStyle={styles.editorScrollContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            showsVerticalScrollIndicator={false}
+          >
+            <TextInput
+              key={`${marker?.layerId ?? 'none'}-${marker?.timestamp ?? 0}`}
+              autoFocus
+              multiline
+              maxLength={500}
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Enter movement cue or note"
+              placeholderTextColor={colors.textSecondary}
+              style={[styles.input, isLandscapePhone && styles.inputLandscape]}
+              textAlignVertical="top"
+              blurOnSubmit={false}
+              testID="annotation-editor-input"
+            />
+            <AnnotationSuggestionChips value={draft} onChange={setDraft} maxLength={500} />
+            <View style={styles.draftMeta}>
+              {draft.length > 0 && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => setDraft('')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear annotation text"
+                  accessibilityHint="Clears the draft. Save to remove the annotation from this marker."
+                  testID="clear-annotation-text"
+                >
+                  <BeatNoteIcon name="clear" size={15} color={colors.textSecondary} />
+                  <Text style={styles.clearButtonText}>Clear text</Text>
+                </TouchableOpacity>
+              )}
+              <Text style={styles.count}>{draft.length}/500</Text>
+            </View>
+          </ScrollView>
+          <View style={[styles.actions, isLandscapePhone && styles.actionsLandscape]}>
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>

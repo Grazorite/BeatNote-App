@@ -221,6 +221,7 @@ export const writeLibraryPrefs = (value: LibraryPrefs, options?: RepositoryOptio
 );
 export const updateLibrarySort = async (
   sort: LibraryPrefs['sort'],
+  sortDirection: LibraryPrefs['sortDirection'],
   options: RepositoryOptions = {},
 ): Promise<void> => {
   await enqueueWrite({
@@ -235,6 +236,7 @@ export const updateLibrarySort = async (
       const next: LibraryPrefs = {
         schemaVersion: 1,
         sort,
+        sortDirection,
         customOrder: current?.customOrder ?? [],
         missingAudioNoticeShownForMigration:
           current?.missingAudioNoticeShownForMigration ?? null,
@@ -259,6 +261,7 @@ export const updateLibraryCustomOrder = async (
       const next: LibraryPrefs = {
         schemaVersion: 1,
         sort: current?.sort ?? 'recentlyAdded',
+        sortDirection: current?.sortDirection ?? 'descending',
         customOrder: [...new Set(customOrder)],
         missingAudioNoticeShownForMigration:
           current?.missingAudioNoticeShownForMigration ?? null,

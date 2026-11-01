@@ -12,8 +12,10 @@ test.describe('Critical annotation workflow', () => {
     await expect(page.getByTestId('loop-overview-playhead-cap')).toHaveAttribute('fill', '#ff8c00');
 
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-display').click();
     await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('waveform-visibility-toggle').click();
+    await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666');
 
@@ -29,7 +31,7 @@ test.describe('Critical annotation workflow', () => {
     const annotationButton = page.getByTestId('annotation-control');
     await expect(annotationButton).toBeEnabled();
     await annotationButton.click();
-    await expect(page.getByTestId('dock-toast')).toHaveText('Add a marker first');
+    await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Add a marker first');
     await expect(page.getByTestId('annotation-editor-input')).not.toBeVisible();
 
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
@@ -40,6 +42,7 @@ test.describe('Critical annotation workflow', () => {
     await expect.poll(markerCount).toBe(0);
     await page.getByTestId('add-marker').click();
     await expect.poll(markerCount).toBe(1);
+    await expect(page.locator('[data-testid^="loop-overview-marker-vocals-"]').first()).toHaveAttribute('fill', 'none');
 
     await expect(annotationButton).toBeEnabled();
     await annotationButton.click();
@@ -50,7 +53,16 @@ test.describe('Critical annotation workflow', () => {
     await expect(annotationDot).toHaveAttribute('fill', '#c084fc');
     // The solid shield head carries no dark outline; its stroke matches its fill.
     await expect(annotationDot).toHaveAttribute('stroke', '#c084fc');
+    await expect(page.locator('[data-testid^="loop-overview-annotation-vocals-"]').first()).toHaveAttribute('fill', '#c084fc');
     await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
+
+    await page.getByTestId('add-marker').click();
+    await expect.poll(markerCount).toBe(0);
+    const activeToast = page.locator('[data-testid="dock-toast"][aria-live="polite"]');
+    await expect(activeToast).toContainText('Marker removed');
+    await activeToast.getByTestId('dock-toast-action').click();
+    await expect.poll(markerCount).toBe(1);
+    await expect(page.locator('[data-testid^="loop-overview-annotation-vocals-"]').first()).toBeVisible();
 
     await page.mouse.move(box.x + box.width * 0.2, box.y + box.height - 12);
     await page.mouse.down();
@@ -73,6 +85,16 @@ test.describe('Critical annotation workflow', () => {
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
+    await page.getByTestId('annotation-control').click();
+    await expect(page.getByTestId('annotation-keyboard-done')).toBeVisible();
+    await expect(page.getByTestId('save-annotation')).toBeVisible();
+    const editorBounds = await page.getByTestId('annotation-editor').boundingBox();
+    expect(editorBounds).not.toBeNull();
+    if (editorBounds) {
+      expect(editorBounds.y).toBeGreaterThanOrEqual(0);
+      expect(editorBounds.y + editorBounds.height).toBeLessThanOrEqual(390);
+    }
+    await page.getByText('Cancel', { exact: true }).click();
 
     await page.setViewportSize({ width: 393, height: 852 });
     await expect(page.getByTestId('portrait-control-dock')).toBeVisible();

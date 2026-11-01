@@ -1,4 +1,4 @@
-import type { LibrarySortKey } from './library';
+import type { LibrarySortDirection, LibrarySortKey } from './library';
 
 export interface PlaybackQueue {
   schemaVersion: 1;
@@ -8,4 +8,5 @@ export interface PlaybackQueue {
   shuffle: boolean;
   collectionId: string;
   sortKey: LibrarySortKey;
+  sortDirection?: LibrarySortDirection;
 }

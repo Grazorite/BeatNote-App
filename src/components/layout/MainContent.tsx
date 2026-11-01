@@ -345,14 +345,12 @@ const MainContent: React.FC<MainContentProps> = ({
       <View style={styles.mobileTimeline}>
         <View style={styles.mobileFeedbackStack} pointerEvents="box-none">
           <DockToast
-            key={toast.nonce}
             message={toast.message}
             action={toast.action}
             stacked
           />
           {timedAnnotationMarker && displayedAnnotation.trim() && (
             <AnnotationCallout
-              key={`${timedAnnotationMarker.layerId}-${timedAnnotationMarker.timestamp}`}
               text={displayedAnnotation}
               onPress={() => openAnnotationEditor(timedAnnotationMarker)}
               stacked
@@ -475,7 +473,7 @@ const MainContent: React.FC<MainContentProps> = ({
     >
       <View>
         {projectControls}
-        <DockToast key={toast.nonce} message={toast.message} action={toast.action} />
+        <DockToast message={toast.message} action={toast.action} />
       </View>
       {waveform}
       {timeline}

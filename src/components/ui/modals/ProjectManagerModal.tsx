@@ -173,6 +173,9 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const [exportTarget, setExportTarget] = useState<{ id: string | 'current'; name: string; markerCount: number } | null>(null);
 
   const summaries = useMemo(() => Object.values(projectSummaries), [projectSummaries]);
+  const currentProjectSummary = draftBaseline === null
+    ? null
+    : projectSummaries[draftBaseline.projectId] ?? null;
   const grouped = useMemo(() => groupProjectSections(
     currentMusicItemId,
     draftBaseline?.projectId ?? null,
@@ -501,6 +504,10 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             ? undefined
             : () => { void openProjectAndClose(newestCurrentProject.projectId); }}
           onChooseMusic={closeAndChooseMusic}
+          onRename={currentProjectSummary === null ? undefined : () => {
+            setRenameSuggestion(null);
+            setRenameProjectState({ project: currentProjectSummary });
+          }}
           onSave={onSave}
           onSaveAsNewProject={onSaveAsNewProject}
           onImportCsv={pickCsv}
@@ -514,6 +521,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             if (undoCsvReplace()) notify('CSV import undone');
           }}
           saveDisabled={interactionsDisabled || currentMusicItemId === null}
+          renameDisabled={interactionsDisabled || currentProjectSummary === null}
           saveAsNewDisabled={interactionsDisabled || currentMusicItemId === null}
           importCsvDisabled={interactionsDisabled || !songLoaded}
           exportCsvDisabled={interactionsDisabled || !songLoaded || visibleMarkerCount === 0}
@@ -564,6 +572,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     closeAndChooseMusic,
     currentDraftState,
     currentMusicItemId,
+    currentProjectSummary,
     draftBaselineName,
     grouped.currentDisplayTitle,
     handleDelete,

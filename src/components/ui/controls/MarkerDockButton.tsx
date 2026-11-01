@@ -114,7 +114,14 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
   const activate = () => {
     if (action === 'add') {
       onAddMarker();
-      onToast(nearby === null ? 'Marker added' : 'Marker removed');
+      if (nearby === null) {
+        onToast('Marker added');
+      } else {
+        onToast('Marker removed', {
+          label: 'Undo',
+          onPress: restoreLastDeletion,
+        });
+      }
     } else if (action === 'removePrevious') {
       if (hasRemovable) {
         state.removePrevious();

@@ -56,6 +56,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-page").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-help").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("settings-pro").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("settings-display").exists)
     XCTAssertTrue(element("settings-bpm-entry").exists)
     element("settings-bpm-entry").tap()
     XCTAssertTrue(element("settings-bpm").exists)
@@ -75,7 +77,18 @@ final class BeatNoteUITests: XCTestCase {
       XCTAssertFalse(app.staticTexts[hiddenSetting].exists, "\(hiddenSetting) should stay hidden in V1 settings.")
     }
     element("bpm-settings-page-back").tap()
-    element("sidebar-toggle").tap()
+    element("settings-display").tap()
+    let settingsPage = element("settings-page")
+    func swipeBackFromSettingsEdge() {
+      let start = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5))
+      let end = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5))
+      start.press(forDuration: 0.05, thenDragTo: end)
+    }
+    swipeBackFromSettingsEdge()
+    XCTAssertTrue(element("settings-title").waitForExistence(timeout: 5))
+    XCTAssertFalse(element("display-settings-page").exists)
+    swipeBackFromSettingsEdge()
+    XCTAssertFalse(element("settings-page").waitForExistence(timeout: 2))
     XCTAssertFalse(element("project-actions-scroll-cue").exists)
     for action in ["song-title-control", "save-project", "load-project", "sidebar-open-toggle"] {
       XCTAssertTrue(element(action).exists, "All project actions must fit without horizontal scrolling.")
@@ -103,9 +116,11 @@ final class BeatNoteUITests: XCTestCase {
   func testAudioAnnotationAndProjectRestore() {
     loadBundledSimulatorAudio()
     element("sidebar-open-toggle").tap()
+    element("settings-display").tap()
     let waveformToggle = element("waveform-visibility-toggle")
     XCTAssertTrue(waveformToggle.waitForExistence(timeout: 5))
     waveformToggle.tap()
+    element("display-settings-page-back").tap()
     element("sidebar-toggle").tap()
     XCTAssertTrue(
       element("wrapped-row-peaks-0").waitForExistence(timeout: 10),
@@ -516,20 +531,36 @@ final class BeatNoteUITests: XCTestCase {
       "The Music Library sheet should support landscape presentation."
     )
     XCTAssertTrue(element("music-library-import").isHittable)
-    element("music-library-sheet-close").tap()
+    let librarySheet = element("music-library-sheet")
+    let libraryGrabber = element("music-library-sheet-grabber")
+    let dismissTarget = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.96))
+    libraryGrabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      .press(forDuration: 0.05, thenDragTo: dismissTarget)
+    XCTAssertFalse(librarySheet.waitForExistence(timeout: 2))
     XCTAssertTrue(rail.waitForExistence(timeout: 5))
+
+    element("add-marker").tap()
+    element("annotation-control").tap()
+    let keyboardDone = element("annotation-keyboard-done")
+    XCTAssertTrue(keyboardDone.waitForExistence(timeout: 5))
+    XCTAssertTrue(keyboardDone.isHittable, "Landscape annotation editing must expose keyboard dismissal.")
+    let saveAnnotation = element("save-annotation")
+    XCTAssertTrue(saveAnnotation.isHittable, "Landscape annotation actions must remain above the keyboard.")
+    keyboardDone.tap()
+    saveAnnotation.tap()
+    XCTAssertFalse(element("annotation-editor").waitForExistence(timeout: 2))
 
     let landscapeButton = element("add-marker").frame
     XCTAssertGreaterThanOrEqual(landscapeButton.height, 38)
     XCTAssertLessThanOrEqual(landscapeButton.width / landscapeButton.height, 1.25)
 
-    let leftColumn = ["navigate-left-marker", "add-marker", "inner-loop-cycle", "repeat-toggle", "first-track-control", "previous-track-control"]
-    let rightColumn = ["navigate-right-marker", "remove-last-marker", "annotation-control", "playback-speed", "shuffle-control", "next-track-control"]
+    let leftColumn = ["navigate-left-marker", "add-marker", "playback-speed", "repeat-toggle", "first-track-control", "previous-track-control"]
+    let rightColumn = ["navigate-right-marker", "annotation-control", "remove-last-marker", "inner-loop-cycle", "shuffle-control", "next-track-control"]
     let leftX = element(leftColumn[0]).frame.minX
     let rightX = element(rightColumn[0]).frame.minX
     for identifier in leftColumn { XCTAssertEqual(element(identifier).frame.minX, leftX, accuracy: 2) }
     for identifier in rightColumn { XCTAssertEqual(element(identifier).frame.minX, rightX, accuracy: 2) }
-    let orderedControls = ["navigate-left-marker", "add-marker", "inner-loop-cycle", "play-pause", "repeat-toggle", "first-track-control", "previous-track-control"]
+    let orderedControls = ["navigate-left-marker", "add-marker", "playback-speed", "play-pause", "repeat-toggle", "first-track-control", "previous-track-control"]
     for index in 1..<orderedControls.count {
       XCTAssertLessThan(element(orderedControls[index - 1]).frame.minY, element(orderedControls[index]).frame.minY)
     }
@@ -564,12 +595,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.55)
     XCUIDevice.shared.orientation = .portrait
     XCTAssertTrue(element("portrait-control-dock").waitForExistence(timeout: 10))
-    XCTAssertEqual(
-      element("control-dock-glass").frame.width,
-      element("portrait-control-dock").frame.width,
-      accuracy: 2,
-      "The dock glass should remeasure after returning to portrait."
-    )
+    XCTAssertFalse(element("control-dock-glass").exists, "The phone media dock should remain transparent.")
     assertNoGestureRuntimeError()
   }
 
@@ -622,9 +648,9 @@ final class BeatNoteUITests: XCTestCase {
   }
 
   private func rotateAppToLandscape() {
+    app.activate()
     for orientation in [UIDeviceOrientation.landscapeLeft, .landscapeRight] {
       XCUIDevice.shared.orientation = orientation
-      app.activate()
       for _ in 0..<20 {
         if app.frame.width > app.frame.height { return }
         Thread.sleep(forTimeInterval: 0.25)

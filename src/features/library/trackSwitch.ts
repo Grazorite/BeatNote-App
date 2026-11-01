@@ -534,6 +534,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         beforeCommit.queue?.sortKey ?? beforeCommit.librarySort,
         destination.item.id,
         beforeCommit.libraryCustomOrder,
+        beforeCommit.queue?.sortDirection ?? beforeCommit.librarySortDirection,
       );
     } else if (destinationQueue !== null) {
       const matchingIndex = request.queueIndex
