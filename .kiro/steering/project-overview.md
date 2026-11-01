@@ -58,8 +58,11 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   draft is saved or dirty and whether a song switch needs confirmation.
 - **Playback queue** — an ordered snapshot of Music Item IDs. First, Previous, Next, and Shuffle
   operate on this queue independently of Saved Projects.
-- **Song Title control** — the leading toolbar control showing the current song. It opens the
-  detented Music Library for import, search, sorting, rename, removal, relink, and project routing.
+- **Song Title control** — the leading toolbar control showing the current song, with long names
+  middle-truncated so both identifying ends remain visible. It opens the detented Music Library for
+  import, search, sorting, rename, removal, relink, and project routing. The library includes a
+  persisted custom order: drag handles are exposed only in Custom Order mode, and choosing another
+  sort never discards the saved arrangement.
 - **Stem count** — 2, 4, or 6 stems visible at once.
 - **Viewport** — the visible time window on the waveform canvas (start time + duration).
 - **Phone waveform canvas** — a fixed, non-scrolling full-song view. Its row count follows the

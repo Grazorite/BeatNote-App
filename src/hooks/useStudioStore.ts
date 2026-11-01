@@ -29,7 +29,11 @@ import type { PlaybackQueue } from '../types/queue';
 import type { AnalysisJobView } from '../types/analysis';
 import type { PersistenceIssue } from '../features/library/persistencePipeline';
 import type { ReadOnlyLegacyProjectSummary } from '../features/library/migration';
-import { updateLibrarySort, writeQueue } from '../features/library/repositories';
+import {
+  updateLibraryCustomOrder,
+  updateLibrarySort,
+  writeQueue,
+} from '../features/library/repositories';
 import { subscribeImportJobs } from '../features/library/importPipeline';
 import { subscribeAnalysisJobs } from '../features/analysis/bpmAnalysisService';
 import { applyPersistedContent } from '../utils/persistedContent';
@@ -141,6 +145,7 @@ export interface TrackCommitPayload {
 export interface StudioStore {
   libraryItems: Record<string, MusicItem>;
   librarySort: LibrarySortKey;
+  libraryCustomOrder: string[];
   projectSummaries: Record<string, SavedProjectSummary>;
   readOnlyLegacyProjects: ReadOnlyLegacyProjectSummary[];
   migrationNoticeCount: number | null;
@@ -219,6 +224,7 @@ export interface StudioStore {
   isTextInputFocused: boolean;
   setLibraryItems: (items: Record<string, MusicItem>) => void;
   setLibrarySort: (sort: LibrarySortKey) => void;
+  setLibraryCustomOrder: (order: readonly string[]) => void;
   setCurrentAudioSource: (uri: string | null, filename: string | null) => void;
   setQueue: (queue: PlaybackQueue | null) => void;
   setDraftBaseline: (
@@ -407,6 +413,7 @@ const restoreDeletedMarkers = (layers: Layer[], batch: MarkerDeletionBatch): Lay
 export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   libraryItems: {},
   librarySort: 'recentlyAdded',
+  libraryCustomOrder: [],
   projectSummaries: {},
   readOnlyLegacyProjects: [],
   migrationNoticeCount: null,
@@ -490,6 +497,20 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setLibrarySort: (sort) => {
     set({ librarySort: sort });
     void updateLibrarySort(sort, {
+      onIssue: issue => set((state) => ({
+        persistenceIssues: [
+          ...state.persistenceIssues.filter(existing => (
+            existing.kind !== issue.kind || existing.label !== issue.label
+          )),
+          issue,
+        ],
+      })),
+    }).catch(() => undefined);
+  },
+  setLibraryCustomOrder: (order) => {
+    const customOrder = [...new Set(order)];
+    set({ libraryCustomOrder: customOrder });
+    void updateLibraryCustomOrder(customOrder, {
       onIssue: issue => set((state) => ({
         persistenceIssues: [
           ...state.persistenceIssues.filter(existing => (

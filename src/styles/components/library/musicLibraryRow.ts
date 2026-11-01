@@ -15,6 +15,18 @@ export const musicLibraryRowStyles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
+  dragging: {
+    zIndex: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: colors.borderEmphasis,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceRaised,
+    shadowColor: colors.background,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+  },
   main: {
     flex: 1,
     minWidth: 0,
@@ -82,6 +94,12 @@ export const musicLibraryRowStyles = StyleSheet.create({
     color: colors.accent,
     fontSize: 14,
     fontWeight: '600',
+  },
+  reorderHandle: {
+    width: dimensions.touchTarget.minWidth,
+    minHeight: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   error: {
     color: colors.iconDestructive,

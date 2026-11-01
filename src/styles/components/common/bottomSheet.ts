@@ -51,6 +51,11 @@ export const bottomSheetStyles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 25,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  titleSide: {
+    width: dimensions.touchTarget.minWidth,
+    height: dimensions.touchTarget.minHeight,
   },
   closeButton: {
     width: dimensions.touchTarget.minWidth,

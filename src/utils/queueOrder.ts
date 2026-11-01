@@ -20,6 +20,9 @@ export function compareLibraryItems(
   let comparison = 0;
 
   switch (sortKey) {
+    case 'custom':
+      comparison = descendingDate(left.addedAt, right.addedAt);
+      break;
     case 'title':
       comparison = titleCollator.compare(left.displayTitle, right.displayTitle);
       break;
@@ -44,7 +47,21 @@ export function compareLibraryItems(
 export function sortLibraryItems(
   items: readonly MusicItem[],
   sortKey: LibrarySortKey,
+  customOrder: readonly string[] = [],
 ): MusicItem[] {
+  if (sortKey === 'custom') {
+    const positions = new Map(customOrder.map((id, index) => [id, index]));
+    return [...items].sort((left, right) => {
+      const leftPosition = positions.get(left.id);
+      const rightPosition = positions.get(right.id);
+      if (leftPosition !== undefined && rightPosition !== undefined) {
+        return leftPosition - rightPosition;
+      }
+      if (leftPosition !== undefined) return -1;
+      if (rightPosition !== undefined) return 1;
+      return compareLibraryItems(left, right, 'recentlyAdded');
+    });
+  }
   return [...items].sort((left, right) => compareLibraryItems(left, right, sortKey));
 }
 
@@ -67,10 +84,12 @@ export function buildQueue(
   collectionId: string,
   sortKey: LibrarySortKey,
   currentId: string,
+  customOrder: readonly string[] = [],
 ): PlaybackQueue {
   const snapshot = sortLibraryItems(
     items.filter(item => !item.removed && item.collectionIds.includes(collectionId)),
     sortKey,
+    customOrder,
   ).map(item => item.id);
   const currentIndex = snapshot.indexOf(currentId);
 

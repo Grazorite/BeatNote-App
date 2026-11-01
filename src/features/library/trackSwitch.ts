@@ -533,6 +533,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         beforeCommit.queue?.collectionId ?? IMPORTED_MUSIC_COLLECTION_ID,
         beforeCommit.queue?.sortKey ?? beforeCommit.librarySort,
         destination.item.id,
+        beforeCommit.libraryCustomOrder,
       );
     } else if (destinationQueue !== null) {
       const matchingIndex = request.queueIndex

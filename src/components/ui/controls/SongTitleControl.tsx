@@ -4,6 +4,7 @@ import { useStudioStore } from '../../../hooks/useStudioStore';
 import { songTitleControlStyles as styles } from '../../../styles/components/controls/songTitleControl';
 import { colors } from '../../../styles/common';
 import { MAX_TEXT_SCALE } from '../../../utils/libraryConstants';
+import { middleTruncate } from '../../../utils/displayText';
 import { BeatNoteIcon } from '../../icons';
 
 export interface SongTitleControlProps {
@@ -22,7 +23,7 @@ const SongTitleControl = forwardRef<
       ? null
       : state.libraryItems[state.currentMusicItemId] ?? null
   ));
-  const title = currentItem?.displayTitle ?? 'Choose Music';
+  const title = currentItem === null ? 'Choose Music' : middleTruncate(currentItem.displayTitle);
   const missing = currentItem?.availability === 'missing';
   const accessibilityLabel = currentMusicItemId === null || currentItem === null
     ? 'Music library, no song chosen'
@@ -50,7 +51,7 @@ const SongTitleControl = forwardRef<
         adjustsFontSizeToFit
         minimumFontScale={0.65}
         numberOfLines={1}
-        ellipsizeMode="tail"
+        ellipsizeMode="middle"
         maxFontSizeMultiplier={MAX_TEXT_SCALE}
       >
         {title}

@@ -12,6 +12,11 @@ export const liteAdPlaceholderStyles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
+  safeAreaSpacer: {
+    flexShrink: 0,
+    width: '100%',
+    backgroundColor: colors.background,
+  },
   creative: {
     width: '100%',
     maxWidth: 414,

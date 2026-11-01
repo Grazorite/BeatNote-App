@@ -7,8 +7,8 @@ export type BeatNoteIconName =
   | 'play' | 'pause' | 'first' | 'previous' | 'next' | 'repeat' | 'shuffle' | 'range-loop'
   | 'marker' | 'marker-add' | 'marker-remove' | 'marker-previous' | 'marker-next'
   | 'marker-remove-previous' | 'marker-loop' | 'annotation' | 'clear' | 'restore'
-  | 'chevron-left' | 'chevron-up' | 'chevron-down' | 'warning' | 'music-library'
-  | 'more' | 'current' | 'missing-audio' | 'close' | 'search' | 'sort'
+  | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevron-down' | 'warning' | 'music-library'
+  | 'more' | 'current' | 'missing-audio' | 'close' | 'search' | 'sort' | 'reorder'
   | 'unified' | 'multitrack' | 'stems-2' | 'stems-4' | 'stems-6'
   | 'vocals' | 'drums' | 'bass' | 'piano' | 'guitar' | 'other';
 
@@ -112,6 +112,8 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <><Path d="M5 8V4m0 0h4M5 4l3 3" {...common} /><Path d="M5.7 7A8 8 0 1 1 4 15" {...common} /></>;
       case 'chevron-left':
         return <Path d="m14.5 6-6 6 6 6" {...common} />;
+      case 'chevron-right':
+        return <Path d="m9.5 6 6 6-6 6" {...common} />;
       case 'chevron-up':
         return <Path d="m6 15.5 6-6 6 6" {...common} />;
       case 'chevron-down':
@@ -132,6 +134,8 @@ const BeatNoteIcon: React.FC<BeatNoteIconProps> = ({
         return <><Circle cx="10.5" cy="10.5" r="6.5" {...common} /><Path d="m15.5 15.5 4.5 4.5" {...common} /></>;
       case 'sort':
         return <><Path d="M8 5v14m-3-3 3 3 3-3" {...common} /><Path d="M14 7h6M14 12h4.5M14 17h3" {...common} /></>;
+      case 'reorder':
+        return <Path d="M5 7h14M5 12h14M5 17h14" {...common} />;
       case 'unified':
         return <><Path d="m4 9 8-4 8 4-8 4Z" {...common} /><Path d="m5 13 7 3.5 7-3.5M5 17l7 3.5 7-3.5" {...common} /></>;
       case 'multitrack':

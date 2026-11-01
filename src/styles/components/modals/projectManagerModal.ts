@@ -10,18 +10,23 @@ export const projectManagerModalStyles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderSubtle,
   },
   title: {
+    flex: 1,
     color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  headerSide: {
+    width: 76,
   },
   closeButton: {
+    width: 76,
     backgroundColor: colors.surfaceGlass,
     paddingHorizontal: 16,
     paddingVertical: 8,

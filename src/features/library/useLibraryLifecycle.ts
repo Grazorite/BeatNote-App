@@ -329,6 +329,7 @@ export async function runLibraryBoot(
   dependencies.setState((state: StudioStore) => ({
     libraryItems: library.items,
     librarySort: prefs?.sort ?? 'recentlyAdded',
+    libraryCustomOrder: prefs?.customOrder ?? [],
     projectSummaries: projects.projects,
     readOnlyLegacyProjects,
     migrationNoticeCount: unresolvedCount,

@@ -53,17 +53,55 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-glass')).toBeVisible();
     await expect(page.getByTestId('settings-help')).toBeVisible();
     await expect(page.getByTestId('sidebar-toggle').locator('svg')).toHaveCount(0);
+    await expect.poll(async () => (
+      (await page.getByTestId('settings-page').boundingBox())?.x ?? -1
+    )).toBeCloseTo(0, 0);
+    const settingsHeader = await page.evaluate(() => {
+      const title = document.querySelector('[data-testid="settings-title"]')?.getBoundingClientRect();
+      const close = document.querySelector('[data-testid="sidebar-toggle"]')?.getBoundingClientRect();
+      const help = document.querySelector('[data-testid="settings-help"]')?.getBoundingClientRect();
+      return {
+        titleCenter: title ? title.left + title.width / 2 : 0,
+        closeCenter: close ? close.left + close.width / 2 : 0,
+        helpCenter: help ? help.left + help.width / 2 : 0,
+      };
+    });
+    expect(Math.abs(settingsHeader.titleCenter - 393 / 2)).toBeLessThan(2);
+    expect(settingsHeader.closeCenter).toBeLessThan(settingsHeader.titleCenter);
+    expect(settingsHeader.helpCenter).toBeGreaterThan(settingsHeader.titleCenter);
     await expect(page.getByText('Basic', { exact: true })).toBeVisible();
+    const debugToggleY = (await page.getByTestId('debug-tier-toggle').boundingBox())?.y ?? -1;
+    const waveformToggleY = (await page.getByTestId('settings-waveform').boundingBox())?.y ?? -1;
+    expect(debugToggleY).toBeGreaterThanOrEqual(0);
+    expect(debugToggleY).toBeLessThan(waveformToggleY);
     await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
     await expect(page.getByTestId('settings-waveform')).toBeVisible();
     await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'false');
     const settingsOrder = await page.evaluate(() => [
       'settings-waveform',
       'settings-layer-names',
-      'settings-bpm',
+      'settings-bpm-entry',
     ].map(id => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().y ?? -1));
     expect(settingsOrder[0]).toBeLessThan(settingsOrder[1]);
     expect(settingsOrder[1]).toBeLessThan(settingsOrder[2]);
+    await expect(page.getByTestId('settings-bpm')).toHaveCount(0);
+    await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
+    await page.getByTestId('settings-bpm-entry').click();
+    await expect(page.getByTestId('bpm-settings-page')).toBeVisible();
+    await expect.poll(async () => (
+      (await page.getByTestId('bpm-settings-page').boundingBox())?.x ?? -1
+    )).toBeCloseTo(0, 0);
+    const bpmHeader = await page.evaluate(() => {
+      const title = document.querySelector('[data-testid="bpm-settings-page-title"]')
+        ?.getBoundingClientRect();
+      const back = document.querySelector('[data-testid="bpm-settings-page-back"]')?.getBoundingClientRect();
+      return {
+        titleCenter: title ? title.left + title.width / 2 : 0,
+        backCenter: back ? back.left + back.width / 2 : 0,
+      };
+    });
+    expect(Math.abs(bpmHeader.titleCenter - 393 / 2)).toBeLessThan(2);
+    expect(bpmHeader.backCenter).toBeLessThan(bpmHeader.titleCenter);
     await expect(page.getByTestId('settings-bpm')).toBeVisible();
     await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
     await expect(page.getByTestId('settings-dance-counts')).toBeVisible();
@@ -78,6 +116,15 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('count-size-8')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('count-size-6').click();
     await expect(page.getByTestId('count-size-6')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('bpm-settings-page-back').click();
+    await expect(page.getByTestId('bpm-settings-page')).toHaveCount(0);
+    await page.getByTestId('settings-about').click();
+    await expect(page.getByTestId('about-settings-page')).toBeVisible();
+    await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (3)', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('about-open-source-licences')).toBeVisible();
+    await expect(page.getByTestId('about-send-feedback')).toBeVisible();
+    await page.getByTestId('about-settings-page-back').click();
     await expect.poll(async () => {
       const box = await page.getByTestId('settings-page').boundingBox();
       return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
@@ -94,8 +141,11 @@ test.describe('UI Components & Layout', () => {
     }).toEqual([0, 0, 740, 390]);
     await page.getByTestId('settings-help').click();
     await expect(page.getByTestId('settings-page').getByTestId('help-page')).toBeVisible();
-    await expect(page.getByText('Start a Session', { exact: true })).toBeVisible();
-    await expect(page.getByText('Mobile Controls', { exact: true })).toBeVisible();
+    await expect(page.getByText('Help & Support', { exact: true }).locator('svg'))
+      .toHaveCount(0);
+    await expect(page.getByText('Start on iPhone', { exact: true })).toBeVisible();
+    await expect(page.getByText('Playback & Markers', { exact: true })).toBeVisible();
+    await expect(page.getByText('Keyboard Shortcuts (Web)', { exact: true })).toHaveCount(0);
     await expect.poll(async () => {
       const box = await page.getByTestId('help-page').boundingBox();
       return box && [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)];
@@ -126,7 +176,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
-    await expect(page.getByText('Advanced', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-bpm-entry')).toBeDisabled();
     await expect(page.getByText(/Currently Lite/)).toBeVisible();
 
     await page.getByTestId('sidebar-toggle').click();
@@ -142,21 +193,24 @@ test.describe('UI Components & Layout', () => {
     }
 
     await page.setViewportSize({ width: 740, height: 390 });
-    const landscapeOverview = await page.getByTestId('loop-overview').boundingBox();
-    const landscapeAd = await page.getByTestId('lite-ad-space').boundingBox();
-    expect(landscapeOverview).not.toBeNull();
-    expect(landscapeAd).not.toBeNull();
-    if (landscapeOverview && landscapeAd) {
-      expect(landscapeAd.y).toBeGreaterThanOrEqual(
-        landscapeOverview.y + landscapeOverview.height - 1,
-      );
-    }
-    expect(landscapeAd?.height).toBeCloseTo(portraitAd?.height ?? 0, 0);
+    await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
+    await expect.poll(async () => {
+      const overview = await page.getByTestId('loop-overview').boundingBox();
+      const ad = await page.getByTestId('lite-ad-space').boundingBox();
+      return overview !== null && ad !== null
+        && ad.height > 0
+        && ad.y >= overview.y + overview.height - 1;
+    }).toBe(true);
+    const landscapeAdHeight = await page.getByTestId('lite-ad-space').evaluate(element => (
+      element.getBoundingClientRect().height
+    ));
+    expect(landscapeAdHeight).toBeCloseTo(portraitAd?.height ?? 0, 0);
 
     await page.setViewportSize({ width: 393, height: 852 });
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByText('Advanced', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('playback-speed')).toBeEnabled();
     await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
@@ -715,11 +769,14 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('load-project').click();
     await expect(page.getByTestId('projects-modal-glass')).toBeVisible();
     const projectHeader = await page.evaluate(() => {
-      const title = Array.from(document.querySelectorAll('*')).find(node => node.textContent === 'Projects')?.getBoundingClientRect();
+      const title = document.querySelector('[data-testid="projects-title"]')?.getBoundingClientRect();
       const close = Array.from(document.querySelectorAll('*')).find(node => node.textContent === 'Close')?.getBoundingClientRect();
-      return { titleLeft: title?.left ?? 0, closeRight: close?.right ?? 0 };
+      return {
+        titleCenter: title ? title.left + title.width / 2 : 0,
+        closeRight: close?.right ?? 0,
+      };
     });
-    expect(projectHeader.titleLeft).toBeGreaterThanOrEqual(20);
+    expect(Math.abs(projectHeader.titleCenter - 740 / 2)).toBeLessThan(2);
     expect(740 - projectHeader.closeRight).toBeGreaterThanOrEqual(20);
     await page.getByText('Close', { exact: true }).click();
 
@@ -735,6 +792,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('dance-count-display')).toHaveCount(0);
     await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveCount(0);
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('bpm-suggestion-card')).toContainText(/Suggested: \d+(?:\.\d+)? BPM/, {
       timeout: 15000,
     });
@@ -743,16 +801,20 @@ test.describe('UI Components & Layout', () => {
     expect(Math.abs(suggestedBpm - 120)).toBeLessThanOrEqual(0.5);
     await page.getByRole('button', { name: 'Preview' }).click();
     await expect(page.getByRole('button', { name: 'Apply Preview' })).toBeVisible();
+    await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await page.getByTestId('wrapped-row-detail-0').click();
     await expect(page.getByTestId('grid-preview-overlay')).toBeVisible();
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
     await page.getByRole('button', { name: 'Apply Preview' }).click();
     await expect(page.getByRole('button', { name: 'Restore Previous' })).toBeVisible();
     await page.getByRole('button', { name: 'Restore Previous' }).click();
+    await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await page.getByTestId('waveform-detail-close').click();
     await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('beat-anchor-control')).toBeVisible();
     await expect(page.getByTestId('beat-anchor-value')).toHaveText('0.000s');
     await page.getByTestId('set-count-one-here').click();
@@ -767,6 +829,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('dance-counts-toggle').click();
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('dance-count-display')).toHaveText('Phrase 1 | Count 1');
     await expect(page.getByTestId('wrapped-row-gutter-0-count')).toHaveText('1');
@@ -795,10 +858,13 @@ test.describe('UI Components & Layout', () => {
     const restoredRowOverflow = page.locator('[data-testid^="music-library-row-overflow-"]').first();
     await restoredRowOverflow.click();
     await page.locator('[data-testid^="music-library-row-rename-"]').click();
-    await page.getByTestId('rename-music-title').fill('Renamed test audio');
+    const longSongTitle = 'An exceptionally long rehearsal song name for closing night';
+    const middleTruncatedTitle = `${longSongTitle.slice(0, 18)}…${longSongTitle.slice(-17)}`;
+    await page.getByTestId('rename-music-title').fill(longSongTitle);
     await page.getByTestId('rename-music-save').click();
     await expect(page.getByTestId('rename-music-prompt')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /^Renamed test audio,/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: new RegExp(`^${longSongTitle},`) }))
+      .toContainText(middleTruncatedTitle);
     await restoredRowOverflow.click();
     await page.locator('[data-testid^="music-library-row-rename-"]').click();
     await page.getByTestId('rename-music-title').fill('test-audio');
@@ -850,6 +916,45 @@ test.describe('UI Components & Layout', () => {
 
     await loadTestAudio(page, 'second-song.wav', 'test-audio.wav');
     await page.getByTestId('song-title-control').click();
+    await page.getByTestId('music-library-sort-custom').click();
+    const sortLayout = await page.evaluate(() => Object.fromEntries([
+      'recentlyAdded', 'recentlyPlayed', 'title', 'duration', 'custom',
+    ].map(id => {
+      const rect = document.querySelector(`[data-testid="music-library-sort-${id}"]`)
+        ?.getBoundingClientRect();
+      return [id, rect ? { x: rect.x, y: rect.y, width: rect.width } : null];
+    })));
+    expect(sortLayout.recentlyAdded?.y).toBeCloseTo(sortLayout.recentlyPlayed?.y ?? 0, 0);
+    expect(sortLayout.title?.y).toBeCloseTo(sortLayout.duration?.y ?? 0, 0);
+    expect(sortLayout.custom?.y ?? 0).toBeGreaterThan(sortLayout.title?.y ?? 0);
+    expect(sortLayout.custom?.width ?? 0).toBeGreaterThan((sortLayout.title?.width ?? 0) * 1.8);
+    await expect(page.locator('[data-testid^="music-library-row-reorder-"]')).toHaveCount(2);
+    const testAudioRow = page.locator('[data-testid^="music-library-row-"]')
+      .filter({ has: page.locator('[data-testid^="music-library-row-overflow-"]') })
+      .filter({ hasText: 'test-audio' });
+    const testAudioHandle = testAudioRow.locator('[data-testid^="music-library-row-reorder-"]');
+    const handleBounds = await testAudioHandle.boundingBox();
+    if (handleBounds) {
+      const scrollBeforeDrag = await page.getByTestId('music-library-list')
+        .evaluate(element => element.scrollTop);
+      await page.mouse.move(handleBounds.x + handleBounds.width / 2, handleBounds.y + handleBounds.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(handleBounds.x + handleBounds.width / 2, handleBounds.y - 72, { steps: 6 });
+      await expect.poll(() => testAudioRow.evaluate(element => getComputedStyle(element).transform))
+        .not.toBe('none');
+      await expect.poll(() => page.getByTestId('music-library-list')
+        .evaluate(element => element.scrollTop)).toBe(scrollBeforeDrag);
+      await page.mouse.up();
+    }
+    await expect.poll(() => page.evaluate(() => {
+      const stored = localStorage.getItem('beatnote.library.prefs.v1');
+      return stored === null ? [] : JSON.parse(stored).customOrder;
+    })).toHaveLength(2);
+    await page.getByTestId('music-library-sort-title').click();
+    await page.getByTestId('music-library-sort-custom').click();
+    const customTitles = await page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
+    expect(customTitles[0]).toContain('test-audio');
     const mediumLibraryList = page.getByTestId('music-library-list');
     await expect.poll(() => mediumLibraryList.evaluate(element => (
       element.scrollHeight > element.clientHeight

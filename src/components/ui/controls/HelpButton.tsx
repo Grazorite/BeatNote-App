@@ -1,25 +1,16 @@
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
-import { BeatNoteIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
-import { helpButtonStyles as styles } from '../../../styles/components/controls/helpButton';
+import SettingsNavigationRow from '../settings/SettingsNavigationRow';
 
 const HelpButton: React.FC = () => {
   const { setShowHelpScreen } = useStudioStore();
 
   return (
-    <TouchableOpacity
+    <SettingsNavigationRow
       testID="settings-help"
-      style={styles.button}
+      label="Help & Support"
       onPress={() => setShowHelpScreen(true)}
-    >
-      <View style={styles.buttonContent}>
-        <BeatNoteIcon name="help" size={16} />
-        <Text style={styles.buttonText}>
-          Help & Shortcuts
-        </Text>
-      </View>
-    </TouchableOpacity>
+    />
   );
 };
 

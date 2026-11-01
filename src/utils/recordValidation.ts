@@ -26,7 +26,7 @@ export interface ValidationResult<T> {
 
 const LAYER_IDS = new Set(['vocals', 'drums', 'bass', 'piano', 'guitar', 'other']);
 const EXTENSIONS = new Set(['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac']);
-const SORT_KEYS = new Set(['title', 'recentlyAdded', 'recentlyPlayed', 'duration']);
+const SORT_KEYS = new Set(['custom', 'title', 'recentlyAdded', 'recentlyPlayed', 'duration']);
 const MIGRATION_STATUSES = new Set([
   'pending',
   'importing',
@@ -328,6 +328,7 @@ export function validateLibraryPrefs(
     || value.schemaVersion !== 1
     || !isString(value.sort)
     || !SORT_KEYS.has(value.sort)
+    || (value.customOrder !== undefined && !isStringArray(value.customOrder))
     || (value.missingAudioNoticeShownForMigration !== null
       && !isNonNegativeInteger(value.missingAudioNoticeShownForMigration))) {
     return { valid: null, invalidIds: ['library-prefs'] };
@@ -336,6 +337,7 @@ export function validateLibraryPrefs(
     valid: {
       schemaVersion: 1,
       sort: value.sort as LibraryPrefs['sort'],
+      customOrder: value.customOrder === undefined ? [] : value.customOrder,
       missingAudioNoticeShownForMigration: value.missingAudioNoticeShownForMigration,
     },
     invalidIds: [],

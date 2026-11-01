@@ -235,6 +235,31 @@ export const updateLibrarySort = async (
       const next: LibraryPrefs = {
         schemaVersion: 1,
         sort,
+        customOrder: current?.customOrder ?? [],
+        missingAudioNoticeShownForMigration:
+          current?.missingAudioNoticeShownForMigration ?? null,
+      };
+      await AsyncStorage.setItem(prefsDefinition.key, JSON.stringify(next));
+    },
+  });
+};
+export const updateLibraryCustomOrder = async (
+  customOrder: readonly string[],
+  options: RepositoryOptions = {},
+): Promise<void> => {
+  await enqueueWrite({
+    label: prefsDefinition.label,
+    family: prefsDefinition.family,
+    targetKeys: [prefsDefinition.key],
+    coalesceKey: `${prefsDefinition.key}:custom-order`,
+    availableBytes: options.availableBytes,
+    onIssue: options.onIssue,
+    run: async () => {
+      const current = await readRecord(prefsDefinition, options, true);
+      const next: LibraryPrefs = {
+        schemaVersion: 1,
+        sort: current?.sort ?? 'recentlyAdded',
+        customOrder: [...new Set(customOrder)],
         missingAudioNoticeShownForMigration:
           current?.missingAudioNoticeShownForMigration ?? null,
       };

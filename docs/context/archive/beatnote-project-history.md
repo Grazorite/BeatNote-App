@@ -5,6 +5,15 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 ## Archived Completed Work
 
+- [x] Revise the Lite/Pro monetisation plan: one saved project per song, ungated waveform toggle,
+      coarse free speed presets, all BPM tooling Pro, and a static Lite banner ad removed by Pro
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/architecture-decisions.md`</sub>
+
+- [x] Reorder the mobile media controls: portrait places annotation/speed/delete before the Play
+      block and First/Previous/Next song after it; landscape pairs add/annotation, speed/delete,
+      and Repeat/tri-state loop while keeping the speed chooser below the title bar and on-screen
+      <sub>**Key Artifacts:** `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Audit the V1 product/repository state, refresh stale documentation and package metadata,
       remove unused source/dependencies, and add disabled-by-default Pro waveform artwork while
       preserving solid timing bars and the complete Lite annotation/rehearsal workflow
@@ -271,6 +280,41 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
       <sub>**Key Artifacts:** `docs/context/archive/specs/local-music-library-queue/tasks.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `docs/context/archive/specs/wrapped-waveform-canvas/`, `src/utils/projectManager.ts`</sub>
 
 ## Archived Handover Log
+
+### 2026-11-02 — Revise the Lite/Pro monetisation split
+
+**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
+**Kanban moved:** monetisation plan revision → Done
+
+**Changed:**
+
+- `release-roadmap.md`: Lite now allows one saved project per song (drafts unlimited); waveform
+  artwork is ungated but stays a user toggle, off by default; fine-grained pitch-preserved speed
+  is Pro while coarse presets (0.5×, 0.75×, 1×) stay free; all BPM tooling (manual BPM, anchor,
+  8-count grid, auto-detect) moves to Pro; a static banner ad is added to Lite on library and
+  project screens only, removed by Pro; new `analysis.bpm` and `ads.removed` capability keys.
+- `choreography-features.md`, `project-overview.md`, `architecture-decisions.md` (ADR-020):
+  waveform wording changed from Pro capability to ungated toggle; BPM tooling marked Pro.
+
+**Verified:**
+
+- Grepped steering files for stale three-project, Lite-BPM, and Pro-waveform wording; remaining
+  hits are updated. Markdown lint run on the changed files (see below).
+
+**Not verified / known gaps:**
+
+- No code changed. The preview entitlement provider, Settings, and BPM/count UI still expose BPM
+  and gate nothing; `waveform.display` is still checked in code and `analysis.bpm`, `ads.removed`,
+  and the coarse-speed rule are not implemented.
+- The Current Focus text in this file still describes automatic BPM as a Lite candidate where the
+  roadmap now treats it as Pro; the V1 acceptance work itself is unchanged.
+- Ad SDK choice, ATT/privacy-label impact, and the 8-count-without-BPM Lite experience are
+  unvalidated product decisions.
+
+**Next agent should:**
+
+- Align `src/features/entitlements/` with the revised capability keys before V2, and confirm with
+  the user that Lite without any BPM or 8-count grid still feels complete.
 
 ### 2026-10-31 — Review V1, clean the repository, and define the Pro waveform boundary
 
@@ -4733,3 +4777,40 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 - [x] Return the editor to its clean unloaded state after deleting the only loaded song and restore
       scrolling inside the half-height Music Library sheet
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/ui/common/BottomSheet.tsx`, `src/features/library/libraryActions.ts`, `src/styles/components/common/bottomSheet.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-02 iOS-library-polish rotation
+
+### 2026-10-31 — Reorder the mobile media controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** mobile media-control ordering → Done
+
+**Changed:**
+
+- Portrait now keeps annotation, playback speed, and delete-previous-marker in that order on the
+  leading side of Play, with First, Previous, and Next song in that order on the trailing side.
+- Landscape now pairs Add marker with Annotation, Speed with Delete previous marker, and Repeat
+  with the tri-state loop; the other marker and queue rows retain their order.
+- Playback speed supports leading/trailing chooser alignment, and its raised landscape position is
+  offset below the Song Title toolbar while keeping the complete chooser inside the viewport.
+- The retained phone-dock journey now asserts both group orders, both landscape columns, chooser
+  bounds in portrait and landscape, and explicit landscape toolbar/popup separation.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Focused phone-dock Playwright journey → passed; full retained Playwright gate → 8/8 passed.
+- A freshly signed Release build succeeded, installed on physical iPhone `gæl (3)`, launched as
+  `com.beatnote.app`, and remained running as PID 84239; temporary DerivedData was removed afterward.
+
+**Not verified / known gaps:**
+
+- The reordered controls are installed on the physical iPhone but still need the user's visual and
+  interaction confirmation in both orientations.
+- The shared working tree remains intentionally uncommitted with the broader V1 review, waveform,
+  Settings, documentation, and performance work described by the preceding handover.
+
+**Next agent should:**
+
+- Confirm the portrait/landscape ordering and speed chooser placement with safe areas on the newly
+  installed physical build before the next combined commit.

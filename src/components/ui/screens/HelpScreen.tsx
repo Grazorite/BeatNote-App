@@ -1,11 +1,10 @@
 import React from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BeatNoteIcon } from '../../icons';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 import GlassBackdrop from '../controls/GlassBackdrop';
-import { colors } from '../../../styles/common';
 import AppModal from '../common/AppModal';
+import HeaderBackButton from '../common/HeaderBackButton';
 
 interface HelpScreenProps {
   visible: boolean;
@@ -31,22 +30,25 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
           paddingRight: Math.max(insets.right, 16),
         },
       ]}>
-        <View style={styles.titleContainer}>
-          <BeatNoteIcon name="help" size={24} color={colors.accent} />
-          <Text style={styles.title}>
-            Help & Shortcuts
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.closeButton}
-          accessibilityRole="button"
-          accessibilityLabel="Close help"
-          testID="help-close"
-        >
-          {embedded && <BeatNoteIcon name="chevron-left" size={16} />}
-          <Text style={styles.closeButtonText}>{embedded ? 'Back' : 'Close'}</Text>
-        </TouchableOpacity>
+        {embedded ? (
+          <HeaderBackButton
+            onPress={onClose}
+            accessibilityLabel="Back to Settings from Help and Support"
+            testID="help-close"
+          />
+        ) : <View style={styles.headerSide} />}
+        <Text style={styles.title} numberOfLines={1} testID="help-title">Help & Support</Text>
+        {embedded ? <View style={styles.headerSide} /> : (
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel="Close help"
+            testID="help-close"
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
           <ScrollView
@@ -56,9 +58,9 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
               isMobile && { paddingBottom: Math.max(insets.bottom, 24) },
             ]}
           >
-        <Section title="Start a Session">
+        <Section title="Start on iPhone">
           <Text style={styles.text}>
-            1. Tap the music-note button and choose a song
+            1. Tap Choose Music, then import an audio file from Files or choose one from your library
           </Text>
           <Text style={styles.text}>
             2. Play the song, or tap and drag the timeline to seek
@@ -70,11 +72,11 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
             4. At that marker, tap Annotation to add a movement cue
           </Text>
           <Text style={styles.text}>
-            5. Save the session from the top bar
+            5. Save your project from the top bar
           </Text>
         </Section>
 
-        <Section title="Mobile Controls">
+        <Section title="Playback & Markers">
           <Text style={styles.text}>
             • Previous and Next jump between markers
           </Text>
@@ -92,12 +94,24 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
           </Text>
         </Section>
 
+        <Section title="Music Library">
+          <Text style={styles.text}>
+            • Imported audio is copied into BeatNote; deleting it from BeatNote does not delete the original in Files
+          </Text>
+          <Text style={styles.text}>
+            • Choose Custom Order, then drag the reorder handle beside a song to arrange your library
+          </Text>
+          <Text style={styles.text}>
+            • Your custom order is saved even when you temporarily sort by title, date, or duration
+          </Text>
+        </Section>
+
         <Section title="Waveform & Overview">
           <Text style={styles.text}>
             • Tap or drag the timeline to seek without creating a marker
           </Text>
           <Text style={styles.text}>
-            • Pro waveform artwork can be switched on in Settings and is off by default
+            • Waveform artwork can be switched on in Settings and is off by default
           </Text>
           <Text style={styles.text}>
             • Solid timing bars keep seeking, markers, loops, and the playhead available when it is off
@@ -125,32 +139,6 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
           </Text>
         </Section>
 
-        <Section title="Keyboard Shortcuts (Web)">
-          <ShortcutGroup title="Playback">
-            <Shortcut keys="Space" description="Play/Pause" />
-            <Shortcut keys="M" description="Add marker at current position" />
-            <Shortcut keys="R" description="Toggle repeat mode" />
-            <Shortcut keys="L" description="Toggle loop range" />
-            <Shortcut keys="Shift + L" description="Toggle loop between markers" />
-            <Shortcut keys="[ / ]" description="Set loop start / end at playhead" />
-          </ShortcutGroup>
-
-          <ShortcutGroup title="Navigation">
-            <Shortcut keys="← →" description="Scroll timeline left/right" />
-            <Shortcut keys="↑ ↓" description="Zoom in/out" />
-            <Shortcut keys="Ctrl + ←" description="Skip to song start" />
-            <Shortcut keys="Ctrl + →" description="Skip to song end" />
-            <Shortcut keys="Ctrl + Shift + ←" description="Move to left marker" />
-            <Shortcut keys="Ctrl + Shift + →" description="Move to right marker" />
-          </ShortcutGroup>
-
-          <ShortcutGroup title="Editing">
-            <Shortcut keys="Ctrl + Z" description="Undo last marker" />
-            <Shortcut keys="Ctrl + Shift + Z" description="Redo last marker" />
-            <Shortcut keys="T" description="Open annotation editing at a marker" />
-          </ShortcutGroup>
-        </Section>
-
         <Section title="Export Options">
           <Text style={styles.text}>
             • <Text style={styles.boldText}>CSV Export:</Text> timestamps, BPM-derived bar:beat timing, and annotations
@@ -159,7 +147,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
             • <Text style={styles.boldText}>PDF Export:</Text> a printable choreography sheet with selectable timeline, marker, count-grid, and notes sections
           </Text>
           <Text style={styles.text}>
-            On iOS, choose a destination from the share sheet. Web exports download to your browser.
+            Choose Save to Files, AirDrop, or another destination from the iOS share sheet.
           </Text>
         </Section>
 
@@ -208,26 +196,6 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
       {title}
     </Text>
     {children}
-  </View>
-);
-
-const ShortcutGroup: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <View style={styles.shortcutGroup}>
-    <Text style={styles.shortcutGroupTitle}>
-      {title}
-    </Text>
-    {children}
-  </View>
-);
-
-const Shortcut: React.FC<{ keys: string; description: string }> = ({ keys, description }) => (
-  <View style={styles.shortcutRow}>
-    <Text style={styles.shortcutKeys}>
-      {keys}
-    </Text>
-    <Text style={styles.shortcutDescription}>
-      {description}
-    </Text>
   </View>
 );
 

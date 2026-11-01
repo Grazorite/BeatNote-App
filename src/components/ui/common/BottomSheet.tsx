@@ -308,6 +308,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   <View style={styles.grabber} />
                 </View>
                 <View style={styles.titleRow}>
+                  <View style={styles.titleSide} />
                   <Text
                     ref={titleRef}
                     style={styles.title}

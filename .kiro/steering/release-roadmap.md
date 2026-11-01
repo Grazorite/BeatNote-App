@@ -248,16 +248,24 @@ so it does not undermine the yearly subscription.
 
 ### Settings and support roadmap
 
-The Settings information architecture may use the supplied Audipo screens as a functional reference
-without copying its visual design. Ignore Audipo's mark-display mode. Planned groups are:
+The Settings information architecture uses the supplied Audipo screens as a functional reference
+without copying its visual design. Ignore Audipo's mark-display mode. The root stays deliberately
+small: Debug, Basic, one Advanced navigation row, and Support. Timing/BPM/count controls live on a
+dedicated Pro subpage rather than expanding inline. The About page currently exposes the real
+version/build, licence status, the project feedback link, and the truthful current diagnostic policy.
+Remaining planned groups are:
 
 - Playback: continuous play (Pro), pause on headset disconnect (Lite), and keep-screen-on (Lite)
 - Button configuration: seek-button mapping and seek duration (Lite); speed range, preset count,
   preset buttons, and preset editing (Pro)
 - Data management (Lite): import/export entry points, delete imported copies, clear derived caches,
   and destructive marker/project actions with explicit confirmation
-- About (Lite): app name/icon, version/build, open-source licences, privacy/diagnostic choices, and
-  Send Feedback. Feedback transport and diagnostics wiring may ship after the static page.
+- About (Lite): expand dependency licence notices before App Store release; any future crash or
+  usage diagnostics must be opt-in and reflected on this page before collection begins
+
+Settings toggles provide optimistic visual feedback immediately on tap and then reconcile with the
+controlled store/entitlement value. This prevents expensive library/audio renders from making a
+successful toggle interaction appear stuck; persistence and capability state remain authoritative.
 
 ### Lite banner placement
 

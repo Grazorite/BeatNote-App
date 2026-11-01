@@ -101,6 +101,9 @@ export const musicLibrarySheetStyles = StyleSheet.create({
     borderRadius: dimensions.borderRadius,
     backgroundColor: colors.surfaceGlass,
   },
+  sortOptionCustom: {
+    flexBasis: '100%',
+  },
   sortOptionSelected: {
     borderColor: colors.accent,
     backgroundColor: colors.surfaceGlassStrong,

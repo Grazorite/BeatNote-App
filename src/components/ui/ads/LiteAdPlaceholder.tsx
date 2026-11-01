@@ -8,17 +8,22 @@ import { liteAdPlaceholderStyles as styles } from '../../../styles/components/ad
  * creative frame; the surrounding layout and Pro removal behaviour remain stable.
  */
 const LiteAdPlaceholder: React.FC<{ safeAreaBottom?: number }> = ({ safeAreaBottom = 0 }) => (
-  <View
-    style={[styles.slot, safeAreaBottom > 0 && { paddingBottom: safeAreaBottom }]}
-    testID="lite-ad-space"
-    accessible
-    accessibilityRole="text"
-    accessibilityLabel="Advertisement space"
-  >
-    <View style={styles.creative}>
-      <Text style={styles.label}>Ad space</Text>
+  <>
+    <View
+      style={styles.slot}
+      testID="lite-ad-space"
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel="Advertisement space"
+    >
+      <View style={styles.creative}>
+        <Text style={styles.label}>Ad space</Text>
+      </View>
     </View>
-  </View>
+    {safeAreaBottom > 0 && (
+      <View style={[styles.safeAreaSpacer, { height: safeAreaBottom }]} />
+    )}
+  </>
 );
 
 export default React.memo(LiteAdPlaceholder);

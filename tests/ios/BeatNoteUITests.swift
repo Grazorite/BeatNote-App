@@ -56,6 +56,8 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("sidebar-toggle").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-page").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-help").waitForExistence(timeout: 5))
+    XCTAssertTrue(element("settings-bpm-entry").exists)
+    element("settings-bpm-entry").tap()
     XCTAssertTrue(element("settings-bpm").exists)
     XCTAssertTrue(app.staticTexts["Project BPM"].exists)
     XCTAssertFalse(app.staticTexts["Stem Separation"].exists)
@@ -72,6 +74,7 @@ final class BeatNoteUITests: XCTestCase {
     ] {
       XCTAssertFalse(app.staticTexts[hiddenSetting].exists, "\(hiddenSetting) should stay hidden in V1 settings.")
     }
+    element("bpm-settings-page-back").tap()
     element("sidebar-toggle").tap()
     XCTAssertFalse(element("project-actions-scroll-cue").exists)
     for action in ["song-title-control", "save-project", "load-project", "sidebar-open-toggle"] {
@@ -156,6 +159,7 @@ final class BeatNoteUITests: XCTestCase {
   func testAutomaticBpmSuggestionAndAnchorControls() {
     loadBundledSimulatorAudio("bpm-click-track.wav")
     element("sidebar-open-toggle").tap()
+    element("settings-bpm-entry").tap()
 
     let suggestion = element("bpm-suggestion-card")
     XCTAssertTrue(
@@ -200,17 +204,21 @@ final class BeatNoteUITests: XCTestCase {
     }
 
     XCTAssertTrue(app.buttons["Apply Preview"].waitForExistence(timeout: 5))
+    element("bpm-settings-page-back").tap()
     element("sidebar-toggle").tap()
     element("wrapped-row-detail-0").tap()
     XCTAssertTrue(element("grid-preview-overlay").waitForExistence(timeout: 5))
 
     element("sidebar-open-toggle").tap()
+    element("settings-bpm-entry").tap()
     app.buttons["Apply Preview"].tap()
     XCTAssertTrue(app.buttons["Restore Previous"].waitForExistence(timeout: 5))
     app.buttons["Restore Previous"].tap()
+    element("bpm-settings-page-back").tap()
     element("sidebar-toggle").tap()
     element("waveform-detail-close").tap()
     element("sidebar-open-toggle").tap()
+    element("settings-bpm-entry").tap()
 
     XCTAssertEqual(element("beat-anchor-value").label, "0.000s")
     element("set-count-one-here").tap()
@@ -233,6 +241,7 @@ final class BeatNoteUITests: XCTestCase {
 
     loadBundledSimulatorAudio("bpm-cancel-click-track.wav")
     element("sidebar-open-toggle").tap()
+    element("settings-bpm-entry").tap()
     XCTAssertTrue(app.staticTexts["Analyzing tempo…"].waitForExistence(timeout: 10))
 
     let cancel = element("bpm-analysis-cancel")

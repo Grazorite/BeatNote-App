@@ -4,6 +4,8 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Text,
   TextInput,
@@ -62,10 +64,11 @@ interface RelinkPromptState extends RelinkConfirmation {
 }
 
 const SORT_OPTIONS: ReadonlyArray<{ value: LibrarySortKey; label: string }> = [
-  { value: 'title', label: 'Title (A–Z)' },
   { value: 'recentlyAdded', label: 'Recently Added' },
   { value: 'recentlyPlayed', label: 'Recently Played' },
+  { value: 'title', label: 'Title (A–Z)' },
   { value: 'duration', label: 'Duration' },
+  { value: 'custom', label: 'Custom Order' },
 ];
 
 const AUDIO_MIME_TYPES = [
@@ -91,6 +94,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const visible = useStudioStore(state => state.isLibrarySheetOpen);
   const libraryItems = useStudioStore(state => state.libraryItems);
   const librarySort = useStudioStore(state => state.librarySort);
+  const libraryCustomOrder = useStudioStore(state => state.libraryCustomOrder);
   const projectSummaries = useStudioStore(state => state.projectSummaries);
   const importJobs = useStudioStore(state => state.importJobs);
   const libraryStatus = useStudioStore(state => state.libraryStatus);
@@ -102,15 +106,21 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const saveInProgress = useStudioStore(state => state.saveInProgress);
   const closeLibrarySheet = useStudioStore(state => state.closeLibrarySheet);
   const setLibrarySort = useStudioStore(state => state.setLibrarySort);
+  const setLibraryCustomOrder = useStudioStore(state => state.setLibraryCustomOrder);
   const notify = useStudioStore(state => state.notify);
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
   const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
   const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
   const pendingRenameItemsRef = useRef<typeof libraryItems | null>(null);
+  const listRef = useRef<FlatList<MusicItem>>(null);
+  const listScrollOffsetRef = useRef(0);
+  const reorderScrollOffsetRef = useRef(0);
+  const reorderingRef = useRef(false);
   const [deletePrompt, setDeletePrompt] = useState<DeletePromptState | null>(null);
   const [actionBusyId, setActionBusyId] = useState<string | null>(null);
   const [relinkConfirmation, setRelinkConfirmation] = useState<RelinkPromptState | null>(null);
+  const [reorderingItemId, setReorderingItemId] = useState<string | null>(null);
 
   const collectionItems = useMemo(() => Object.values(libraryItems).filter(item => (
     !item.removed && item.collectionIds.includes(IMPORTED_MUSIC_COLLECTION_ID)
@@ -119,7 +129,8 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const visibleItems = useMemo(() => sortLibraryItems(
     filterLibraryItems(collectionItems, searchIsVisible ? query : ''),
     librarySort,
-  ), [collectionItems, librarySort, query, searchIsVisible]);
+    libraryCustomOrder,
+  ), [collectionItems, libraryCustomOrder, librarySort, query, searchIsVisible]);
   const projectCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     Object.values(projectSummaries).forEach(project => {
@@ -272,7 +283,52 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     }
   }, [deletePrompt, notify]);
 
-  const renderItem = useCallback(({ item }: { item: MusicItem }) => (
+  const reorderItem = useCallback((itemId: string, offset: number) => {
+    const visibleIndex = visibleItems.findIndex(item => item.id === itemId);
+    if (visibleIndex < 0) return;
+    const targetIndex = Math.max(0, Math.min(visibleItems.length - 1, visibleIndex + offset));
+    if (targetIndex === visibleIndex) return;
+
+    const reorderedVisibleIds = visibleItems.map(item => item.id);
+    const [movedId] = reorderedVisibleIds.splice(visibleIndex, 1);
+    reorderedVisibleIds.splice(targetIndex, 0, movedId);
+    const visibleIdSet = new Set(reorderedVisibleIds);
+    const replacements = [...reorderedVisibleIds];
+    const completeOrder = sortLibraryItems(collectionItems, 'custom', libraryCustomOrder)
+      .map(item => visibleIdSet.has(item.id) ? replacements.shift() ?? item.id : item.id);
+    setLibraryCustomOrder(completeOrder);
+  }, [collectionItems, libraryCustomOrder, setLibraryCustomOrder, visibleItems]);
+
+  const selectSort = useCallback((sort: LibrarySortKey) => {
+    if (sort === 'custom' && libraryCustomOrder.length === 0) {
+      setLibraryCustomOrder(sortLibraryItems(collectionItems, librarySort).map(item => item.id));
+    }
+    setLibrarySort(sort);
+  }, [collectionItems, libraryCustomOrder.length, librarySort, setLibraryCustomOrder, setLibrarySort]);
+
+  const beginReorder = useCallback((itemId: string) => {
+    reorderScrollOffsetRef.current = listScrollOffsetRef.current;
+    reorderingRef.current = true;
+    setReorderingItemId(itemId);
+  }, []);
+
+  const endReorder = useCallback(() => {
+    reorderingRef.current = false;
+    listScrollOffsetRef.current = reorderScrollOffsetRef.current;
+    setReorderingItemId(null);
+  }, []);
+
+  const handleListScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const nextOffset = event.nativeEvent.contentOffset.y;
+    if (!reorderingRef.current) {
+      listScrollOffsetRef.current = nextOffset;
+      return;
+    }
+    if (Math.abs(nextOffset - reorderScrollOffsetRef.current) < 0.5) return;
+    listRef.current?.scrollToOffset({ offset: reorderScrollOffsetRef.current, animated: false });
+  }, []);
+
+  const renderItem = useCallback(({ item, index }: { item: MusicItem; index: number }) => (
     <MusicLibraryRow
       item={item}
       projectCount={projectCounts[item.id] ?? 0}
@@ -288,17 +344,27 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       onShowProjects={() => onShowProjects(item)}
       onDelete={focusRef => { void openDeletePrompt(item, focusRef); }}
       onRelink={focusRef => { void relinkItem(item, focusRef); }}
+      customOrderIndex={librarySort === 'custom' ? index : undefined}
+      customOrderCount={librarySort === 'custom' ? visibleItems.length : undefined}
+      onReorderBy={librarySort === 'custom' ? offset => reorderItem(item.id, offset) : undefined}
+      onReorderStart={librarySort === 'custom' ? () => beginReorder(item.id) : undefined}
+      onReorderEnd={librarySort === 'custom' ? endReorder : undefined}
     />
   ), [
     currentMusicItemId,
     interactionsDisabled,
     librarySwitchFailure,
     activeLoadingId,
+    beginReorder,
+    endReorder,
     onShowProjects,
     openDeletePrompt,
     projectCounts,
     relinkItem,
+    librarySort,
+    reorderItem,
     switchTo,
+    visibleItems.length,
   ]);
 
   const stateContent = libraryStatus === 'readError' ? (
@@ -347,11 +413,16 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     >
       <View style={styles.content}>
         <FlatList
+          ref={listRef}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           data={libraryStatus === 'ready' ? visibleItems : []}
           renderItem={renderItem}
           keyExtractor={item => item.id}
+          scrollEnabled={reorderingItemId === null}
+          removeClippedSubviews={false}
+          onScroll={handleListScroll}
+          scrollEventThrottle={16}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={stateContent}
           ListHeaderComponent={(
@@ -426,10 +497,11 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                           key={option.value}
                           style={[
                             styles.sortOption,
+                            option.value === 'custom' && styles.sortOptionCustom,
                             selected && styles.sortOptionSelected,
                             focused === `sort-${option.value}` && styles.sortOptionFocused,
                           ]}
-                          onPress={() => setLibrarySort(option.value)}
+                          onPress={() => selectSort(option.value)}
                           onFocus={() => setFocused(`sort-${option.value}`)}
                           onBlur={() => setFocused(value => value === `sort-${option.value}` ? null : value)}
                           accessibilityRole="radio"

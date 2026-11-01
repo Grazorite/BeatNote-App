@@ -258,6 +258,7 @@ export async function markMigrationNoticeShown(
   await writeLibraryPrefs({
     schemaVersion: 1,
     sort: prefs?.sort ?? 'recentlyAdded',
+    customOrder: prefs?.customOrder ?? [],
     missingAudioNoticeShownForMigration: migrationVersion,
   }, options);
 }

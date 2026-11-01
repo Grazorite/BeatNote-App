@@ -4,15 +4,21 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { colors } from '../styles/common';
 
 export const useModernToggleAnimation = (isEnabled: boolean) => {
   const progress = useSharedValue(isEnabled ? 1 : 0);
 
+  const setVisualValue = useCallback((enabled: boolean) => {
+    // Schedule the visual response immediately instead of waiting for a potentially expensive
+    // parent/store render to commit the controlled value.
+    progress.value = withTiming(enabled ? 1 : 0, { duration: 150 });
+  }, [progress]);
+
   useEffect(() => {
-    progress.value = withTiming(isEnabled ? 1 : 0, { duration: 150 });
-  }, [isEnabled, progress]);
+    setVisualValue(isEnabled);
+  }, [isEnabled, setVisualValue]);
 
   const trackStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
@@ -27,5 +33,5 @@ export const useModernToggleAnimation = (isEnabled: boolean) => {
     backgroundColor: colors.text,
   }), [progress]);
 
-  return { trackStyle, thumbStyle };
+  return { setVisualValue, trackStyle, thumbStyle };
 };

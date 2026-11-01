@@ -606,11 +606,13 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             paddingRight: Math.max(20, insets.right + 12),
           },
         ]}>
+          <View style={styles.headerSide} />
           <Text
             ref={titleRef}
             style={styles.title}
             accessibilityRole="header"
             maxFontSizeMultiplier={MAX_TEXT_SCALE}
+            testID="projects-title"
             {...webTitleProps}
           >
             Projects

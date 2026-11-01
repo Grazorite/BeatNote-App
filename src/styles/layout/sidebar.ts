@@ -25,17 +25,26 @@ export const sidebarStyles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: colors.borderSubtle,
   },
   mobileTitle: {
+    flex: 1,
     color: colors.text,
     fontSize: 22,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  mobileHelpButton: {
+    width: 92,
+    minHeight: 44,
+    paddingHorizontal: 10,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    borderRadius: dimensions.borderRadius,
   },
   mobileCloseButton: {
-    minWidth: 76,
+    width: 92,
     minHeight: 44,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -112,5 +121,8 @@ export const sidebarStyles = StyleSheet.create({
   },
   sidebarSection: {
     marginBottom: 24,
+  },
+  navigationRows: {
+    gap: 10,
   },
 });

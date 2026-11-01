@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
+import { HEADER_SIDE_WIDTH } from '../common/headerBackButton';
 
 export const helpScreenStyles = StyleSheet.create({
   overlay: {
@@ -36,7 +37,6 @@ export const helpScreenStyles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
@@ -46,20 +46,21 @@ export const helpScreenStyles = StyleSheet.create({
     minHeight: 64,
     paddingBottom: 12,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   title: {
+    flex: 1,
     color: colors.text,
     fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  headerSide: {
+    width: HEADER_SIDE_WIDTH,
   },
   closeButton: {
+    width: HEADER_SIDE_WIDTH,
     backgroundColor: colors.surfaceGlass,
     minHeight: 44,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: dimensions.borderRadius,
     borderWidth: 1,

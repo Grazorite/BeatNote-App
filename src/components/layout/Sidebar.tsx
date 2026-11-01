@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -15,20 +15,67 @@ import SidebarToggle from '../ui/controls/SidebarToggle';
 import ViewModeToggle from './ViewModeToggle';
 import { STEM_SEPARATION_UI_ENABLED } from '../../features/stemSeparation/featureFlags';
 
-import HelpButton from '../ui/controls/HelpButton';
-import BpmControl from '../ui/controls/BpmControl';
-import BpmSuggestionCard from '../ui/controls/BpmSuggestionCard';
-import BeatAnchorControl from '../ui/controls/BeatAnchorControl';
-import CountSizeControl from '../ui/controls/CountSizeControl';
-import DanceCountVisibilityControl from '../ui/controls/DanceCountVisibilityControl';
 import WaveformVisibilityControl from '../ui/controls/WaveformVisibilityControl';
 import DebugTierControl from '../ui/controls/DebugTierControl';
 import { useProductCapability } from '../../features/entitlements/useProductCapability';
 import LayerNameSettings from '../ui/controls/LayerNameSettings';
 import HelpScreen from '../ui/screens/HelpScreen';
+import AboutSettingsScreen from '../ui/screens/AboutSettingsScreen';
+import BpmSettingsScreen from '../ui/screens/BpmSettingsScreen';
+import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
 import AppModal from '../ui/common/AppModal';
+import { BeatNoteIcon } from '../icons';
+
+type SettingsDetail = 'bpm' | 'about' | null;
+
+interface SettingsRootSectionsProps {
+  bpmAvailable: boolean;
+  singleAnnotationLane?: boolean;
+  onOpenBpm: () => void;
+  onOpenAbout: () => void;
+}
+
+const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
+  bpmAvailable,
+  singleAnnotationLane = false,
+  onOpenBpm,
+  onOpenAbout,
+}) => (
+  <>
+    <Text style={styles.sectionLabel}>Debug</Text>
+    <View style={styles.sidebarSection}>
+      <DebugTierControl />
+    </View>
+    <Text style={styles.sectionLabel}>Basic</Text>
+    <View style={styles.sidebarSection}>
+      <WaveformVisibilityControl />
+      <Text style={styles.subsectionLabel}>
+        {singleAnnotationLane ? 'Annotation lane' : 'Layer names'}
+      </Text>
+      <LayerNameSettings singleAnnotationLane={singleAnnotationLane} />
+    </View>
+    <Text style={styles.sectionLabel}>Advanced</Text>
+    <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="Timing & BPM"
+        detail={bpmAvailable ? 'Pro' : 'Pro required'}
+        onPress={onOpenBpm}
+        disabled={!bpmAvailable}
+        testID="settings-bpm-entry"
+      />
+    </View>
+    <Text style={styles.sectionLabel}>Support</Text>
+    <View style={[styles.sidebarSection, styles.navigationRows]}>
+      <SettingsNavigationRow
+        label="About BeatNote"
+        onPress={onOpenAbout}
+        testID="settings-about"
+      />
+    </View>
+  </>
+);
 
 const Sidebar: React.FC = () => {
   const isSidebarCollapsed = useStudioStore(state => state.isSidebarCollapsed);
@@ -36,6 +83,7 @@ const Sidebar: React.FC = () => {
   const showHelpScreen = useStudioStore(state => state.showHelpScreen);
   const setShowHelpScreen = useStudioStore(state => state.setShowHelpScreen);
   const bpmAvailable = useProductCapability('analysis.bpm');
+  const [activeDetail, setActiveDetail] = useState<SettingsDetail>(null);
   const insets = useSafeAreaInsets();
   const screenData = useWindowDimensions();
   
@@ -45,7 +93,8 @@ const Sidebar: React.FC = () => {
   const pageWidth = Math.max(screenData.width, 1);
   const mobileTransition = { duration: 280, easing: Easing.out(Easing.cubic) };
   const settingsEntryX = useSharedValue(pageWidth);
-  const helpProgress = useSharedValue(showHelpScreen ? 1 : 0);
+  const detailVisible = showHelpScreen || activeDetail !== null;
+  const detailProgress = useSharedValue(detailVisible ? 1 : 0);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -66,22 +115,28 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     if (!isMobile) return;
-    helpProgress.value = withTiming(showHelpScreen ? 1 : 0, mobileTransition);
-  }, [helpProgress, isMobile, showHelpScreen]);
+    detailProgress.value = withTiming(detailVisible ? 1 : 0, mobileTransition);
+  }, [detailProgress, detailVisible, isMobile]);
+
+  useEffect(() => {
+    if (!bpmAvailable && activeDetail === 'bpm') setActiveDetail(null);
+  }, [activeDetail, bpmAvailable]);
 
   const mobileEntryStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: settingsEntryX.value }],
   }));
 
   const settingsStackStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(helpProgress.value, [0, 1], [0, -pageWidth * 0.25]) }],
+    transform: [{ translateX: interpolate(detailProgress.value, [0, 1], [0, -pageWidth * 0.25]) }],
   }));
 
   const helpStackStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(helpProgress.value, [0, 1], [pageWidth, 0]) }],
+    transform: [{ translateX: interpolate(detailProgress.value, [0, 1], [pageWidth, 0]) }],
   }));
 
   const closeMobileSettings = () => {
+    setActiveDetail(null);
+    setShowHelpScreen(false);
     settingsEntryX.value = withTiming(pageWidth, mobileTransition, finished => {
       if (finished) runOnJS(toggleSidebar)();
     });
@@ -94,14 +149,16 @@ const Sidebar: React.FC = () => {
         transparent
         animationType="none"
         presentationStyle="overFullScreen"
-        onRequestClose={() => showHelpScreen ? setShowHelpScreen(false) : closeMobileSettings()}
+        onRequestClose={() => detailVisible
+          ? (showHelpScreen ? setShowHelpScreen(false) : setActiveDetail(null))
+          : closeMobileSettings()}
       >
         <Animated.View style={[styles.settingsPage, mobileEntryStyle]} testID="settings-page">
           <Animated.View
             style={[styles.mobileStackPage, settingsStackStyle]}
-            pointerEvents={showHelpScreen ? 'none' : 'auto'}
-            accessibilityElementsHidden={showHelpScreen}
-            importantForAccessibility={showHelpScreen ? 'no-hide-descendants' : 'auto'}
+            pointerEvents={detailVisible ? 'none' : 'auto'}
+            accessibilityElementsHidden={detailVisible}
+            importantForAccessibility={detailVisible ? 'no-hide-descendants' : 'auto'}
           >
             <GlassBackdrop
               gradientId="settings-glass-mobile"
@@ -120,7 +177,6 @@ const Sidebar: React.FC = () => {
               ]}
             >
               <View style={styles.mobileHeader}>
-                <Text style={styles.mobileTitle}>Settings</Text>
                 <TouchableOpacity
                   style={styles.mobileCloseButton}
                   onPress={closeMobileSettings}
@@ -130,52 +186,46 @@ const Sidebar: React.FC = () => {
                 >
                   <Text style={styles.mobileCloseText}>Close</Text>
                 </TouchableOpacity>
+                <Text style={styles.mobileTitle} testID="settings-title">Settings</Text>
+                <TouchableOpacity
+                  style={styles.mobileHelpButton}
+                  onPress={() => setShowHelpScreen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open Help and Support"
+                  testID="settings-help"
+                >
+                  <BeatNoteIcon name="help" size={22} />
+                </TouchableOpacity>
               </View>
               <ScrollView
                 style={styles.scrollContainer}
                 contentContainerStyle={styles.mobileScrollContent}
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.sectionLabel}>Basic</Text>
-                <View style={styles.sidebarSection}>
-                  <WaveformVisibilityControl />
-                  <Text style={styles.subsectionLabel}>Annotation lane</Text>
-                  <LayerNameSettings singleAnnotationLane />
-                </View>
-                {bpmAvailable && (
-                  <>
-                    <Text style={styles.sectionLabel}>Advanced</Text>
-                    <View style={styles.sidebarSection}>
-                      <BpmControl />
-                      <BpmSuggestionCard />
-                      <BeatAnchorControl />
-                      <DanceCountVisibilityControl />
-                      <CountSizeControl />
-                    </View>
-                  </>
-                )}
-                <Text style={styles.sectionLabel}>Support</Text>
-                <View style={styles.sidebarSection}>
-                  <HelpButton />
-                </View>
-                <Text style={styles.sectionLabel}>Debug</Text>
-                <View style={styles.sidebarSection}>
-                  <DebugTierControl />
-                </View>
+                <SettingsRootSections
+                  bpmAvailable={bpmAvailable}
+                  singleAnnotationLane
+                  onOpenBpm={() => setActiveDetail('bpm')}
+                  onOpenAbout={() => setActiveDetail('about')}
+                />
               </ScrollView>
             </View>
           </Animated.View>
           <Animated.View
             style={[styles.mobileStackPage, helpStackStyle]}
-            pointerEvents={showHelpScreen ? 'auto' : 'none'}
-            accessibilityElementsHidden={!showHelpScreen}
-            importantForAccessibility={showHelpScreen ? 'auto' : 'no-hide-descendants'}
+            pointerEvents={detailVisible ? 'auto' : 'none'}
+            accessibilityElementsHidden={!detailVisible}
+            importantForAccessibility={detailVisible ? 'auto' : 'no-hide-descendants'}
           >
-            <HelpScreen
-              visible
-              embedded
-              onClose={() => setShowHelpScreen(false)}
-            />
+            {showHelpScreen && (
+              <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
+            )}
+            {!showHelpScreen && activeDetail === 'bpm' && (
+              <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+            )}
+            {!showHelpScreen && activeDetail === 'about' && (
+              <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
+            )}
           </Animated.View>
         </Animated.View>
       </AppModal>
@@ -197,45 +247,30 @@ const Sidebar: React.FC = () => {
       />
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
-        <ScrollView 
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={true}
-          indicatorStyle="default"
-        >
-          <Text style={styles.sectionLabel}>Basic</Text>
-          <View style={styles.sidebarSection}>
-            <WaveformVisibilityControl />
-            <Text style={styles.subsectionLabel}>Layer names</Text>
-            <LayerNameSettings />
-          </View>
-          {bpmAvailable && (
-            <>
-              <Text style={styles.sectionLabel}>Advanced</Text>
-              <View style={styles.sidebarSection}>
-                <BpmControl />
-                <BpmSuggestionCard />
-                <BeatAnchorControl />
-                <DanceCountVisibilityControl />
-                <CountSizeControl />
-              </View>
-            </>
-          )}
-          <Text style={styles.sectionLabel}>Support</Text>
-          <View style={styles.sidebarSection}>
-            <HelpButton />
-          </View>
-          <Text style={styles.sectionLabel}>Debug</Text>
-          <View style={styles.sidebarSection}>
-            <DebugTierControl />
-          </View>
-          {STEM_SEPARATION_UI_ENABLED && (
-            <>
-              <View style={styles.sidebarSection}><ViewModeToggle /></View>
-              <View style={styles.sidebarSection}><StemSelector /></View>
-            </>
-          )}
-        </ScrollView>
+        {activeDetail === 'bpm' ? (
+          <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+        ) : activeDetail === 'about' ? (
+          <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
+        ) : (
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="default"
+          >
+            <SettingsRootSections
+              bpmAvailable={bpmAvailable}
+              onOpenBpm={() => setActiveDetail('bpm')}
+              onOpenAbout={() => setActiveDetail('about')}
+            />
+            {STEM_SEPARATION_UI_ENABLED && (
+              <>
+                <View style={styles.sidebarSection}><ViewModeToggle /></View>
+                <View style={styles.sidebarSection}><StemSelector /></View>
+              </>
+            )}
+          </ScrollView>
+        )}
       </Animated.View>
     </Animated.View>
   );

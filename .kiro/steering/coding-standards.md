@@ -75,6 +75,10 @@ inclusion: always
   before desktop keyboard shortcuts. Nested utility navigation swaps content inside the existing
   full-screen surface instead of stacking another native modal; use Back only for that nested return,
   and do not add a directional arrow to a true Close action.
+- Page and menu headers keep their title optically centred with equal-width leading/trailing action
+  slots. Nested Back controls always occupy the leading/left slot and use the shared Settings-back
+  component. The Settings root keeps Close on the left and its Help icon on the right; Help is not
+  duplicated as a Settings list row. Do not place decorative icons beside page titles.
 - Place mobile Settings at the trailing/rightmost end of a horizontal global toolbar. Full-screen
   utility pages enter from the trailing edge, and deeper pages use the same horizontal push/reveal
   direction; do not use the platform modal's bottom-up sheet transition for this navigation stack.

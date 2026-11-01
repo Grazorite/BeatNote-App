@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · physical beta `1.0.0 (2)` installed · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (3)` Release build installed physically · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -94,10 +94,6 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-- [ ] Polish the iOS library and utility surfaces: middle-truncate long song titles, add persisted
-      drag-defined custom Music ordering, equalise Lite ad height across orientations, move Debug
-      Settings first, refresh iOS-focused Help, and install the verified build physically
-
 - [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
       transitions, and coalesced rapid speed changes are implemented and locally verified; physical
       Repeat/Shuffle now pass; audible switching and Release-build latency remain open
@@ -118,6 +114,16 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Refine iOS Settings with a compact root, dedicated Pro Timing & BPM subpage, About/support
+      page, and optimistic UI-thread toggle feedback; install and launch beta `1.0.0 (3)` physically
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/settings/`, `src/hooks/useModernToggleAnimation.ts`, `src/styles/components/settings/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Polish the iOS library and utility surfaces with 36-character middle title truncation,
+      persisted lifted drag-defined Custom Order, equal-height Lite ad slots, centred menu/page
+      titles with left-aligned Back controls, Debug-first Settings, iPhone-focused Help, and a
+      freshly installed physical Release build
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/HeaderBackButton.tsx`, `src/components/ui/controls/SongTitleControl.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/library/repositories.ts`, `src/hooks/useStudioStore.ts`, `src/types/library.ts`, `src/utils/displayText.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Finalise the SGD V2 pricing hypothesis and iOS-only product direction, document Lite/Pro and
       cache boundaries, add a Lite-only standard banner placeholder in both phone orientations,
       complete the preview speed/continuous-play gates, and install beta `1.0.0 (2)` physically
@@ -132,15 +138,6 @@ target; Android is a far-future possibility only.
 - [x] Add Pro playback capabilities (continuous playback, resume play, remote controls) to the
       roadmap and a persisted debug Lite/Pro toggle in Settings with the first gates wired
       <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/types.ts`, `src/features/entitlements/useProductTier.ts`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/layout/Sidebar.tsx`, `src/hooks/useAudioPlayer.ts`</sub>
-
-- [x] Revise the Lite/Pro monetisation plan: one saved project per song, ungated waveform toggle,
-      coarse free speed presets, all BPM tooling Pro, and a static Lite banner ad removed by Pro
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/architecture-decisions.md`</sub>
-
-- [x] Reorder the mobile media controls: portrait places annotation/speed/delete before the Play
-      block and First/Previous/Next song after it; landscape pairs add/annotation, speed/delete,
-      and Repeat/tri-state loop while keeping the speed chooser below the title bar and on-screen
-      <sub>**Key Artifacts:** `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/styles/components/controls/playbackSpeedControl.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -218,6 +215,81 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-02 — Split Settings into focused pages and harden toggle feedback
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** iOS Settings navigation and toggle responsiveness → Done
+
+**Changed:**
+
+- Kept the Settings root compact: Debug and Basic remain inline, Advanced now links to a dedicated
+  Pro Timing & BPM page, and Support links to Help and About BeatNote.
+- Added an About page with the real version/build, current licence status, the GitHub feedback
+  channel, and an explicit statement that no crash or usage diagnostics are currently collected.
+- Modern toggles now schedule optimistic visual movement immediately on tap, then reconcile with
+  the controlled store/entitlement value so expensive renders do not make a successful tap appear
+  stuck. Persistence and capability state remain authoritative.
+- Updated browser/native Settings journeys and installed signed Release beta `1.0.0 (3)` on the
+  connected physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit` and `git diff --check` → passed.
+- Full retained Playwright regression harness → 9/9 passed, including root/subpage navigation,
+  About content, Lite/Pro BPM discovery, and existing library/custom-order journeys.
+- Signed Release build `1.0.0 (3)` succeeded, installed on iPhone `gæl (3)`, and launched as
+  `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Focused iOS XCTest could not start because CoreSimulatorService was unavailable on this host;
+  physical visual/touch confirmation of the pages and toggle feel remains with the user.
+- Full dependency licence notices, an in-app feedback composer, Playback/Button Configuration, and
+  Data Management pages remain future work; current feedback opens the project issue form.
+
+**Next agent should:**
+
+- Incorporate physical feedback from beta 3, then add only the next user-selected Settings group
+  rather than expanding the root page.
+
+### 2026-11-02 — Polish the iOS library and utility surfaces
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** iOS library and utility polish → Done
+
+**Changed:**
+
+- Long song names now middle-truncate after 36 characters while accessibility retains the full
+  title; the toolbar and library row both keep recognisable beginnings and endings.
+- Music Library now has a persisted Custom Order sort. First activation adopts the current order,
+  the full-width final sort choice exposes lifted drag handles without scrolling the sheet,
+  VoiceOver increment/decrement actions rearrange songs, and other sort modes do not discard the
+  saved custom arrangement.
+- Lite ad creatives now reserve the same 50-point height in portrait and landscape, with the
+  portrait safe-area spacer kept outside the measured ad slot.
+- Debug moved to the top of Settings, and Help & Support now documents the iPhone/Files/share-sheet
+  workflow without browser shortcuts.
+- Settings/detail, Help, Music Library, bottom-sheet, and Projects headers now keep their titles
+  centred while Back or Close actions remain left-aligned and accessible.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, diff checks, and the orchestrator contract check passed;
+  full retained Playwright regression harness → 9/9 passed after settling animated page transitions.
+- Signed Release build succeeded, installed on physical iPhone `gæl (3)`, launched as
+  `com.beatnote.app`, and remained running as PID 2665; temporary DerivedData was removed.
+
+**Not verified / known gaps:**
+
+- Physical visual and touch confirmation of title truncation, custom-order dragging, ad height,
+  Debug placement, and Help content remains with the user; no native implementation changed, so no
+  focused iOS XCTest was run.
+
+**Next agent should:**
+
+- Incorporate the user's feedback from the installed build, especially drag feel and row behaviour
+  with a larger real music library.
 
 ### 2026-11-02 — Finalise the iOS Lite/Pro preview and install beta 2
 
@@ -323,75 +395,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Decide with the user whether sequential queues should auto-advance for Pro, then implement
   position persistence for resume play and finish hiding BPM surfaces in Lite.
-
-### 2026-11-02 — Revise the Lite/Pro monetisation split
-
-**Agent:** orchestrator (Kiro) · **Commit(s):** `uncommitted`
-**Kanban moved:** monetisation plan revision → Done
-
-**Changed:**
-
-- `release-roadmap.md`: Lite now allows one saved project per song (drafts unlimited); waveform
-  artwork is ungated but stays a user toggle, off by default; fine-grained pitch-preserved speed
-  is Pro while coarse presets (0.5×, 0.75×, 1×) stay free; all BPM tooling (manual BPM, anchor,
-  8-count grid, auto-detect) moves to Pro; a static banner ad is added to Lite on library and
-  project screens only, removed by Pro; new `analysis.bpm` and `ads.removed` capability keys.
-- `choreography-features.md`, `project-overview.md`, `architecture-decisions.md` (ADR-020):
-  waveform wording changed from Pro capability to ungated toggle; BPM tooling marked Pro.
-
-**Verified:**
-
-- Grepped steering files for stale three-project, Lite-BPM, and Pro-waveform wording; remaining
-  hits are updated. Markdown lint run on the changed files (see below).
-
-**Not verified / known gaps:**
-
-- No code changed. The preview entitlement provider, Settings, and BPM/count UI still expose BPM
-  and gate nothing; `waveform.display` is still checked in code and `analysis.bpm`, `ads.removed`,
-  and the coarse-speed rule are not implemented.
-- The Current Focus text in this file still describes automatic BPM as a Lite candidate where the
-  roadmap now treats it as Pro; the V1 acceptance work itself is unchanged.
-- Ad SDK choice, ATT/privacy-label impact, and the 8-count-without-BPM Lite experience are
-  unvalidated product decisions.
-
-**Next agent should:**
-
-- Align `src/features/entitlements/` with the revised capability keys before V2, and confirm with
-  the user that Lite without any BPM or 8-count grid still feels complete.
-
-### 2026-10-31 — Reorder the mobile media controls
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** mobile media-control ordering → Done
-
-**Changed:**
-
-- Portrait now keeps annotation, playback speed, and delete-previous-marker in that order on the
-  leading side of Play, with First, Previous, and Next song in that order on the trailing side.
-- Landscape now pairs Add marker with Annotation, Speed with Delete previous marker, and Repeat
-  with the tri-state loop; the other marker and queue rows retain their order.
-- Playback speed supports leading/trailing chooser alignment, and its raised landscape position is
-  offset below the Song Title toolbar while keeping the complete chooser inside the viewport.
-- The retained phone-dock journey now asserts both group orders, both landscape columns, chooser
-  bounds in portrait and landscape, and explicit landscape toolbar/popup separation.
-
-**Verified:**
-
-- `npx tsc --noEmit` and `git diff --check` → passed.
-- Focused phone-dock Playwright journey → passed; full retained Playwright gate → 8/8 passed.
-- A freshly signed Release build succeeded, installed on physical iPhone `gæl (3)`, launched as
-  `com.beatnote.app`, and remained running as PID 84239; temporary DerivedData was removed afterward.
-
-**Not verified / known gaps:**
-
-- The reordered controls are installed on the physical iPhone but still need the user's visual and
-  interaction confirmation in both orientations.
-- The shared working tree remains intentionally uncommitted with the broader V1 review, waveform,
-  Settings, documentation, and performance work described by the preceding handover.
-
-**Next agent should:**
-
-- Confirm the portrait/landscape ordering and speed chooser placement with safe areas on the newly
-  installed physical build before the next combined commit.
 
 <!-- end handover log -->
