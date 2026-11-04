@@ -3,6 +3,45 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] V1 release blocker — Repair Library row switching and verify long-file recovery in Release 28
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-waveform/ios/BeatNoteWaveformModule.swift`, `modules/beatnote-waveform/src/index.ts`, `scripts/ios-ui-test.js`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction.ios.ts`, `src/services/waveformExtraction.types.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-04 — Release 28 Music Library row switching
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Library switching implementation → Done. Physical confirmation → In Progress.
+
+**Changed:**
+
+- Library selections resolve the save guard inside the sheet, then dismiss it before entering the
+  Studio switch transition. A failure reopens the affected row with Retry. Removed the parallel
+  local row lock and the second success dismissal.
+- Read live readiness from the destination player, serialize manual and automatic requests, and
+  prevent late queue/bookkeeping results from replacing the active selection. Switches use the
+  reconciled project summaries and read the destination draft strictly. Already-durable drafts can
+  skip the write queue. Dirty edits must still flush successfully.
+- Cancel unused native waveform requests during a switch and bound peak transfer and retention
+  for long songs. Added an existing-library simulator fixture and a browser failure/retry check.
+
+**Verified:**
+
+- TypeScript, version consistency, whitespace and all eight browser journeys passed. The injected
+  draft-read failure left the source selected and Retry restored the destination with its marker.
+- Focused iPhone 17 Pro simulator XCTest passed after replacing flaky Files-picker setup with a
+  prepopulated three-song library. It covers background/foreground, seek, two hold-to-switch
+  actions, repeated actual row taps with an 11-minute 58 MB WAV, and advancing destination playback.
+- Signed Release bundle and device metadata both report 1.0.0 (28). Install and launch succeeded
+  on the paired physical iPhone. Concurrent release-closeout edits and older uncommitted work remain.
+
+**Not verified / known gaps:**
+
+- Reproduction with the user's affected physical file and the broader physical lifecycle matrix
+  remain open. The signed build contains the shared working tree at bundle time.
+
+**Next agent should:**
+
+- Record the user's Release 28 Library row-tap result with the previously affected file.
+
 ## Archived Done — 2026-11-05 Release 30
 
 - [x] V1 release blocker — Defer waveform decoding until destination playback is ready, correct
@@ -6225,3 +6264,89 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Record the Release 27 PDF contrast result, then run V1.4b's combined BPM/audio lifecycle matrix.
+
+
+- [x] V1.4b/V1.5 closeout — Accept the physical playback/BPM lifecycle matrix, document the native
+      0.25× quality limit, add complete runtime/native licence notices, password-gate the debug Pro
+      preview, align the nested Licences transition, repair deterministic native test setup, and
+      install Release 29
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `package.json`, `scripts/generate-native-licences.js`, `scripts/ios-ui-test.js`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/data/nativeOpenSourceLicences.generated.ts`, `src/data/openSourceLicences.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-04 — Close V1 polish and install Release 29
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.4b/V1.5 release closeout → Done; V1.6 release-candidate reconciliation remains To Do
+
+**Changed:**
+
+- Added complete direct and CocoaPods-generated open-source acknowledgements, made About → Open
+  Source Licences use the same horizontal Settings transition, and password-gated the debug Lite →
+  Pro switch with `bananas`; Pro → Lite remains immediate.
+- Confirmed iOS already uses AVPlayer's highest-quality spectral pitch correction. The remaining
+  0.25× smear is an accepted native extreme-stretch limitation; a different audio engine is V2 work.
+- Repaired deterministic native test setup: post-import journeys use a seeded managed library, and
+  BPM stress fixtures now carry the content fingerprint required for decoded analysis eligibility.
+- Preserved the shared Release 28 Music Library fixes, bumped to 29, then signed, installed, verified,
+  and launched the combined Release build on physical iPhone `gæl (3)`.
+
+**Verified:**
+
+- TypeScript, version consistency, whitespace, licence generation, the empty permanent-unit suite,
+  and all eight retained browser journeys passed. Browser coverage includes the wrong/correct Pro
+  password paths and the licence content/navigation flow.
+- The current native run passed its first four journeys, including annotation restore, automatic BPM,
+  and cancellation/retry. A focused annotation rerun passed after removing Files-provider flakiness.
+  The long-track failure was traced to a null fingerprint in test seed data and corrected.
+- Xcode's signed Release build and validation passed. Bundle and installed-device metadata independently
+  report `1.0.0 (29)`; device installation and automatic launch succeeded.
+
+**Not verified / known gaps:**
+
+- Xcode 27.2's CoreSimulator/simdiskimaged service crashed repeatedly, including after a full service
+  restart. The remaining six native journeys and the corrected long-track fixture therefore could
+  not be rerun on the exact final tree; all ten remain retained and had passed in earlier focused runs.
+- Physical confirmation remains for repeated switching of the user's affected song and the new
+  About → Open Source Licences animation. The shared tree is intentionally still uncommitted.
+
+**Next agent should:**
+
+- Record those two Release 29 physical checks, restore CoreSimulator, then reconcile/commit V1.6 and
+  rerun its exact-tree gate before TestFlight.
+
+
+- [x] Physically accept Release 29 repeated Music Library switching and the nested About → Open
+      Source Licences slideover animation
+      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Renew expired physical-device signature
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Release 29 physical Library/Licences confirmation → Done; renewed-profile trust → In Progress
+
+**Changed:**
+
+- Recorded the user's physical passes for repeated Music Library switching and the nested About →
+  Open Source Licences slideover.
+- Diagnosed the sudden launch loss as expiry of Xcode's seven-day free Personal Team provisioning
+  profile, not an app crash. Renewed the profile, re-signed the same Release 29 bundle, and installed
+  it over the existing bundle without uninstalling.
+- Documented the weekly Personal Team renewal/trust lifecycle and TestFlight as the durable path.
+
+**Verified:**
+
+- The phone remained paired and independently reported BeatNote `1.0.0 (29)` installed. Its first
+  launch request was denied specifically for an invalid/untrusted profile.
+- The original embedded profile expired on 2026-11-04 at 12:49 pm Singapore time. Xcode generated
+  profile `124dfec1-cb14-4aeb-bac5-e70ef1687bb7`, valid through 2026-11-12 at 4:55 am Singapore
+  time; signed Release build and validation succeeded, and in-place installation succeeded.
+
+**Not verified / known gaps:**
+
+- iOS still denies launch until the user explicitly trusts the renewed developer profile in Settings.
+  Confirming launch and preservation of the existing library/projects remains pending that action.
+- The shared release-candidate tree remains intentionally uncommitted; the simulator gate remains open.
+
+**Next agent should:**
+
+- After the user trusts the developer profile, launch Release 29 via `devicectl`, confirm existing
+  local content is present, then continue V1.6 reconciliation.

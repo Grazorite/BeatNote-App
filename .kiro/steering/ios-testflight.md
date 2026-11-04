@@ -196,7 +196,8 @@ eas submit --platform ios --profile preview
 ## App icon and splash assets
 
 `assets/beatnote-icon-source.svg` is the untouched Recraft export and is never edited. The shipped
-artwork derives from its bar and diamond paths:
+artwork derives from its bar and diamond paths. The waveform bars use warm orange
+(`#FEA350`), and the centre bar and diamond share violet (`#8E7AF8`).
 
 | File | Purpose |
 | --- | --- |

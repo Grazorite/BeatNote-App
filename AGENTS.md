@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (30)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (32)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 30 copy and motion and confirm the existing library and projects after the in-place update.
+1. Physically review Release 32 artwork, copy and motion and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -97,25 +97,21 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Install Release 32 with the fixed About title and prepare all work for the requested commit and push.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `assets/`, `.kiro/steering/ios-testflight.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Keep “BeatNote for iOS” visible during the five logo pulses.
+      <sub>**Key Artifacts:** `AGENTS.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Ship the two-colour waveform icon and five About-logo pulses on the paired iPhone as build 31.
+      <sub>**Key Artifacts:** `assets/`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`, `.kiro/steering/ios-testflight.md`</sub>
+
 - [x] V1.6 — Reconcile and commit the exact V1 release candidate; pass TypeScript, all eight
       browser journeys, all ten retained iOS journeys, version consistency, and whitespace checks
       <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 - [x] Polish app copy and align navigation, control and feedback animations. Verify renewed signing and install Release 30.
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `App.tsx`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/animations/MotionPreference.tsx`, `src/animations/components/animatedToggle.ts`, `src/animations/motion.ts`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/AnimatedSegmentedControl.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlayPauseControl.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/library/ImportProgressRow.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAnimatedCollapse.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useLayerSelectorAnimation.ts`, `src/hooks/useModernToggleAnimation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Physically accept Release 29 repeated Music Library switching and the nested About → Open
-      Source Licences slideover animation
-      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
-
-- [x] V1.4b/V1.5 closeout — Accept the physical playback/BPM lifecycle matrix, document the native
-      0.25× quality limit, add complete runtime/native licence notices, password-gate the debug Pro
-      preview, align the nested Licences transition, repair deterministic native test setup, and
-      install Release 29
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `package.json`, `scripts/generate-native-licences.js`, `scripts/ios-ui-test.js`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/data/nativeOpenSourceLicences.generated.ts`, `src/data/openSourceLicences.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] V1 release blocker — Repair Library row switching and verify long-file recovery in Release 28
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-waveform/ios/BeatNoteWaveformModule.swift`, `modules/beatnote-waveform/src/index.ts`, `scripts/ios-ui-test.js`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction.ios.ts`, `src/services/waveformExtraction.types.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -194,6 +190,47 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+
+### 2026-11-05 — Install Release 32 and publish icon polish
+
+**Agent:** Codex · **Commit(s):** Included in the release-32 commit containing this entry
+**Kanban moved:** Release 32 installation and publication preparation → Done
+
+**Changed:** Incremented the iOS build to 32 and installed the signed update in place. The About logo pulses five times one second apart while “BeatNote for iOS” stays visible. Includes the orange waveform and violet centre artwork and all accumulated documentation changes. User explicitly requested committing and pushing all work to master.
+
+**Verified:** TypeScript, version consistency, whitespace checks and all eight browser journeys passed. Signed Release build succeeded. Device services independently reported 1.0.0 (32) installed and successfully launched it.
+
+**Not verified / known gaps:** Physical visual review and VoiceOver remain for the user. Native Settings coverage passed for Release 31; no new native test run for the title-only adjustment. Commit and push results are reported in the session response after this entry is saved.
+
+**Next agent should:** Collect physical Release 32 feedback, then continue TestFlight preparation.
+
+
+### 2026-11-05 — Keep the About title during logo pulses
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Keep the About title visible → Done
+
+**Changed:** The About title now always reads “BeatNote for iOS”. Five pulses and their one-second spacing remain unchanged. Reduce Motion keeps the logo static. Updated the existing browser assertion.
+
+**Verified:** TypeScript, all eight browser journeys and whitespace checks passed. The preceding Release 31 focused iOS Settings journey also passed before this text-only adjustment.
+
+**Not verified / known gaps:** This adjustment has not been rebuilt or installed on the iPhone. Installed Release 31 still shows the numbers. Existing artwork and release changes remain uncommitted.
+
+**Next agent should:** Include the fixed title in the next requested device build.
+
+### 2026-11-05 — Install Release 31 with five logo pulses
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** About easter egg → Done
+
+**Changed:** Orange waveform bars flank a violet centre bar and diamond. A tap starts five numbered pulses one second apart. Reduce Motion uses the numbers alone.
+
+**Verified:** TypeScript and eight browser journeys passed, including counts 1–5 and reset. The paired iPhone reported version 1.0.0 build 31 and launched after in-place installation.
+
+**Not verified / known gaps:** Physical iPhone appearance and VoiceOver delivery await device review.
+
+**Next agent should:** Include one About icon tap in the upcoming device review.
+
 ### 2026-11-05 — Reconcile and pass the exact V1 candidate
 
 **Agent:** orchestrator (Codex) · **Commit(s):** `4dd88dd`, `32db18b`
@@ -265,114 +302,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 - Collect physical Release 30 feedback, then reconcile the final V1 candidate and run its exact-tree gate.
 
-### 2026-11-05 — Renew expired physical-device signature
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Release 29 physical Library/Licences confirmation → Done; renewed-profile trust → In Progress
-
-**Changed:**
-
-- Recorded the user's physical passes for repeated Music Library switching and the nested About →
-  Open Source Licences slideover.
-- Diagnosed the sudden launch loss as expiry of Xcode's seven-day free Personal Team provisioning
-  profile, not an app crash. Renewed the profile, re-signed the same Release 29 bundle, and installed
-  it over the existing bundle without uninstalling.
-- Documented the weekly Personal Team renewal/trust lifecycle and TestFlight as the durable path.
-
-**Verified:**
-
-- The phone remained paired and independently reported BeatNote `1.0.0 (29)` installed. Its first
-  launch request was denied specifically for an invalid/untrusted profile.
-- The original embedded profile expired on 2026-11-04 at 12:49 pm Singapore time. Xcode generated
-  profile `124dfec1-cb14-4aeb-bac5-e70ef1687bb7`, valid through 2026-11-12 at 4:55 am Singapore
-  time; signed Release build and validation succeeded, and in-place installation succeeded.
-
-**Not verified / known gaps:**
-
-- iOS still denies launch until the user explicitly trusts the renewed developer profile in Settings.
-  Confirming launch and preservation of the existing library/projects remains pending that action.
-- The shared release-candidate tree remains intentionally uncommitted; the simulator gate remains open.
-
-**Next agent should:**
-
-- After the user trusts the developer profile, launch Release 29 via `devicectl`, confirm existing
-  local content is present, then continue V1.6 reconciliation.
-
-### 2026-11-04 — Close V1 polish and install Release 29
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** V1.4b/V1.5 release closeout → Done; V1.6 release-candidate reconciliation remains To Do
-
-**Changed:**
-
-- Added complete direct and CocoaPods-generated open-source acknowledgements, made About → Open
-  Source Licences use the same horizontal Settings transition, and password-gated the debug Lite →
-  Pro switch with `bananas`; Pro → Lite remains immediate.
-- Confirmed iOS already uses AVPlayer's highest-quality spectral pitch correction. The remaining
-  0.25× smear is an accepted native extreme-stretch limitation; a different audio engine is V2 work.
-- Repaired deterministic native test setup: post-import journeys use a seeded managed library, and
-  BPM stress fixtures now carry the content fingerprint required for decoded analysis eligibility.
-- Preserved the shared Release 28 Music Library fixes, bumped to 29, then signed, installed, verified,
-  and launched the combined Release build on physical iPhone `gæl (3)`.
-
-**Verified:**
-
-- TypeScript, version consistency, whitespace, licence generation, the empty permanent-unit suite,
-  and all eight retained browser journeys passed. Browser coverage includes the wrong/correct Pro
-  password paths and the licence content/navigation flow.
-- The current native run passed its first four journeys, including annotation restore, automatic BPM,
-  and cancellation/retry. A focused annotation rerun passed after removing Files-provider flakiness.
-  The long-track failure was traced to a null fingerprint in test seed data and corrected.
-- Xcode's signed Release build and validation passed. Bundle and installed-device metadata independently
-  report `1.0.0 (29)`; device installation and automatic launch succeeded.
-
-**Not verified / known gaps:**
-
-- Xcode 27.2's CoreSimulator/simdiskimaged service crashed repeatedly, including after a full service
-  restart. The remaining six native journeys and the corrected long-track fixture therefore could
-  not be rerun on the exact final tree; all ten remain retained and had passed in earlier focused runs.
-- Physical confirmation remains for repeated switching of the user's affected song and the new
-  About → Open Source Licences animation. The shared tree is intentionally still uncommitted.
-
-**Next agent should:**
-
-- Record those two Release 29 physical checks, restore CoreSimulator, then reconcile/commit V1.6 and
-  rerun its exact-tree gate before TestFlight.
-
-### 2026-11-04 — Release 28 Music Library row switching
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Library switching implementation → Done. Physical confirmation → In Progress.
-
-**Changed:**
-
-- Library selections resolve the save guard inside the sheet, then dismiss it before entering the
-  Studio switch transition. A failure reopens the affected row with Retry. Removed the parallel
-  local row lock and the second success dismissal.
-- Read live readiness from the destination player, serialize manual and automatic requests, and
-  prevent late queue/bookkeeping results from replacing the active selection. Switches use the
-  reconciled project summaries and read the destination draft strictly. Already-durable drafts can
-  skip the write queue. Dirty edits must still flush successfully.
-- Cancel unused native waveform requests during a switch and bound peak transfer and retention
-  for long songs. Added an existing-library simulator fixture and a browser failure/retry check.
-
-**Verified:**
-
-- TypeScript, version consistency, whitespace and all eight browser journeys passed. The injected
-  draft-read failure left the source selected and Retry restored the destination with its marker.
-- Focused iPhone 17 Pro simulator XCTest passed after replacing flaky Files-picker setup with a
-  prepopulated three-song library. It covers background/foreground, seek, two hold-to-switch
-  actions, repeated actual row taps with an 11-minute 58 MB WAV, and advancing destination playback.
-- Signed Release bundle and device metadata both report 1.0.0 (28). Install and launch succeeded
-  on the paired physical iPhone. Concurrent release-closeout edits and older uncommitted work remain.
-
-**Not verified / known gaps:**
-
-- Reproduction with the user's affected physical file and the broader physical lifecycle matrix
-  remain open. The signed build contains the shared working tree at bundle time.
-
-**Next agent should:**
-
-- Record the user's Release 28 Library row-tap result with the previously affected file.
 
 <!-- end handover log -->

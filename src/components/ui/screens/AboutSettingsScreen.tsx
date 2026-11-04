@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { Alert, Image, Linking, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Alert, Linking, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   interpolate,
+  cancelAnimation,
+  withSequence,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { pageTransition } from '../../../animations/motion';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 
 import appConfig from '../../../../app.json';
 import { OPEN_SOURCE_LICENCE_GROUPS } from '../../../data/openSourceLicences';
@@ -21,6 +24,36 @@ const FEEDBACK_URL = 'https://github.com/Grazorite/BeatNote-App/issues/new';
 
 const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => {
   const [showLicences, setShowLicences] = useState(false);
+  const [beat, setBeat] = useState(0);
+  const reduced = useMotionPreference();
+  const scale = useSharedValue(1);
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  useEffect(() => () => clearInterval(timer.current), []);
+  useEffect(() => {
+    cancelAnimation(scale);
+    scale.value = 1;
+    if (beat && reduced === false) {
+      scale.value = withSequence(withTiming(1.1, { duration: 150 }), withTiming(1, { duration: 300 }));
+    }
+  }, [beat, reduced, scale]);
+
+  const countIn = () => {
+    if (timer.current !== undefined) return;
+    let count = 1;
+    setBeat(count);
+    AccessibilityInfo.announceForAccessibility('Five beats, one second apart');
+    timer.current = setInterval(() => {
+      count += 1;
+      if (count > 5) {
+        clearInterval(timer.current);
+        timer.current = undefined;
+        setBeat(0);
+      } else {
+        setBeat(count);
+      }
+    }, 1000);
+  };
   const { width } = useWindowDimensions();
   const pageWidth = Math.max(width, 1);
   const detailProgress = useSharedValue(0);
@@ -55,7 +88,9 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
       >
         <SettingsSubpage title="About BeatNote" onBack={onBack} testID="about-settings-page">
           <View style={styles.identity}>
-            <Image source={require('../../../../assets/icon.png')} style={styles.icon} />
+            <Pressable accessibilityRole="button" accessibilityLabel="BeatNote icon" accessibilityHint="Gives you a dance count-in" onPress={countIn}>
+              <Animated.Image accessible={false} source={require('../../../../assets/icon.png')} style={[styles.icon, pulseStyle]} />
+            </Pressable>
             <Text style={styles.appName}>BeatNote for iOS</Text>
             <Text style={styles.version}>Version {version} ({build})</Text>
           </View>
