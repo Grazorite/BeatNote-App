@@ -46,7 +46,7 @@ export const layerNameSettingsStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   resetText: {
-    color: colors.textSecondary,
+    color: colors.iconDestructive,
     fontSize: 12,
     fontWeight: '600',
   },

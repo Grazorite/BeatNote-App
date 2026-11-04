@@ -31,6 +31,30 @@ export const confirmDialogStyles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  confirmationGroup: {
+    gap: 8,
+    marginBottom: 20,
+  },
+  confirmationPrompt: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  confirmationPhrase: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+  confirmationInput: {
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: colors.borderEmphasis,
+    borderRadius: dimensions.borderRadius,
+    backgroundColor: colors.surfaceGlass,
+    color: colors.text,
+    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   actions: {
     gap: 10,
   },
@@ -61,5 +85,8 @@ export const confirmDialogStyles = StyleSheet.create({
   },
   destructiveButtonText: {
     color: colors.text,
+  },
+  disabledButton: {
+    opacity: 0.4,
   },
 });

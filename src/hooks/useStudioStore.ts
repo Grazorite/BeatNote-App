@@ -177,6 +177,7 @@ export interface StudioStore {
   loadingMusicItemId: string | null;
   isPlaying: boolean;
   currentTime: number;
+  playbackTraversal: { revision: number; startTime: number };
   ghostPlayheadTime: number | null; // Last clicked position on waveform
   showGhostInTimeline: boolean; // Toggle for ghost playhead in timeline
   showTimeline: boolean; // Toggle for timeline visibility
@@ -242,9 +243,11 @@ export interface StudioStore {
   firstTrack: () => Promise<QueueControlResult>;
   previousTrack: () => Promise<QueueControlResult>;
   nextTrack: () => Promise<QueueControlResult>;
+  advanceTrackAfterCompletion: () => Promise<QueueControlResult>;
   toggleShuffle: () => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
+  beginPlaybackTraversal: (time: number) => void;
   setGhostPlayheadTime: (time: number | null) => void;
   setShowGhostInTimeline: (show: boolean) => void;
   setShowTimeline: (show: boolean) => void;
@@ -327,13 +330,19 @@ export interface StudioStore {
 const runQueueAction = async (
   action: QueueAction,
   getState: () => StudioStore,
+  automaticCompletion = false,
 ): Promise<QueueControlResult> => {
   const state = getState();
   if (state.switchPhase === 'guard' || state.saveInProgress) return { kind: 'cancelled' };
   if (state.queue === null) {
     return { kind: 'disabled', reason: 'Choose music to start a queue' };
   }
-  const { navigationBaseIndex, requestTrackSwitch, seekCurrentTrack } = await import(
+  const {
+    navigationBaseIndex,
+    requestTrackSwitch,
+    requestTrackSwitchAfterCompletion,
+    seekCurrentTrack,
+  } = await import(
     '../features/library/trackSwitch'
   );
   const queue = { ...state.queue, currentIndex: navigationBaseIndex(state) };
@@ -350,13 +359,16 @@ const runQueueAction = async (
   }
   const musicItemId = queue.order[target.index];
   if (musicItemId === undefined) return { kind: 'disabled', reason: 'End of queue' };
-  return requestTrackSwitch({
+  const request = {
     musicItemId,
     queueIndex: target.index,
     origin: action === 'first'
       ? 'queueFirst'
       : action === 'previous' ? 'queuePrevious' : 'queueNext',
-  });
+  } as const;
+  return automaticCompletion
+    ? requestTrackSwitchAfterCompletion(request)
+    : requestTrackSwitch(request);
 };
 
 const allLayers: Layer[] = [
@@ -446,6 +458,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   loadingMusicItemId: null,
   isPlaying: false,
   currentTime: 0,
+  playbackTraversal: { revision: 0, startTime: 0 },
   ghostPlayheadTime: null,
   showGhostInTimeline: false,
   showTimeline: true,
@@ -600,6 +613,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       songLoaded: true,
       isPlaying: payload.isPlaying,
       currentTime: 0,
+      playbackTraversal: { revision: state.playbackTraversal.revision + 1, startTime: 0 },
       viewportStartTime: 0,
       viewportDuration: durationIsValid ? duration : state.viewportDuration,
       pixelsPerSecond: durationIsValid ? 800 / (duration / 1000) : state.pixelsPerSecond,
@@ -630,6 +644,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   firstTrack: () => runQueueAction('first', get),
   previousTrack: () => runQueueAction('previous', get),
   nextTrack: () => runQueueAction('next', get),
+  advanceTrackAfterCompletion: () => runQueueAction('next', get, true),
   toggleShuffle: () => {
     const state = get();
     if (state.queue === null || state.switchPhase === 'guard' || state.saveInProgress) return;
@@ -641,6 +656,11 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setCurrentTime: (time) => set((state) => (
     state.currentTime === time ? state : { currentTime: time }
   )),
+  // Only transport commands start a new traversal; native clock corrections never do.
+  beginPlaybackTraversal: (time) => set(state => ({
+    currentTime: time,
+    playbackTraversal: { revision: state.playbackTraversal.revision + 1, startTime: time },
+  })),
   setGhostPlayheadTime: (time) => set({ ghostPlayheadTime: time }),
   setShowGhostInTimeline: (show) => set({ showGhostInTimeline: show }),
   setShowTimeline: (show) => set({ showTimeline: show }),
@@ -796,7 +816,12 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
-  setShowDanceCounts: (show) => set({ showDanceCounts: show }),
+  setShowDanceCounts: (show) => set({
+    showDanceCounts: show,
+    // Dance-count feedback depends on phrase lines. Turning counts on must produce an immediate,
+    // visible result even if the user previously disabled the general grid-line setting.
+    ...(show ? { showGridLines: true } : {}),
+  }),
   setShowWaveform: (show) => set({ showWaveform: show }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),

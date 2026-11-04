@@ -17,6 +17,8 @@ export interface ExportOptions {
 
 export interface PDFExportOptions extends ExportOptions {
   format: 'pdf';
+  /** Basic decoded amplitudes for the printable overview; the renderer supplies a fallback. */
+  waveformPeaks?: number[];
   includeHeader: boolean;
   includeTimeline: boolean;
   includeMarkerList: boolean;

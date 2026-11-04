@@ -25,7 +25,8 @@ prerequisite for the core product.
 
 ### V1 — Core validation
 
-Goal: prove that annotation and rehearsal are reliable on a physical iPhone and on the web.
+Goal: prove that annotation and rehearsal are reliable on a physical iPhone. The browser remains a
+fast regression harness, not a product or release target.
 
 - Reliable local audio import, playback, seeking, scrubbing, and background playback
 - Unlimited markers and text annotations within a project
@@ -44,6 +45,55 @@ Goal: prove that annotation and rehearsal are reliable on a physical iPhone and 
 V1 beta features may be temporarily available for testing only when they are clearly labelled as
 previews. Do not silently make a previously permanent free feature paid later.
 
+#### V1 implementation snapshot
+
+The feature scope is implemented. The current signed iPhone build includes durable local import and
+Open In, app-owned audio storage, queue navigation, pitch-preserved playback, seeking/scrubbing,
+background playback, one phone annotation lane, unlimited markers/annotations, range and
+between-marker loops, drafts and named projects, CSV/PDF export, optional decoded waveform artwork,
+data deletion/cache controls, and the local BPM/anchor/count preview. The six stable layer IDs,
+capability service, PDF/MIDI engines, continuous/resume playback, remote controls, and advanced
+speed/preset controls provide V2 foundations. Purchases are not connected; the preview entitlement
+provider defaults to Pro and the debug toggle is the only Lite/Pro switch. Switching from Pro to
+Lite is immediate; switching back to Pro requires the debug password `bananas`.
+
+Automated confidence consists of TypeScript, eight retained browser journeys, and ten retained iOS
+integration journeys. Simulator coverage does not close physical audio, touch, Bluetooth,
+interruption, external-share, real-song BPM, or TestFlight gates.
+
+#### V1 exit checklist — complete before starting V2 implementation
+
+- [x] Confirm the latest signed build on a physical iPhone: annotation popup fires once and fades
+      once, scrubbing captures reliably, Custom Order releases cleanly, and destructive typed
+      confirmations behave correctly with the native keyboard.
+- [x] Run the representative-song playback matrix at 0.25×, 0.5×, 1×, 1.5×, and 2×: audible
+      quality, live rate changes, seeks, both loop modes, song switching, Repeat, Shuffle, and
+      Release-build latency. The range passed; 0.25× has expected spectral-smear artefacts at the
+      extreme stretch but retains pitch better than lower-quality native algorithms.
+- [x] Complete physical audio-session acceptance: speaker, wired/Bluetooth output where available,
+      headset disconnect in both preference states, background/foreground, Control Centre / Now
+      Playing, and one real interruption/recovery path.
+- [x] Complete a CSV/PDF share to a real external destination and reopen/relink the resulting work
+      where applicable.
+- [x] Run automatic BPM on representative real songs and record accuracy/confidence. Physical
+      Release 26 acceptance found the whole-number results generally correct, including the
+      previously problematic pulse-family cases.
+- [x] Complete automatic-BPM lifecycle stress: duration, memory/heat, cancellation/retry,
+      backgrounding, interruption, and Bluetooth behavior. If it misses the agreed reliability
+      band, keep the feature low-confidence or hide the preview; do not delay core annotation for
+      speculative downbeat work.
+- [x] Remove the editor `Ad space` layout placeholder or move it to the library/project surfaces
+      required by the Lite policy. No production ad SDK is required for V1.
+- [x] Expand dependency licence notices and confirm About, privacy/diagnostic copy, feedback link,
+      supported document types, and version/build display are release-accurate.
+- [ ] Reconcile and commit the release candidate, then rerun TypeScript, all eight browser journeys,
+      the ten retained iOS journeys, version consistency, and whitespace checks from that exact tree.
+- [ ] Purchase/enrol the Apple Developer account, replace the placeholder EAS project ID, configure
+      signing/App Store Connect metadata and privacy details, distribute a TestFlight candidate, and
+      complete at least one clean install/update acceptance pass.
+- [ ] Freeze V1 after blocker fixes, record remaining non-blocking limitations, and explicitly mark
+      the V1 milestone complete before enabling purchase enforcement or other V2-only scope.
+
 ### V2 — Pro launch
 
 Goal: start charging for professional depth after the core workflow is dependable. Monetisation does
@@ -53,8 +103,8 @@ Pro candidates:
 
 - Unlimited saved projects per song (Lite allows one; autosaved drafts are never limited)
 - All six layers and custom layer names (the six-layer expansion also anticipates V3 stems)
-- Advanced pitch-preserving playback-speed controls: fine slider/button adjustment, range and
-  preset-count configuration, and long-press custom preset values. Lite retains the built-in
+- Advanced pitch-preserving playback-speed controls within the shared 0.25×–2× range: fine
+  slider/button adjustment, preset-count configuration, and long-press custom preset values. Lite retains the built-in
   pitch-preserved speed presets.
 - BPM tooling as a whole: manual BPM, beat anchor, 8-count/phrase grid and guidance, and automatic
   BPM detection. Most choreographers do not work from BPM, so this is a convenience tier.
@@ -231,7 +281,7 @@ cost.
 BeatNote will use an auto-renewing subscription for the public Pro launch. Singapore storefront
 launch prices are provisional until App Store price-point mapping and willingness-to-pay testing:
 
-- S$3.98 monthly
+- S$2.98 monthly
 - S$19.98 yearly, positioned as the default and best-value option
 - A 7-day Pro trial on the yearly plan, subject to App Store configuration and conversion testing
 
@@ -248,6 +298,30 @@ should be time- or cohort-limited, clearly exclude metered cloud stem-processing
 the default public offer. If a public lifetime product is introduced later, test S$79.98 or higher
 so it does not undermine the yearly subscription.
 
+The Pro page uses a compact, illustration-led carousel above two horizontal plan cards. Its four
+stories cover implemented phone capabilities: Continuous Play, custom/fine speed, BPM suggestions,
+and Lock Screen controls. Remove introductory marketing blocks, speculative integrations, ad-removal
+claims, and unavailable phone features from this surface. Do not mention Apple Music or stem
+separation on the Pro page, even as future or excluded features. Founders/later lifetime pricing
+remains an internal launch proposal, not additional copy on this compact page.
+
+A tappable “Swipe up to compare Pro & Lite” cue opens the shared bottom sheet at medium height;
+its handle expands it to large or dismisses downward. The cue captures touch-down so the outer
+native ScrollView cannot steal its upward swipe; tapping and accessible activation also open it.
+The comparison describes current app behavior,
+not every key in the future entitlement matrix: CSV/PDF export and project saving currently remain
+available to both preview tiers. Keep the comparison in sync with actual gates when monetisation
+is implemented. Illustrative demos show queue auto-advance, speed changes against a moving waveform,
+BPM analysis/preview/apply, and Lock Screen pause/seek/play. They never control real playback or
+modify projects. Only the visible foreground demo runs; opening comparison pauses it. Reduce
+Motion shows a static explanatory frame. Use the shared chevron icon in a reserved 28-point box
+for the compare cue, not a text glyph with a clipped line height. Pro comparison values use the
+accent colour and bold weight while retaining explicit checks/text. Pagination is directly tappable,
+and small screens/large text retain vertical scrolling as a fallback. Both plan choices should fit
+on a standard portrait phone without scrolling. Yearly remains selected by default (S$19.98,
+about S$1.67/month, 44% below twelve S$2.98 monthly payments). Purchase/trial availability remains
+clearly marked as a preview until billing is connected.
+
 ### Settings and support roadmap
 
 The Settings information architecture uses the supplied Audipo screens as a functional reference
@@ -257,19 +331,26 @@ rows. Timing/BPM/count controls live on a dedicated Pro subpage rather than expa
 About page exposes the real version/build, licence status, the project feedback link, and the
 truthful current diagnostic policy. The current implementation includes:
 
-- Playback: a persisted Pro Continuous Play switch wired to queue completion, plus a persisted Lite
-  Keep Screen On choice for disabled, always, or while-playing wake locks. Pause on headset
-  disconnect remains a truthful disabled placeholder until audio-route observation is reliable.
-- Button configuration: the Lite built-in speed-preset boundary and the existing Pro fine controls
-  are described accurately. Seek-button mapping/duration, configurable speed range/count, and
-  long-press custom presets remain labelled placeholders and do not accept discarded changes.
-- Data management (Lite): imported-copy count/size, confirmed derived waveform/BPM cache clearing,
-  confirmed current-song marker/annotation deletion, and guidance to the existing safe per-song and
-  per-project deletion flows. Bulk audio/project/all-data deletion remains a labelled placeholder.
-- BeatNote Pro: the current SGD pricing hypothesis, feature split, future Apple Music caveat, and a
-  disabled Restore Purchases placeholder. It does not advertise stem separation as available.
-- About (Lite): expand dependency licence notices before App Store release; any future crash or
-  usage diagnostics must be opt-in and reflected on this page before collection begins
+- Playback: persisted Pro Continuous Play, persisted Lite Keep Screen On modes, and a working,
+  default-on Pause on Headset Disconnect preference backed by native iOS route observation.
+- Button configuration: working tap/hold seek mapping and distance, one truthful 0.25×–2× playback
+  range, Pro 4/8/12 preset counts, accelerated fine controls, and long-press custom preset editing.
+- Data management: implemented imported-copy/size reporting, derived cache clearing, current-song
+  marker deletion, bulk project deletion, managed imported-audio deletion, and full-data deletion
+  with typed confirmation where the destructive scope requires it.
+- BeatNote Pro: a compact animated preview and Lite/Pro comparison of implemented capabilities,
+  current SGD pricing hypotheses, and unavailable purchasing clearly labelled as preview behavior.
+  Restore Purchases remains unavailable until the V2 purchase provider exists.
+- About (Lite): implemented direct runtime dependency names, resolved versions, copyright notices,
+  full MIT/ISC terms, and CocoaPods-generated native/transitive acknowledgements in an in-app
+  scrollable licence page. The page reports the real version/build, links to the repository's issue
+  form, and truthfully states that no crash or usage diagnostics are sent. Any future diagnostics
+  must be opt-in and reflected on this page before collection begins. Generated iOS document types
+  advertise `.beatnote` plus MP3, WAV, M4A/MP4 audio, AAC, Ogg, and FLAC inputs.
+
+Nested Settings pages use the same 280 ms horizontal stack transition and cubic easing. In
+particular, Open Source Licences slides over About and returns to it, matching the other Settings
+subpages rather than appearing as an instantaneous content replacement.
 
 Settings toggles provide optimistic visual feedback immediately on tap and then reconcile with the
 controlled store/entitlement value. This prevents expensive library/audio renders from making a
@@ -277,16 +358,16 @@ successful toggle interaction appear stuck; persistence and capability state rem
 
 ### Lite banner placement
 
-V1 reserves a Lite-only placeholder for an eventual standard banner. Pro does not allocate this
-space, so its editor keeps the current layout. The placeholder follows Apple's iPhone standard
-banner creative ratio of 1242 × 166 pixels:
+The earlier Lite-only `Ad space` placeholder has been removed from the editor. A production SDK and
+any library/project placement remain V2 work.
 
-- Portrait: below the transport/control dock and above the bottom safe area
-- Landscape: below the loop overview strip inside the canvas column, not beneath the side controls
-- Never overlay the waveform, transport, annotation editor, toast, or playback controls
+When advertising is implemented, the placeholder/creative follows Apple's iPhone standard banner
+ratio of 1242 × 166 pixels:
 
-The initial `Ad space` placeholder validates layout only. An ad SDK, consent flow, fill/collapse
-behaviour, and production creative are V2 work.
+- Music Library and Project Manager only
+- Never in the editor, transport, annotation workflow, or active rehearsal session
+
+An ad SDK, consent flow, fill/collapse behaviour, and production creative are V2 work.
 
 Reference: [Apple standard banner specifications](https://ads.apple.com/apple-news/publishers/help/ad-specs/0045-standard-double-large-mrec-banner-specs).
 

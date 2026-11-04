@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { settingsSubpageStyles as styles } from '../../../styles/components/settings/settingsSubpage';
@@ -11,9 +11,18 @@ interface SettingsSubpageProps {
   onBack: () => void;
   testID: string;
   children: React.ReactNode;
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  backLabel?: string;
 }
 
-const SettingsSubpage: React.FC<SettingsSubpageProps> = ({ title, onBack, testID, children }) => {
+const SettingsSubpage: React.FC<SettingsSubpageProps> = ({
+  title,
+  onBack,
+  testID,
+  children,
+  contentContainerStyle,
+  backLabel = 'Settings',
+}) => {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isMobile = Platform.OS === 'web' ? width < 768 : Math.min(width, height) < 768;
@@ -30,8 +39,8 @@ const SettingsSubpage: React.FC<SettingsSubpageProps> = ({ title, onBack, testID
         <View style={styles.header}>
           <HeaderBackButton
             onPress={onBack}
-            accessibilityLabel={`Back to Settings from ${title}`}
-            label="Settings"
+            accessibilityLabel={`Back to ${backLabel} from ${title}`}
+            label={backLabel}
             testID={`${testID}-back`}
           />
           <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>{title}</Text>
@@ -39,7 +48,7 @@ const SettingsSubpage: React.FC<SettingsSubpageProps> = ({ title, onBack, testID
         </View>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, contentContainerStyle]}
           showsVerticalScrollIndicator={false}
         >
           {children}

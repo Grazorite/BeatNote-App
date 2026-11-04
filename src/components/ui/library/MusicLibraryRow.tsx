@@ -206,11 +206,14 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
           useNativeDriver: true,
         }),
       ]).start(({ finished }) => {
-        if (finished && finalOffset !== 0) onReorderByRef.current?.(finalOffset);
+        // Clear the lifted row's transform before publishing the new list order. Zustand updates
+        // subscribers synchronously; committing first briefly applies the old drag translation at
+        // the row's new index and makes it appear to jump into a second row.
         dragTranslateY.setValue(0);
         appliedDragOffsetRef.current = 0;
         setDragging(false);
         onReorderEndRef.current?.();
+        if (finished && finalOffset !== 0) onReorderByRef.current?.(finalOffset);
       });
     },
     onPanResponderTerminate: () => {

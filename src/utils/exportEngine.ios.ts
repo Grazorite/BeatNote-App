@@ -43,7 +43,6 @@ async function ensureExportDirectory(): Promise<string> {
 
 async function writeAndShare(uri: string): Promise<boolean> {
   const response = await Share.share({
-    message: `BeatNote export: ${uri}`,
     url: uri,
     title: 'Export BeatNote file',
   });

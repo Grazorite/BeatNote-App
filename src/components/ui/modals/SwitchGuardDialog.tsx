@@ -19,7 +19,8 @@ import AppModal from '../common/AppModal';
 import ConfirmDialog from './ConfirmDialog';
 import SaveProjectPrompt from './SaveProjectPrompt';
 
-const SwitchGuardDialog: React.FC = () => {
+const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySheet = false }) => {
+  const libraryOpen = useStudioStore(state => state.isLibrarySheetOpen);
   const switchGuard = useStudioStore(state => state.switchGuard);
   const currentMusicItemId = useStudioStore(state => state.currentMusicItemId);
   const currentTitle = useStudioStore(state => (
@@ -37,16 +38,12 @@ const SwitchGuardDialog: React.FC = () => {
 
   const reportSwitchResult = useCallback((result: SwitchGuardResolution) => {
     if (result.kind !== 'failed') return;
-    const state = useStudioStore.getState();
-    if (
-      state.isLibrarySheetOpen
-      && state.librarySwitchFailure?.musicItemId === result.reason.musicItemId
-    ) return;
+    if (switchGuard?.pendingDestination.origin === 'library') return;
     Alert.alert(result.reason.title, result.reason.message, [
       { text: 'Stay', style: 'cancel' },
       { text: 'Retry', onPress: () => { void result.reason.retry(); } },
     ]);
-  }, []);
+  }, [switchGuard]);
 
   const continueAfterSave = useCallback(async (result: SaveResult) => {
     if (result.kind === 'saved') {
@@ -98,7 +95,7 @@ const SwitchGuardDialog: React.FC = () => {
     void resolveSwitchGuard('cancel');
   }, []);
 
-  if (switchGuard === null || currentMusicItemId === null) return null;
+  if (libraryOpen !== inLibrarySheet || switchGuard === null || currentMusicItemId === null) return null;
 
   return (
     <>

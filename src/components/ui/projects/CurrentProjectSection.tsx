@@ -163,7 +163,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
           <SectionAction label="Save" onPress={onSave} disabled testID="current-project-save" fullWidth={useSingleColumnActions} />
           <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
           <SectionAction label="Import CSV" onPress={onImportCsv} disabled testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
-          <SectionAction label="Export CSV" onPress={onExportCsv} disabled testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
+          <SectionAction label="Export Project" onPress={onExportCsv} disabled testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
         </View>
       </View>
     );
@@ -229,7 +229,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
         <SectionAction label="Save" onPress={onSave} disabled={saveDisabled} testID="current-project-save" fullWidth={useSingleColumnActions} />
         <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled={saveAsNewDisabled} testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
         <SectionAction label="Import CSV" onPress={onImportCsv} disabled={importCsvDisabled} testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
-        <SectionAction label="Export CSV" onPress={onExportCsv} disabled={exportCsvDisabled} testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Export Project" onPress={onExportCsv} disabled={exportCsvDisabled} testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
       </View>
 
       <View style={styles.contextActions}>

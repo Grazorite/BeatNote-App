@@ -8,4 +8,5 @@ export interface ExtractedWaveform {
 export interface WaveformExtractionRequest {
   audioUri: string;
   resolution: WaveformResolution;
+  signal?: AbortSignal;
 }

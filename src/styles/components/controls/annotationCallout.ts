@@ -8,10 +8,14 @@ export const annotationCalloutStyles = StyleSheet.create({
     maxWidth: 280,
     minHeight: 36,
     maxHeight: 58,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  content: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 36,
     justifyContent: 'center',
   },
   floating: {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
-import { Alert, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
@@ -13,6 +13,7 @@ import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
 import { getSettingsPreferences } from '../features/settings/preferences';
 import { subscribeToOutputRouteUnavailable } from '../services/audioRoute';
+import { withAudioOperationTimeout } from '../utils/audioOperationTimeout';
 
 interface ErrorState {
   visible: boolean;
@@ -26,6 +27,8 @@ const PLAYBACK_UPDATE_INTERVAL_MS = 100;
 const PLAYBACK_RATE_DEBOUNCE_MS = 120;
 const PLAYBACK_INTENT_COMMAND_TIMEOUT_MS = 2000;
 const PLAYBACK_INTENT_SETTLE_MS = 400;
+const NATIVE_SEEK_TIMEOUT_MS = 5_000;
+const FOREGROUND_PLAYER_RECHECK_MS = 750;
 
 /**
  * Custom audio player hook that handles:
@@ -47,6 +50,8 @@ export const useCustomAudioPlayer = () => {
   const seekDrainRef = useRef<Promise<void> | null>(null);
   const seekResumePlaybackRef = useRef(false);
   const seekEpochRef = useRef(0);
+  const foregroundPlayerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resumeRestoreRef = useRef<{ positionMs: number; shouldPlay: boolean } | null>(null);
   const mountedRef = useRef(true);
   const playbackIntentRef = useRef<boolean | null>(null);
   const playbackIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,11 +75,15 @@ export const useCustomAudioPlayer = () => {
     [currentAudioUri],
   );
   const player = useAudioPlayer(audioSource);
+  const seekPlayer = useCallback(async (seconds: number, label = 'Audio seek'): Promise<void> => (
+    withAudioOperationTimeout(player.seekTo(seconds), NATIVE_SEEK_TIMEOUT_MS, label)
+  ), [player]);
   const remoteControlsAvailable = useProductCapability('playback.remoteControls');
   const playbackSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const lockScreenActiveRef = useRef(false);
   const playerStatusRef = useRef(player.currentStatus);
-  const [playerIsLoaded, setPlayerIsLoaded] = useState(player.isLoaded);
+  const [loadedPlayer, setLoadedPlayer] = useState(player.isLoaded ? player : null);
+  const playerIsLoaded = loadedPlayer === player;
   const {
     isPlaying,
     layers,
@@ -113,6 +122,16 @@ export const useCustomAudioPlayer = () => {
     }, durationMs);
   }, []);
 
+  const resetSeekPipeline = useCallback((): void => {
+    seekEpochRef.current += 1;
+    pendingSeekRef.current = null;
+    seekDrainRef.current = null;
+    seekResumePlaybackRef.current = false;
+    loopDecisionSuspendedRef.current = false;
+    loopSeekInFlightRef.current = false;
+    pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
+  }, []);
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -122,15 +141,14 @@ export const useCustomAudioPlayer = () => {
       pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
       seekDrainRef.current = null;
       if (playbackIntentTimerRef.current !== null) clearTimeout(playbackIntentTimerRef.current);
+      if (foregroundPlayerTimerRef.current !== null) clearTimeout(foregroundPlayerTimerRef.current);
     };
   }, []);
 
   useEffect(() => {
-    seekEpochRef.current += 1;
-    pendingSeekRef.current = null;
-    pendingSeekIntervalsRef.current.splice(0).forEach(perfEndAfterFrame);
-    seekDrainRef.current = null;
-  }, [player]);
+    resetSeekPipeline();
+    resumeRestoreRef.current = null;
+  }, [player, resetSeekPipeline]);
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });
@@ -148,7 +166,7 @@ export const useCustomAudioPlayer = () => {
     const queue = state.queue;
     // Auto-advance is a Pro capability; Lite playback ends when the track does.
     const hasContinuousNext = isCapabilityAvailable('playback.continuous')
-      && getSettingsPreferences().continuousPlay
+      && (getSettingsPreferences().continuousPlay || queue?.shuffle === true)
       && queue !== null
       && queue.currentIndex !== null
       && queue.currentIndex + 1 < queue.order.length;
@@ -157,10 +175,10 @@ export const useCustomAudioPlayer = () => {
     failedLoopRangeKeyRef.current = null;
 
     if (state.isRepeatActive) {
-      void Promise.resolve(player.seekTo(0))
+      void seekPlayer(0, 'Repeat seek')
         .then(() => {
           previousSampleRef.current = 0;
-          state.setCurrentTime(0);
+          state.beginPlaybackTraversal(0);
           player.play();
           state.setIsPlaying(true);
         })
@@ -175,15 +193,11 @@ export const useCustomAudioPlayer = () => {
 
     if (hasContinuousNext) {
       state.setCurrentTime(durationMs);
-      // Preserve the playing intent so an unguarded Track_Switch_Transaction starts the next
-      // destination. A dirty saved project can still raise the normal switch guard; in that case
-      // the completed source remains paused while the user decides.
+      // Preserve the playing intent so the completion transaction starts the next destination.
+      // Completion flushes and keeps any dirty per-song draft automatically; manual song changes
+      // retain the explicit Save / Keep Draft / Cancel guard.
       state.setIsPlaying(true);
-      const switchPromise = state.nextTrack();
-      void Promise.resolve().then(() => {
-        const pendingState = useStudioStore.getState();
-        if (pendingState.switchPhase === 'guard') pendingState.setIsPlaying(false);
-      });
+      const switchPromise = state.advanceTrackAfterCompletion();
       void switchPromise.then(result => {
         if (result.kind === 'committed' || result.kind === 'superseded') return;
         const currentState = useStudioStore.getState();
@@ -199,7 +213,7 @@ export const useCustomAudioPlayer = () => {
     player.pause();
     state.setCurrentTime(durationMs);
     state.setIsPlaying(false);
-  }, [currentAudioUri, player]);
+  }, [currentAudioUri, player, seekPlayer]);
 
   useEffect(() => {
     completionHandledRef.current = false;
@@ -207,11 +221,43 @@ export const useCustomAudioPlayer = () => {
 
   useEffect(() => {
     playerStatusRef.current = player.currentStatus;
-    setPlayerIsLoaded(player.isLoaded);
+    setLoadedPlayer(player.isLoaded ? player : null);
     const subscription = player.addListener('playbackStatusUpdate', status => {
+      if (useStudioStore.getState().currentAudioUri !== currentAudioUri) return;
       playerStatusRef.current = status;
-      setPlayerIsLoaded(previous => previous === status.isLoaded ? previous : status.isLoaded);
+      setLoadedPlayer(status.isLoaded ? player : null);
       const currentState = useStudioStore.getState();
+      const resumeRestore = status.isLoaded ? resumeRestoreRef.current : null;
+      if (resumeRestore !== null) {
+        resumeRestoreRef.current = null;
+        const restorePosition = Number.isFinite(resumeRestore.positionMs)
+          ? Math.max(0, resumeRestore.positionMs)
+          : 0;
+        void (restorePosition > 0
+          ? seekPlayer(restorePosition / 1000, 'Foreground audio restore')
+          : Promise.resolve())
+          .then(() => {
+            if (!mountedRef.current) return;
+            const restoredState = useStudioStore.getState();
+            restoredState.beginPlaybackTraversal(restorePosition);
+            previousSampleRef.current = restorePosition;
+            loopDecisionSuspendedRef.current = false;
+            if (resumeRestore.shouldPlay) {
+              player.play();
+              holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
+            } else {
+              restoredState.setIsPlaying(false);
+            }
+          })
+          .catch((restoreError: unknown) => {
+            console.error('Foreground audio restoration failed', restoreError);
+            loopDecisionSuspendedRef.current = false;
+            const restoredState = useStudioStore.getState();
+            restoredState.setIsPlaying(false);
+            restoredState.notify('Audio was reloaded after suspension. Tap the timeline to restore your position.');
+          });
+        return;
+      }
       if (status.playing) lastPlaybackActiveAtRef.current = Date.now();
       const durationMs = status.duration * 1000;
       if (status.playing && status.currentTime * 1000 < durationMs - END_OF_TRACK_TOLERANCE_MS) {
@@ -247,7 +293,53 @@ export const useCustomAudioPlayer = () => {
       }
     });
     return () => subscription.remove();
-  }, [handleTrackCompletion, player, setSongDuration]);
+  }, [currentAudioUri, handleTrackCompletion, holdPlaybackIntent, player, seekPlayer, setSongDuration]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return undefined;
+    let previousState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', nextState => {
+      const becameActive = nextState === 'active' && previousState !== 'active';
+      previousState = nextState;
+      if (!becameActive) return;
+
+      // Any seek promise left behind by suspension must not keep new taps, Play, or a rollback
+      // waiting forever. Its epoch check prevents a late native completion from winning.
+      resetSeekPipeline();
+      if (foregroundPlayerTimerRef.current !== null) {
+        clearTimeout(foregroundPlayerTimerRef.current);
+      }
+      foregroundPlayerTimerRef.current = setTimeout(() => {
+        foregroundPlayerTimerRef.current = null;
+        const state = useStudioStore.getState();
+        if (!mountedRef.current || audioSource === null || currentAudioUri === null
+          || player.isLoaded || playerStatusRef.current.isLoaded) return;
+
+        resumeRestoreRef.current = {
+          positionMs: state.currentTime,
+          shouldPlay: state.isPlaying,
+        };
+        loopDecisionSuspendedRef.current = true;
+        try {
+          player.replace(audioSource);
+        } catch (replaceError) {
+          resumeRestoreRef.current = null;
+          loopDecisionSuspendedRef.current = false;
+          state.setIsPlaying(false);
+          console.error('Foreground audio reload failed', replaceError);
+          state.notify('Audio could not resume after suspension. Choose the song again to reload it.');
+        }
+      }, FOREGROUND_PLAYER_RECHECK_MS);
+    });
+
+    return () => {
+      subscription.remove();
+      if (foregroundPlayerTimerRef.current !== null) {
+        clearTimeout(foregroundPlayerTimerRef.current);
+        foregroundPlayerTimerRef.current = null;
+      }
+    };
+  }, [audioSource, currentAudioUri, player, resetSeekPipeline]);
 
   useEffect(() => subscribeToOutputRouteUnavailable(() => {
     const state = useStudioStore.getState();
@@ -275,13 +367,13 @@ export const useCustomAudioPlayer = () => {
   useEffect(() => {
     updateTrackSwitchPlayer({
       uri: currentAudioUri,
-      isLoaded: playerIsLoaded,
+      get isLoaded() { return player.isLoaded; },
       pause: () => player.pause(),
       play: () => player.play(),
-      seekTo: milliseconds => player.seekTo(milliseconds / 1000),
+      seekTo: milliseconds => seekPlayer(milliseconds / 1000, 'Song-switch seek'),
     });
     return () => updateTrackSwitchPlayer(null);
-  }, [currentAudioUri, player, playerIsLoaded]);
+  }, [currentAudioUri, player, seekPlayer]);
 
   useEffect(() => {
     if (!player) return;
@@ -392,9 +484,9 @@ export const useCustomAudioPlayer = () => {
         
         // If at end of track, restart from beginning
         if (currentTime >= songDuration - END_OF_TRACK_TOLERANCE_MS) {
-          setCurrentTime(0);
+          useStudioStore.getState().beginPlaybackTraversal(0);
           setViewportStartTime(0); // Reset viewport for both single and stems modes
-          await player.seekTo(0);
+          await seekPlayer(0, 'Restart seek');
           previousSampleRef.current = 0;
           failedLoopRangeKeyRef.current = null;
         } else {
@@ -418,7 +510,7 @@ export const useCustomAudioPlayer = () => {
     } finally {
       perfEndAfterFrame(intervalId);
     }
-  }, [holdPlaybackIntent, player, setIsPlaying, setCurrentTime]);
+  }, [holdPlaybackIntent, player, seekPlayer, setIsPlaying, setCurrentTime]);
 
   const seekToPosition = useCallback(async (position: number): Promise<void> => {
     if (!player) return;
@@ -429,7 +521,7 @@ export const useCustomAudioPlayer = () => {
     const { songDuration } = useStudioStore.getState();
     const clampedPosition = Math.max(0, Math.min(position, songDuration));
     // Visual feedback is immediate for every tap; only the newest target reaches the player.
-    setCurrentTime(clampedPosition);
+    useStudioStore.getState().beginPlaybackTraversal(clampedPosition);
     pendingSeekRef.current = clampedPosition;
     pendingSeekIntervalsRef.current.push(intervalId);
     seekResumePlaybackRef.current = useStudioStore.getState().isPlaying;
@@ -449,7 +541,7 @@ export const useCustomAudioPlayer = () => {
           while (pendingSeekRef.current !== null) {
             const target = pendingSeekRef.current;
             pendingSeekRef.current = null;
-            await player.seekTo(target / 1000); // Convert to seconds
+            await seekPlayer(target / 1000, 'Timeline seek'); // Convert to seconds
             if (!mountedRef.current || seekEpoch !== seekEpochRef.current) return;
             previousSampleRef.current = target;
             failedLoopRangeKeyRef.current = null;
@@ -481,7 +573,7 @@ export const useCustomAudioPlayer = () => {
     })();
     seekDrainRef.current = drain;
     return drain;
-  }, [holdPlaybackIntent, player, setCurrentTime]);
+  }, [holdPlaybackIntent, player, seekPlayer, setCurrentTime]);
 
   const startWaveformScrub = useCallback(async () => {
     perfBegin('seek.scrub', 'seek.scrub:session');
@@ -513,7 +605,9 @@ export const useCustomAudioPlayer = () => {
     
     // Only sync audio position when paused to avoid interruption
     if (player && !isPlaying) {
-      player.seekTo(currentTime / 1000); // Convert to seconds
+      void seekPlayer(currentTime / 1000, 'Marker-alignment seek').catch((seekError: unknown) => {
+        console.error('Marker-alignment seek failed', seekError);
+      }); // Convert to seconds
     }
     
     const activeLayer = layers.find(layer => layer.id === activeLayerId);
@@ -525,7 +619,7 @@ export const useCustomAudioPlayer = () => {
       addMarker(currentTime);
     }
     perfEndAfterFrame(intervalId);
-  }, [activeLayerId, addMarker, isPlaying, layers, player, removeMarker]);
+  }, [activeLayerId, addMarker, isPlaying, layers, player, removeMarker, seekPlayer]);
 
   // Handle playback position updates and end-of-track detection
   useEffect(() => {
@@ -605,10 +699,10 @@ export const useCustomAudioPlayer = () => {
 
         if (decision.kind === 'wrap') {
           loopSeekInFlightRef.current = true;
-          void Promise.resolve(player.seekTo(decision.targetMs / 1000))
+          void seekPlayer(decision.targetMs / 1000, 'Loop-boundary seek')
             .then(() => {
               player.play();
-              setCurrentTime(decision.targetMs);
+              useStudioStore.getState().beginPlaybackTraversal(decision.targetMs);
               previousSampleRef.current = decision.targetMs;
               failedLoopRangeKeyRef.current = null;
             })
@@ -649,7 +743,7 @@ export const useCustomAudioPlayer = () => {
     }, PLAYBACK_UPDATE_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [handleTrackCompletion, player, isPlaying, setCurrentTime, setIsPlaying]);
+  }, [handleTrackCompletion, player, isPlaying, seekPlayer, setCurrentTime, setIsPlaying]);
 
   return {
     sound: player,

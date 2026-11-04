@@ -64,13 +64,43 @@ export const wrappedWaveformStyles = StyleSheet.create({
   scrollContent: {
     width: '100%',
   },
-  loadingText: {
+  loadingOverlay: {
     position: 'absolute',
-    top: dimensions.spacing.xs,
-    right: dimensions.spacing.sm,
-    zIndex: 2,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: dimensions.spacing.md,
+    backgroundColor: 'rgba(0, 0, 0, 0.58)',
+  },
+  loadingCard: {
+    maxWidth: 280,
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: dimensions.spacing.sm,
+    paddingHorizontal: dimensions.spacing.md,
+    paddingVertical: dimensions.spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: dimensions.borderRadius,
+    backgroundColor: colors.surface,
+  },
+  loadingCopy: {
+    flexShrink: 1,
+    gap: 2,
+  },
+  loadingTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  loadingDetail: {
     color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: 12,
   },
   placeholder: {
     width: '100%',

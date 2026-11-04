@@ -17,14 +17,17 @@ The app is currently a personal tool with a clear path toward commercial release
 2. Select songs with the Song Title control or queue controls. First, Previous, Next, and Shuffle
    navigate music items, not project files; Previous/Next can alternatively seek by the configured
    signed interval by default, with tap-versus-hold behaviour and a custom 0.5-second-step distance
-   chosen by typing or accelerated step buttons in Button Settings. Pro can also choose a focused
-   or extended speed range, show 4/8/12 presets, and replace or restore individual preset values.
+   chosen by typing or accelerated step buttons in Button Settings. Playback speed uses one
+   supported 0.25×–2× range; Pro can show 4/8/12 presets and replace or restore individual values.
 3. Tap to place beat markers during playback on the V1 annotation lane and add text annotations
    such as move names, choreography cues, and 8-counts.
 4. Accept, preview, correct, or ignore the local automatic-BPM/beat-anchor suggestion; the authored
    grid remains under the user's control.
 5. Switch songs without losing work: every song has an autosaved draft, while explicitly saved
-   projects provide named baselines and multiple versions per song.
+   projects provide named baselines and multiple versions per song. Manual switching prompts when
+   a named project has unsaved changes. Pro end-of-track continuation, including Shuffle, instead
+   flushes and keeps the per-song draft automatically so rehearsal is not blocked by a modal; it
+   never overwrites the named project, and a failed draft write prevents the automatic switch.
 6. Replay, seek, and rehearse the annotated music, then manage saved work and CSV replacement or
    export from Project Manager.
 

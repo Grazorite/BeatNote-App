@@ -69,6 +69,7 @@ const LayerNameRow: React.FC<LayerNameRowProps> = ({ layer, disabled, annotation
         accessibilityRole="button"
         accessibilityLabel={resetLabel}
         style={styles.resetButton}
+        testID={`settings-layer-reset-${layer.id}`}
       >
         <Text style={[styles.resetText, (disabled || layer.customName === undefined) && styles.disabled]}>
           Reset

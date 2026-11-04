@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { cancelAnalysis, retryAnalysis } from '../../../features/analysis/bpmAnalysisService';
+import {
+  cancelAnalysis,
+  enqueueAnalysis,
+  retryAnalysis,
+} from '../../../features/analysis/bpmAnalysisService';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { bpmSuggestionCardStyles as styles } from '../../../styles/components/controls/bpmSuggestionCard';
@@ -9,7 +13,6 @@ const BpmSuggestionCard: React.FC = () => {
   const autoBpmEnabled = useProductCapability('analysis.autoBpm');
   const musicItemId = useStudioStore(state => state.currentMusicItemId);
   const job = useStudioStore(state => musicItemId ? state.analysisByItem[musicItemId] : undefined);
-  const manuallyOverriddenBpm = useStudioStore(state => state.manuallyOverriddenBpm);
   const gridRestoreSnapshot = useStudioStore(state => state.gridRestoreSnapshot);
   const gridPreview = useStudioStore(state => state.gridPreview);
   const previewSuggestion = useStudioStore(state => state.previewAnalysisSuggestion);
@@ -23,7 +26,32 @@ const BpmSuggestionCard: React.FC = () => {
     setShowAlternatives(false);
   }, [musicItemId]);
 
-  if (!autoBpmEnabled || !musicItemId || dismissedItemId === musicItemId || !job || manuallyOverriddenBpm) return null;
+  if (!autoBpmEnabled || !musicItemId) return null;
+
+  if (!job || dismissedItemId === musicItemId) {
+    return (
+      <View style={styles.container} testID="bpm-suggestion-card">
+        <Text style={styles.title}>Automatic tempo</Text>
+        <Text style={styles.detail}>
+          Analyze this song locally, then preview the suggested BPM before applying it.
+        </Text>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.button, styles.primaryButton]}
+            onPress={() => {
+              setDismissedItemId(null);
+              enqueueAnalysis(musicItemId, true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Analyze tempo automatically"
+            testID="bpm-analysis-start"
+          >
+            <Text style={[styles.buttonText, styles.primaryText]}>Analyze Tempo</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (job.status === 'queued' || job.status === 'running') {
     return (
@@ -90,6 +118,7 @@ const BpmSuggestionCard: React.FC = () => {
 
   if (job.status !== 'success' || job.result === null) return null;
   const result = job.result;
+  const detectedBpm = Math.round(result.detectedBpm);
   const hasDownbeatSuggestion = result.suggestedDownbeatMs !== undefined
     && (result.downbeatConfidence ?? 0) >= 0.55;
   const preview = (bpm: number, phraseStartMs?: number) => (
@@ -99,7 +128,7 @@ const BpmSuggestionCard: React.FC = () => {
 
   return (
     <View style={styles.container} testID="bpm-suggestion-card">
-      <Text style={styles.title}>Suggested: {result.detectedBpm} BPM</Text>
+      <Text style={styles.title}>Suggested: {detectedBpm} BPM</Text>
       <Text style={styles.detail}>
         {result.confidenceBand} confidence · {result.tempoModel === 'variable' ? 'tempo may vary' : 'steady tempo'}
       </Text>
@@ -110,7 +139,7 @@ const BpmSuggestionCard: React.FC = () => {
       </Text>
       <View style={styles.actions}>
         {gridPreview === null ? (
-          <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={() => preview(result.detectedBpm)} accessibilityRole="button">
+          <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={() => preview(detectedBpm)} accessibilityRole="button">
             <Text style={[styles.buttonText, styles.primaryText]}>Preview</Text>
           </TouchableOpacity>
         ) : (
@@ -131,7 +160,7 @@ const BpmSuggestionCard: React.FC = () => {
         {hasDownbeatSuggestion && gridPreview === null && (
           <TouchableOpacity
             style={styles.button}
-            onPress={() => preview(result.detectedBpm, result.suggestedDownbeatMs)}
+            onPress={() => preview(detectedBpm, result.suggestedDownbeatMs)}
             accessibilityRole="button"
             accessibilityLabel={`Preview suggested count 1 at ${formatSeconds(result.suggestedDownbeatMs as number)}`}
           >
@@ -149,17 +178,20 @@ const BpmSuggestionCard: React.FC = () => {
       </View>
       {showAlternatives && (
         <View style={styles.actions} testID="bpm-alternatives">
-          {result.bpmAlternatives.filter(alternative => alternative.relation !== 'primary').map(alternative => (
+          {result.bpmAlternatives.filter(alternative => alternative.relation !== 'primary').map(alternative => {
+            const alternativeBpm = Math.round(alternative.bpm);
+            return (
             <TouchableOpacity
-              key={`${alternative.relation}-${alternative.bpm}`}
+              key={`${alternative.relation}-${alternativeBpm}`}
               style={styles.button}
-              onPress={() => preview(alternative.bpm)}
+              onPress={() => preview(alternativeBpm)}
               accessibilityRole="button"
-              accessibilityLabel={`Use ${alternative.bpm} BPM ${alternative.relation} tempo`}
+              accessibilityLabel={`Use ${alternativeBpm} BPM ${alternative.relation} tempo`}
             >
-              <Text style={styles.buttonText}>{alternative.bpm} BPM · {alternative.relation}</Text>
+              <Text style={styles.buttonText}>{alternativeBpm} BPM · {alternative.relation}</Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
       )}
     </View>

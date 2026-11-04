@@ -34,23 +34,24 @@ export const getMarkerAnnotation = (layers: Layer[], marker: SelectedMarker | nu
 };
 
 /**
- * Return the newest annotated marker whose timestamp the playhead has reached and
- * whose reading window is still open. A newer annotation always wins; the active
- * layer breaks ties when layers share a timestamp.
+ * Return the newest annotated marker crossed by one forward playhead update. Unlike a dwell
+ * window, this selects an interval crossing. Callers must keep a monotonic previousTime within
+ * each explicit playback traversal so native clock corrections cannot cross an interval twice.
  */
-export const findTimedAnnotationMarker = (
+export const findCrossedAnnotationMarker = (
   layers: Layer[],
+  previousTime: number,
   currentTime: number,
   preferredLayerId: LayerId,
-  dwellMs = ANNOTATION_DWELL_MS,
 ): SelectedMarker | null => {
-  if (!Number.isFinite(currentTime) || !Number.isFinite(dwellMs) || dwellMs < 0) return null;
+  if (!Number.isFinite(previousTime) || !Number.isFinite(currentTime) || currentTime <= previousTime) {
+    return null;
+  }
 
   let selected: (SelectedMarker & { preferred: boolean }) | null = null;
   for (const layer of layers) {
     for (const timestamp of layer.markers) {
-      const age = currentTime - timestamp;
-      if (age < 0 || age > dwellMs) continue;
+      if (timestamp <= previousTime || timestamp > currentTime) continue;
       const annotation = layer.annotations.find(item => Math.abs(item.timestamp - timestamp) < 100);
       if (!annotation?.text.trim()) continue;
 

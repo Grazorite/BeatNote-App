@@ -81,7 +81,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const dismissingRef = useRef(false);
   const dismissProgress = useRef(new Animated.Value(0)).current;
   const presentProgress = useRef(new Animated.Value(0)).current;
-  const activeRange = advancedSpeedAvailable ? preferences.playbackSpeedRange : 'focused';
+  const activeRange = 'extended';
   const activeBounds = playbackSpeedBounds(activeRange);
   const configuredOptions = advancedSpeedAvailable
     ? configuredPlaybackSpeedPresets(

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { extractWaveform, WaveformResolution } from '../services/waveformExtraction';
+import { useStudioStore } from './useStudioStore';
 
 export interface WaveformData {
   peaks: number[];
@@ -9,7 +10,12 @@ export interface WaveformData {
 
 // Simple cache for waveform data
 const waveformCache = new Map<string, WaveformData>();
-const waveformRequestCache = new Map<string, Promise<WaveformData | null>>();
+interface WaveformRequest {
+  promise: Promise<WaveformData | null>;
+  controller: AbortController;
+  consumers: number;
+}
+const waveformRequestCache = new Map<string, WaveformRequest>();
 
 /** Clear decoded in-memory peaks. Active requests may finish and repopulate their result. */
 export const clearWaveformCache = (): void => {
@@ -19,22 +25,27 @@ export const clearWaveformCache = (): void => {
 const loadWaveform = (
   audioUri: string,
   resolution: WaveformResolution,
-): Promise<WaveformData | null> => {
+): WaveformRequest => {
   const cacheKey = `${resolution}:${audioUri}`;
-  const cached = waveformCache.get(cacheKey);
-  if (cached) return Promise.resolve(cached);
-
   const pending = waveformRequestCache.get(cacheKey);
-  if (pending) return pending;
-
-  const request = extractWaveform({ audioUri, resolution })
+  if (pending) {
+    pending.consumers++;
+    return pending;
+  }
+  const controller = new AbortController();
+  const promise = extractWaveform({ audioUri, resolution, signal: controller.signal })
     .then(result => {
-      if (!result || result.peaks.length === 0) return null;
+      if (controller.signal.aborted || !result?.peaks.length) return null;
       const data: WaveformData = { ...result, source: 'decoded' };
       waveformCache.set(cacheKey, data);
+      // Each native result has at most 60,000 peaks. Retain only the most recent songs.
+      if (waveformCache.size > 8) waveformCache.delete(waveformCache.keys().next().value!);
       return data;
     })
-    .finally(() => waveformRequestCache.delete(cacheKey));
+    .finally(() => {
+      if (waveformRequestCache.get(cacheKey)?.controller === controller) waveformRequestCache.delete(cacheKey);
+    });
+  const request = { promise, controller, consumers: 1 };
   waveformRequestCache.set(cacheKey, request);
   return request;
 };
@@ -43,18 +54,25 @@ export const useWaveformData = (
   audioUri: string | null,
   resolution: WaveformResolution = 'detailed',
 ) => {
+  const switchPhase = useStudioStore(state => state.switchPhase);
+  // A new URI is published before Expo Audio confirms that its player has loaded. Starting a
+  // second AVAssetReader at that point can contend with playback setup for the same file and make
+  // the Music Library transaction appear hung. Decode only after the switch coordinator is idle.
+  const readyAudioUri = switchPhase === 'idle' ? audioUri : null;
   const [waveformData, setWaveformData] = useState<WaveformData | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
-    if (!audioUri) {
+    let revealFrame: number | null = null;
+    let finishFrame: number | null = null;
+    if (!readyAudioUri) {
       setWaveformData(null);
       setLoading(false);
       return;
     }
 
-    const cacheKey = `${resolution}:${audioUri}`;
+    const cacheKey = `${resolution}:${readyAudioUri}`;
     const cached = waveformCache.get(cacheKey);
     if (cached) {
       setWaveformData(cached);
@@ -64,22 +82,40 @@ export const useWaveformData = (
 
     setLoading(true);
     setWaveformData(null);
-    loadWaveform(audioUri, resolution)
+    const request = loadWaveform(readyAudioUri, resolution);
+    request.promise
       .then(data => {
-        if (active) setWaveformData(data);
+        if (!active) return;
+        // Let the progress state paint before publishing a potentially large peak array. Keep the
+        // overlay through that render, then dismiss it on the following frame. This makes native
+        // bridge transfer/path construction for long songs read as deliberate work, not a freeze.
+        revealFrame = requestAnimationFrame(() => {
+          if (!active) return;
+          setWaveformData(data);
+          finishFrame = requestAnimationFrame(() => {
+            if (active) setLoading(false);
+          });
+        });
       })
       .catch(error => {
-        console.error('Waveform generation error:', error);
-        if (active) setWaveformData(null);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          console.error('Waveform generation error:', error);
+          setWaveformData(null);
+          setLoading(false);
+        }
       });
 
     return () => {
       active = false;
+      request.consumers--;
+      if (request.consumers === 0 && waveformRequestCache.get(cacheKey) === request) {
+        waveformRequestCache.delete(cacheKey);
+        request.controller.abort();
+      }
+      if (revealFrame !== null) cancelAnimationFrame(revealFrame);
+      if (finishFrame !== null) cancelAnimationFrame(finishFrame);
     };
-  }, [audioUri, resolution]);
+  }, [readyAudioUri, resolution]);
 
   return { waveformData, loading };
 };

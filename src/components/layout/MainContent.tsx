@@ -20,8 +20,9 @@ import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useS
 import { useDockToast } from '../../hooks/useDockToast';
 import { useRenderCounter } from '../../hooks/useRenderCounter';
 import {
+  ANNOTATION_DWELL_MS,
+  findCrossedAnnotationMarker,
   findMarkerNearTime,
-  findTimedAnnotationMarker,
   getMarkerAnnotation,
 } from '../../utils/markerSelection';
 import ProjectControls from '../ui/controls/ProjectControls';
@@ -44,8 +45,6 @@ import { mainContentStyles as styles } from '../../styles/layout/mainContent';
 import { capabilitiesForLoadedItem } from '../../features/library/sourceResolver';
 import { getLayerDisplayName } from '../../utils/layers';
 import { perfBegin, perfEnd } from '../../utils/perfMarks';
-import { useProductTier } from '../../features/entitlements/useProductTier';
-import LiteAdPlaceholder from '../ui/ads/LiteAdPlaceholder';
 
 interface MainContentProps {
   viewMode: 'unified' | 'multitrack';
@@ -116,10 +115,9 @@ const MainContent: React.FC<MainContentProps> = ({
   const [switchTransitionTitle, setSwitchTransitionTitle] = useState('song');
   const [annotationCalloutPresent, setAnnotationCalloutPresent] = useState(false);
   const [timedAnnotationMarkerKey, setTimedAnnotationMarkerKey] = useState('');
-  const suppressedTimedAnnotationKeyRef = useRef('');
   const previousAnnotationTimeRef = useRef(0);
-  const productTier = useProductTier();
-  const showLiteAd = productTier === 'lite';
+  const lastPresentedAnnotationKeyRef = useRef('');
+  const annotationHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toast = useDockToast();
   const libraryNotice = useStudioStore(state => state.libraryNotice);
   const hasLoadedSong = useStudioStore(state => state.songLoaded);
@@ -141,10 +139,8 @@ const MainContent: React.FC<MainContentProps> = ({
   const currentMarkerKey = useStudioStore(state => markerKey(
     findMarkerNearTime(state.allLayersData, state.currentTime, state.activeLayerId),
   ));
-  const rawTimedAnnotationMarkerKey = useStudioStore(state => markerKey(
-    findTimedAnnotationMarker(state.allLayersData, state.currentTime, state.activeLayerId),
-  ));
   const annotationCurrentTime = useStudioStore(state => state.currentTime);
+  const playbackTraversal = useStudioStore(state => state.playbackTraversal);
   const setSelectedMarker = useStudioStore(state => state.setSelectedMarker);
   const updateMarkerAnnotation = useStudioStore(state => state.updateMarkerAnnotation);
   const currentMarker = useMemo(() => markerFromKey(currentMarkerKey), [currentMarkerKey]);
@@ -155,34 +151,53 @@ const MainContent: React.FC<MainContentProps> = ({
   );
   const displayedAnnotation = getMarkerAnnotation(allLayersData, timedAnnotationMarker);
   const editingAnnotation = getMarkerAnnotation(allLayersData, editingMarker);
+  const presentTimedAnnotation = useCallback((marker: SelectedMarker) => {
+    const key = markerKey(marker);
+    lastPresentedAnnotationKeyRef.current = key;
+    setTimedAnnotationMarkerKey(key);
+    if (annotationHideTimerRef.current !== null) clearTimeout(annotationHideTimerRef.current);
+    annotationHideTimerRef.current = setTimeout(() => {
+      annotationHideTimerRef.current = null;
+      setTimedAnnotationMarkerKey(current => current === key ? '' : current);
+    }, ANNOTATION_DWELL_MS);
+  }, []);
 
   useEffect(() => {
-    suppressedTimedAnnotationKeyRef.current = '';
+    if (annotationHideTimerRef.current !== null) clearTimeout(annotationHideTimerRef.current);
+    annotationHideTimerRef.current = null;
+    lastPresentedAnnotationKeyRef.current = '';
+    previousAnnotationTimeRef.current = useStudioStore.getState().currentTime;
     setTimedAnnotationMarkerKey('');
   }, [audioUri]);
 
   useEffect(() => {
-    const suppressedMarker = markerFromKey(suppressedTimedAnnotationKeyRef.current);
-    const movedBackward = annotationCurrentTime < previousAnnotationTimeRef.current - 250;
-    previousAnnotationTimeRef.current = annotationCurrentTime;
-    if (suppressedMarker !== null && (
-      annotationCurrentTime < suppressedMarker.timestamp - 100
-      || (movedBackward && annotationCurrentTime <= suppressedMarker.timestamp + 50)
-    )) {
-      suppressedTimedAnnotationKeyRef.current = '';
-    }
+    // Explicit seeks/repeat/loop wraps re-arm markers, including one exactly at the target.
+    // Do not infer transport intent from the size of a native clock correction.
+    previousAnnotationTimeRef.current = playbackTraversal.startTime - 0.001;
+    lastPresentedAnnotationKeyRef.current = '';
+  }, [playbackTraversal]);
 
-    if (rawTimedAnnotationMarkerKey !== '') {
-      if (suppressedTimedAnnotationKeyRef.current !== rawTimedAnnotationMarkerKey) {
-        setTimedAnnotationMarkerKey(rawTimedAnnotationMarkerKey);
-      }
-      return;
-    }
-    setTimedAnnotationMarkerKey(current => {
-      if (current !== '') suppressedTimedAnnotationKeyRef.current = current;
-      return '';
-    });
-  }, [annotationCurrentTime, rawTimedAnnotationMarkerKey]);
+  useEffect(() => {
+    const previousTime = previousAnnotationTimeRef.current;
+    // Keep a high-water mark for this traversal. Delayed native samples cannot move the
+    // crossing boundary backwards, even after another annotation has been presented.
+    previousAnnotationTimeRef.current = Math.max(previousTime, annotationCurrentTime);
+
+    const crossedKey = markerKey(findCrossedAnnotationMarker(
+      allLayersData,
+      previousTime,
+      annotationCurrentTime,
+      activeLayerId,
+    ));
+    if (crossedKey === '' || crossedKey === lastPresentedAnnotationKeyRef.current) return;
+
+    const crossedMarker = markerFromKey(crossedKey);
+    if (crossedMarker !== null) presentTimedAnnotation(crossedMarker);
+  }, [activeLayerId, allLayersData, annotationCurrentTime, playbackTraversal, presentTimedAnnotation]);
+
+  useEffect(() => () => {
+    if (annotationHideTimerRef.current !== null) clearTimeout(annotationHideTimerRef.current);
+  }, []);
 
   const openAnnotationEditor = (marker: SelectedMarker | null = currentMarker) => {
     if (!marker) return;
@@ -196,11 +211,13 @@ const MainContent: React.FC<MainContentProps> = ({
     if (pending === null) return;
     pendingAnnotationSaveRef.current = null;
     updateMarkerAnnotation(pending.marker.layerId, pending.marker.timestamp, pending.text);
+    if (pending.text.trim()) presentTimedAnnotation(pending.marker);
+    else if (markerKey(pending.marker) === timedAnnotationMarkerKey) setTimedAnnotationMarkerKey('');
     toast.show(pending.text.trim() ? 'Annotation saved' : 'Annotation removed');
     const intervalId = annotationSavePerfRef.current;
     annotationSavePerfRef.current = null;
     if (intervalId !== null) requestAnimationFrame(() => perfEnd(intervalId));
-  }, [toast.show, updateMarkerAnnotation]);
+  }, [presentTimedAnnotation, timedAnnotationMarkerKey, toast.show, updateMarkerAnnotation]);
   const saveAnnotation = (text: string) => {
     if (!editingMarker) return;
     annotationSavePerfRef.current = perfBegin('annotation.save');
@@ -411,7 +428,6 @@ const MainContent: React.FC<MainContentProps> = ({
         {(!hasLoadedSong || (capabilities.waveformAccess && capabilities.exactSeeking)) && (
           <LoopRangeOverview audioUri={audioUri} onToast={toast.show} />
         )}
-        {isLandscapePhone && showLiteAd && <LiteAdPlaceholder />}
       </View>
     );
     const mobileCanvas = (
@@ -460,7 +476,7 @@ const MainContent: React.FC<MainContentProps> = ({
           {
             paddingBottom: isLandscapePhone
               ? 0
-              : showLiteAd ? 6 : Math.max(safeAreaBottom, 34),
+              : Math.max(safeAreaBottom, 34),
           },
           isLandscapePhone && styles.landscapeControlRail,
         ]}
@@ -497,9 +513,6 @@ const MainContent: React.FC<MainContentProps> = ({
         <View style={[styles.mobileBody, isLandscapePhone && styles.landscapeBody]}>
           {mobileCanvas}
           {controlDock}
-          {!isLandscapePhone && showLiteAd && (
-            <LiteAdPlaceholder safeAreaBottom={Math.max(safeAreaBottom, 8)} />
-          )}
         </View>
         <AnnotationEditorModal
           visible={editingMarker !== null}

@@ -12,7 +12,6 @@ import { colors } from '../../../styles/common';
 import { settingsPageStyles as styles } from '../../../styles/components/settings/settingsPage';
 import {
   type PlaybackSpeedPresetCount,
-  type PlaybackSpeedRange,
 } from '../../../utils/playbackSpeed';
 import SettingsSubpage from '../settings/SettingsSubpage';
 
@@ -84,9 +83,6 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
     incrementDisabled,
   );
 
-  const setSpeedRange = (playbackSpeedRange: PlaybackSpeedRange): void => {
-    if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedRange });
-  };
   const setPresetCount = (playbackSpeedPresetCount: PlaybackSpeedPresetCount): void => {
     if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedPresetCount });
   };
@@ -194,34 +190,6 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
           </TouchableOpacity>
         </View>
       </View>
-      <View style={[styles.section, !advancedSpeed && styles.disabled]} testID="speed-range-settings">
-        <Text style={styles.sectionLabel}>Speed Setting Range</Text>
-        {!advancedSpeed && <Text style={styles.proOnlyNote}>Pro only</Text>}
-        <View style={styles.options} accessibilityRole="radiogroup">
-          {([
-            ['focused', '0.5× – 2.00×'],
-            ['extended', '0.25× – 4.00×'],
-          ] as const).map(([range, label]) => {
-            const selected = preferences.playbackSpeedRange === range;
-            return (
-              <TouchableOpacity
-                key={range}
-                style={[styles.option, selected && styles.optionSelected]}
-                onPress={() => setSpeedRange(range)}
-                disabled={!advancedSpeed}
-                accessibilityRole="radio"
-                accessibilityState={{ selected, disabled: !advancedSpeed }}
-                aria-checked={selected}
-                testID={`speed-range-${range}`}
-              >
-                <Text style={styles.optionText}>{label}</Text>
-                {selected && <Text style={styles.check}>✓</Text>}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
       <View style={[styles.section, !advancedSpeed && styles.disabled]} testID="speed-count-settings">
         <Text style={styles.sectionLabel}>Preset Speed Buttons</Text>
         {!advancedSpeed && <Text style={styles.proOnlyNote}>Pro only</Text>}

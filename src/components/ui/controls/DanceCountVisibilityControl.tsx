@@ -21,6 +21,11 @@ const DanceCountVisibilityControl: React.FC = () => {
       <Text style={styles.hint}>
         Uses the project BPM and selected phrase length; it does not detect phrases in the audio.
       </Text>
+      {showDanceCounts && (
+        <Text style={styles.enabled} accessibilityLiveRegion="polite" testID="dance-counts-enabled">
+          Dance counts are on. Close Settings to see the live phrase/count and waveform row labels.
+        </Text>
+      )}
     </View>
   );
 };

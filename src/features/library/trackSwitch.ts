@@ -23,18 +23,21 @@ import { flushDraft, type DraftFlushResult } from './draftAutosave';
 import {
   commitTrackSwitch,
   mutateLibrary,
-  readDraft,
+  readDraftStrict,
   readProject,
-  readProjectIndex,
   type RepositoryOptions,
 } from './repositories';
-import { resolveSource } from './sourceResolver';
+import { resolveSource, SourceUnavailableError } from './sourceResolver';
 import type { SaveResult } from './projectService';
 import { buildQueue, nextSkipCandidate } from '../../utils/queueOrder';
 import type { PlaybackQueue } from '../../types/queue';
 import { perfBegin, perfEndAfterFrame } from '../../utils/perfMarks';
+import { withAudioOperationTimeout } from '../../utils/audioOperationTimeout';
 
 const PLAYER_LOAD_TIMEOUT_MS = 10_000;
+const PLAYER_SEEK_TIMEOUT_MS = 5_000;
+const PLAYER_COMMAND_TIMEOUT_MS = 2_000;
+const TRACK_RESOLVE_TIMEOUT_MS = 12_000;
 
 export type SwitchRequest = SwitchDestination;
 
@@ -99,11 +102,9 @@ export interface TrackSwitchDependencies {
   getState: typeof useStudioStore.getState;
   setState: typeof useStudioStore.setState;
   flushDraft: (timeoutMs: number) => Promise<DraftFlushResult>;
-  readDraft: typeof readDraft;
+  readDraft: typeof readDraftStrict;
   readProject: typeof readProject;
-  readProjectIndex: typeof readProjectIndex;
   resolveSource: typeof resolveSource;
-  checkAvailable: typeof audioStore.checkAvailable;
   probePlayableDuration: typeof audioStore.probePlayableDuration;
   mutateLibrary: typeof mutateLibrary;
   commitTrackSwitch: typeof commitTrackSwitch;
@@ -148,23 +149,34 @@ const currentPlayer = (): PlayerSnapshot => {
 const defaultPlayer: TrackSwitchPlayer = {
   pause: () => currentPlayer().pause(),
   play: () => currentPlayer().play(),
-  seekTo: milliseconds => currentPlayer().seekTo(milliseconds),
+  seekTo: milliseconds => withAudioOperationTimeout(
+    currentPlayer().seekTo(milliseconds),
+    PLAYER_SEEK_TIMEOUT_MS,
+    'Audio seek during song switch',
+  ),
   waitUntilLoaded: (uri, timeoutMs) => new Promise<void>((resolve, reject) => {
     let settled = false;
     const finish = (error?: Error): void => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      clearInterval(poll);
       playerListeners.delete(check);
       if (error) reject(error);
       else resolve();
     };
     const check = (): void => {
-      if (playerSnapshot?.uri === uri && playerSnapshot.isLoaded) finish();
+      if (playerSnapshot?.uri !== uri) return;
+      try {
+        if (playerSnapshot.isLoaded) finish();
+      } catch {
+        // Expo may release the old player before React publishes its replacement.
+      }
     };
     const timeout = setTimeout(() => {
       finish(new Error('Timed out while loading audio'));
     }, timeoutMs);
+    const poll = setInterval(check, 150);
     playerListeners.add(check);
     check();
   }),
@@ -185,11 +197,9 @@ const defaultDependencies: TrackSwitchDependencies = {
   getState: useStudioStore.getState,
   setState: useStudioStore.setState,
   flushDraft,
-  readDraft,
+  readDraft: readDraftStrict,
   readProject,
-  readProjectIndex,
   resolveSource,
-  checkAvailable: audioStore.checkAvailable,
   probePlayableDuration: audioStore.probePlayableDuration,
   mutateLibrary,
   commitTrackSwitch,
@@ -229,29 +239,21 @@ const snapshotSource = (state: StudioStore): SourceSnapshot => ({
   loadedProjectSource: state.loadedProjectSource as SavedProject | null,
 });
 
-const projectsForItem = (
-  projects: Awaited<ReturnType<typeof readProjectIndex>>,
-  musicItemId: string,
-) => Object.values(projects?.projects ?? {}).filter(project => project.musicItemId === musicItemId);
-
 async function resolveTrack(
   dependencies: TrackSwitchDependencies,
   request: SwitchRequest,
 ): Promise<ResolvedTrack> {
   const item = dependencies.getState().libraryItems[request.musicItemId];
   if (!item || item.removed) throw new Error('Music item is not available');
-  if (item.availability !== 'available'
-    || await dependencies.checkAvailable(item.source.reference) !== 'available') {
-    throw new Error('MISSING_AUDIO');
-  }
+  if (item.availability !== 'available') throw new SourceUnavailableError(item);
 
-  const [{ uri }, draft, index] = await Promise.all([
+  const [{ uri }, draft] = await Promise.all([
     dependencies.resolveSource(item),
     dependencies.readDraft(item.id),
-    dependencies.readProjectIndex(),
   ]);
-  if (index === null) throw new Error('Project index is unavailable');
-  const summaries = projectsForItem(index, item.id);
+  // Boot reconciles this index and project mutations maintain it. Read only this song's content.
+  const summaries = Object.values(dependencies.getState().projectSummaries)
+    .filter(project => project.musicItemId === item.id);
   const draftFingerprint = draft === null ? null : computeContentFingerprint(draft.content);
   const resolution = resolveSongLoad({
     draft,
@@ -294,7 +296,14 @@ async function resolveTrack(
     content = createEmptyPersistedContent();
   }
 
-  const durationMs = await dependencies.probePlayableDuration(uri, IMPORT_DECODE_TIMEOUT_MS);
+  // Import already validated and persisted the duration. Re-probing here created a second native
+  // player on every library tap and made long songs appear to hang before the real player loaded.
+  // Only legacy/migrated records without usable metadata need the bounded compatibility probe.
+  const durationMs = typeof item.durationMs === 'number'
+    && Number.isFinite(item.durationMs)
+    && item.durationMs > 0
+    ? item.durationMs
+    : await dependencies.probePlayableDuration(uri, IMPORT_DECODE_TIMEOUT_MS);
   return {
     item,
     uri,
@@ -312,6 +321,7 @@ async function resolveTrack(
 const markMissing = async (
   dependencies: TrackSwitchDependencies,
   musicItemId: string,
+  reference: string,
 ): Promise<void> => {
   try {
     const library = await dependencies.mutateLibrary((current: LibraryRecord | null) => {
@@ -322,7 +332,7 @@ const markMissing = async (
       };
       const source = current ?? fallback;
       const item = source.items[musicItemId];
-      if (!item) return { library: source, result: source };
+      if (!item || item.source.reference !== reference) return { library: source, result: source };
       const nextLibrary: LibraryRecord = {
         ...source,
         items: {
@@ -335,7 +345,12 @@ const markMissing = async (
         result: nextLibrary,
       };
     }, { onIssue: upsertPersistenceIssue });
-    dependencies.setState({ libraryItems: library.items });
+    const missing = library.items[musicItemId];
+    if (missing?.availability === 'missing') dependencies.setState(state => {
+      const item = state.libraryItems[musicItemId];
+      if (!item || item.source.reference !== missing.source.reference) return {};
+      return { libraryItems: { ...state.libraryItems, [musicItemId]: { ...item, availability: 'missing' } } };
+    });
   } catch {
     // The repository issue remains visible; switching still fails safely on the source song.
   }
@@ -410,7 +425,6 @@ const restoreSource = async (
 
 const persistSuccessfulSwitch = async (
   dependencies: TrackSwitchDependencies,
-  request: SwitchRequest,
   item: MusicItem,
 ): Promise<void> => {
   const state = dependencies.getState();
@@ -420,12 +434,22 @@ const persistSuccessfulSwitch = async (
     dependencies.now().toISOString(),
     { onIssue: upsertPersistenceIssue },
   );
-  dependencies.setState({ libraryItems: committed.library.items, queue: committed.queue });
+  dependencies.setState(current => {
+    const live = current.libraryItems[item.id];
+    if (!live) return {};
+    return { libraryItems: {
+      ...current.libraryItems,
+      [item.id]: { ...live, lastPlayedAt: committed.library.items[item.id].lastPlayedAt },
+    } };
+  });
 };
 
 interface PendingRequest {
   request: SwitchRequest;
   resolve: (result: SwitchResult) => void;
+  bypassGuard?: boolean;
+  guardWasShown?: boolean;
+  visited?: ReadonlySet<string>;
 }
 
 export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
@@ -456,8 +480,18 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
 
   const restorePlaybackIfNeeded = async (wasPlaying: boolean): Promise<void> => {
     if (!wasPlaying) return;
-    await dependencies.player.play();
-    dependencies.setState({ isPlaying: true });
+    try {
+      await withAudioOperationTimeout(
+        dependencies.player.play(),
+        PLAYER_COMMAND_TIMEOUT_MS,
+        'Playback resume after song-switch failure',
+      );
+      dependencies.setState({ isPlaying: true });
+    } catch (error) {
+      console.error('Unable to resume playback after failed song switch', error);
+      dependencies.setState({ isPlaying: false });
+      dependencies.getState().notify('Song was not changed. Tap Play to resume.');
+    }
   };
 
   const run = async (
@@ -468,7 +502,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
   ): Promise<SwitchResult> => {
     const initial = dependencies.getState();
     if (initial.saveInProgress) return { kind: 'cancelled' };
-    if (!bypassGuard && decideSwitchGuard(initial.draftUiState) === 'prompt') {
+    if (!bypassGuard && initial.currentMusicItemId !== null && decideSwitchGuard(initial.draftUiState) === 'prompt') {
       dependencies.setState({
         switchPhase: 'guard',
         switchGuard: { pendingDestination: request },
@@ -478,12 +512,27 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
 
     const source = snapshotSource(initial);
     const wasPlaying = initial.isPlaying;
-    if (wasPlaying) await dependencies.player.pause();
+    // Return the Library gesture to the same Studio transition used by the transport controls.
+    // Keep guard decisions in the sheet, then dismiss it before changing the player or canvas.
     dependencies.setState({
       isPlaying: false,
       switchPhase: 'flushing',
       loadingMusicItemId: request.musicItemId,
+      ...(request.origin === 'library' && { isLibrarySheetOpen: false }),
     });
+    if (wasPlaying) {
+      try {
+        await withAudioOperationTimeout(
+          dependencies.player.pause(),
+          PLAYER_COMMAND_TIMEOUT_MS,
+          'Playback pause before song switch',
+        );
+      } catch (error) {
+        // Applying the new source stops the old one. A native pause promise abandoned after an iOS
+        // suspension must not keep a Music Library row busy forever.
+        console.error('Unable to confirm playback pause before song switch', error);
+      }
+    }
     const flushResult = await dependencies.flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
     if (flushResult === 'failed' || flushResult === 'timeout') {
       dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
@@ -493,17 +542,22 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         'draftFlush',
         'Song Not Changed',
         "BeatNote couldn't save your draft, so the song wasn't changed.",
-        () => drain(request, bypassGuard, guardWasShown, visited),
+        () => requestTrackSwitch(request, bypassGuard, guardWasShown, visited),
       );
     }
 
     dependencies.setState({ switchPhase: 'resolving', loadingMusicItemId: request.musicItemId });
     let destination: ResolvedTrack;
     try {
-      destination = await resolveTrack(dependencies, request);
+      destination = await withAudioOperationTimeout(
+        resolveTrack(dependencies, request),
+        TRACK_RESOLVE_TIMEOUT_MS,
+        'Song metadata and audio resolution',
+      );
     } catch (error) {
-      const missing = error instanceof Error && error.message === 'MISSING_AUDIO';
-      if (missing) await markMissing(dependencies, request.musicItemId);
+      const missing = error instanceof SourceUnavailableError && error.cause === undefined;
+      const item = initial.libraryItems[request.musicItemId];
+      if (missing && item) void markMissing(dependencies, item.id, item.source.reference);
       dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
       await restorePlaybackIfNeeded(wasPlaying);
       const title = initial.libraryItems[request.musicItemId]?.displayTitle ?? 'Song';
@@ -514,7 +568,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         missing
           ? 'The audio file is no longer available.'
           : error instanceof Error ? error.message : String(error),
-        () => drain(request, bypassGuard, guardWasShown, visited),
+        () => requestTrackSwitch(request, bypassGuard, guardWasShown, visited),
         queueOrigin(request.origin)
           ? () => skipFromFailure(request, bypassGuard, guardWasShown, visited)
           : undefined,
@@ -572,39 +626,35 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         'playerFailed',
         `Couldn't Open “${destination.item.displayTitle}”`,
         error instanceof Error ? error.message : String(error),
-        () => drain(request, bypassGuard, guardWasShown, visited),
+        () => requestTrackSwitch(request, bypassGuard, guardWasShown, visited),
         queueOrigin(request.origin)
           ? () => skipFromFailure(request, bypassGuard, guardWasShown, visited)
           : undefined,
       );
     }
 
-    try {
-      await persistSuccessfulSwitch(dependencies, request, destination.item);
-    } catch (error) {
-      dependencies.setState({ switchPhase: 'rollingBack' });
-      try {
-        await restoreSource(dependencies, source);
-      } catch {
-        dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null, isPlaying: false });
-      }
-      return failed(
-        request,
-        'resolveFailed',
-        `Couldn't Open “${destination.item.displayTitle}”`,
-        error instanceof Error ? error.message : String(error),
-        () => drain(request, bypassGuard, guardWasShown, visited),
-        queueOrigin(request.origin)
-          ? () => skipFromFailure(request, bypassGuard, guardWasShown, visited)
-          : undefined,
-      );
-    }
+    // The audible/player switch is complete at this point. Persisting recent-play metadata and the
+    // queue is retryable bookkeeping and may be queued behind an AsyncStorage operation abandoned
+    // during suspension. Do not hold the Library sheet or roll back playable audio while it waits.
+    void persistSuccessfulSwitch(dependencies, destination.item).catch(error => {
+      console.error('Song changed but switch bookkeeping could not be saved', error);
+      dependencies.getState().notify('Song changed, but its recent-play update is still pending.');
+    });
     dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
     if (wasPlaying && !guardWasShown) {
-      await dependencies.player.play();
-      dependencies.setState({ isPlaying: true });
+      try {
+        await withAudioOperationTimeout(
+          dependencies.player.play(),
+          PLAYER_COMMAND_TIMEOUT_MS,
+          'Playback resume after song switch',
+        );
+        dependencies.setState({ isPlaying: true });
+      } catch (error) {
+        console.error('Song loaded but playback could not resume', error);
+        dependencies.setState({ isPlaying: false });
+        dependencies.getState().notify('Song loaded. Tap Play to resume.');
+      }
     }
-    if (request.origin === 'library') dependencies.setState({ isLibrarySheetOpen: false });
     if (queueOrigin(request.origin)) dependencies.announceQueueTitle(destination.item.displayTitle);
     return { kind: 'committed', musicItemId: destination.item.id };
   };
@@ -633,6 +683,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     }
     if (request.origin === 'library' && result.kind === 'failed') {
       dependencies.setState({
+        isLibrarySheetOpen: true,
         librarySwitchFailure: {
           musicItemId: request.musicItemId,
           message: result.reason.message,
@@ -643,8 +694,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     pending = null;
     dependencies.setState({ pendingSwitchTargetId: null });
     if (next !== null) {
-      const nextResult = await drain(next.request);
-      next.resolve(nextResult);
+      void drain(next.request, next.bypassGuard, next.guardWasShown, next.visited).then(next.resolve);
     }
     return result;
   };
@@ -669,27 +719,32 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         'resolveFailed',
         'Song Not Changed',
         'No playable songs in this direction',
-        () => drain(request, bypassGuard, guardWasShown, visited),
+        () => requestTrackSwitch(request, bypassGuard, guardWasShown, visited),
       ));
     }
-    return drain({
+    return requestTrackSwitch({
       musicItemId: candidate.musicItemId,
       queueIndex: candidate.index,
       origin: direction === -1 ? 'queuePrevious' : 'queueNext',
     }, bypassGuard, guardWasShown, nextVisited);
   };
 
-  const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult> => {
+  const requestTrackSwitch = (
+    request: SwitchRequest,
+    bypassGuard = false,
+    guardWasShown = false,
+    visited: ReadonlySet<string> = new Set(),
+  ): Promise<SwitchResult> => {
     const state = dependencies.getState();
     if (state.switchPhase === 'guard') return Promise.resolve({ kind: 'cancelled' });
-    if (!active) return drain(request);
+    if (!active) return drain(request, bypassGuard, guardWasShown, visited);
     if (pending !== null) pending.resolve({ kind: 'superseded' });
     dependencies.setState({ pendingSwitchTargetId: request.musicItemId });
-    return new Promise(resolve => { pending = { request, resolve }; });
+    return new Promise(resolve => { pending = { request, resolve, bypassGuard, guardWasShown, visited }; });
   };
 
   const requestTrackSwitchWithoutGuard = (request: SwitchRequest): Promise<SwitchResult> => (
-    drain(request, true)
+    requestTrackSwitch(request, true)
   );
 
   const resolveSwitchGuard = async (
@@ -706,6 +761,8 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     }
     if (choice === 'save') {
       const result = await dependencies.saveCurrent();
+      // Saving may finish after the user cancelled the prompt or chose another destination.
+      if (dependencies.getState().switchGuard !== guard) return { kind: 'cancelled' };
       if (result.kind !== 'saved') {
         if (result.kind === 'failed' || result.kind === 'noSong') {
           dependencies.setState({ switchGuard: null, switchPhase: 'idle' });
@@ -744,6 +801,19 @@ export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult
     .finally(() => perfEndAfterFrame(intervalId));
 };
 
+/**
+ * Automatic completion never overwrites a saved project or blocks playback behind the manual
+ * switch guard. The transaction still flushes the per-song draft before changing audio, and a
+ * failed/timeout flush aborts the switch so authored work is never discarded.
+ */
+export const requestTrackSwitchAfterCompletion = (
+  request: SwitchRequest,
+): Promise<SwitchResult> => {
+  const intervalId = perfBegin('track.switch');
+  return defaultTrackSwitch.requestTrackSwitchWithoutGuard(request)
+    .finally(() => perfEndAfterFrame(intervalId));
+};
+
 export const resolveSwitchGuard = (
   choice: SwitchGuardChoice,
 ): Promise<SwitchGuardResolution> => defaultTrackSwitch.resolveSwitchGuard(choice);
@@ -756,5 +826,5 @@ export const restoreTrackAfterDeleteFailure = (request: SwitchRequest): Promise<
 /** Seek the currently published player without replacing its source or playback state. */
 export const seekCurrentTrack = async (milliseconds: number): Promise<void> => {
   await defaultPlayer.seekTo(milliseconds);
-  useStudioStore.setState({ currentTime: milliseconds });
+  useStudioStore.getState().beginPlaybackTraversal(milliseconds);
 };

@@ -139,6 +139,28 @@ const initialUnloadedEditorPatch = (): Partial<StudioStore> => ({
   isTextInputFocused: false,
 });
 
+/** Publish a clean, unloaded studio after the user explicitly deletes all BeatNote data. */
+export const resetAllStudioData = (): void => {
+  useStudioStore.setState({
+    ...initialUnloadedEditorPatch(),
+    libraryItems: {},
+    librarySort: 'recentlyAdded',
+    librarySortDirection: 'descending',
+    libraryCustomOrder: [],
+    projectSummaries: {},
+    readOnlyLegacyProjects: [],
+    migrationNoticeCount: null,
+    importJobs: [],
+    analysisByItem: {},
+    libraryStatus: 'ready',
+    persistenceIssues: [],
+    libraryNotice: null,
+    isLibrarySheetOpen: false,
+    queue: null,
+    saveInProgress: false,
+  });
+};
+
 /** Delete only BeatNote's managed copy while retaining project and draft references. */
 export async function deleteMusicItem(musicItemId: string): Promise<DeleteMusicItemResult> {
   const initial = useStudioStore.getState();

@@ -89,7 +89,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
     },
     {
       name: 'export',
-      label: 'Export CSV',
+      label: 'Export Project',
       onPress: returnFocusRef => onExport(returnFocusRef ?? copyRef),
       disabled: disabled || exportDisabled,
       testID: `project-export-${project.projectId}`,

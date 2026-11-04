@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.beatnote.app",
-      "buildNumber": "13",
+      "buildNumber": "29",
       "requireFullScreen": false,
       "infoPlist": {
         "UIFileSharingEnabled": true,
@@ -62,6 +62,7 @@
           }
         }
       ],
+      "./plugins/withExpoAudioIosSeekFix",
       "./plugins/withIosPodDeploymentTarget",
       "./plugins/withVersionConsistency",
       "./plugins/withAudioDocumentTypes",

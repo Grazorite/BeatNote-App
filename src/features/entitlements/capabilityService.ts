@@ -96,6 +96,14 @@ export const setDebugTier = async (tier: ProductTier): Promise<void> => {
   }
 };
 
+/** Remove the preview override and return to the V1 default during an all-data reset. */
+export const resetDebugTier = async (): Promise<void> => {
+  await hydration;
+  currentTier = 'pro';
+  notify();
+  await AsyncStorage.removeItem(DEBUG_TIER_KEY);
+};
+
 /**
  * V1 preview provider: no purchases, tier comes from the debug override (default Pro). Replace
  * at V2 launch; UI code continues to ask only whether a product capability is available.

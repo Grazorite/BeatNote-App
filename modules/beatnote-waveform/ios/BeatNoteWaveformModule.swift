@@ -66,7 +66,35 @@ private struct PeakAccumulator {
   }
 }
 
+private final class WaveformRequests: @unchecked Sendable {
+  private let lock = NSLock()
+  private var active = Set<String>()
+
+  func begin() -> String {
+    let id = UUID().uuidString
+    lock.lock()
+    active.insert(id)
+    lock.unlock()
+    return id
+  }
+
+  func end(_ id: String) {
+    lock.lock()
+    active.remove(id)
+    lock.unlock()
+  }
+
+  func check(_ id: String?) throws {
+    guard let id else { return }
+    lock.lock()
+    defer { lock.unlock() }
+    if !active.contains(id) { throw CancellationError() }
+  }
+}
+
 public final class BeatNoteWaveformModule: Module {
+  private let requests = WaveformRequests()
+
   public func definition() -> ModuleDefinition {
     Name("BeatNoteWaveform")
 
@@ -74,13 +102,20 @@ public final class BeatNoteWaveformModule: Module {
       WaveformSignpostGate.shared.setEnabled(enabled)
     }
 
+    Function("beginRequest") { self.requests.begin() }
+    Function("cancelRequest") { (id: String) in self.requests.end(id) }
+
     AsyncFunction("extractPeaksAsync") {
-      (audioURL: URL, requestedSamplesPerSecond: Int) async throws -> [String: Any] in
+      (audioURL: URL, requestedSamplesPerSecond: Int, requestId: String?) async throws -> [String: Any] in
       let samplesPerSecond = min(max(requestedSamplesPerSecond, 25), 200)
       let signpostID = String(UUID().uuidString.prefix(8))
       Self.signpostBegin(signpostID, name: "waveform.decode")
-      defer { Self.signpostEnd(signpostID) }
-      return try await Self.extractPeaks(from: audioURL, samplesPerSecond: samplesPerSecond)
+      defer {
+        Self.signpostEnd(signpostID)
+        if let requestId { self.requests.end(requestId) }
+      }
+      try self.requests.check(requestId)
+      return try await self.extractPeaks(from: audioURL, samplesPerSecond: samplesPerSecond, requestId: requestId)
     }
   }
 
@@ -92,9 +127,10 @@ public final class BeatNoteWaveformModule: Module {
     WaveformSignpostGate.shared.end(intervalID)
   }
 
-  private static func extractPeaks(
+  private func extractPeaks(
     from audioURL: URL,
-    samplesPerSecond: Int
+    samplesPerSecond: Int,
+    requestId: String?
   ) async throws -> [String: Any] {
     let asset = AVURLAsset(url: audioURL)
     let duration = try await asset.load(.duration)
@@ -108,7 +144,8 @@ public final class BeatNoteWaveformModule: Module {
       throw WaveformExtractionError.audioTrackMissing
     }
 
-    let targetPeakCount = max(1, Int(ceil(durationSeconds * Double(samplesPerSecond))))
+    // Bound accumulator allocation and the peak array boxed across the JS bridge for long sets.
+    let targetPeakCount = max(1, Int(min(60_000, ceil(durationSeconds * Double(samplesPerSecond)))))
     let formatDescriptions = try await track.load(.formatDescriptions)
     let audioDescription = formatDescriptions.first
       .flatMap { CMAudioFormatDescriptionGetStreamBasicDescription($0) }
@@ -133,14 +170,18 @@ public final class BeatNoteWaveformModule: Module {
       throw WaveformExtractionError.cannotAddOutput
     }
     reader.add(output)
+    try requests.check(requestId)
     guard reader.startReading() else {
       throw WaveformExtractionError.cannotStartReader
     }
+
+    defer { reader.cancelReading() }
 
     var accumulators = Array(repeating: PeakAccumulator(), count: targetPeakCount)
     var processedFrames = 0
 
     while let sampleBuffer = output.copyNextSampleBuffer() {
+      try requests.check(requestId)
       guard let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else { continue }
       let byteLength = CMBlockBufferGetDataLength(blockBuffer)
       guard byteLength > 0 else { continue }

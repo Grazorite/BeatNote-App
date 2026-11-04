@@ -21,6 +21,32 @@ const formatClock = (milliseconds: number): string => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
+const BASIC_WAVEFORM_PEAKS = Array.from({ length: 72 }, (_, index) => {
+  const pulse = Math.abs(Math.sin(index * 0.43)) * 0.55;
+  const phrase = Math.abs(Math.sin(index * 0.11 + 0.7)) * 0.35;
+  return Math.max(0.12, Math.min(1, 0.1 + pulse + phrase));
+});
+
+const printableWaveformBars = (peaks?: readonly number[]): string => {
+  const source = peaks && peaks.length > 0 ? peaks : BASIC_WAVEFORM_PEAKS;
+  const barCount = Math.min(96, source.length);
+  const barWidth = 100 / barCount;
+  const bars = Array.from({ length: barCount }, (_, index) => {
+    const sourceIndex = Math.min(source.length - 1, Math.floor(index / barCount * source.length));
+    const amplitude = Number.isFinite(source[sourceIndex])
+      ? Math.max(0.08, Math.min(1, Math.abs(source[sourceIndex])))
+      : 0.08;
+    const height = amplitude * 88;
+    const x = index * barWidth + barWidth * 0.1;
+    const width = barWidth * 0.8;
+    const y = (100 - height) / 2;
+    return `<rect class="waveform-bar" x="${x.toFixed(3)}" y="${y.toFixed(2)}" width="${width.toFixed(3)}" height="${height.toFixed(2)}" rx="0.3" />`;
+  }).join('');
+  // iOS's print WebView drops percentage-height flex children even though their container and
+  // adjacent marker spans render. SVG geometry is deterministic in both Quartz PDF and browsers.
+  return `<svg class="timeline-waveform" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+};
+
 function collectVisibleMarkers(layers: Layer[]) {
   const allMarkers: { time: number; layer: string; annotation: string }[] = [];
 
@@ -100,6 +126,7 @@ export function buildPdfHtml(options: PDFExportOptions): { filename: string; htm
       : 0;
     return `<span class="timeline-marker" style="left:${left.toFixed(3)}%" title="${escapeHtml(marker.layer)}"></span>`;
   }).join('');
+  const timelineWaveform = printableWaveformBars(options.waveformPeaks);
   const countRows = markers.map(marker => `
     <tr><td>${marker.danceCount.phrase}</td><td>${marker.danceCount.count}</td><td>${escapeHtml(formatClock(marker.time))}</td><td>${escapeHtml(marker.layer)}</td></tr>`).join('');
 
@@ -112,8 +139,10 @@ export function buildPdfHtml(options: PDFExportOptions): { filename: string; htm
   h1 { font-size: 24pt; margin: 0 0 4px; }
   h2 { border-bottom: 1px solid #d8d8df; font-size: 14pt; margin: 24px 0 10px; padding-bottom: 5px; }
   .meta { color: #5d5d68; display: flex; gap: 20px; }
-  .timeline { background: #ececf2; border-radius: 5px; height: 22px; margin: 18px 0 4px; position: relative; }
-  .timeline-marker { background: #d89018; border: 1px solid #6f4607; height: 22px; position: absolute; top: 0; width: 3px; }
+  .timeline { background: #ececf2; border-radius: 5px; height: 30px; margin: 18px 0 4px; overflow: hidden; position: relative; }
+  .timeline-waveform { height: 100%; inset: 0; opacity: 1; position: absolute; width: 100%; }
+  .waveform-bar { fill: #000; }
+  .timeline-marker { background: #d89018; border: 1px solid #6f4607; height: 30px; position: absolute; top: 0; width: 3px; }
   .timeline-labels { color: #696973; display: flex; font-size: 9pt; justify-content: space-between; }
   table { border-collapse: collapse; page-break-inside: auto; width: 100%; }
   tr { page-break-inside: avoid; }
@@ -123,7 +152,7 @@ export function buildPdfHtml(options: PDFExportOptions): { filename: string; htm
   .empty { color: #696973; font-style: italic; }
 </style></head><body>
 ${options.includeHeader ? `<header><h1>${escapeHtml(options.projectName)}</h1><div class="meta"><span>${options.bpm} BPM</span><span>${options.countSize}-count phrases</span><span>${markers.length} markers</span></div></header>` : ''}
-${options.includeTimeline ? `<section><h2>Timeline</h2><div class="timeline">${timelineMarkers}</div><div class="timeline-labels"><span>0:00</span><span>${escapeHtml(formatClock(options.songDuration))}</span></div></section>` : ''}
+${options.includeTimeline ? `<section><h2>Timeline</h2><div class="timeline">${timelineWaveform}${timelineMarkers}</div><div class="timeline-labels"><span>0:00</span><span>${escapeHtml(formatClock(options.songDuration))}</span></div></section>` : ''}
 ${options.includeMarkerList ? `<section><h2>Choreography markers</h2>${markers.length === 0 ? '<p class="empty">No visible markers.</p>' : `<table><thead><tr><th>Time</th><th>Count</th><th>Layer</th>${options.includeNotes ? '<th>Notes</th>' : ''}</tr></thead><tbody>${markerRows}</tbody></table>`}</section>` : ''}
 ${options.includeCountGrid ? `<section><h2>Count grid</h2>${markers.length === 0 ? '<p class="empty">No counts to show.</p>' : `<table><thead><tr><th>Phrase</th><th>Count</th><th>Time</th><th>Layer</th></tr></thead><tbody>${countRows}</tbody></table>`}</section>` : ''}
 </body></html>`;

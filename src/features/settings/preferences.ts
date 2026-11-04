@@ -70,7 +70,7 @@ const playbackSpeedPresetOverridesFrom = (value: unknown): Readonly<Record<strin
       && typeof entry === 'number'
       && Number.isFinite(entry)
       && entry >= 0.25
-      && entry <= 4
+      && entry <= 2
     )),
   ));
 };
@@ -131,4 +131,12 @@ export const updateSettingsPreferences = async (
   } catch (error) {
     console.error('Settings preference save failed:', error);
   }
+};
+
+/** Restore in-memory and persisted settings defaults during an explicit all-data reset. */
+export const resetSettingsPreferences = async (): Promise<void> => {
+  await hydration;
+  snapshot = DEFAULTS;
+  emit();
+  await AsyncStorage.removeItem(STORAGE_KEY);
 };

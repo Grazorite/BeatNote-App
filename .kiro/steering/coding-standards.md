@@ -102,7 +102,8 @@ inclusion: always
   render. This keeps rapid taps deterministic and prevents heavy waveform/library renders from
   leaving the thumb between states. In the single annotation-lane Settings view, use the shared
   marker colour for the swatch because that lane's visible identity is its marker, not the hidden
-  legacy stem-layer palette.
+  legacy stem-layer palette. Its enabled Reset action uses the shared destructive red; disabled
+  state still relies on opacity and accessibility state rather than colour alone.
 - Place mobile Settings at the trailing/rightmost end of a horizontal global toolbar. Full-screen
   utility pages enter from the trailing edge, and deeper pages use the same horizontal push/reveal
   direction; do not use the platform modal's bottom-up sheet transition for this navigation stack.
@@ -125,9 +126,14 @@ inclusion: always
 - Transient toast and annotation-callout replacements crossfade without exit-time layout motion:
   the mobile feedback stack retains fixed toast and annotation slots, and fades content fully at
   its anchored position before unmounting it. The annotation callout owns a retained native opacity
-  animation rather than relying on a disappearing marker selection to animate its presence. Once a
-  timed annotation leaves its display window, suppress that marker until the playhead genuinely
-  seeks or loops back before it; native clock jitter must not retrigger the same callout. When the
+  animation on a plain `Animated.View`, with a separate `Pressable` for its action. Never wrap
+  `TouchableOpacity` in another animated component controlling opacity: its internal opacity
+  animation overrides the same native view and restarts when disabled during fade-out. Timed
+  annotations are one-shot marker-crossing events whose dwell is owned by a timer, never a playback
+  clock window; native clock jitter must not retrigger the same callout. A genuine backward seek or
+  loop may re-arm the marker through an explicit transport traversal event. Keep the crossing
+  cursor monotonic within each traversal; never infer a seek from a backward clock sample or
+  remember only the last marker as the deduplication boundary. When the
   annotation slot is empty, lower dock toasts into that space instead of reserving an unexplained
   blank row above them.
   Playback choosers likewise fade in place and must
@@ -141,13 +147,14 @@ inclusion: always
   rate. Preserve
   both tap/hold operations in accessible labels, clamp seeking to track bounds, and keep the control
   usable when either operation remains available.
-- Advanced playback-speed configuration is Pro-only. It offers exactly two ranges (`0.5×–2.00×`
-  and `0.25×–4.00×`) and 4, 8, or 12 preset buttons with useful defaults for each combination.
+- Playback speed uses one supported `0.25×–2.00×` range in every tier; do not expose a range
+  selector or presets above the installed iOS player's 2× ceiling. Advanced configuration is
+  Pro-only and offers 4, 8, or 12 useful preset buttons within that range.
   The chosen preset count and the active speed preset get an accent border without an accent fill,
   and Settings exposes only choices that change behavior; do not add static rows describing
   built-in presets or fine controls.
   Long-pressing a preset opens its numeric editor; saving persists that slot for the selected
-  range/count, while Use Default clears the override. Holding the fine `−/+` controls accelerates
+  count, while Use Default clears the override. Holding the fine `−/+` controls accelerates
   their 0.05× repeats. Lite keeps the standard built-in presets and hides fine controls.
 - Playback settings group each toggle with its own caption without section-sized whitespace. Pause
   on Headset Disconnect defaults on and persists independently of tier; an iOS output-route loss
@@ -158,6 +165,25 @@ inclusion: always
   Teal stays the single cool hue so loop state reads at a glance. The disabled loop keeps its dashed
   border. Handle touch targets stay at least 44 points; only the visual capsule is slim, and its
   width must match `LOOP_HANDLE_VISUAL_WIDTH` in `LoopRangeLayer.tsx`.
+- Decoded waveform work must never look like an unexplained frozen editor. While extraction or the
+  first peak render is pending, the wrapped waveform shows a centered, high-contrast progress card
+  with an activity indicator, `Preparing waveform`, and the long-song expectation. Keep it a
+  non-intercepting overlay, announce it as progress, and retain it through the first peak-render
+  frame so bridge transfer/path construction cannot make the message disappear prematurely.
+- Wrapped-waveform scrubbing activates after a small deliberate horizontal movement (about 3
+  points), tolerates ordinary vertical finger drift, and continues outside the initial row bounds.
+  Preserve vertical-first scrolling, but never require a long hold or repeated drag attempts to
+  capture the playhead.
+- Live Custom Order previews move neighbouring rows while the held row remains under the finger.
+  On release, clear the held row's native drag transform before publishing its persisted list index;
+  otherwise the old transform is applied at the new index and the row visibly jumps a second time.
+- Data Management offers separate typed-confirmation actions for deleting all saved projects, all
+  imported audio, and all BeatNote data. Bulk imported-audio deletion sits immediately above full
+  data deletion in Destructive Actions, uses the shared red outlined treatment, preserves projects
+  and drafts for relinking, and never deletes original source files. Project deletion preserves
+  imported audio and detaches song drafts as unsaved work. Full deletion removes every app-owned
+  record, managed copy, preference, and cache, but never deletes the user's original source files
+  outside BeatNote.
 - "Loop between markers" is drawn in the marker violet, never teal, so it stays distinct from the
   range loop (the two are mutually exclusive, so only one is ever visible). Rows show a very faint
   violet wash plus a slim underline across the looped segment; the overview strip shows only the

@@ -7,7 +7,9 @@ export interface NativeWaveformResult {
 
 interface BeatNoteWaveformNativeModule {
   enableSignposts?(enabled: boolean): void;
-  extractPeaksAsync(audioUri: string, targetSamplesPerSecond: number): Promise<NativeWaveformResult>;
+  beginRequest(): string;
+  cancelRequest(id: string): void;
+  extractPeaksAsync(audioUri: string, targetSamplesPerSecond: number, requestId: string | null): Promise<NativeWaveformResult>;
 }
 
 export default requireNativeModule<BeatNoteWaveformNativeModule>('BeatNoteWaveform');

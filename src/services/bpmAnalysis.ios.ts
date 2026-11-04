@@ -2,8 +2,8 @@ import BeatNoteTempo from '../../modules/beatnote-tempo/src';
 import { perfMarksEnabled } from '../utils/perfMarks';
 import type { AnalysisRequest, AnalysisResult } from './bpmAnalysis.types';
 
-export const ANALYZER_ID = 'ios-accelerate-v1';
-export const ANALYZER_VERSION = 1;
+export const ANALYZER_ID = 'ios-accelerate-v2';
+export const ANALYZER_VERSION = 2;
 
 const abortError = (): Error => {
   const error = new Error('BPM analysis was cancelled');
@@ -31,8 +31,18 @@ export async function analyzeBpm(request: AnalysisRequest): Promise<AnalysisResu
     );
     if (request.signal?.aborted) throw abortError();
     request.onProgress?.(1);
+    const detectedBpm = Math.round(result.detectedBpm);
+    const seen = new Set<number>();
+    const bpmAlternatives = result.bpmAlternatives.flatMap(alternative => {
+      const bpm = Math.round(alternative.bpm);
+      if (seen.has(bpm)) return [];
+      seen.add(bpm);
+      return [{ ...alternative, bpm }];
+    });
     return {
       ...result,
+      detectedBpm,
+      bpmAlternatives,
       analyzerId: ANALYZER_ID,
       analyzerVersion: ANALYZER_VERSION,
       audioFingerprint: request.audioFingerprint,

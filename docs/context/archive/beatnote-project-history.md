@@ -3,6 +3,626 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+## Archived Done — 2026-11-05 Profile renewal
+
+- [x] V1 release blocker — Make Music Library completion independent of stalled bookkeeping,
+      expose explicit automatic-tempo analysis and visible dance-count feedback, render decoded or
+      basic fallback waveform artwork in PDF timelines, and install Release 25
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/utils/exportEngineCore.ts`, `src/utils/exportTypes.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-05 Profile renewal
+
+### 2026-11-03 — Decouple Library completion and expose BPM/PDF fallbacks
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library/BPM/PDF release blocker → Done; V1.4 BPM acceptance remains In Progress
+
+**Changed:**
+
+- Traced the remaining Music Library hang past player readiness: the sheet waited for serialized
+  recent-play/queue persistence after the destination audio had loaded, and an unresolved storage
+  write after suspension could therefore keep the visible transaction open. Pause is now bounded,
+  and successful player readiness closes the sheet immediately while retryable bookkeeping finishes
+  asynchronously without rolling back playable audio.
+- Added an explicit `Analyze Tempo` action that remains available after relaunch, dismissal, or a
+  manual BPM override. Enabling Show Dance Counts now also enables the authored grid, shows an
+  immediate confirmation, and renders phrase/count labels such as `1:1` in the row gutters.
+- PDF timelines now request bounded basic-resolution decoded peaks. Export always renders waveform
+  bars, using those peaks when available and a deterministic basic waveform when decoding is
+  unavailable or times out. Updated the durable transaction, BPM, and export rules.
+- Incremented, signed, and installed Release 25 on physical iPhone `gæl (3)`. Earlier uncommitted
+  release work remains preserved; no commit, branch change, or remote push.
+
+**Verified:**
+
+- TypeScript, version consistency, config prebuild, and whitespace checks passed. Focused browser
+  coverage passed, then the full retained Playwright suite passed 8/8; it checks the explicit BPM
+  action, dance-count feedback, and generated PDF waveform markup.
+- Focused native background/switching acceptance passed, including consecutive short/long/short
+  song changes after foreground recovery.
+- Xcode's signed Release build and validation succeeded. Bundle and installed-device metadata
+  independently report `1.0.0 (25)`; device installation succeeded.
+
+**Not verified / known gaps:**
+
+- The user's exact intermittent Library tap sequence, representative-real-song BPM accuracy, and
+  the rendered physical PDF waveform still require hands-on Release 25 acceptance.
+- Automatic launch was denied because the phone locked after installation; installation and version
+  verification succeeded, but the user must unlock and open BeatNote once.
+- Standalone `codesign --verify --deep --strict` reports `CSSMERR_TP_NOT_TRUSTED` for the local Apple
+  Development certificate chain; Xcode CodeSign/Validate and physical installation succeeded.
+
+**Next agent should:**
+
+- Record the three Release 25 physical checks: repeated Library tap switches, Analyze Tempo plus
+  dance-count labels on real songs, and an exported PDF timeline containing waveform artwork.
+
+## Archived Done — 2026-11-04 Release 29
+
+- [x] V1 release blocker — Remove redundant native duration decoding from Music Library switches,
+      bound resolution/resume stages, guarantee local loading cleanup, rename the launcher action to
+      Export Project, and install Release 24 for physical retest
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/projects/ProjectRow.tsx`, `src/features/library/trackSwitch.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-04 Release 29
+
+### 2026-11-03 — Make Music Library switching bounded and reuse imported duration
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library load blocker → Done; V1.3 sharing → Done; V1.4 BPM acceptance → In Progress
+
+**Changed:**
+
+- Reproduced the long wait in the transaction design: every Music Library selection constructed a
+  second native player to decode duration again, even though import had already validated and stored
+  it. Long songs could therefore spend the full decode window before the real player was loaded.
+- Song switches now reuse valid Music Item duration metadata and retain the bounded probe only for
+  legacy records without it. Metadata/source resolution and playback-resume promises are bounded;
+  playback-resume failure no longer holds the global transaction active, and the library row's
+  local busy state clears in `finally` on every terminal path.
+- Renamed the Projects launcher action from `Export CSV` to `Export Project`; the modal's specific
+  `Export CSV` and `Export PDF` choices remain accurate.
+- Recorded the user's physical passes for the long-song waveform card and CSV/PDF Save to Files plus
+  open verification. Built, installed, device-verified, and launched Release 24 on iPhone `gæl (3)`.
+  Earlier uncommitted release work remains preserved; no commit, branch change, or remote push.
+
+**Verified:**
+
+- TypeScript, version consistency, config prebuild, and whitespace checks passed. Full retained
+  Playwright regression passed 8/8; the project journey checks the `Export Project` launcher.
+- Focused native background/foreground acceptance passed after expansion to three songs. It imports
+  a 150-second fixture, switches to it using cached metadata, immediately switches again, and sees
+  both transitions complete without an overlay remaining.
+- Signed Xcode Release build and validation succeeded. Bundle and device metadata independently
+  report `1.0.0 (24)`; device services installed and launched it successfully.
+
+**Not verified / known gaps:**
+
+- The intermittent physical sequence needs a Release 24 retest by switching repeatedly between a
+  short and long imported song. Automation proves the identified redundant-decode path is gone but
+  cannot establish the user's exact prior device timing.
+- Release 23's hours-to-day foreground-resume fix still needs the delayed physical retest.
+
+**Next agent should:**
+
+- Record the Release 24 switch result, then collect representative-song BPM results for V1.4.
+
+## Archived Done — 2026-11-04 Release 28
+
+- [x] V1.3 — Complete CSV/PDF sharing to a real external destination and verify the resulting workflow;
+      physical Release 23 CSV and PDF save/open checks passed
+      <sub>**Key Artifacts:** `AGENTS.md`</sub>
+
+## Archived handover — 2026-11-04 Release 28
+
+### 2026-11-03 — Recover iOS audio interaction after long suspension
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1 stale-resume release blocker → Done; V1.3 external sharing remains In Progress
+
+**Changed:**
+
+- Preserved and inspected the physical failure before replacing the build: BeatNote remained a live
+  process with a normal Studio screen, which ruled out a crash and visible modal blocker. The lock
+  traced to an unresolved SDK 54 native audio seek holding BeatNote's serialized seek and rollback
+  paths after iOS suspended the retained process.
+- Backported Expo's iOS completion-handler/weak-owner seek lifecycle fix through an idempotent
+  prebuild plugin and cancel pending seeks when a player is released. Added five-second bounds to
+  application seek and song-switch rollback operations so one abandoned native promise cannot
+  permanently block new transport, canvas, or queue actions.
+- Foregrounding now invalidates abandoned JavaScript seek drains. If the retained native player is
+  still unloaded after a short grace period, BeatNote reloads the source and restores position and
+  play intent. Added the durable lifecycle rule and strengthened native acceptance across playback,
+  canvas seeking, and song switching after background/foreground.
+- Bumped, signed, installed, and launched Release 23 on physical iPhone `gæl (3)`. Earlier
+  uncommitted release work remains preserved; no commit, branch change, or remote push.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, `git diff --check`, and config prebuild passed. The
+  generated ExpoAudio Swift source contains the upstream-equivalent seek and release corrections.
+- Full retained Playwright regression passed 8/8. Focused native
+  `testAudioContinuesWhileAppIsInBackground` passed and now verifies foreground transport, canvas
+  seek, and queue song switching as well as background clock advancement.
+- Xcode's signed Release build and validation succeeded. Bundle and device metadata independently
+  report `1.0.0 (23)`; device services installed and launched it successfully.
+
+**Not verified / known gaps:**
+
+- Automation covers a short background/foreground cycle, not the user's hours-to-day suspension
+  latency. Leave Release 23 backgrounded and physically retest play/pause, a canvas tap, and song
+  switching after several hours or overnight.
+**Next agent should:**
+
+- Record the user's long-suspension Release 23 result, then continue V1.3 external CSV/PDF sharing.
+
+## Archived Done — 2026-11-04 Release 27
+
+- [x] V1 release blocker — Recover transport, canvas seeking, and song switching after a long iOS
+      background suspension; bound native seek/rollback operations and install Release 23 for
+      physical retest
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `plugins/withExpoAudioIosSeekFix.js`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/utils/audioOperationTimeout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-04 Release 27
+
+### 2026-11-02 — Make long-song waveform preparation obvious
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.2a waveform preparation feedback → Done; V1.3 external sharing → In Progress
+
+**Changed:**
+
+- Replaced the easy-to-miss corner label with a centered, high-contrast progress card over the
+  waveform: spinner, `Preparing waveform`, and `Long songs can take a moment`. It does not intercept
+  touches and exposes an accessible progress announcement.
+- Retained the progress state through the first rendered peak frame so native bridge transfer and
+  initial SVG/path construction do not look like an unexplained freeze. Added the matching durable
+  UI rule and a retained 150-second waveform regression.
+- Recorded the user's physical pass of Release 21 Shuffle/draft continuation, incremented to Release
+  22, and installed and launched the signed bundle on physical iPhone `gæl (3)`. Earlier
+  uncommitted release work remains preserved; no commit, branch change, or remote change.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and the full retained Playwright suite passed; 8/8
+  journeys include a visible loading card before a deliberately delayed 150-second waveform appears.
+- Focused native `testAudioAnnotationAndProjectRestore` passed, including native waveform extraction.
+- Xcode Release build succeeded and validated the signed app; bundle metadata reports `1.0.0 (22)`.
+  Device services installed and launched `com.beatnote.app` successfully on the physical iPhone.
+
+**Not verified / known gaps:**
+
+- The loading card's duration and appearance on a genuinely slow long-song decode still need a
+  hands-on physical check. The change makes unavoidable peak preparation legible; it does not claim
+  to remove all native decode/bridge/render latency.
+- Standalone `codesign --verify --deep --strict` reports `CSSMERR_TP_NOT_TRUSTED` for the local Apple
+  Development certificate chain, although Xcode's build-time CodeSign/Validate steps and physical
+  installation/launch succeeded.
+
+**Next agent should:**
+
+- Have the user observe the loading card with a long song, then complete V1.3 by sharing both CSV and
+  PDF to an external destination and opening each exported file.
+
+## Archived Done — 2026-11-03 Release 26
+
+- [x] V1.2a — Make long-song waveform preparation unmistakable and accessible while decoded peaks
+      are being generated/rendered; verify on a retained long fixture and install Release 22 for
+      physical review
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/waveform/wrappedWaveform.ts`, `tests/setup.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+## Archived handover — 2026-11-03 Release 26
+
+### 2026-11-02 — Repair Pro Shuffle continuation and preserve dirty drafts
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.2 physical playback matrix → In Progress (Shuffle repair installed; physical retest pending)
+
+**Changed:**
+
+- User physically passed every requested build-20 playback/audio row except end-of-track Shuffle:
+  Pro still stopped. Source inspection showed Shuffle only reordered the queue while advancement
+  separately required Continuous Play, so the visible Shuffle intent was insufficient by itself.
+- Pro Shuffle now implies end-of-track continuation even when Continuous Play is off. With both
+  Shuffle and Continuous Play off, Pro still stops; Lite still stops unless Repeat is active.
+- Automatic completion now bypasses the manual dirty-project dialog only through a dedicated path.
+  It flushes and keeps the per-song draft, never overwrites the named project, restores the dirty
+  draft on return, and aborts the switch if draft persistence fails or times out. Manual song
+  changes retain Save & Switch, Keep Draft & Switch, and Cancel.
+- Updated durable draft/workflow rules, incremented to Release 21, and installed the signed bundle
+  on physical iPhone `gæl (3)`. Earlier uncommitted work remains preserved; no branch, commit, or
+  remote change.
+
+**Verified:**
+
+- TypeScript, version consistency, and whitespace checks passed.
+- Focused completion regression passed, then the full retained Playwright suite passed 8/8. The
+  completion journey explicitly uses Pro + Shuffle + Continuous Play off + a dirty named project,
+  observes automatic advance without a guard, returns to the source, and verifies its marker draft.
+- Signed Release build succeeded; bundle metadata and codesign verification report `1.0.0 (21)`.
+  Device services installed `com.beatnote.app` successfully on the physical iPhone.
+- The version-aware Settings journey passed after the build increment, and the explicit 3.2 GB
+  temporary Release DerivedData directory was removed after installation.
+
+**Not verified / known gaps:**
+
+- The phone locked after installation, so device services could not launch build 21 automatically.
+  Physical end-of-track Shuffle and dirty-draft return behavior remain the active V1.2 retest.
+- No native module or native surface changed; focused iOS XCTest was not rerun for this JavaScript
+  completion-policy repair.
+
+**Next agent should:**
+
+- Have the user unlock/open Release 21, run Pro + Shuffle with Continuous Play off, then repeat from
+  a dirty named project and confirm the draft returns without the named project being overwritten.
+
+## Archived Done — 2026-11-03 Release 25
+
+- [x] V1.2 — Complete the physical audio-session/playback matrix, repair Pro Shuffle continuation,
+      preserve dirty song drafts without overwriting named projects, and physically accept Release 21
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `tests/ui-components.spec.ts`</sub>
+
+## Archived handover — 2026-11-03 Release 25
+
+### 2026-11-02 — Freeze a truthful V1 speed range and exit checklist
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.1 speed/roadmap reconciliation → Done; V1.2 physical playback matrix → In Progress
+
+**Changed:**
+
+- Reconciled the roadmap against the implemented app and replaced broad milestone language with an
+  ordered V1 exit checklist that must close before V2 purchase enforcement begins.
+- Removed the speed-range selector and unsupported values above 2×. All tiers now use one truthful
+  0.25×–2× range; Pro retains preset-count selection, fine adjustment, and custom preset values.
+  Legacy stored range keys remain readable, while stored custom values above 2× are discarded.
+- Removed the editor ad placeholder and its reserved layout space. Any future V2 advertising work is
+  constrained to non-editor library/project surfaces in the durable roadmap.
+- Recorded that `expo-audio` currently clamps the iOS player rate to 2×. A real 4× option would
+  require a separate native playback-engine decision and full transport/audio-session acceptance.
+- Incremented to Release build 20, built the signed source-based native bundle, installed it on the
+  connected iPhone `gæl (3)`, and launched it. Earlier uncommitted work remains preserved; no
+  branch, commit, or remote change.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` passed.
+- Full retained Playwright regression passed 8/8, covering the fixed 0.25×–2× controls, Pro
+  preset editing, and absence of the editor ad placeholder.
+- Focused native `testLandscapeGesturesAndCompactControls` passed on the iOS simulator after a clean
+  prebuild/source build; dependency compiler warnings remain non-failing.
+- Signed Release build succeeded; bundle metadata and codesign verification report `1.0.0 (20)`.
+  Device services installed and launched `com.beatnote.app` successfully on the physical iPhone.
+- Removed the explicit 3.2 GB temporary Release DerivedData directory after installation.
+
+**Not verified / known gaps:**
+
+- The V1.2 hands-on playback/audio-session matrix on installed build 20 remains outstanding; install
+  and launch success do not prove playback quality, Bluetooth routing, or interruption behavior.
+- Representative-song pitch/artifact quality at 0.25× and 2× is not proven by automation.
+
+**Next agent should:**
+
+- Execute V1.2 on physical Release 20, starting with 0.25×/0.5×/1×/1.5×/2× live changes,
+  seeks, loops, track switching, and Bluetooth route loss; record pass/fail evidence per row.
+
+## Archived Done — 2026-11-03 Release 24
+
+- [x] V1.1 — Simplify playback speed to one supported 0.25×–2× range, remove the editor ad
+      placeholder, reconcile the implemented V1 scope and ordered exit checklist, and verify the
+      retained browser/native workflows; install Release `1.0.0 (20)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/ads/LiteAdPlaceholder.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/ads/liteAdPlaceholder.ts`, `src/utils/playbackSpeed.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Replace decorative Pro placeholders with animated feature workflows, fix the clipped
+      compare chevron, accent Pro values, and install Release `1.0.0 (19)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProComparisonSheet.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/proPreview.ts`, `src/styles/components/settings/proSettings.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+
+## Archived handover — 2026-11-03 Release 24
+
+### 2026-11-02 — Animate real feature workflows in the Pro showcase
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** feature demonstrations, comparison arrow/contrast, and physical update → Done
+
+**Changed:**
+
+- Replaced floating symbols/chips with silent SVG demonstrations: queue progress and auto-advance,
+  speed presets with a moving waveform playhead, BPM scan/preview/applied count grid, and Lock
+  Screen pause/seek/play. Animated SVG props run through Reanimated; stage changes run only on
+  the active foreground slide. Comparison pauses them; Reduce Motion uses a static example.
+- Replaced the clipped text caret (24-point glyph in a 20-point line) with the shared chevron in
+  a reserved 28-point box, keeping the comparison target and carousel from shrinking together.
+- Pro values now use bold accent text while retaining checks and explicit values. Updated the
+  durable roadmap, incremented build/retained version assertion to 19, and installed signed Release.
+- Earlier uncommitted work remains preserved; no branch, commit, or remote changes.
+
+**Verified:**
+
+- TypeScript, version consistency, and whitespace checks passed. Full browser regression: 8/8.
+- Temporary browser inspection confirmed all four demos change state and Reduce Motion freezes
+  them. Screenshots confirmed the arrow, plan-card visibility, and orange comparison values.
+- Focused native Settings/Files journey passed (xcresult: 1 passed, 0 failed), including the
+  carousel, compact plans, comparison swipe/expansion, and dismissal. A recorded repeat passed;
+  sampled frames showed advancing queue progress and waveform playhead, an unclipped chevron,
+  and accented comparison values on iOS. The recording exposed SVG text-run spacing in the speed
+  label; the final bundle uses one text run for the number and multiplier.
+- Signed Release build succeeded. Device services independently confirmed 1.0.0 / build 19
+  and launched the final app successfully on the physical iPhone. Generated simulator build/result
+  caches and temporary native recordings were removed after summarising the evidence.
+
+**Not verified / known gaps:**
+
+- Physical touch/VoiceOver acceptance remains. Native recording covered playback/speed demos;
+  tempo and Lock Screen stage changes were inspected in the browser. Billing remains unavailable.
+
+**Next agent should:**
+
+- Incorporate the user's physical feedback on the illustrative workflows in build 19.
+
+## Archived Done — 2026-11-03 Release 23
+
+- [x] Compact the Pro page, add a swipe-up Lite/Pro comparison of implemented features,
+      remove speculative marketing, and install Release `1.0.0 (18)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProComparisonSheet.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/proPreview.ts`, `src/styles/components/settings/proSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+
+
+## Archived handover — 2026-11-03 Release 23
+
+### 2026-11-02 — Compact Pro showcase and add a swipe-up comparison
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** compact Pro page/comparison and physical update → Done
+
+**Changed:**
+
+- Removed the introductory marketing block and long footer. Four compact illustrated stories
+  cover implemented playback, speed, BPM, and Lock Screen capabilities; two horizontal plan
+  cards fit on standard portrait phones. S$2.98 monthly and S$19.98 yearly are unchanged.
+- Added a tap/swipe-up comparison cue and reused BottomSheet for medium/large detents, handle
+  dragging, dismissal, focus handling, and Reduce Motion. The comparison has an opaque base
+  under the glass treatment, Pro differences first, and explicit current-preview inclusions.
+- Removed Apple Music, stem separation, unavailable phone features, ad-removal claims, and
+  speculative lifetime offers from this page. Internal roadmap proposals remain internal.
+- The initial native test exposed the parent ScrollView stealing the cue's swipe. Capturing
+  touch-down on the cue fixes it while preserving taps and accessible activation.
+- Bumped to Release 18, built and installed in place on `gæl (3)`. Earlier uncommitted work is
+  preserved; no commit, branch change, or remote push.
+
+**Verified:**
+
+- TypeScript, version consistency, and whitespace checks passed. Full browser suite passed 8/8;
+  focused Settings journey passed again after contrast/gesture refinements. Portrait and small
+  screen screenshots inspected; browser swipe-up exercised directly.
+- Focused native Settings/Files journey passed after the gesture fix: xcresult confirms 1 passed,
+  0 failed. It verifies both plans fit, swiping opens the comparison, dragging the handle expands
+  its height, and Done returns to Settings. Initial failing result was used to diagnose capture.
+- Signed Release build succeeded; bundle reports 18. Device services confirmed installation
+  and independently listed BeatNote as 1.0.0 / build 18.
+- Simulator test result bundles and generated test build cache removed after recording results.
+
+**Not verified / known gaps:**
+
+- Automatic launch was denied because the phone was locked; open BeatNote manually after unlock.
+- Physical touch/VoiceOver acceptance remains. Purchases and trial activation are still unavailable.
+
+**Next agent should:**
+
+- Incorporate physical feedback on the compact page and comparison sheet in build 18.
+
+## Archived Done — 2026-11-02 Release 19
+
+- [x] Prevent duplicate annotation popups from backward playback-clock samples, retain explicit
+      seek/loop/repeat re-arming, and install/launch Release `1.0.0 (15)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/utils/markerSelection.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+
+
+## Archived handover — 2026-11-02 Release 19
+
+### 2026-11-02 — Deduplicate annotation crossings by explicit playback traversal
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** repeated playback annotation popups and physical install → Done
+
+**Changed:**
+
+- Reproduced duplicate events with clock sequences 900→1010→300→1010 (one marker twice)
+  and 900→1010→1210→990→1010→1210 (two nearby markers each twice). The previous detector
+  treated a >500 ms backward sample as seek intent and remembered only the latest marker.
+- Kept the annotation crossing cursor monotonic within a traversal. Explicit seek, loop, repeat,
+  end-of-track restart, and published song/project content now re-arm through store transport events.
+  Clock corrections cannot re-arm annotations; immediate save feedback and timed fade remain intact.
+- Extended the existing annotation journey with delayed-clock injection, no-repeat assertions after
+  fade, and intentional seek/replay. Updated the build-label assertion and paused the short completion
+  fixture before tier changes to prevent it auto-advancing during slow settings navigation.
+- Installed and launched signed Release `1.0.0 (15)` on physical iPhone `gæl (3)`.
+  Existing beta-14 edits and concurrent data-management edits remain uncommitted and preserved.
+
+**Verified:**
+
+- TypeScript, version consistency, and whitespace checks passed.
+- Retained Playwright suite → 8/8 passed with two workers, including the injected-clock regression.
+- Focused native `testAudioAnnotationAndProjectRestore` → 1 passed, 0 failed in the xcresult
+  summary after starting a dedicated Metro server; the initial attempt failed before studio launch.
+- Signed Release build succeeded after native generated-header refresh; bundle version is 15;
+  device services confirmed installation and launch of `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- No hands-on reproduction/acceptance of the user's exact physical playback sequence was performed.
+
+**Next agent should:**
+
+- Confirm single popup per crossing on the user's real song in beta 15, including seek-back and loops.
+
+
+## Archived Done — 2026-11-02 Release 18
+
+- [x] Make timed annotations one-shot crossing events, improve playhead drag capture, prevent the
+      Custom Order release jump, add typed-confirmation project/all-data deletion, and use the app's
+      destructive red for the enabled annotation-label Reset action; add bulk imported-audio
+      deletion immediately above full-data deletion; install Release beta `1.0.0 (14)` on the
+      physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/library/dataDeletionService.ts`, `src/features/library/libraryActions.ts`, `src/features/settings/preferences.ts`, `src/features/stemSeparation/stemCache.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/utils/markerSelection.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+
+## Archived handover — 2026-11-02 Release 18
+
+### 2026-11-02 — Stabilise annotation, scrubbing, ordering, and destructive data controls
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** annotation/scrub reliability and typed data deletion → Done
+
+**Changed:**
+
+- Replaced playback-window annotation selection with a one-shot marker-crossing event and an
+  independent dwell timer, while preserving the intentional immediate callout after saving.
+- Reduced the wrapped-waveform horizontal activation threshold, allowed normal vertical finger
+  drift, and retained capture beyond the initial bounds. Custom Order now clears its lifted native
+  transform before publishing the persisted index, preventing the second post-release jump.
+- Added exact typed confirmation for deleting every saved project or all BeatNote data. Project
+  deletion keeps drafts/imported audio; full deletion resets app-owned storage, managed audio,
+  settings, entitlement preview state, waveform/analysis data, and dormant stem caches without
+  touching original source files.
+- Added typed-confirmation bulk imported-audio deletion directly above full-data deletion in the
+  destructive group. It removes BeatNote-managed copies while retaining projects and drafts for
+  relinking, and leaves the user's original source files untouched.
+- Made enabled annotation-label Reset text use the shared destructive red and retained its disabled
+  opacity/accessibility treatment.
+- Incremented the iOS build to `1.0.0 (14)`, regenerated ignored React Native codegen after the
+  first native compile exposed a stale generated-source cache, then built, installed, and launched
+  the signed Release app on the connected physical iPhone `gæl (3)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and the focused project/library Playwright journey passed.
+- Full retained Playwright regression → 8/8 passed, covering immediate annotation presentation,
+  Custom Order release/persistence, enabled Reset colour, exact typed confirmations, project-key
+  removal, and actual bulk imported-audio removal. The speed-preset long-press helper now has
+  sufficient margin over its production delay to remain deterministic under parallel-worker load.
+- Signed Release bundle reported `CFBundleShortVersionString` `1.0.0` and `CFBundleVersion` `14`;
+  `devicectl` installed and launched `com.beatnote.app` successfully on iPhone `gæl (3)`.
+
+**Not verified / known gaps:**
+
+- Physical-iPhone confirmation remains for real playback clock jitter, the new scrub threshold,
+  Custom Order release feel, and the native typed-confirmation keyboard/destructive flow.
+- No new native module behavior was introduced, so focused iOS XCTest was not run.
+
+**Next agent should:**
+
+- Physically verify the four interaction fixes on beta 14 before changing their timing or gesture
+  constants further.
+
+
+## Archived Done — 2026-11-02 Release 17
+
+- [x] Remove non-actionable speed copy, emphasize selected preset counts, tighten playback captions,
+      implement persisted pause-on-headset-disconnect behavior, suppress duplicate annotation
+      callouts, lower standalone toasts, repair the Xcode 27 native gate, and install beta `1.0.0 (13)`
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-audio-session/`, `plugins/withIosPodDeploymentTarget.js`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+
+
+## Archived handover — 2026-11-02 Release 17
+
+### 2026-11-02 — Add headset safety and stabilise transient feedback
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** speed copy, headset disconnect, and popup retriggering → Done
+
+**Changed:**
+
+- Removed the two informational speed rows that did not change behavior, added an accent outline to
+  selected preset-count and speed buttons, and grouped Continuous Play with its caption without the large
+  intervening gap.
+- Added a persisted, default-on Pause on Headset Disconnect setting. The new
+  `BeatNoteAudioSession` Expo module reports iOS output-route loss; the audio hook pauses safely or,
+  when the user opts out, resumes after expo-audio's automatic route-change pause.
+- Suppressed native-clock jitter from retriggering the same timed annotation after its display
+  window closes. Standalone dock toasts now use the empty annotation slot instead of floating a row
+  too high, while annotation exits retain their in-place opacity fade.
+- Repaired Xcode 27.1 native builds by selecting source-built React Native, keeping only the
+  incompatible `fmt` pod on C++17, and making the XCTest harness refresh Pods/codegen after prebuild.
+  Incremented to `1.0.0 (13)` and installed the signed Release app
+  on the connected physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including persisted headset preference,
+  compact caption geometry, retained annotation fade, and lower no-annotation toast placement.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed after a clean source build. Signed
+  Release beta 13 built successfully and device services confirmed installation as `com.beatnote.app`.
+- The user physically verified that Pause on Headset Disconnect works on the connected iPhone.
+
+**Not verified / known gaps:**
+
+- Annotation jitter around a real device clock and the final visual spacing still need hands-on
+  confirmation. The phone was locked after install, so device services could not launch beta 13
+  automatically.
+- Expo-audio on iOS clamps playback above 2×. The existing experimental 4× configuration is not a
+  working physical-iOS guarantee until a native speed engine replaces that boundary.
+
+**Next agent should:**
+
+- Confirm annotations appear only once as playback crosses a marker and inspect the remaining
+  transient-feedback spacing on the physical phone.
+
+
+## Archived Done — 2026-11-02 Pro page refresh
+
+- [x] Repair the retained annotation fade; simplify capability wording; add direct and accelerated
+      seek/speed adjustment; implement Pro speed ranges, 4/8/12 presets, custom preset editing and
+      default restoration; install Release beta `1.0.0 (12)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useAcceleratingPress.ts`, `src/styles/components/modals/playbackSpeedPresetEditor.ts`, `src/styles/components/settings/settingsPage.ts`, `src/utils/markerSelection.ts`, `src/utils/playbackSpeed.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+
+## Archived handover — 2026-11-02 Pro page refresh
+
+### 2026-11-02 — Repair annotation fading and add Pro speed configuration
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** fade, numeric acceleration, capability copy, and speed configuration → Done
+
+**Changed:**
+
+- Moved the annotation callout to a retained core native opacity animation lasting 650 ms. It keeps
+  its rendered text and fixed slot until the fade completes, including interrupted/replacement exits.
+- Made seek distance directly editable and retained 0.5-second normalization. Holding seek or fine
+  speed `−/+` now repeats at an exponentially increasing rate while respecting configured bounds.
+- Removed redundant tier names from ordinary Settings descriptions. Unavailable Pro capabilities
+  remain visible, greyed out, with the short note `Pro only`.
+- Added persisted Pro speed ranges (`0.5×–2×` or `0.25×–4×`), 4/8/12 useful preset layouts, and
+  long-press per-slot editing. The editor saves a normalized value or clears it with Use Default;
+  Lite retains its standard built-in presets without fine/configuration controls.
+- Incremented to `1.0.0 (12)` and installed the signed Release build on the physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed. Existing journeys now verify partial opacity
+  during annotation exit, direct seek entry, Lite `Pro only` gates, both speed ranges, preset counts,
+  and custom preset save/default restoration without adding another journey.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed. The signed Release app reports
+  `1.0.0/12`, and device services confirmed installation as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Automatic launch was denied because the physical iPhone was locked. Physical confirmation remains
+  for fade visibility, keyboard entry, accelerated holds, chooser density, and preset editing.
+
+**Next agent should:**
+
+- Incorporate the user's physical beta 12 feedback, especially the visible fade duration and the
+  12-button chooser in landscape.
+
+
+
 ## Archived Done checklist items — 2026-11-02 beta-10 rotation
 
 - [x] Build the remaining Settings information architecture, wire persisted Continuous Play and
@@ -5239,3 +5859,267 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Incorporate the user's beta 8 visual/touch feedback, especially edge-swipe capture width and the
   sparkle intensity, before expanding Settings further.
+
+## Archived handover — 2026-11-02 interaction-stability rotation
+
+## Archived Done checklist item — 2026-11-02 interaction-stability rotation
+
+- [x] Repair the landscape annotation editor and Settings edge gestures; add reversible marker
+      deletion, annotated overview markers, smoother transient UI, current-project rename, flatter
+      Settings subpages, sheet-native Music dismissal, and install Release beta `1.0.0 (9)`
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/`, `src/components/ui/modals/`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+### 2026-11-02 — Repair annotation, navigation, and project workflows in beta 9
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** annotation/navigation/project polish → Done
+
+**Changed:**
+
+- Made the landscape annotation editor keyboard-safe with a compact, scrolling body, fixed actions,
+  and an explicit keyboard Done control. Marker removal now offers Undo and preserves annotations;
+  the overview uses filled heads for annotated markers and outlined heads for plain markers.
+- Smoothed annotation callout, toast, and speed-control transitions without remounting successive
+  annotation content. Settings now uses a dedicated native edge responder for both submenu-to-root
+  and root-to-app gestures; the Music Library sheet relies on its grabber, backdrop, and downward
+  dismissal rather than a redundant Back button.
+- Added Rename to the loaded project's own actions, reusing the atomic project rename path. Flattened
+  standalone Settings toggles and informational rows while retaining cards for real option groups
+  and actions. Incremented, signed, installed, and launched physical Release beta `1.0.0 (9)`.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `git diff --check`, and full retained Playwright regression → passed, 8/8.
+- Focused iOS `testLandscapeGesturesAndCompactControls` and
+  `testStudioLaunchesAndDocumentPickerOpens` → passed, covering the compact editor, sheet dismissal,
+  transparent dock assertions, and both Settings edge-swipe levels.
+- Xcode Release build succeeded; device services confirmed install and launch as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Physical touch/visual confirmation remains for the editor keyboard ergonomics, popup timing,
+  marker head distinction, edge capture width, flattened subpages, and project rename affordance.
+- This commit also includes the preceding beta 8 work, which had not yet been committed separately.
+
+**Next agent should:**
+
+- Incorporate the user's beta 9 physical feedback before widening navigation or animation scope.
+
+
+## Archived Done — beta-15 rotation
+
+- [x] Keep annotation, toast, and speed-chooser exits anchored above the overview; add persisted
+      tap/hold seek-button behaviour and 0.5–30 second distances with signed on-button cues; install
+      Release beta `1.0.0 (10)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — beta-15 rotation
+
+### 2026-11-02 — Anchor transient exits and add seek-button configuration
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** anchored feedback exits and configurable transport seeking → Done
+
+**Changed:**
+
+- Replaced exit-time layout animation for annotations and dock toasts with retained, opacity-only
+  presence: each item fades fully where it is anchored before its layout slot is removed. Playback
+  speed dismissal now uses a short in-place fade and subtle scale instead of translating toward the
+  overview strip.
+- Replaced the Button Settings seek placeholders with persisted tap/hold behaviour and all requested
+  distances from 0.5 to 30 seconds. Previous/Next display signed `−/+Ns` cues under their track
+  icons, clamp seeks to track bounds, and remain accessible while either seeking or queue navigation
+  is available.
+- Updated Help and durable UI rules, incremented to `1.0.0 (10)`, and installed/launched the signed
+  physical Release build.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including persisted settings, default track
+  navigation, tap-to-seek, signed badge display, and boundary clamping.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed after regenerating the ignored React
+  Native codegen cache; Xcode Release build, physical install, and launch also succeeded.
+
+**Not verified / known gaps:**
+
+- Physical visual/touch confirmation remains for fade anchoring, badge legibility, and long-press
+  ergonomics in both orientations.
+
+**Next agent should:**
+
+- Incorporate the user's beta 10 physical feedback before adding another transport gesture mode.
+
+
+## Archived Done — beta-16 rotation
+
+- [x] Redraw the annotation action from the supplied bubble/list reference, make Tap Seeks the
+      default with conditional signed badges and 0.5-second custom distance steps, keep annotation
+      fades in a fixed overview slot, and install Release beta `1.0.0 (11)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — beta-16 rotation
+
+### 2026-11-02 — Refine the annotation action and Tap Seeks defaults
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
+**Kanban moved:** annotation icon, fixed fade slot, and configurable Tap Seeks → Done
+
+**Changed:**
+
+- Replaced the annotation action with a themeable filled rounded speech bubble and inset list marks,
+  matching the supplied reference without introducing a raster asset.
+- Made Tap Seeks the first and default transport behaviour. Signed distances appear only in that
+  mode; Tap Changes Track keeps the transport icons uncluttered. Seek distance is now adjustable
+  from 0.5 to 30 seconds in exact 0.5-second steps, including accessible increment/decrement paths.
+- Kept persistent toast and annotation layout slots above the overview so opacity exits cannot move
+  downward when either child finishes unmounting. Updated durable UI rules and Help accordingly.
+- Incremented to `1.0.0 (11)` and installed the signed Release build on the connected physical iPhone.
+
+**Verified:**
+
+- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
+- Full retained Playwright regression → 8/8 passed, including the Tap Seeks default, conditional
+  badge visibility, actual seek behaviour, Tap Changes Track, and a persisted 5.5-second distance.
+- Focused iOS `testLandscapeGesturesAndCompactControls` passed. The signed Release app reports
+  `1.0.0/11`, and device services confirmed installation as `com.beatnote.app`.
+
+**Not verified / known gaps:**
+
+- Automatic launch was denied because the physical iPhone was locked. Physical visual/touch
+  confirmation remains for the new icon, in-place fade, badge legibility, and distance stepper.
+
+**Next agent should:**
+
+- Incorporate the user's physical beta 11 feedback before adding more transport modes.
+
+
+## Archived handover — V1 speed/roadmap rotation
+
+### 2026-11-02 — Remove native annotation opacity contention
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** native annotation fade flashing → Done
+
+**Changed:**
+
+- User clarified that the popup flashes during animation with looping off. The beta-15 event
+  deduplication remains intact, but Animated(TouchableOpacity) attached two native opacity drivers
+  to the same view. TouchableOpacity overrides the passed opacity and restarts its own animation
+  on disabled/style changes; native animation completion also synchronizes the animated prop.
+- Replaced that composition with an Animated.View owning opacity and a separate plain Pressable
+  owning the accessible action. Kept dwell, fade duration, text, footprint, and anchored position.
+- Extended the retained native audio workflow to actually enter/save annotation text, assert that
+  the popup is present and tappable, and check disappearance during playback with looping off.
+  The previous test name implied annotation coverage it did not provide. Browser annotation flow
+  now reopens the editor through the new accessible popup press target.
+- Bumped Release to 16. Existing uncommitted work from earlier sessions remains preserved.
+
+**Verified:**
+
+- Native baseline recording with looping off showed a brightness rebound: the annotation text
+  region went 254→110→254 within about 200 ms. Corrected recording showed a steady visible plateau
+  and a declining exit without that rebound. Sampled grayscale values are diagnostic evidence,
+  not a permanent pixel-level test.
+- Full retained browser suite → 8/8 passed; focused annotation/editor press check also passed.
+- Focused strengthened native test → 1 passed, 0 failed in xcresult, including visible/tappable
+  annotation before disappearance. An earlier baseline run was discarded because the test still
+  enabled range looping; its third mode-cycle tap now explicitly disables wrapping.
+- TypeScript, version consistency, whitespace checks, and signed Release build passed; bundle is 16.
+- Device services installed the app and independently reported version 1.0.0 / build 16.
+- Temporary native recordings and generated simulator test caches were removed after summarizing results.
+
+**Not verified / known gaps:**
+
+- The phone was locked, so automatic launch was denied. Physical touch/playback confirmation remains.
+- Automatic approval review rejected copying the phone's entire AsyncStorage as too broad for this
+  diagnosis. No storage was copied; verification proceeded through source and simulator recordings.
+
+**Next agent should:**
+
+- Confirm the native fade remains stable on the user's physical phone in beta 16.
+
+
+## Archived Done — V1 speed/roadmap rotation
+
+- [x] Remove competing native annotation opacity animations; verify visible/tappable feedback,
+      native fade recording, and retained workflows; install Release `1.0.0 (16)` on the physical iPhone
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/styles/components/controls/annotationCallout.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+
+## Archived Done — Release 22 rotation
+
+- [x] Build and install Release `1.0.0 (17)` with the refreshed Pro page on the physical iPhone
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Redesign Pro page with detailed swipeable feature previews, placeholder animation,
+      and S$2.98 monthly pricing; preserve S$19.98 yearly
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/features/entitlements/proPreview.ts`, `src/styles/components/settings/proSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — Release 22 rotation
+
+### 2026-11-02 — Install the Pro page refresh as Release 17
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** build/install refreshed Pro page → Done
+
+**Changed:**
+
+- Incremented iOS build to 17 and aligned the retained About-page version assertion.
+- Built and installed the signed Release app on the connected iPhone `gæl (3)` in place.
+- Existing uncommitted changes remain preserved; no branch, commit, or remote changes.
+
+**Verified:**
+
+- TypeScript, version consistency, and whitespace checks passed. The preceding Pro-page task
+  passed all 8 browser journeys and the focused native Settings/Files journey; those results
+  apply to the unchanged feature code and were not rerun for the build-label-only change.
+- Xcode Release build succeeded; built bundle reports version 1.0.0 / build 17.
+- Device services confirmed installation and independently listed BeatNote as 1.0.0 / build 17.
+
+**Not verified / known gaps:**
+
+- Automatic launch was denied because the phone was locked. Physical appearance and interaction
+  acceptance remain; unlock the phone and open BeatNote manually.
+
+**Next agent should:**
+
+- Incorporate the user's physical feedback on the new Pro page in build 17.
+
+
+## Archived handover — Release 21 rotation
+
+### 2026-11-02 — Expand the Pro feature preview and lower monthly pricing
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** detailed Pro page and monthly pricing → Done
+
+**Changed:**
+
+- Replaced repeated Pro rows with six swipeable feature stories, decorative placeholder motion,
+  accessible pagination, and concrete playback/speed/tempo/annotation/export/focus descriptions.
+- Added selectable preview plan cards, defaulting to yearly. Monthly is S$2.98; yearly remains
+  S$19.98 (about S$1.67/month, 44% saving). Purchases remain unavailable and future integrations
+  remain separate from the feature previews. Updated the release roadmap.
+- Preserved all earlier uncommitted work; no branch change, commit, or physical install.
+
+**Verified:**
+
+- TypeScript and whitespace checks passed; full retained Playwright suite passed 8/8, including
+  carousel navigation and monthly plan selection. Inspected the browser portrait screenshot.
+- Focused iOS Settings/Files journey passed: xcresult confirms 1 passed, 0 failed, including
+  opening the Pro carousel, swiping to Speed, and returning to Settings. The initial sandboxed
+  launch could not access CoreSimulator; the authorized host run passed.
+- Generated simulator build/test caches removed after recording the result.
+
+**Not verified / known gaps:**
+
+- Physical-device appearance, VoiceOver, and App Store billing are not verified. This remains a
+  pricing/feature preview with placeholder illustrations, not an activated purchase flow.
+
+**Next agent should:**
+
+- Review the new Pro page on the physical iPhone before replacing placeholder illustrations.

@@ -335,8 +335,7 @@ public final class BeatNoteTempoModule: Module {
     let maximumLag = min(centered.count - 2, Int(ceil(envelopeRate * 60 / minBpm)))
     guard minimumLag <= maximumLag else { throw TempoAnalysisError.insufficientAudio }
 
-    var bestLag = minimumLag
-    var bestCorrelation: Float = -1
+    var correlations = Array(repeating: Float(0), count: maximumLag + 1)
     for lag in minimumLag...maximumLag {
       if lag.isMultiple(of: 16) { try checkCancellation(requestId) }
       let count = centered.count - lag
@@ -349,13 +348,77 @@ public final class BeatNoteTempoModule: Module {
         vDSP_svesq(buffer.baseAddress! + lag, 1, &rightEnergy, vDSP_Length(count))
       }
       let correlation = dot / max(0.000_001, sqrt(leftEnergy * rightEnergy))
-      if correlation > bestCorrelation {
-        bestCorrelation = correlation
+      correlations[lag] = correlation
+    }
+
+    func correlation(atBpm bpm: Double) -> Double {
+      guard bpm > 0 else { return 0 }
+      let lag = Int((envelopeRate * 60 / bpm).rounded())
+      guard lag >= minimumLag, lag <= maximumLag else { return 0 }
+      return Double(max(0, correlations[lag]))
+    }
+
+    // Raw autocorrelation can mistake a strong 3-against-2 rhythmic layer for the song pulse
+    // (for example, returning about 70 for a 105 BPM song). Rank each usable dance-tempo candidate
+    // with its half/double family, its 2/3 alias, and a broad 120-BPM prior. This retains genuine
+    // slow/fast choices as alternatives while preferring the coherent musical pulse.
+    let candidateMinimumBpm = max(minBpm, 60)
+    let candidateMaximumBpm = min(maxBpm, 200)
+    var bestLag = minimumLag
+    var bestRank = -Double.infinity
+    for lag in minimumLag...maximumLag {
+      let candidateBpm = 60 * envelopeRate / Double(lag)
+      guard candidateBpm >= candidateMinimumBpm, candidateBpm <= candidateMaximumBpm else { continue }
+      let direct = correlation(atBpm: candidateBpm)
+      let half = candidateBpm / 2 >= candidateMinimumBpm
+        ? correlation(atBpm: candidateBpm / 2) : 0
+      let double = candidateBpm * 2 <= maxBpm
+        ? correlation(atBpm: candidateBpm * 2) : 0
+      let twoThirds = candidateBpm * 2 / 3 >= minBpm
+        ? correlation(atBpm: candidateBpm * 2 / 3) : 0
+      let logDistance = log(candidateBpm / 120) / 0.45
+      let prior = 0.7 + 0.3 * exp(-0.5 * logDistance * logDistance)
+      let rank = (direct + 0.55 * half + 0.2 * double + 0.45 * twoThirds) * prior
+      if rank > bestRank {
+        bestRank = rank
         bestLag = lag
       }
     }
 
-    let bpm = 60 * envelopeRate / Double(bestLag)
+    // A triplet-heavy arrangement can make the 2/3-period peak win by a narrow margin even
+    // after family ranking. Promote its 3/2 pulse only when that pulse has substantial direct
+    // evidence of its own; this fixes the common ~70 -> ~105 alias without reclassifying a
+    // genuinely slow track whose 3/2 peak is weak.
+    let rankedBpm = 60 * envelopeRate / Double(bestLag)
+    var selectedBpmOverride: Double?
+    if rankedBpm >= 60, rankedBpm < 80 {
+      let promotedBpm = rankedBpm * 1.5
+      let rankedDirect = correlation(atBpm: rankedBpm)
+      let promotedDirect = correlation(atBpm: promotedBpm)
+      if promotedBpm <= candidateMaximumBpm,
+         rankedDirect >= 0.2,
+         promotedDirect >= rankedDirect * 0.42 {
+        let promotedLag = Int((envelopeRate * 60 / promotedBpm).rounded())
+        if promotedLag >= minimumLag, promotedLag <= maximumLag {
+          bestLag = promotedLag
+          selectedBpmOverride = promotedBpm
+        }
+      }
+    }
+
+    let bestCorrelation = correlations[bestLag]
+    var refinedLag = Double(bestLag)
+    if bestLag > minimumLag, bestLag < maximumLag {
+      let left = Double(correlations[bestLag - 1])
+      let center = Double(correlations[bestLag])
+      let right = Double(correlations[bestLag + 1])
+      let denominator = left - 2 * center + right
+      if abs(denominator) > 0.000_001 {
+        let offset = max(-0.5, min(0.5, 0.5 * (left - right) / denominator))
+        refinedLag += offset
+      }
+    }
+    let bpm = selectedBpmOverride ?? (60 * envelopeRate / refinedLag)
     var anchorMs: Double?
     if window.includesAnchor {
       var deviation: Float = 0
@@ -382,6 +445,7 @@ public final class BeatNoteTempoModule: Module {
     let tempoSource = tempoEstimates.isEmpty ? estimates : tempoEstimates
     let sortedBpms = tempoSource.map(\.bpm).sorted()
     let bpm = sortedBpms[sortedBpms.count / 2]
+    let roundedBpm = bpm.rounded()
     let spread = sortedBpms.map { abs($0 - bpm) / max(bpm, 1) }.max() ?? 0
     let agreement = max(0, 1 - spread * 5)
     let averageCorrelation = tempoSource.map(\.correlation).reduce(0, +) / Double(tempoSource.count)
@@ -390,21 +454,21 @@ public final class BeatNoteTempoModule: Module {
     let tempoModel = spread <= 0.04 ? "constant" : "variable"
 
     var alternatives: [[String: Any]] = [[
-      "bpm": bpm, "likelihood": confidence, "relation": "primary"
+      "bpm": roundedBpm, "likelihood": confidence, "relation": "primary"
     ]]
-    if bpm / 2 >= minBpm {
+    if roundedBpm / 2 >= minBpm {
       alternatives.append([
-        "bpm": bpm / 2, "likelihood": confidence * 0.62, "relation": "half"
+        "bpm": (roundedBpm / 2).rounded(), "likelihood": confidence * 0.62, "relation": "half"
       ])
     }
-    if bpm * 2 <= maxBpm {
+    if roundedBpm * 2 <= maxBpm {
       alternatives.append([
-        "bpm": bpm * 2, "likelihood": confidence * 0.62, "relation": "double"
+        "bpm": roundedBpm * 2, "likelihood": confidence * 0.62, "relation": "double"
       ])
     }
 
     return [
-      "detectedBpm": bpm,
+      "detectedBpm": roundedBpm,
       "confidence": confidence,
       "confidenceBand": confidenceBand,
       "tempoModel": tempoModel,

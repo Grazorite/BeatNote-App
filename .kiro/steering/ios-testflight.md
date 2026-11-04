@@ -11,6 +11,14 @@ locally signed development build also launches on an iPhone 15 Pro Max running i
 Developer enrollment for distribution and TestFlight setup remain pending; they are not required
 for simulator development or the current locally signed device workflow.
 
+The current free Personal Team workflow issues local provisioning profiles with a seven-day
+lifetime. When one expires, iOS leaves the app installed but rejects launch at the security gate;
+this is not an app crash and does not remove the app's local container. Rebuild with
+`-allowProvisioningUpdates`, install the renewed app over the existing bundle without uninstalling,
+then explicitly trust the renewed developer profile under iPhone Settings > General > VPN & Device
+Management if iOS requests it. The renewed app will expire again after seven days. Apple Developer
+Program distribution/TestFlight is the durable solution for builds that should remain accessible.
+
 The generated `ios/` directory is intentionally ignored. Native configuration must be expressed in
 `app.json` or Expo config plugins so `expo prebuild` can reproduce it.
 
@@ -226,6 +234,6 @@ The following features require native iOS modules (Swift bridging via Expo Modul
 
 Use `expo-modules-core` to write these as Expo Modules (Swift + TypeScript interface). Do not use bare `react-native` native modules.
 
-Pitch-preserving playback from 0.5× through 2× uses `expo-audio` directly and does not require a
+Pitch-preserving playback from 0.25× through 2× uses `expo-audio` directly and does not require a
 custom native module (ADR-011). Physical-device acceptance must still assess musical quality,
 Bluetooth output, interruptions, background continuity, loops, and live rate changes.

@@ -3,6 +3,14 @@ import { StyleSheet } from 'react-native';
 import { colors, dimensions } from '../../common';
 
 export const aboutSettingsStyles = StyleSheet.create({
+  stack: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  stackPage: {
+    ...StyleSheet.absoluteFillObject,
+  },
   identity: {
     alignItems: 'center',
     paddingVertical: 26,
@@ -58,5 +66,35 @@ export const aboutSettingsStyles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 19,
+  },
+  licenceIntro: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 4,
+  },
+  licenceCard: {
+    padding: 16,
+    gap: 10,
+    backgroundColor: colors.surfaceGlass,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: dimensions.borderRadius,
+  },
+  licenceTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  licencePackages: {
+    color: colors.accent,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  licenceNotice: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 16,
   },
 });

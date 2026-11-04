@@ -106,6 +106,14 @@ export async function deleteCache(sourceHash: string): Promise<void> {
   await writeMetadata(metadata);
 }
 
+/** Remove every dormant stem cache file and its metadata during a full app-data reset. */
+export async function clearAllStemCache(): Promise<void> {
+  const stemsDir = `${FileSystem.documentDirectory ?? ''}${STEMS_DIR}`;
+  const dirInfo = await FileSystem.getInfoAsync(stemsDir);
+  if (dirInfo.exists) await FileSystem.deleteAsync(stemsDir, { idempotent: true });
+  await AsyncStorage.removeItem(CACHE_METADATA_KEY);
+}
+
 /**
  * Return all cached entries as an array.
  */

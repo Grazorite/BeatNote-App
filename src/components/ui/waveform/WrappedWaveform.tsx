@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -389,8 +390,10 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     // applies once horizontal movement has activated the scrub.
     return Gesture.Pan()
       .runOnJS(true)
-      .activeOffsetX([-6, 6])
-      .failOffsetY([-12, 12])
+      .minDistance(2)
+      .activeOffsetX([-3, 3])
+      .failOffsetY([-18, 18])
+      .shouldCancelWhenOutside(false)
       .onStart(event => {
         resetScrub();
         scrubRef.current.active = true;
@@ -449,7 +452,6 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
 
   return (
     <View style={[styles.container, isMobile && styles.containerMobile]} testID="waveform-container">
-      {loading && <Text style={styles.loadingText}>Preparing waveform</Text>}
       {!isMobile && <View style={styles.followToolbar}>
         <RowDensityControls
           mode={effectiveRowDensity.mode}
@@ -507,6 +509,25 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
             </View>
           </GestureDetector>
         </ScrollView>
+      )}
+      {loading && (
+        <View
+          style={styles.loadingOverlay}
+          pointerEvents="none"
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel="Preparing waveform. Long songs can take a moment."
+          accessibilityLiveRegion="polite"
+          testID="waveform-loading-overlay"
+        >
+          <View style={styles.loadingCard}>
+            <ActivityIndicator color={colors.accent} size="small" />
+            <View style={styles.loadingCopy}>
+              <Text style={styles.loadingTitle}>Preparing waveform</Text>
+              <Text style={styles.loadingDetail}>Long songs can take a moment</Text>
+            </View>
+          </View>
+        </View>
       )}
     </View>
   );

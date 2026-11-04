@@ -88,7 +88,12 @@ const syntheticClickWav = (bpm = 120, durationSeconds = 12): Buffer => {
 };
 
 /** Import a deterministic click track for the retained automatic-BPM browser workflow. */
-export async function loadSyntheticClickAudio(page: Page) {
+export async function loadSyntheticClickAudio(
+  page: Page,
+  bpm = 120,
+  durationSeconds = 12,
+  filename = 'test-audio.wav',
+) {
   await prepareFilePicker(page);
   await page.getByTestId('song-title-control').click();
   await expect(page.getByTestId('music-library-sheet')).toBeVisible();
@@ -96,11 +101,14 @@ export async function loadSyntheticClickAudio(page: Page) {
   const fileInput = page.locator('input[type="file"]').last();
   await expect(fileInput).toBeAttached({ timeout: 5000 });
   await fileInput.setInputFiles({
-    name: 'test-audio.wav',
+    name: filename,
     mimeType: 'audio/wav',
-    buffer: syntheticClickWav(),
+    buffer: syntheticClickWav(bpm, durationSeconds),
   });
-  await expect(page.getByTestId('song-title-control')).toContainText('test-audio', { timeout: 10000 });
+  await expect(page.getByTestId('song-title-control')).toContainText(
+    path.parse(filename).name,
+    { timeout: 10000 },
+  );
   await expect(page.getByTestId('music-library-sheet')).toHaveCount(0);
 }
 

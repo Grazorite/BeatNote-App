@@ -1,8 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -25,6 +26,9 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   returnFocusRef?: React.RefObject<unknown>;
   testID?: string;
+  confirmationText?: string;
+  confirmationPrompt?: string;
+  secureConfirmation?: boolean;
 }
 
 const focusAccessibilityNode = (node: unknown): void => {
@@ -43,8 +47,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   returnFocusRef,
   testID = 'confirm-dialog',
+  confirmationText,
+  confirmationPrompt,
+  secureConfirmation = false,
 }) => {
   const titleRef = useRef<Text>(null);
+  const [typedConfirmation, setTypedConfirmation] = useState('');
+  useEffect(() => {
+    if (!visible) setTypedConfirmation('');
+  }, [visible]);
+  const confirmationMatches = confirmationText === undefined || typedConfirmation === confirmationText;
   const close = useCallback(() => {
     onCancel();
     requestAnimationFrame(() => focusAccessibilityNode(returnFocusRef?.current));
@@ -66,12 +78,39 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {title}
           </Text>
           <Text style={styles.message}>{message}</Text>
+          {confirmationText !== undefined && (
+            <View style={styles.confirmationGroup}>
+              <Text style={styles.confirmationPrompt}>
+                {confirmationPrompt ?? (
+                  <>Type <Text style={styles.confirmationPhrase}>{confirmationText}</Text> to continue.</>
+                )}
+              </Text>
+              <TextInput
+                value={typedConfirmation}
+                onChangeText={setTypedConfirmation}
+                autoCapitalize={confirmationText === confirmationText.toUpperCase() ? 'characters' : 'none'}
+                autoCorrect={false}
+                spellCheck={false}
+                secureTextEntry={secureConfirmation}
+                returnKeyType="done"
+                style={styles.confirmationInput}
+                accessibilityLabel={`Type ${confirmationText} to confirm`}
+                testID={`${testID}-confirmation-input`}
+              />
+            </View>
+          )}
           <View style={styles.actions}>
             {actions.map(action => (
               <TouchableOpacity
                 key={action.label}
-                style={[styles.button, action.destructive && styles.destructiveButton]}
+                style={[
+                  styles.button,
+                  action.destructive && styles.destructiveButton,
+                  !confirmationMatches && styles.disabledButton,
+                ]}
                 onPress={action.onPress}
+                disabled={!confirmationMatches}
+                accessibilityState={{ disabled: !confirmationMatches }}
                 testID={action.testID}
               >
                 <Text style={[

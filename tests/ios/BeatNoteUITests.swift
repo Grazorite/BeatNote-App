@@ -59,6 +59,28 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("settings-pro").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-display").exists)
     XCTAssertTrue(element("settings-bpm-entry").exists)
+    element("settings-pro").tap()
+    XCTAssertTrue(element("pro-feature-carousel").waitForExistence(timeout: 5))
+    element("pro-feature-carousel").swipeLeft()
+    XCTAssertTrue(app.staticTexts["Practise at your pace"].waitForExistence(timeout: 5))
+    XCTAssertTrue(element("pro-plan-monthly").isHittable, "Both plans should fit without scrolling on the portrait phone.")
+    let compareCue = element("pro-compare")
+    let compareStart = compareCue.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+    let compareEnd = compareCue.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: -1.5))
+    compareStart.press(forDuration: 0.05, thenDragTo: compareEnd)
+    XCTAssertTrue(element("pro-comparison-sheet").waitForExistence(timeout: 5))
+    let mediumHeight = element("pro-comparison-sheet").frame.height
+    let sheetHandle = element("pro-comparison-sheet-grabber")
+    let dragStart = sheetHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let dragEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15))
+    dragStart.press(forDuration: 0.05, thenDragTo: dragEnd)
+    let expanded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+      self.element("pro-comparison-sheet").frame.height > mediumHeight * 1.3
+    }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [expanded], timeout: 3), .completed)
+    XCTAssertTrue(element("pro-comparison-done").isHittable)
+    element("pro-comparison-done").tap()
+    element("pro-settings-page-back").tap()
     element("settings-bpm-entry").tap()
     XCTAssertTrue(element("settings-bpm").exists)
     XCTAssertTrue(app.staticTexts["Project BPM"].exists)
@@ -145,11 +167,27 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
     element("inner-loop-cycle").tap()
     element("inner-loop-cycle").tap()
+    element("inner-loop-cycle").tap() // Keep the range, but disable wrapping for the fade check.
     let savedLoopSummary = element("loop-overview-summary").label
     let savedLoopToggleValue = String(describing: element("inner-loop-cycle").value ?? "")
 
     element("add-marker").tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+
+    element("annotation-control").tap()
+    let annotationInput = element("annotation-editor-input")
+    XCTAssertTrue(annotationInput.waitForExistence(timeout: 5))
+    annotationInput.tap()
+    annotationInput.typeText("Turn together")
+    element("save-annotation").tap()
+    let annotationPopup = element("annotation-callout-action")
+    XCTAssertTrue(annotationPopup.waitForExistence(timeout: 5))
+    XCTAssertEqual(annotationPopup.label, "Annotation: Turn together")
+    XCTAssertTrue(annotationPopup.isHittable, "The annotation must appear before it fades.")
+    playback.tap()
+    Thread.sleep(forTimeInterval: 4.0)
+    XCTAssertFalse(element("annotation-callout").exists, "Saved annotation feedback must finish fading during playback.")
+    if playback.label.contains("Pause playback") { playback.tap() }
 
     Thread.sleep(forTimeInterval: 1.0)
     app.terminate()
@@ -302,24 +340,16 @@ final class BeatNoteUITests: XCTestCase {
         : "long-test-track-memory-measured.m4a"
       let openSettings = element("sidebar-toggle")
       if openSettings.exists { openSettings.tap() }
-      element("song-title-control").tap()
-      XCTAssertTrue(element("music-library-import").waitForExistence(timeout: 5))
-      element("music-library-import").tap()
-      XCTAssertTrue(waitForPicker(timeout: 15))
 
       startMeasuring()
       defer { stopMeasuring() }
-      selectDocument(filename)
-      dismissAlertIfPresent()
-
-      let title = element("song-title-control")
       let expectedTitle = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent
-      let loadedTitle = XCTNSPredicateExpectation(
-        predicate: NSPredicate(format: "label CONTAINS %@", "current song \(expectedTitle)"),
-        object: title
-      )
-      XCTAssertEqual(XCTWaiter.wait(for: [loadedTitle], timeout: 30), .completed)
+      selectLibrarySong(expectedTitle)
       element("sidebar-open-toggle").tap()
+      element("settings-bpm-entry").tap()
+      let analyze = element("bpm-analysis-start")
+      XCTAssertTrue(analyze.waitForExistence(timeout: 5))
+      analyze.tap()
       let suggested = app.staticTexts.matching(
         NSPredicate(format: "label BEGINSWITH %@", "Suggested:")
       ).firstMatch
@@ -439,6 +469,7 @@ final class BeatNoteUITests: XCTestCase {
     makeProjectActionVisible("load-project")
     element("load-project").tap()
     XCTAssertTrue(element("current-project-export-csv").waitForExistence(timeout: 5))
+    XCTAssertEqual(element("current-project-export-csv").label, "Export Project")
     element("current-project-export-csv").tap()
     XCTAssertTrue(app.staticTexts["1 marker ready to export"].waitForExistence(timeout: 5))
     XCTAssertTrue(
@@ -484,7 +515,13 @@ final class BeatNoteUITests: XCTestCase {
   }
 
   func testAudioContinuesWhileAppIsInBackground() {
-    loadBundledSimulatorAudio("background-audio.m4a")
+    selectLibrarySong("long-mix")
+    element("sidebar-open-toggle").tap()
+    element("settings-display").tap()
+    element("waveform-visibility-toggle").tap()
+    element("display-settings-page-back").tap()
+    element("sidebar-toggle").tap()
+    selectLibrarySong("background-audio")
 
     let playbackTime = element("playback-current-time")
     XCTAssertTrue(playbackTime.waitForExistence(timeout: 5))
@@ -510,6 +547,54 @@ final class BeatNoteUITests: XCTestCase {
     let secondsBefore = playbackSeconds(from: timeBeforeBackground)
     let secondsAfter = playbackSeconds(from: playbackTime.label)
     XCTAssertGreaterThan(secondsAfter, secondsBefore, "The playback clock should advance while the app is backgrounded.")
+
+    // Returning from suspension must not leave an unresolved native seek or switch transaction
+    // intercepting the editor. Exercise all three surfaces from the physical failure report.
+    element("play-pause").tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any).matching(
+        NSPredicate(format: "label == %@", "Play playback")
+      ).firstMatch.waitForExistence(timeout: 5)
+    )
+    let waveform = element("wrapped-row-gesture-area-0")
+    XCTAssertTrue(waveform.waitForExistence(timeout: 5) && waveform.isHittable)
+    let timeBeforeSeek = playbackTime.label
+    waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
+    let seekChangedTime = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", timeBeforeSeek),
+      object: playbackTime
+    )
+    XCTAssertEqual(
+      XCTWaiter.wait(for: [seekChangedTime], timeout: 5),
+      .completed,
+      "The canvas should accept seeking immediately after foregrounding."
+    )
+
+    let nextSong = element("next-track-control")
+    XCTAssertTrue(nextSong.waitForExistence(timeout: 5) && nextSong.isHittable)
+    nextSong.press(forDuration: 1.0)
+    XCTAssertTrue(
+      element("song-title-control").waitForExistence(timeout: 10)
+        && element("song-title-control").label.contains("current song long-mix"),
+      "A cached long-song Music Library switch should complete after foregrounding."
+    )
+    XCTAssertFalse(element("track-switch-transition").exists)
+    nextSong.press(forDuration: 1.0)
+    XCTAssertTrue(
+      element("song-title-control").waitForExistence(timeout: 10)
+        && element("song-title-control").label.contains("current song test-audio"),
+      "A second Music Library switch should not remain queued behind the long song."
+    )
+    XCTAssertFalse(element("track-switch-transition").exists)
+    for song in ["long-mix", "test-audio", "long-mix"] {
+      selectLibrarySong(song)
+    }
+    element("play-pause").tap()
+    let clockAdvances = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label != %@", playbackTime.label), object: playbackTime
+    )
+    XCTAssertEqual(XCTWaiter.wait(for: [clockAdvances], timeout: 5), .completed)
+
   }
 
   func testLandscapeGesturesAndCompactControls() {
@@ -599,7 +684,35 @@ final class BeatNoteUITests: XCTestCase {
     assertNoGestureRuntimeError()
   }
 
+
+  private func selectLibrarySong(_ song: String) {
+    let title = element("song-title-control")
+    title.tap()
+    let sheet = element("music-library-sheet")
+    XCTAssertTrue(sheet.waitForExistence(timeout: 5))
+    let handle = element("music-library-sheet-grabber")
+    handle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+      forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12))
+    )
+    let row = app.descendants(matching: .any).matching(NSPredicate(
+      format: "identifier BEGINSWITH %@ AND label BEGINSWITH %@",
+      "music-library-row-main-", song + ","
+    )).firstMatch
+    XCTAssertTrue(row.waitForExistence(timeout: 5) && row.isHittable)
+    row.tap()
+    XCTAssertTrue(sheet.waitForNonExistence(timeout: 5))
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "current song " + song), object: title
+    )], timeout: 15), .completed)
+    XCTAssertTrue(element("track-switch-transition").waitForNonExistence(timeout: 15))
+  }
+
   private func loadBundledSimulatorAudio(_ filename: String = "test-audio.wav") {
+    let expectedTitle = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent
+    if ["test-audio", "long-mix", "background-audio"].contains(expectedTitle) {
+      selectLibrarySong(expectedTitle)
+      return
+    }
     XCTAssertTrue(element("song-title-control").waitForExistence(timeout: 20))
     element("song-title-control").tap()
     XCTAssertTrue(element("music-library-import").waitForExistence(timeout: 5))
@@ -607,7 +720,6 @@ final class BeatNoteUITests: XCTestCase {
     selectDocument(filename)
     dismissAlertIfPresent()
     let title = element("song-title-control")
-    let expectedTitle = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent
     let loadedTitle = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "label CONTAINS %@", "current song \(expectedTitle)"),
       object: title

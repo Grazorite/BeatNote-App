@@ -7,6 +7,8 @@ import {
   type SongDraft,
 } from '../../types/project';
 import { computeContentFingerprint } from '../../utils/contentFingerprint';
+import { extractWaveform } from '../../services/waveformExtraction';
+import { withAudioOperationTimeout } from '../../utils/audioOperationTimeout';
 import { planSave } from '../../utils/draftResolution';
 import { DRAFT_FLUSH_TIMEOUT_MS } from '../../utils/libraryConstants';
 import type {
@@ -28,6 +30,7 @@ import {
 } from '../../utils/persistedContent';
 import { compareProjectVersion } from '../../utils/projectManager';
 import audioStore from './audioStore';
+import { resolveSource } from './sourceResolver';
 import { flushDraft } from './draftAutosave';
 import { cancelQueued, type PersistenceIssue } from './persistencePipeline';
 import type { SwitchResult } from './trackSwitch';
@@ -103,6 +106,8 @@ interface ProjectServiceDependencies {
   readProject: typeof readProject;
   exportToCSV: (options: ExportOptions) => Promise<EngineExportResult>;
   exportToPDF?: (options: PDFExportOptions) => Promise<EngineExportResult>;
+  extractWaveform?: typeof extractWaveform;
+  resolveSource?: typeof resolveSource;
   flushDraft: typeof flushDraft;
   cancelQueued: typeof cancelQueued;
   requestTrackSwitch: (request: {
@@ -128,6 +133,8 @@ const defaultDependencies: ProjectServiceDependencies = {
   exportToPDF: async options => (
     await import('../../utils/exportEngine')
   ).ExportEngine.exportToPDF(options),
+  extractWaveform,
+  resolveSource,
   flushDraft,
   cancelQueued,
   requestTrackSwitch: async request => (
@@ -943,11 +950,15 @@ async function runExportProjectPdf(
   let content: PersistedContent;
   let projectName: string;
   let songDuration: number;
+  let musicItemId: string;
+  let audioUri: string | null = null;
 
   if (projectId === 'current') {
     const state = dependencies.getState();
     if (state.currentMusicItemId === null || !state.songLoaded) return { kind: 'noSong' };
     content = extractPersistedContent(state);
+    musicItemId = state.currentMusicItemId;
+    audioUri = state.currentAudioUri;
     projectName = state.draftBaselineName
       ?? state.libraryItems[state.currentMusicItemId]?.displayTitle
       ?? 'Unnamed_Draft';
@@ -967,11 +978,35 @@ async function runExportProjectPdf(
       return { kind: 'notFound', projectId };
     }
     content = splitProjectEnvelope(project).content;
+    musicItemId = project.musicItemId;
     projectName = project.metadata.name;
     songDuration = project.metadata.duration;
   }
 
   try {
+    let waveformPeaks: number[] | undefined;
+    if (preferences.includeTimeline && dependencies.extractWaveform) {
+      try {
+        if (audioUri === null && dependencies.resolveSource) {
+          const item = dependencies.getState().libraryItems[musicItemId];
+          if (item && !item.removed && item.availability === 'available') {
+            audioUri = (await dependencies.resolveSource(item)).uri;
+          }
+        }
+        if (audioUri !== null) {
+          const waveform = await withAudioOperationTimeout(
+            dependencies.extractWaveform({ audioUri, resolution: 'basic' }),
+            8_000,
+            'PDF waveform extraction',
+          );
+          if (waveform && waveform.peaks.length > 0) waveformPeaks = waveform.peaks;
+        }
+      } catch (error) {
+        // PDF export is still useful when decoding is unavailable. buildPdfHtml renders a stable
+        // basic waveform so the overview never collapses to an empty grey strip.
+        console.error('Using basic PDF waveform fallback', error);
+      }
+    }
     const exportToPDF = dependencies.exportToPDF ?? (async options => (
       await import('../../utils/exportEngine')
     ).ExportEngine.exportToPDF(options));
@@ -985,6 +1020,7 @@ async function runExportProjectPdf(
       phraseStartMs: content.settings.phraseStartMs,
       songDuration,
       projectName,
+      waveformPeaks,
       ...preferences,
     });
     return { kind: 'exported', result };

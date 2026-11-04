@@ -1,10 +1,20 @@
-import { test, expect, loadTestAudio } from './setup';
+import { test, expect, loadSyntheticClickAudio, loadTestAudio } from './setup';
 
 test.describe('Critical annotation workflow', () => {
   test('creates markers only from controls and saves a mobile annotation', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
-    await loadTestAudio(page);
+    await page.evaluate(() => {
+      const prototype = AudioContext.prototype as AudioContext & {
+        decodeAudioData: (audioData: ArrayBuffer) => Promise<AudioBuffer>;
+      };
+      const decodeAudioData = prototype.decodeAudioData;
+      prototype.decodeAudioData = async function (audioData: ArrayBuffer) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        return decodeAudioData.call(this, audioData);
+      };
+    });
+    await loadSyntheticClickAudio(page, 120, 150, 'long-waveform.wav');
 
     await expect(page.getByTestId('loop-overview-peaks')).toHaveCount(0);
     await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
@@ -17,7 +27,12 @@ test.describe('Critical annotation workflow', () => {
     await page.getByTestId('waveform-visibility-toggle').click();
     await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
-    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666');
+    const waveformLoading = page.getByTestId('waveform-loading-overlay');
+    await expect(waveformLoading).toBeVisible();
+    await expect(waveformLoading).toContainText('Preparing waveform');
+    await expect(waveformLoading).toContainText('Long songs can take a moment');
+    await expect(waveformLoading).toHaveAttribute('aria-label', 'Preparing waveform. Long songs can take a moment.');
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666', { timeout: 15_000 });
 
     const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
     const box = await gestureArea.boundingBox();
@@ -83,8 +98,41 @@ test.describe('Critical annotation workflow', () => {
     await page.mouse.up();
     await expect.poll(markerCount).toBe(1);
 
-    await annotationDot.click();
-    await annotationButton.click();
+    // Exercise real playback with delayed native-clock samples, then explicitly seek back.
+    const markerTime = Number((await annotationDot.getAttribute('data-testid'))?.split('-').pop());
+    await gestureArea.click({ position: { x: box.width * 0.2, y: 12 } });
+    await page.evaluate(time => {
+      const original = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime')!;
+      const clock = window as typeof window & { annotationTestClock: number };
+      clock.annotationTestClock = time / 1000;
+      Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', {
+        ...original,
+        get() { return clock.annotationTestClock; },
+      });
+    }, markerTime - 200);
+    const sampleClock = async (time: number) => {
+      await page.evaluate(value => {
+        (window as typeof window & { annotationTestClock: number }).annotationTestClock = value / 1000;
+      }, time);
+      await page.waitForTimeout(160);
+    };
+    await page.getByTestId('play-pause').click();
+    await sampleClock(markerTime + 10);
+    await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
+    await expect(page.getByTestId('annotation-callout')).toHaveCount(0, { timeout: 4000 });
+    for (const time of [markerTime - 800, markerTime + 20, markerTime - 50, markerTime + 30]) {
+      await sampleClock(time);
+      await expect(page.getByTestId('annotation-callout')).toHaveCount(0);
+    }
+    await page.getByTestId('play-pause').click();
+    await sampleClock(markerTime - 200);
+    await gestureArea.click({ position: { x: box.width * 0.2, y: 12 } });
+    await page.getByTestId('play-pause').click();
+    await sampleClock(markerTime + 10);
+    await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
+    await page.getByTestId('play-pause').click();
+
+    await page.getByRole('button', { name: 'Annotation: Turn together', exact: true }).click();
     await expect(page.getByTestId('annotation-editor-input')).toHaveValue('Turn together');
   });
 

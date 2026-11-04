@@ -70,20 +70,20 @@ limited to development or an explicitly labelled experimental mode.
 Rationale: this prevents key extraction and unexpected cost while supporting a commercial credit or
 allowance model without coupling the client permanently to one provider.
 
-### ADR-011: Use expo-audio for pitch-preserved playback from 0.5× to 2×
+### ADR-011: Use expo-audio for pitch-preserved playback from 0.25× to 2×
 
 Playback speed uses the existing `expo-audio` player, with `shouldCorrectPitch` always enabled and
 `setPlaybackRate(speed, 'high')` applied at the player boundary. Supported values are normalized to
-0.05× increments from 0.5× through 2×. A custom `AVAudioUnitTimePitch` Expo Module is not required
+0.05× increments from 0.25× through 2×. A custom `AVAudioUnitTimePitch` Expo Module is not required
 for this range; reconsider a native engine only if a future requirement exceeds the mobile player's
 2× ceiling or physical-device quality proves insufficient.
 Rationale: the installed cross-platform player already maps high-quality iOS correction to Apple's
 spectral time-pitch algorithm, preserves pitch on web, and keeps rate state through its existing
 play, pause, seek, loop, source, and background-audio lifecycle.
 
-The Pro configuration may preserve an experimental `0.25×–4.00×` preset range, but expo-audio on
-iOS currently clamps playback above 2×. Values beyond 2× are not accepted as working physical-iOS
-behavior until a native engine replaces that boundary.
+BeatNote exposes one truthful range and no range selector. A future requirement above 2× needs a
+separate native playback-engine decision and full transport/audio-session acceptance; it must not be
+represented by presets that the installed player silently clamps.
 
 ### ADR-012: Music item identity and app-owned audio storage
 
@@ -91,6 +91,9 @@ Each imported song receives a random, stable Music Item UUID that is independent
 display title. Native audio is copied to `Library/Application Support/BeatNote/Music` as a relative
 `<uuid>.<extension>` reference, excluded from backup, and removed only when BeatNote deletes its own
 managed copy. The original external file is never treated as owned.
+The validated duration stored on the Music Item is reused when switching songs; do not create a
+second decoder/player merely to re-probe it. A bounded duration probe is only a compatibility path
+for legacy records whose duration is absent or invalid.
 Rationale: picker/cache URLs are purgeable, container paths change after restore, and title/path
 identity would make rename, relink, and multiple projects per song unsafe.
 
@@ -99,7 +102,10 @@ identity would make rename, relink, and multiple projects per song unsafe.
 BeatNote stores one autosaved draft per Music Item and any number of Saved Projects as independent
 per-key records with integer revisions. Dirty state compares a canonical content fingerprint with
 the selected project's baseline fingerprint. All writes share one serialized persistence pipeline;
-read failures block writes to the affected key.
+read failures block writes to the affected key. Manual song switches prompt over a dirty named
+baseline. End-of-track Pro continuation, including Shuffle, bypasses that modal only after flushing
+the current per-song draft; the named project is not overwritten, returning restores the dirty
+draft, and a failed or timed-out flush aborts the automatic switch.
 Rationale: per-key records avoid whole-library overwrite races, while explicit revisions and
 fingerprints make save/autosave recovery deterministic.
 
@@ -147,7 +153,12 @@ through `AVAssetReader` and Accelerate rather than extending `BeatNoteWaveform`.
 supported by the 2026-10-27 synthetic spike and retained 2026-10-28 worker workflow. Native
 synthetic accuracy, cancellation/retry, and 150-second peak-memory acceptance now pass, so the ADR
 is accepted; representative-song and browser performance evidence remain release acceptance work,
-not architecture blockers.
+not architecture blockers. Import may enqueue analysis opportunistically, but Timing & BPM must
+always expose an explicit Analyze Tempo action after relaunch, dismissal, or manual adjustment.
+User-facing tempo values and selectable alternatives are whole BPM. Native candidate selection must
+rank coherent pulse families rather than choosing the largest raw autocorrelation peak alone: include
+half/double support, the common 3-against-2 alias, sub-frame peak interpolation, and a broad dance-
+tempo prior. Changing that selection contract requires synthetic plus representative-song evidence.
 Rationale: BeatNote needs its own beat-phase anchor regardless of third-party tempo libraries, while
 the native analysis lifecycle and outputs differ materially from waveform rendering.
 
@@ -177,6 +188,47 @@ seeking, scrubbing, marker, loop, playhead, and annotation behavior.
 Rationale: waveform artwork adds useful visual precision and measurable extraction/drawing cost,
 but it is not required to complete BeatNote's core annotation and rehearsal workflow. Keeping the
 timeline interaction model identical avoids degrading Lite or creating incompatible projects.
+
+### ADR-021: Bound native audio seeks and recover the player after iOS suspension
+
+Every awaited native `expo-audio` seek must have a finite application-level timeout. Foregrounding
+invalidates the JavaScript seek drain so a native operation abandoned during suspension cannot keep
+transport, canvas seeking, or song switching serialized behind it. If the retained player remains
+unloaded after a short foreground grace period, BeatNote replaces its source and restores the last
+position and play intent when loading completes.
+
+Expo SDK 54's iOS `AudioPlayer.seekTo` implementation is patched during prebuild to use
+`AVPlayerItem.seek(...completionHandler:)` with weak ownership and to cancel pending seeks when the
+shared player is released. Keep the config plugin idempotent and fail prebuild on an unknown
+upstream implementation. Remove the patch only after upgrading to an `expo-audio` version that
+contains the equivalent upstream lifecycle fix and rerunning background/foreground transport,
+canvas, queue-switch, loop, and Repeat acceptance on a physical device.
+
+Rationale: a retained iOS process can survive hours in the background while an async AVFoundation
+seek continuation never resolves. Without both the native lifecycle correction and bounded app
+transactions, one stale seek can indefinitely block otherwise independent editor interactions.
+
+### ADR-022: Player readiness completes a track switch before retryable bookkeeping
+
+A track switch is user-complete once the destination source is loaded and ready. Recent-play and
+queue persistence runs through the retryable storage pipeline after that point and must never keep
+the Music Library busy, keep the editor blocked, or roll playable audio back. Native pause/play
+commands around the transition remain bounded. Waveform extraction for a newly published URI waits
+until the switch coordinator is idle so its `AVAssetReader` cannot contend with destination player
+setup. The coordinator reads readiness from the player that owns the requested URI and checks
+again while waiting in case a native event was missed. The final waveform consumer leaving cancels
+its iOS reader. Native peak arrays and the in-memory cache are bounded for long rehearsals.
+
+Library selections present the dirty-project guard inside the open sheet. Once the selection can
+proceed, dismiss the sheet and show the Studio transition used by transport switches. On failure,
+restore the Library row with its retry action. Only the coordinator owns switch progress. A late
+bookkeeping completion merges the played timestamp without changing the active queue. Resolve the
+selected song against the project summaries reconciled at boot and maintained by project writes.
+Rebuilding the full index on each tap reads every saved project before playback can start.
+
+Rationale: after iOS suspension, a stale AsyncStorage operation can hold the serialized persistence
+queue even though AVPlayer has successfully changed source. Treating nonessential metadata as part
+of the visible transaction made Library taps appear hung while queue navigation seemed successful.
 
 ## Patterns to follow
 

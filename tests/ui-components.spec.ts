@@ -52,9 +52,8 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('seek-behaviour-tapTrackHoldSeek').click();
     await expect(page.getByTestId('seek-behaviour-tapTrackHoldSeek'))
       .toHaveAttribute('aria-checked', 'true');
-    await page.getByTestId('speed-range-extended').click();
     await page.getByTestId('speed-preset-count-12').click();
-    await expect(page.getByTestId('speed-range-extended')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('speed-range-settings')).toHaveCount(0);
     await expect(page.getByTestId('speed-preset-count-12')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('button-settings-page-back').click();
 
@@ -65,16 +64,53 @@ test.describe('UI Components & Layout', () => {
       'Imported audio, markers, manual timing, and saved projects will remain.',
     );
     await page.getByTestId('clear-derived-caches-confirm').getByText('Cancel', { exact: true }).click();
+    await expect(page.getByTestId('delete-all-projects')).toBeDisabled();
+    await expect(page.getByTestId('delete-all-imported-audio')).toBeDisabled();
+    await expect(page.getByTestId('delete-all-imported-audio').locator('xpath=following::*[@data-testid="delete-all-beatnote-data"][1]'))
+      .toHaveCount(1);
+    await page.getByTestId('delete-all-beatnote-data').click();
+    const deleteAllDialog = page.getByTestId('delete-all-beatnote-data-confirm');
+    await expect(page.getByTestId('confirm-delete-all-beatnote-data'))
+      .toHaveAttribute('aria-disabled', 'true');
+    await deleteAllDialog.getByTestId('delete-all-beatnote-data-confirm-confirmation-input')
+      .fill('DELETE ALL DATA');
+    await expect(page.getByTestId('confirm-delete-all-beatnote-data'))
+      .not.toHaveAttribute('aria-disabled', 'true');
+    await deleteAllDialog.getByText('Cancel', { exact: true }).click();
     await page.getByTestId('data-settings-page-back').click();
 
     await page.getByTestId('settings-pro').click();
+    await expect(page.getByText('Keep rehearsal moving', { exact: true })).toBeVisible();
+    await page.getByTestId('pro-feature-1').click();
+    await expect(page.getByText('Practise at your pace', { exact: true })).toBeInViewport();
+    await expect(page.getByTestId('pro-plan-yearly')).toBeInViewport();
+    await expect(page.getByTestId('pro-plan-monthly')).toBeInViewport();
+    await page.getByTestId('pro-compare').click();
+    await expect(page.getByTestId('pro-comparison-sheet')).toBeVisible();
+    await expect(page.getByTestId('pro-comparison-sheet')).toContainText('Fine speed adjustment');
+    await expect(page.getByTestId('pro-comparison-sheet')).not.toContainText('Apple Music');
+    await page.getByTestId('pro-comparison-done').click();
+    await expect(page.getByTestId('pro-comparison-sheet')).not.toBeVisible();
     await expect(page.getByText('S$19.98 yearly', { exact: true })).toBeVisible();
+    await page.getByTestId('pro-plan-monthly').click();
+    await expect(page.getByTestId('pro-plan-monthly')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByText('S$2.98 monthly', { exact: true })).toBeVisible();
     await expect(page.getByTestId('restore-purchases-placeholder')).toContainText('Unavailable');
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (13)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (29)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
+    await page.getByTestId('about-open-source-licences').click();
+    const licencesPage = page.getByTestId('open-source-licences-page');
+    await expect(licencesPage).toBeVisible();
+    await expect(licencesPage).toContainText('expo-audio 1.1.1');
+    await expect(licencesPage).toContainText('react-native 0.81.5');
+    await expect(licencesPage).toContainText('lucide-react-native 0.554.0');
+    await expect(licencesPage).toContainText('Native: DoubleConversion');
+    await expect(licencesPage).toContainText('Native: hermes-engine');
+    await expect(licencesPage).toContainText('Permission is hereby granted');
+    await page.getByTestId('open-source-licences-page-back').click();
     await page.getByTestId('about-settings-page-back').click();
 
     await page.getByTestId('settings-playback').click();
@@ -121,8 +157,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('continuous-play-detail')).toHaveText('Pro only');
     await page.getByTestId('playback-settings-page-back').click();
     await page.getByTestId('settings-buttons').click();
-    await expect(page.getByTestId('speed-range-focused')).toBeDisabled();
-    await expect(page.getByTestId('speed-range-settings')).toContainText('Pro only');
+    await expect(page.getByTestId('speed-count-settings')).toContainText('Pro only');
     await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
@@ -130,31 +165,40 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('playback-speed-preset-0.75')).toBeVisible();
     await expect(page.getByTestId('playback-speed-slider')).toHaveCount(0);
     await page.getByTestId('playback-speed-preset-0.75').click();
-    await expect(page.getByTestId('lite-ad-space')).toBeVisible();
+    await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
 
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
-    await expect(page.getByTestId('lite-ad-space')).toBeVisible();
+    await expect(page.getByTestId('lite-ad-space')).toHaveCount(0);
 
     await page.setViewportSize({ width: 393, height: 852 });
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
+    const proPasswordDialog = page.getByTestId('debug-pro-password-dialog');
+    const proPasswordInput = proPasswordDialog.getByTestId('debug-pro-password-dialog-confirmation-input');
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+    await proPasswordInput.fill('wrong');
+    await expect(page.getByTestId('confirm-enable-debug-pro'))
+      .toHaveAttribute('aria-disabled', 'true');
+    await proPasswordInput.fill('bananas');
+    await page.getByTestId('confirm-enable-debug-pro').click();
+    await expect(proPasswordDialog).toHaveCount(0);
     await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
     await page.getByTestId('settings-buttons').click();
-    await page.getByTestId('speed-range-extended').click();
     await page.getByTestId('speed-preset-count-4').click();
     await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await page.getByTestId('playback-speed').click();
     await expect(page.getByTestId('playback-speed-slider')).toBeVisible();
     await expect(page.getByTestId('playback-speed-range-min')).toHaveText('0.25×');
-    await expect(page.getByTestId('playback-speed-range-max')).toHaveText('4×');
+    await expect(page.getByTestId('playback-speed-range-max')).toHaveText('2×');
     const longPress = async (testID: string) => {
       const bounds = await page.getByTestId(testID).boundingBox();
       if (!bounds) throw new Error(`${testID} is unavailable`);
       await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
       await page.mouse.down();
-      await page.waitForTimeout(500);
+      // The control fires at 450 ms; leave enough headroom for a busy parallel browser worker.
+      await page.waitForTimeout(700);
       await page.mouse.up();
     };
     await longPress('playback-speed-preset-0.25');
@@ -290,7 +334,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('portrait-control-dock')).toBeVisible();
     await expect(page.getByTestId('annotation-callout')).toContainText('Rotation cue');
   });
-  test('track completion repeats, stops in Lite, and honours Continuous Play in Pro', async ({ page }) => {
+  test('track completion repeats, stops in Lite, and preserves drafts through Pro continuation', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
     await page.evaluate(() => {
@@ -339,6 +383,10 @@ test.describe('UI Components & Layout', () => {
     await expect.poll(async () => page.getByTestId('playback-current-time').textContent())
       .toMatch(/^Current: 0:0[0-2]$/);
 
+    // Freeze the short fixture before changing tiers; otherwise it can finish in Pro
+    // while the settings drawer is still opening on a busy native-build host.
+    await page.getByTestId('play-pause').click();
+    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play playback');
     await repeat.click();
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
@@ -353,13 +401,34 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('debug-tier-toggle').click();
+    await page.getByTestId('debug-pro-password-dialog-confirmation-input').fill('bananas');
+    await page.getByTestId('confirm-enable-debug-pro').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('settings-playback').click();
     await page.getByTestId('continuous-play-toggle').click();
     await expect(page.getByTestId('continuous-play-toggle')).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('playback-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
-    await expect(page.getByTestId('settings-page')).toHaveCount(0);
+
+    // Shuffle is itself a continuation intent in Pro, even when the separate Continuous Play
+    // preference is off. A dirty named project must be flushed as a recoverable song draft without
+    // blocking hands-free playback behind the manual switch guard or overwriting the project.
+    await page.getByTestId('save-project').click();
+    await page.getByTestId('save-project-name').fill('Shuffle Draft');
+    await page.getByTestId('confirm-save-project').click();
+    await page.getByTestId('add-marker').click();
+    await page.getByTestId('shuffle-control').click();
+    await finishActiveTrack();
+    await expect.poll(async () => title.textContent()).not.toContain('long-test-track');
+    await expect(page.getByTestId('switch-guard-dialog')).toHaveCount(0);
+    await page.getByTestId('play-pause').click();
+    await page.getByTestId('shuffle-control').click();
+    await expect(page.getByTestId('shuffle-control')).toHaveAttribute('aria-pressed', 'false');
+    await title.click();
+    await page.getByRole('button', { name: /^long-test-track,/ }).click();
+    await expect(page.getByTestId('track-switch-transition')).toHaveCount(0, { timeout: 1000 });
+    await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
+
     await finishActiveTrack();
     await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play playback');
     await expect(title).toContainText('long-test-track');
@@ -383,12 +452,14 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('bpm-suggestion-card')).toContainText(
-      /Suggested: (?:119|120)(?:\.\d+)? BPM/,
+      /Suggested: (?:119|120) BPM/,
       { timeout: 15000 },
     );
+    await expect(page.getByTestId('bpm-suggestion-card')).not.toContainText(/Suggested: \d+\.\d+ BPM/);
     await page.getByRole('button', { name: 'Preview' }).click();
     await page.getByRole('button', { name: 'Apply Preview' }).click();
     await page.getByTestId('dance-counts-toggle').click();
+    await expect(page.getByTestId('dance-counts-enabled')).toContainText('Dance counts are on');
     await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('dance-count-display')).toContainText('Count 1');
@@ -406,6 +477,12 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await expect(page.getByTestId('dance-count-display')).toContainText('Count 1');
 
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
+    await expect(page.getByTestId('bpm-analysis-start')).toHaveText('Analyze Tempo');
+    await page.getByTestId('bpm-settings-page-back').click();
+    await page.getByTestId('sidebar-toggle').click();
+
     const songTitleControl = page.getByTestId('song-title-control');
     await songTitleControl.click();
     await expect(page.getByRole('button', { name: /^test-audio,/ })).toBeVisible();
@@ -416,6 +493,8 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-display').click();
     await page.getByTestId('settings-layer-name-vocals').fill('Lead movement');
     await page.getByTestId('settings-layer-name-vocals').press('Enter');
+    await expect(page.getByTestId('settings-layer-reset-vocals').getByText('Reset'))
+      .toHaveCSS('color', 'rgb(181, 74, 69)');
     await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
@@ -499,7 +578,21 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('switch-guard-dialog')).toBeVisible();
     await page.getByTestId('switch-keep-draft').click();
     await songTitleControl.click();
-    await page.getByRole('button', { name: /^test-audio,/ }).click();
+    const target = page.getByRole('button', { name: /^test-audio,/ });
+    const targetId = (await target.getAttribute('data-testid'))!.replace('music-library-row-main-', '');
+    await page.evaluate(key => {
+      const getItem = Storage.prototype.getItem;
+      Storage.prototype.getItem = function (requestedKey) {
+        if (requestedKey === key) {
+          Storage.prototype.getItem = getItem;
+          throw new Error('Simulated temporary draft read failure');
+        }
+        return getItem.call(this, requestedKey);
+      };
+    }, `beatnote.draft.v1.${targetId}`);
+    await target.click();
+    await expect(songTitleControl).toContainText('second-song');
+    await page.getByRole('button', { name: 'Retry loading test-audio' }).click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
     await page.getByTestId('load-project').click();
@@ -519,10 +612,64 @@ test.describe('UI Components & Layout', () => {
     await activeToast.getByTestId('dock-toast-action').click();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
     await page.getByTestId('load-project').click();
+    await expect(page.getByTestId('current-project-export-csv')).toHaveText('Export Project');
     await page.getByTestId('current-project-export-csv').click();
     await expect(page.getByText('Export Project', { exact: true }).last()).toBeVisible();
+    await page.evaluate(() => {
+      const capture = { html: '' };
+      Object.defineProperty(window, '__beatnotePdfCapture', { value: capture, configurable: true });
+      window.open = ((() => ({
+        document: {
+          open: () => undefined,
+          write: (html: string) => { capture.html = html; },
+          close: () => undefined,
+        },
+        addEventListener: () => undefined,
+      })) as unknown) as typeof window.open;
+    });
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByTestId('export-pdf').click();
+    await expect.poll(() => page.evaluate(() => (
+      (window as typeof window & { __beatnotePdfCapture?: { html: string } })
+        .__beatnotePdfCapture?.html.includes('timeline-waveform') ?? false
+    ))).toBe(true);
+    await expect.poll(() => page.evaluate(() => (
+      (window as typeof window & { __beatnotePdfCapture?: { html: string } })
+        .__beatnotePdfCapture?.html.includes('waveform-bar') ?? false
+    ))).toBe(true);
+    await expect.poll(() => page.evaluate(() => {
+      const html = (window as typeof window & { __beatnotePdfCapture?: { html: string } })
+        .__beatnotePdfCapture?.html ?? '';
+      return html.includes('<svg class="timeline-waveform"')
+        && html.includes('<rect class="waveform-bar"')
+        && html.includes('.timeline-waveform { height: 100%; inset: 0; opacity: 1;')
+        && html.includes('.waveform-bar { fill: #000; }');
+    })).toBe(true);
     await page.getByText('Cancel', { exact: true }).last().click();
     await page.getByTestId('projects-back').click();
+
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-data').click();
+    await page.getByTestId('delete-all-projects').click();
+    const deleteProjectsDialog = page.getByTestId('delete-all-projects-confirm');
+    await expect(page.getByTestId('confirm-delete-all-projects'))
+      .toHaveAttribute('aria-disabled', 'true');
+    await deleteProjectsDialog.getByTestId('delete-all-projects-confirm-confirmation-input')
+      .fill('DELETE PROJECTS');
+    await page.getByTestId('confirm-delete-all-projects').click();
+    await expect(activeToast).toContainText('Deleted all saved projects');
+    await expect.poll(() => page.evaluate(() => Object.keys(localStorage)
+      .filter(key => key.startsWith('beatnote.project.v2.')).length)).toBe(0);
+
+    await page.getByTestId('delete-all-imported-audio').click();
+    const deleteAudioDialog = page.getByTestId('delete-all-imported-audio-confirm');
+    await expect(page.getByTestId('confirm-delete-all-imported-audio'))
+      .toHaveAttribute('aria-disabled', 'true');
+    await deleteAudioDialog.getByTestId('delete-all-imported-audio-confirm-confirmation-input')
+      .fill('DELETE IMPORTED AUDIO');
+    await page.getByTestId('confirm-delete-all-imported-audio').click();
+    await expect(activeToast).toContainText('Deleted all imported audio copies');
+    await expect(page.getByTestId('data-imported-audio-summary')).toContainText('0 songs');
 
     await page.addInitScript(() => {
       localStorage.clear();

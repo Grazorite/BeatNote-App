@@ -248,6 +248,12 @@ export function createDraftAutosave(
 
   const flushLatest = async (): Promise<DraftFlushResult> => {
     clearTimer();
+    const initial = dependencies.getState();
+    if (!writeInFlight && initial.currentMusicItemId !== null
+      && failedMusicItemId !== initial.currentMusicItemId
+      && contentFingerprintsEqual(computeContentFingerprint(extractPersistedContent(initial)), initial.lastWrittenFingerprint)) {
+      return 'skipped';
+    }
     const firstResult = await writeOnce();
     if (firstResult === 'failed') return firstResult;
 

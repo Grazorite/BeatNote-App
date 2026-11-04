@@ -40,6 +40,7 @@
     "test:report": "playwright show-report",
     "test:list": "playwright test --list",
     "test:unit": "jest --testPathPatterns=unit --passWithNoTests",
+    "generate:licences": "node scripts/generate-native-licences.js",
     "perf:projects": "node scripts/generate-performance-projects.js",
     "check:version": "node scripts/check-version-consistency.js",
     "test:ios:ui": "node scripts/ios-ui-test.js"

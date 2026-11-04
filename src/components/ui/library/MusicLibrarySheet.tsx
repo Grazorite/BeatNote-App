@@ -48,6 +48,7 @@ import {
 } from '../../../utils/queueOrder';
 import { BeatNoteIcon } from '../../icons';
 import { BottomSheet } from '../common';
+import SwitchGuardDialog from '../modals/SwitchGuardDialog';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import RenameMusicPrompt from '../modals/RenameMusicPrompt';
 import ImportProgressRow from './ImportProgressRow';
@@ -117,7 +118,6 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   const notify = useStudioStore(state => state.notify);
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
-  const [requestedMusicItemId, setRequestedMusicItemId] = useState<string | null>(null);
   const [renameItem, setRenameItem] = useState<MusicItem | null>(null);
   const pendingRenameItemsRef = useRef<typeof libraryItems | null>(null);
   const listRef = useRef<FlatList<MusicItem>>(null);
@@ -168,7 +168,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     });
     return counts;
   }, [projectSummaries]);
-  const activeLoadingId = loadingMusicItemId ?? requestedMusicItemId;
+  const activeLoadingId = loadingMusicItemId;
   const interactionsDisabled = libraryStatus !== 'ready'
     || switchPhase !== 'idle'
     || switchGuard !== null
@@ -182,15 +182,6 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     pendingRenameItemsRef.current = null;
     useStudioStore.setState({ libraryItems: items });
   }, []);
-
-  useEffect(() => {
-    if (
-      requestedMusicItemId !== null
-      && switchPhase === 'idle'
-      && switchGuard === null
-      && loadingMusicItemId === null
-    ) setRequestedMusicItemId(null);
-  }, [loadingMusicItemId, requestedMusicItemId, switchGuard, switchPhase]);
 
   const pickAudio = useCallback(async (retryJobId?: string) => {
     try {
@@ -220,18 +211,17 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
       closeLibrarySheet();
       return;
     }
-    setRequestedMusicItemId(item.id);
-    const result = await requestTrackSwitch({
-      musicItemId: item.id,
-      origin: 'library',
-      rebuildQueue: true,
-    });
-    if (result.kind === 'committed') closeLibrarySheet();
-    if (result.kind === 'failed' || result.kind === 'superseded') setRequestedMusicItemId(null);
-    if (result.kind === 'cancelled' && useStudioStore.getState().switchGuard === null) {
-      setRequestedMusicItemId(null);
+    try {
+      await requestTrackSwitch({
+        musicItemId: item.id,
+        origin: 'library',
+        rebuildQueue: true,
+      });
+    } catch (error) {
+      console.error('Unexpected Music Library switch failure', error);
+      notify("BeatNote couldn't change songs. Try again.");
     }
-  }, [closeLibrarySheet, currentMusicItemId]);
+  }, [closeLibrarySheet, currentMusicItemId, notify]);
 
   const openDeletePrompt = useCallback(async (
     item: MusicItem,
@@ -624,6 +614,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
           testID="music-library-list"
         />
       </View>
+      <SwitchGuardDialog inLibrarySheet />
       <RenameMusicPrompt
         visible={renameItem !== null}
         initialTitle={renameItem?.displayTitle ?? ''}

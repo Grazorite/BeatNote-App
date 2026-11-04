@@ -12,7 +12,7 @@
 | Need | File |
 |------|------|
 | Product scope, users, workflow, domain glossary | [`.kiro/steering/project-overview.md`](./.kiro/steering/project-overview.md) |
-| Architecture decisions (ADR-001…020), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
+| Architecture decisions (ADR-001…022), core patterns | [`.kiro/steering/architecture-decisions.md`](./.kiro/steering/architecture-decisions.md) |
 | Language, framework, and style conventions | [`.kiro/steering/coding-standards.md`](./.kiro/steering/coding-standards.md) |
 | Test strategy — what to unit-test vs E2E | [`.kiro/steering/testing-strategy.md`](./.kiro/steering/testing-strategy.md) |
 | Choreography feature designs (mostly planned) | [`.kiro/steering/choreography-features.md`](./.kiro/steering/choreography-features.md) |
@@ -27,15 +27,15 @@
 > into `docs/context/` would create two sources of truth and break steering auto-injection. The
 > Context Map above therefore points at the steering files directly.
 
-**Automation:** board upkeep is enforced by the global `global-project-orchestrator` skill
-(`~/.kiro/skills/global-project-orchestrator/SKILL.md`).
+**Automation:** board upkeep follows the user-mandated `local-agent-orchestrator` lifecycle
+(`/Users/galen/.codex/skills/local-agent-orchestrator/SKILL.md`).
 
 ---
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-11-02
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (13)` Release build installed physically · TestFlight pending
+**Last updated:** 2026-11-05
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (29)` Release build re-signed and installed physically; launch awaits renewed developer trust · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,21 +60,12 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Finish automatic-BPM runtime acceptance (now a Pro-tier feature per the 2026-11-02 roadmap):
-   representative real-song/physical-device evidence remains. Native cancellation/retry,
-   150-second peak memory, synthetic accuracy, and all ten retained simulator journeys pass;
-   downbeat estimation remains deliberately open.
-2. Finish physical iOS acceptance: audio loading/playback, waveform scrubbing, background audio
-   interruptions, and completing a share to an external destination. Simulator automation covers
-   background audio playback, annotation/project restoration, CSV I/O, V1 settings, loop transport,
-   landscape gestures/geometry, and real waveform rendering. Interactive Xcode 27 testing
-   uses Product > Run / Cmd+R and Device Hub; Expo's `run:ios` currently cannot resolve the Simulator
-   app on this host.
-3. Complete physical-device playback-speed acceptance: musical pitch/artifact quality across the
-   range, live adjustment, VoiceOver, Bluetooth output, interruptions, background playback, and loops.
-4. Keep the completed local choreography workflow stable while physical-device acceptance and the
-   Apple Developer account remain outstanding; do not resume stem separation until the gates in
-   `.kiro/steering/release-roadmap.md` are satisfied.
+1. Re-trust the renewed Personal Team developer profile on the iPhone, confirm Release 29 launches,
+   and verify the existing BeatNote library/projects remain present after the in-place install.
+2. Reconcile and commit the release-candidate tree, restore the host's CoreSimulator service, and
+   rerun all ten retained native journeys from the exact committed tree.
+3. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
+   V2 purchase enforcement.
 
 ### Agent Assignments
 
@@ -90,19 +81,17 @@ target; Android is a far-future possibility only.
 
 ### 🔜 To Do
 
-- [ ] Activate iOS/TestFlight — real EAS `projectId`, Apple credentials, Info.plist keys (blocked on Apple Developer account)
+- [ ] V1.7 — Activate iOS/TestFlight: Apple Developer enrolment, real EAS project ID, signing,
+      App Store Connect/privacy metadata, distribution, and clean install/update acceptance
+- [ ] V1.8 — Freeze and explicitly close V1; record non-blocking limitations before V2 begins
 
 ### 🚧 In Progress
 
-- [ ] Stabilise and polish the physical-iPhone workflow: Control Centre/Now Playing, atomic song
-      transitions, and coalesced rapid speed changes are implemented and locally verified; physical
-      Repeat/Shuffle now pass; audible switching and Release-build latency remain open
-- [ ] Complete `automatic-bpm-detection` runtime acceptance; shared decode/worker,
-      lifecycle/cache, suggestion preview/apply/restore, manual anchor/count controls, persistence,
-      exports, retained browser flow, octave-resolved native synthetic XCTest, cancellation/retry,
-      and 150-second simulator memory are implemented; real-song accuracy and physical acceptance
-      remain
-- [ ] Run physical-device acceptance for audio/scrubbing/background/share; simulator suite covers core workflow and background playback lifecycle
+- [ ] V1.6 — Reconcile and commit the exact release candidate; rerun TypeScript, 8 browser journeys,
+      10 iOS journeys, version consistency, and whitespace checks
+
+- [ ] Restore physical Release 29 launch after the seven-day Personal Team profile expired; renewed
+      profile is installed in place and awaits explicit trust on the iPhone
 
 ### ⏸ Deferred — V2/V3
 
@@ -114,30 +103,27 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
-- [x] Remove non-actionable speed copy, emphasize selected preset counts, tighten playback captions,
-      implement persisted pause-on-headset-disconnect behavior, suppress duplicate annotation
-      callouts, lower standalone toasts, repair the Xcode 27 native gate, and install beta `1.0.0 (13)`
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-audio-session/`, `plugins/withIosPodDeploymentTarget.js`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/controls/playbackSpeedControl.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+- [x] Physically accept Release 29 repeated Music Library switching and the nested About → Open
+      Source Licences slideover animation
+      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
 
-- [x] Repair the retained annotation fade; simplify capability wording; add direct and accelerated
-      seek/speed adjustment; implement Pro speed ranges, 4/8/12 presets, custom preset editing and
-      default restoration; install Release beta `1.0.0 (12)` on the physical iPhone
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useAcceleratingPress.ts`, `src/styles/components/modals/playbackSpeedPresetEditor.ts`, `src/styles/components/settings/settingsPage.ts`, `src/utils/markerSelection.ts`, `src/utils/playbackSpeed.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+- [x] V1.4b/V1.5 closeout — Accept the physical playback/BPM lifecycle matrix, document the native
+      0.25× quality limit, add complete runtime/native licence notices, password-gate the debug Pro
+      preview, align the nested Licences transition, repair deterministic native test setup, and
+      install Release 29
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `package.json`, `scripts/generate-native-licences.js`, `scripts/ios-ui-test.js`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/data/nativeOpenSourceLicences.generated.ts`, `src/data/openSourceLicences.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Redraw the annotation action from the supplied bubble/list reference, make Tap Seeks the
-      default with conditional signed badges and 0.5-second custom distance steps, keep annotation
-      fades in a fixed overview slot, and install Release beta `1.0.0 (11)` on the physical iPhone
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/icons/BeatNoteIcon.tsx`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `src/styles/layout/mainContent.ts`, `tests/ui-components.spec.ts`</sub>
+- [x] V1 release blocker — Repair Library row switching and verify long-file recovery in Release 28
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-waveform/ios/BeatNoteWaveformModule.swift`, `modules/beatnote-waveform/src/index.ts`, `scripts/ios-ui-test.js`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction.ios.ts`, `src/services/waveformExtraction.types.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Keep annotation, toast, and speed-chooser exits anchored above the overview; add persisted
-      tap/hold seek-button behaviour and 0.5–30 second distances with signed on-button cues; install
-      Release beta `1.0.0 (10)` on the physical iPhone
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/MainContent.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/ControlDock.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/features/settings/preferences.ts`, `src/styles/components/settings/settingsPage.ts`, `tests/ui-components.spec.ts`</sub>
+- [x] V1.4a/export polish — Accept representative-song whole-number BPM accuracy and external
+      CSV/PDF sharing, render PDF overview waveforms in solid black, and install Release 27
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Repair the landscape annotation editor and Settings edge gestures; add reversible marker
-      deletion, annotated overview markers, smoother transient UI, current-project rename, flatter
-      Settings subpages, sheet-native Music dismissal, and install Release beta `1.0.0 (9)`
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/controls/`, `src/components/ui/modals/`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/`, `src/styles/`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+- [x] V1 release blocker — Defer waveform decoding until destination playback is ready, correct
+      automatic-tempo pulse selection and whole-number output against representative songs, share
+      exports as files without URI text, restore printable PDF waveform artwork, and install Release 26
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/hooks/useWaveformData.ts`, `src/services/bpmAnalysis.ios.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -216,187 +202,195 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-11-02 — Add headset safety and stabilise transient feedback
+### 2026-11-05 — Renew expired physical-device signature
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** speed copy, headset disconnect, and popup retriggering → Done
-
-**Changed:**
-
-- Removed the two informational speed rows that did not change behavior, added an accent outline to
-  selected preset-count and speed buttons, and grouped Continuous Play with its caption without the large
-  intervening gap.
-- Added a persisted, default-on Pause on Headset Disconnect setting. The new
-  `BeatNoteAudioSession` Expo module reports iOS output-route loss; the audio hook pauses safely or,
-  when the user opts out, resumes after expo-audio's automatic route-change pause.
-- Suppressed native-clock jitter from retriggering the same timed annotation after its display
-  window closes. Standalone dock toasts now use the empty annotation slot instead of floating a row
-  too high, while annotation exits retain their in-place opacity fade.
-- Repaired Xcode 27.1 native builds by selecting source-built React Native, keeping only the
-  incompatible `fmt` pod on C++17, and making the XCTest harness refresh Pods/codegen after prebuild.
-  Incremented to `1.0.0 (13)` and installed the signed Release app
-  on the connected physical iPhone.
-
-**Verified:**
-
-- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
-- Full retained Playwright regression → 8/8 passed, including persisted headset preference,
-  compact caption geometry, retained annotation fade, and lower no-annotation toast placement.
-- Focused iOS `testLandscapeGesturesAndCompactControls` passed after a clean source build. Signed
-  Release beta 13 built successfully and device services confirmed installation as `com.beatnote.app`.
-
-**Not verified / known gaps:**
-
-- Physical wired/Bluetooth disconnect behavior, annotation jitter around a real device clock, and
-  the final visual spacing still need hands-on confirmation. The phone was locked after install, so
-  device services could not launch beta 13 automatically.
-- Expo-audio on iOS clamps playback above 2×. The existing experimental 4× configuration is not a
-  working physical-iOS guarantee until a native speed engine replaces that boundary.
-
-**Next agent should:**
-
-- Unlock and inspect beta 13, then physically verify both states of Pause on Headset Disconnect and
-  confirm annotations appear only once as playback crosses a marker.
-
-### 2026-11-02 — Repair annotation fading and add Pro speed configuration
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** fade, numeric acceleration, capability copy, and speed configuration → Done
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Release 29 physical Library/Licences confirmation → Done; renewed-profile trust → In Progress
 
 **Changed:**
 
-- Moved the annotation callout to a retained core native opacity animation lasting 650 ms. It keeps
-  its rendered text and fixed slot until the fade completes, including interrupted/replacement exits.
-- Made seek distance directly editable and retained 0.5-second normalization. Holding seek or fine
-  speed `−/+` now repeats at an exponentially increasing rate while respecting configured bounds.
-- Removed redundant tier names from ordinary Settings descriptions. Unavailable Pro capabilities
-  remain visible, greyed out, with the short note `Pro only`.
-- Added persisted Pro speed ranges (`0.5×–2×` or `0.25×–4×`), 4/8/12 useful preset layouts, and
-  long-press per-slot editing. The editor saves a normalized value or clears it with Use Default;
-  Lite retains its standard built-in presets without fine/configuration controls.
-- Incremented to `1.0.0 (12)` and installed the signed Release build on the physical iPhone.
+- Recorded the user's physical passes for repeated Music Library switching and the nested About →
+  Open Source Licences slideover.
+- Diagnosed the sudden launch loss as expiry of Xcode's seven-day free Personal Team provisioning
+  profile, not an app crash. Renewed the profile, re-signed the same Release 29 bundle, and installed
+  it over the existing bundle without uninstalling.
+- Documented the weekly Personal Team renewal/trust lifecycle and TestFlight as the durable path.
 
 **Verified:**
 
-- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
-- Full retained Playwright regression → 8/8 passed. Existing journeys now verify partial opacity
-  during annotation exit, direct seek entry, Lite `Pro only` gates, both speed ranges, preset counts,
-  and custom preset save/default restoration without adding another journey.
-- Focused iOS `testLandscapeGesturesAndCompactControls` passed. The signed Release app reports
-  `1.0.0/12`, and device services confirmed installation as `com.beatnote.app`.
+- The phone remained paired and independently reported BeatNote `1.0.0 (29)` installed. Its first
+  launch request was denied specifically for an invalid/untrusted profile.
+- The original embedded profile expired on 2026-11-04 at 12:49 pm Singapore time. Xcode generated
+  profile `124dfec1-cb14-4aeb-bac5-e70ef1687bb7`, valid through 2026-11-12 at 4:55 am Singapore
+  time; signed Release build and validation succeeded, and in-place installation succeeded.
 
 **Not verified / known gaps:**
 
-- Automatic launch was denied because the physical iPhone was locked. Physical confirmation remains
-  for fade visibility, keyboard entry, accelerated holds, chooser density, and preset editing.
+- iOS still denies launch until the user explicitly trusts the renewed developer profile in Settings.
+  Confirming launch and preservation of the existing library/projects remains pending that action.
+- The shared release-candidate tree remains intentionally uncommitted; the simulator gate remains open.
 
 **Next agent should:**
 
-- Incorporate the user's physical beta 12 feedback, especially the visible fade duration and the
-  12-button chooser in landscape.
+- After the user trusts the developer profile, launch Release 29 via `devicectl`, confirm existing
+  local content is present, then continue V1.6 reconciliation.
 
-### 2026-11-02 — Refine the annotation action and Tap Seeks defaults
+### 2026-11-04 — Close V1 polish and install Release 29
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** annotation icon, fixed fade slot, and configurable Tap Seeks → Done
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.4b/V1.5 release closeout → Done; V1.6 release-candidate reconciliation remains To Do
 
 **Changed:**
 
-- Replaced the annotation action with a themeable filled rounded speech bubble and inset list marks,
-  matching the supplied reference without introducing a raster asset.
-- Made Tap Seeks the first and default transport behaviour. Signed distances appear only in that
-  mode; Tap Changes Track keeps the transport icons uncluttered. Seek distance is now adjustable
-  from 0.5 to 30 seconds in exact 0.5-second steps, including accessible increment/decrement paths.
-- Kept persistent toast and annotation layout slots above the overview so opacity exits cannot move
-  downward when either child finishes unmounting. Updated durable UI rules and Help accordingly.
-- Incremented to `1.0.0 (11)` and installed the signed Release build on the connected physical iPhone.
+- Added complete direct and CocoaPods-generated open-source acknowledgements, made About → Open
+  Source Licences use the same horizontal Settings transition, and password-gated the debug Lite →
+  Pro switch with `bananas`; Pro → Lite remains immediate.
+- Confirmed iOS already uses AVPlayer's highest-quality spectral pitch correction. The remaining
+  0.25× smear is an accepted native extreme-stretch limitation; a different audio engine is V2 work.
+- Repaired deterministic native test setup: post-import journeys use a seeded managed library, and
+  BPM stress fixtures now carry the content fingerprint required for decoded analysis eligibility.
+- Preserved the shared Release 28 Music Library fixes, bumped to 29, then signed, installed, verified,
+  and launched the combined Release build on physical iPhone `gæl (3)`.
 
 **Verified:**
 
-- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
-- Full retained Playwright regression → 8/8 passed, including the Tap Seeks default, conditional
-  badge visibility, actual seek behaviour, Tap Changes Track, and a persisted 5.5-second distance.
-- Focused iOS `testLandscapeGesturesAndCompactControls` passed. The signed Release app reports
-  `1.0.0/11`, and device services confirmed installation as `com.beatnote.app`.
+- TypeScript, version consistency, whitespace, licence generation, the empty permanent-unit suite,
+  and all eight retained browser journeys passed. Browser coverage includes the wrong/correct Pro
+  password paths and the licence content/navigation flow.
+- The current native run passed its first four journeys, including annotation restore, automatic BPM,
+  and cancellation/retry. A focused annotation rerun passed after removing Files-provider flakiness.
+  The long-track failure was traced to a null fingerprint in test seed data and corrected.
+- Xcode's signed Release build and validation passed. Bundle and installed-device metadata independently
+  report `1.0.0 (29)`; device installation and automatic launch succeeded.
 
 **Not verified / known gaps:**
 
-- Automatic launch was denied because the physical iPhone was locked. Physical visual/touch
-  confirmation remains for the new icon, in-place fade, badge legibility, and distance stepper.
+- Xcode 27.2's CoreSimulator/simdiskimaged service crashed repeatedly, including after a full service
+  restart. The remaining six native journeys and the corrected long-track fixture therefore could
+  not be rerun on the exact final tree; all ten remain retained and had passed in earlier focused runs.
+- Physical confirmation remains for repeated switching of the user's affected song and the new
+  About → Open Source Licences animation. The shared tree is intentionally still uncommitted.
 
 **Next agent should:**
 
-- Incorporate the user's physical beta 11 feedback before adding more transport modes.
+- Record those two Release 29 physical checks, restore CoreSimulator, then reconcile/commit V1.6 and
+  rerun its exact-tree gate before TestFlight.
 
-### 2026-11-02 — Anchor transient exits and add seek-button configuration
+### 2026-11-04 — Release 28 Music Library row switching
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** anchored feedback exits and configurable transport seeking → Done
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Library switching implementation → Done. Physical confirmation → In Progress.
 
 **Changed:**
 
-- Replaced exit-time layout animation for annotations and dock toasts with retained, opacity-only
-  presence: each item fades fully where it is anchored before its layout slot is removed. Playback
-  speed dismissal now uses a short in-place fade and subtle scale instead of translating toward the
-  overview strip.
-- Replaced the Button Settings seek placeholders with persisted tap/hold behaviour and all requested
-  distances from 0.5 to 30 seconds. Previous/Next display signed `−/+Ns` cues under their track
-  icons, clamp seeks to track bounds, and remain accessible while either seeking or queue navigation
-  is available.
-- Updated Help and durable UI rules, incremented to `1.0.0 (10)`, and installed/launched the signed
-  physical Release build.
+- Library selections resolve the save guard inside the sheet, then dismiss it before entering the
+  Studio switch transition. A failure reopens the affected row with Retry. Removed the parallel
+  local row lock and the second success dismissal.
+- Read live readiness from the destination player, serialize manual and automatic requests, and
+  prevent late queue/bookkeeping results from replacing the active selection. Switches use the
+  reconciled project summaries and read the destination draft strictly. Already-durable drafts can
+  skip the write queue. Dirty edits must still flush successfully.
+- Cancel unused native waveform requests during a switch and bound peak transfer and retention
+  for long songs. Added an existing-library simulator fixture and a browser failure/retry check.
 
 **Verified:**
 
-- `npx tsc --noEmit`, version consistency, and `git diff --check` → passed.
-- Full retained Playwright regression → 8/8 passed, including persisted settings, default track
-  navigation, tap-to-seek, signed badge display, and boundary clamping.
-- Focused iOS `testLandscapeGesturesAndCompactControls` passed after regenerating the ignored React
-  Native codegen cache; Xcode Release build, physical install, and launch also succeeded.
+- TypeScript, version consistency, whitespace and all eight browser journeys passed. The injected
+  draft-read failure left the source selected and Retry restored the destination with its marker.
+- Focused iPhone 17 Pro simulator XCTest passed after replacing flaky Files-picker setup with a
+  prepopulated three-song library. It covers background/foreground, seek, two hold-to-switch
+  actions, repeated actual row taps with an 11-minute 58 MB WAV, and advancing destination playback.
+- Signed Release bundle and device metadata both report 1.0.0 (28). Install and launch succeeded
+  on the paired physical iPhone. Concurrent release-closeout edits and older uncommitted work remain.
 
 **Not verified / known gaps:**
 
-- Physical visual/touch confirmation remains for fade anchoring, badge legibility, and long-press
-  ergonomics in both orientations.
+- Reproduction with the user's affected physical file and the broader physical lifecycle matrix
+  remain open. The signed build contains the shared working tree at bundle time.
 
 **Next agent should:**
 
-- Incorporate the user's beta 10 physical feedback before adding another transport gesture mode.
+- Record the user's Release 28 Library row-tap result with the previously affected file.
 
-### 2026-11-02 — Repair annotation, navigation, and project workflows in beta 9
+### 2026-11-04 — Accept BPM/export and strengthen PDF waveform contrast
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `this commit`
-**Kanban moved:** annotation/navigation/project polish → Done
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.4 accuracy/export polish → Done; V1.4b lifecycle/audio-session stress → In Progress
 
 **Changed:**
 
-- Made the landscape annotation editor keyboard-safe with a compact, scrolling body, fixed actions,
-  and an explicit keyboard Done control. Marker removal now offers Undo and preserves annotations;
-  the overview uses filled heads for annotated markers and outlined heads for plain markers.
-- Smoothed annotation callout, toast, and speed-control transitions without remounting successive
-  annotation content. Settings now uses a dedicated native edge responder for both submenu-to-root
-  and root-to-app gestures; the Music Library sheet relies on its grabber, backdrop, and downward
-  dismissal rather than a redundant Back button.
-- Added Rename to the loaded project's own actions, reusing the atomic project rename path. Flattened
-  standalone Settings toggles and informational rows while retaining cards for real option groups
-  and actions. Incremented, signed, installed, and launched physical Release beta `1.0.0 (9)`.
+- Recorded the user's physical acceptance that automatic BPM is generally correct, CSV/PDF sharing
+  opens correctly, and the exported overview waveform is visible. Split remaining BPM lifecycle
+  stress from the now-accepted real-song accuracy gate in the durable V1 checklist.
+- Changed printable SVG waveform bars from muted gray at 72% opacity to solid black at full opacity
+  so coloured choreography markers retain clear contrast. Added an exact generated-HTML assertion.
+- Incremented, signed, installed, device-verified, and launched Release 27 on physical iPhone
+  `gæl (3)`. Earlier uncommitted work remains preserved; no commit or remote operation occurred.
 
 **Verified:**
 
-- `npx tsc --noEmit`, `git diff --check`, and full retained Playwright regression → passed, 8/8.
-- Focused iOS `testLandscapeGesturesAndCompactControls` and
-  `testStudioLaunchesAndDocumentPickerOpens` → passed, covering the compact editor, sheet dismissal,
-  transparent dock assertions, and both Settings edge-swipe levels.
-- Xcode Release build succeeded; device services confirmed install and launch as `com.beatnote.app`.
+- TypeScript, version consistency, whitespace, and all eight retained browser journeys passed; the
+  PDF journey asserts explicit SVG geometry, full opacity, and `#000` waveform fill.
+- Xcode's signed Release build and validation passed. The first package correctly exposed that the
+  generated native config was still build 26; it was not installed. After prebuild and incremental
+  rebuild, bundle metadata and the phone independently report `1.0.0 (27)`.
+- Release 27 installation and automatic launch succeeded.
 
 **Not verified / known gaps:**
 
-- Physical touch/visual confirmation remains for the editor keyboard ergonomics, popup timing,
-  marker head distinction, edge capture width, flattened subpages, and project rename affordance.
-- This commit also includes the preceding beta 8 work, which had not yet been committed separately.
+- The solid-black waveform's physical PDF contrast still needs the user's visual confirmation.
+- Automatic-BPM lifecycle stress and the broader physical audio-session matrix remain open:
+  cancellation/retry, long-run heat/memory, backgrounding, interruption recovery, and output routes.
+- Xcode 27.2 reports that the host's CoreSimulator service is stale; physical-device Release build,
+  signing, validation, installation, and launch still succeeded.
 
 **Next agent should:**
 
-- Incorporate the user's beta 9 physical feedback before widening navigation or animation scope.
+- Record the Release 27 PDF contrast result, then run V1.4b's combined BPM/audio lifecycle matrix.
+
+### 2026-11-03 — Correct real-song tempo, switch contention, and exported files
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library/BPM/export release blocker → Done; V1.4 physical BPM acceptance remains In Progress
+
+**Changed:**
+
+- Traced the BIRDS OF A FEATHER switch failure to waveform decoding starting as soon as the
+  destination URI was published, while the audio player was still opening that same file. Waveform
+  work now waits until the track-switch transaction reaches idle/player-ready state.
+- Replaced single-peak tempo selection with pulse-family ranking, explicit 3:2 alias handling,
+  interpolation, whole-number output, and a new analysis-cache version. The UI also rounds and
+  deduplicates alternatives defensively.
+- Shared iOS exports as file URLs only, preventing target apps from choosing a text message that
+  contained the sandbox URI. Replaced percentage-height PDF waveform spans with explicit inline SVG
+  rectangles so iOS Quartz has printable waveform geometry.
+- Inspected the user's attached PDF and confirmed the overview background/markers rendered while
+  waveform artwork was absent. Built, installed, device-verified, and launched Release 26 on the
+  connected physical iPhone. Earlier uncommitted release work remains preserved.
+
+**Verified:**
+
+- TypeScript, version consistency, whitespace, the focused BPM/export browser journey, and the full
+  retained Playwright suite passed; the full browser result was 8/8.
+- Focused native background/consecutive-switch acceptance passed. A native synthetic-tempo journey
+  passed, and real-file simulator iterations confirmed Marilag at 78 BPM and moved BIRDS OF A
+  FEATHER from the old 70-BPM alias to 104 before the final pulse rounding adjustment to 105.
+- Xcode's signed Release build and validation succeeded. Bundle and installed-device metadata both
+  report `1.0.0 (26)`; installation and automatic launch succeeded.
+
+**Not verified / known gaps:**
+
+- The final real-file simulator rerun was interrupted by a corrupt/incomplete xcresult after the
+  last 104→105 rounding adjustment. Exact 105 display, the user's intermittent waveform-enabled
+  Library tap sequence, direct file opening in a third-party app, and rendered physical PDF waveform
+  remain hands-on Release 26 acceptance items.
+- Standalone `codesign --verify --deep --strict` was not rerun; prior releases report
+  `CSSMERR_TP_NOT_TRUSTED` for the local Apple Development chain while Xcode validation and physical
+  installation succeed.
+
+**Next agent should:**
+
+- Record the Release 26 physical checks for waveform-enabled BIRDS switching, 78/105 BPM results,
+  direct file sharing, and visible PDF overview waveform, then close or constrain V1.4.
 
 <!-- end handover log -->

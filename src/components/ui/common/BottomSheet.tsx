@@ -8,6 +8,8 @@ import {
   Text,
   useWindowDimensions,
   View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
@@ -38,6 +40,7 @@ export interface BottomSheetProps {
   restoreFocusOnClose?: boolean;
   testID: string;
   children: React.ReactNode;
+  surfaceStyle?: StyleProp<ViewStyle>;
 }
 
 interface WebKeyEvent {
@@ -67,6 +70,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   restoreFocusOnClose = true,
   testID,
   children,
+  surfaceStyle,
 }) => {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -284,7 +288,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           <Animated.View
             ref={sheetRef}
             testID={testID}
-            style={[styles.sheet, animatedStyle]}
+            style={[styles.sheet, surfaceStyle, animatedStyle]}
             {...webKeyProps}
           >
             <GlassBackdrop gradientId={`${testID}-glass`} radius={22} testID={`${testID}-glass`} />

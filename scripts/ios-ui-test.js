@@ -173,7 +173,44 @@ function syntheticClickWav(bpm = 120, durationSeconds = 12) {
   return wav;
 }
 
-function stagePickerFixtures(simulatorId, simulatorDataPath) {
+// Seed an existing library in the freshly reinstalled simulator. Picker imports have separate
+// coverage; this journey must reach real Library row taps even when Files has a stale provider.
+function stageSwitchLibrary(container) {
+  const support = path.join(container, 'Library', 'Application Support');
+  const music = path.join(support, 'BeatNote', 'Music');
+  const storage = path.join(support, 'com.beatnote.app', 'RCTAsyncLocalStorage_V1');
+  fs.mkdirSync(music, { recursive: true });
+  fs.mkdirSync(storage, { recursive: true });
+  const items = {};
+  for (const [index, [filename, durationMs]] of [
+    ['test-audio.wav', 5000], ['long-mix.wav', 660000], ['background-audio.m4a', 30000],
+    ['long-test-track-memory-warmup.m4a', 150000],
+    ['long-test-track-memory-measured.m4a', 150000],
+  ].entries()) {
+    const file = path.join(music, filename);
+    if (filename === 'long-mix.wav') fs.writeFileSync(file, syntheticClickWav(120, durationMs / 1000));
+    else if (filename.startsWith('long-test-track-memory-')) {
+      fs.copyFileSync(path.join(root, 'tests', 'fixtures', 'long-test-track.m4a'), file);
+      fs.appendFileSync(file, `beatnote-memory-${path.parse(filename).name}`);
+    } else fs.copyFileSync(path.join(root, 'tests', 'fixtures', filename), file);
+    const id = path.parse(filename).name;
+    items[id] = {
+      id, source: { provider: 'local', reference: filename }, displayTitle: id,
+      originalFilename: filename, extension: path.extname(filename).slice(1),
+      durationMs, byteSize: fs.statSync(file).size,
+      contentHash: `ui-test-${filename}-${fs.statSync(file).size}`,
+      addedAt: new Date(index * 1000).toISOString(), lastPlayedAt: null,
+      availability: 'available', removed: false, collectionIds: ['imported-music'],
+    };
+  }
+  const collection = { id: 'imported-music', name: 'Imported Music', builtIn: true };
+  const library = { schemaVersion: 1, items, collections: { [collection.id]: collection } };
+  fs.writeFileSync(path.join(storage, 'manifest.json'), JSON.stringify({
+    'beatnote.library.v1': JSON.stringify(library),
+  }));
+}
+
+function stagePickerFixtures(simulatorId, simulatorDataPath, testName) {
   const appBundle = path.join(derivedData, 'Build', 'Products', 'Debug-iphonesimulator', 'BeatNote.app');
   if (!fs.existsSync(appBundle)) throw new Error(`Built app not found at ${appBundle}`);
 
@@ -193,6 +230,13 @@ function stagePickerFixtures(simulatorId, simulatorDataPath) {
   run('xcrun', ['simctl', 'install', simulatorId, appBundle]);
 
   const container = capture('xcrun', ['simctl', 'get_app_container', simulatorId, 'com.beatnote.app', 'data']);
+  // Tests whose purpose begins after audio is available should not depend on Files successfully
+  // returning a security-scoped picker selection. Seed a real managed library for deterministic
+  // row loading; picker presentation and Open In retain their dedicated integration coverage.
+  stageSwitchLibrary(container);
+  if (testName === 'testAudioContinuesWhileAppIsInBackground') {
+    return;
+  }
   const documents = path.join(container, 'Documents');
   const pickerStorage = localFileProviderStorage(simulatorDataPath);
   fs.mkdirSync(documents, { recursive: true });
@@ -286,7 +330,7 @@ async function main() {
       'testLandscapeGesturesAndCompactControls',
     ];
     const runPickerTest = (testName) => {
-      stagePickerFixtures(simulatorId, simulator.dataPath);
+      stagePickerFixtures(simulatorId, simulator.dataPath, testName);
       const resultBundle = path.join(
         iosDirectory,
         'build',
