@@ -86,7 +86,7 @@ interruption, external-share, real-song BPM, or TestFlight gates.
       required by the Lite policy. No production ad SDK is required for V1.
 - [x] Expand dependency licence notices and confirm About, privacy/diagnostic copy, feedback link,
       supported document types, and version/build display are release-accurate.
-- [ ] Reconcile and commit the release candidate, then rerun TypeScript, all eight browser journeys,
+- [x] Reconcile and commit the release candidate, then rerun TypeScript, all eight browser journeys,
       the ten retained iOS journeys, version consistency, and whitespace checks from that exact tree.
 - [ ] Purchase/enrol the Apple Developer account, replace the placeholder EAS project ID, configure
       signing/App Store Connect metadata and privacy details, distribute a TestFlight candidate, and

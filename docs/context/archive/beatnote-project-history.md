@@ -6179,3 +6179,49 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Next agent should:**
 
 - Review the new Pro page on the physical iPhone before replacing placeholder illustrations.
+
+
+## Archived Done — V1.6 rotation
+
+- [x] V1.4a/export polish — Accept representative-song whole-number BPM accuracy and external
+      CSV/PDF sharing, render PDF overview waveforms in solid black, and install Release 27
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — V1.6 rotation
+
+### 2026-11-04 — Accept BPM/export and strengthen PDF waveform contrast
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** V1.4 accuracy/export polish → Done; V1.4b lifecycle/audio-session stress → In Progress
+
+**Changed:**
+
+- Recorded the user's physical acceptance that automatic BPM is generally correct, CSV/PDF sharing
+  opens correctly, and the exported overview waveform is visible. Split remaining BPM lifecycle
+  stress from the now-accepted real-song accuracy gate in the durable V1 checklist.
+- Changed printable SVG waveform bars from muted gray at 72% opacity to solid black at full opacity
+  so coloured choreography markers retain clear contrast. Added an exact generated-HTML assertion.
+- Incremented, signed, installed, device-verified, and launched Release 27 on physical iPhone
+  `gæl (3)`. Earlier uncommitted work remains preserved; no commit or remote operation occurred.
+
+**Verified:**
+
+- TypeScript, version consistency, whitespace, and all eight retained browser journeys passed; the
+  PDF journey asserts explicit SVG geometry, full opacity, and `#000` waveform fill.
+- Xcode's signed Release build and validation passed. The first package correctly exposed that the
+  generated native config was still build 26; it was not installed. After prebuild and incremental
+  rebuild, bundle metadata and the phone independently report `1.0.0 (27)`.
+- Release 27 installation and automatic launch succeeded.
+
+**Not verified / known gaps:**
+
+- The solid-black waveform's physical PDF contrast still needs the user's visual confirmation.
+- Automatic-BPM lifecycle stress and the broader physical audio-session matrix remain open:
+  cancellation/retry, long-run heat/memory, backgrounding, interruption recovery, and output routes.
+- Xcode 27.2 reports that the host's CoreSimulator service is stale; physical-device Release build,
+  signing, validation, installation, and launch still succeeded.
+
+**Next agent should:**
+
+- Record the Release 27 PDF contrast result, then run V1.4b's combined BPM/audio lifecycle matrix.

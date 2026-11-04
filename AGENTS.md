@@ -61,9 +61,9 @@ target; Android is a far-future possibility only.
 ### Current Focus
 
 1. Physically review Release 30 copy and motion and confirm the existing library and projects after the in-place update.
-2. Reconcile the new polish changes with the committed V1 candidate and run all ten native journeys on the final revision.
-3. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
+2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
+3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
 
 ### Agent Assignments
 
@@ -85,9 +85,6 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-- [ ] V1.6 — Reconcile and commit the exact release candidate; rerun TypeScript, 8 browser journeys,
-      10 iOS journeys, version consistency, and whitespace checks
-
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -99,6 +96,10 @@ target; Android is a far-future possibility only.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] V1.6 — Reconcile and commit the exact V1 release candidate; pass TypeScript, all eight
+      browser journeys, all ten retained iOS journeys, version consistency, and whitespace checks
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 - [x] Polish app copy and align navigation, control and feedback animations. Verify renewed signing and install Release 30.
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `App.tsx`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/animations/MotionPreference.tsx`, `src/animations/components/animatedToggle.ts`, `src/animations/motion.ts`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/AnimatedSegmentedControl.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlayPauseControl.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/library/ImportProgressRow.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAnimatedCollapse.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useLayerSelectorAnimation.ts`, `src/hooks/useModernToggleAnimation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
@@ -115,11 +116,6 @@ target; Android is a far-future possibility only.
 
 - [x] V1 release blocker — Repair Library row switching and verify long-file recovery in Release 28
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-waveform/ios/BeatNoteWaveformModule.swift`, `modules/beatnote-waveform/src/index.ts`, `scripts/ios-ui-test.js`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useWaveformData.ts`, `src/services/waveformExtraction.ios.ts`, `src/services/waveformExtraction.types.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] V1.4a/export polish — Accept representative-song whole-number BPM accuracy and external
-      CSV/PDF sharing, render PDF overview waveforms in solid black, and install Release 27
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
-
 
 ---
 
@@ -197,6 +193,41 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-05 — Reconcile and pass the exact V1 candidate
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `4dd88dd`, `32db18b`
+**Kanban moved:** V1.6 exact release-candidate gate → Done
+
+**Changed:**
+
+- Reconciled the accumulated V1 implementation into `4dd88dd`, then incorporated the completed
+  Release 30 copy/motion handover in `32db18b` without overwriting its concurrent work.
+- Corrected the long-track XCTest performance journey so its measured pass returns from the warm-up
+  BPM subpage to a known Studio state before opening the second fixture. The app's tempo analysis
+  had succeeded; the prior failure was test navigation state leaking between invocations.
+
+**Verified:**
+
+- TypeScript, version consistency and whitespace checks passed. Jest's intentionally empty permanent
+  unit suite passed with `--passWithNoTests`; licence generation retained all 16 native notices.
+- All eight Playwright journeys passed on an isolated local port. An earlier launch attempt was
+  discarded because sandboxed Expo port probing collided with another active local server.
+- All ten retained iOS journeys passed consecutively on iPhone 17 Pro simulator from exact commit
+  `32db18b`, including annotation restore, tempo suggestion/cancel/retry/long-track memory, looping,
+  CSV/share, background recovery with repeated Library switching, landscape, and Open In.
+
+**Not verified / known gaps:**
+
+- Release 30 is installed and launches on the physical iPhone, but hands-on copy/motion, VoiceOver,
+  and preservation of the existing library/projects remain for the user to confirm.
+- Apple distribution, App Store Connect metadata and TestFlight clean-install/update acceptance are
+  V1.7 and have not started.
+
+**Next agent should:**
+
+- Guide the user through V1.7 beginning with Apple Developer enrolment, then configure the stable
+  production identifiers and App Store Connect record before producing a TestFlight candidate.
 
 ### 2026-11-05 — Copy and motion polish on Release 30
 
@@ -343,41 +374,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Record the user's Release 28 Library row-tap result with the previously affected file.
-
-### 2026-11-04 — Accept BPM/export and strengthen PDF waveform contrast
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** V1.4 accuracy/export polish → Done; V1.4b lifecycle/audio-session stress → In Progress
-
-**Changed:**
-
-- Recorded the user's physical acceptance that automatic BPM is generally correct, CSV/PDF sharing
-  opens correctly, and the exported overview waveform is visible. Split remaining BPM lifecycle
-  stress from the now-accepted real-song accuracy gate in the durable V1 checklist.
-- Changed printable SVG waveform bars from muted gray at 72% opacity to solid black at full opacity
-  so coloured choreography markers retain clear contrast. Added an exact generated-HTML assertion.
-- Incremented, signed, installed, device-verified, and launched Release 27 on physical iPhone
-  `gæl (3)`. Earlier uncommitted work remains preserved; no commit or remote operation occurred.
-
-**Verified:**
-
-- TypeScript, version consistency, whitespace, and all eight retained browser journeys passed; the
-  PDF journey asserts explicit SVG geometry, full opacity, and `#000` waveform fill.
-- Xcode's signed Release build and validation passed. The first package correctly exposed that the
-  generated native config was still build 26; it was not installed. After prebuild and incremental
-  rebuild, bundle metadata and the phone independently report `1.0.0 (27)`.
-- Release 27 installation and automatic launch succeeded.
-
-**Not verified / known gaps:**
-
-- The solid-black waveform's physical PDF contrast still needs the user's visual confirmation.
-- Automatic-BPM lifecycle stress and the broader physical audio-session matrix remain open:
-  cancellation/retry, long-run heat/memory, backgrounding, interruption recovery, and output routes.
-- Xcode 27.2 reports that the host's CoreSimulator service is stale; physical-device Release build,
-  signing, validation, installation, and launch still succeeded.
-
-**Next agent should:**
-
-- Record the Release 27 PDF contrast result, then run V1.4b's combined BPM/audio lifecycle matrix.
 
 <!-- end handover log -->
