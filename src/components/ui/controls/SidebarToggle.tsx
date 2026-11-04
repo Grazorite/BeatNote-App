@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { controlTransition } from '../../../animations/motion';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { BeatNoteIcon } from '../../icons';
 
@@ -8,7 +9,7 @@ const SidebarToggle: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useStudioStore();
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: withTiming(isSidebarCollapsed ? '180deg' : '0deg', { duration: 200 }) }],
+    transform: [{ rotate: withTiming(isSidebarCollapsed ? '180deg' : '0deg', controlTransition) }],
   }));
 
   return (

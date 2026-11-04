@@ -1,5 +1,6 @@
 import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useEffect } from 'react';
+import { controlTransition } from '../animations/motion';
 import { LayerId } from './useStudioStore';
 
 export const useLayerSelectorAnimation = (layerId: LayerId, isVisible: boolean, isActive: boolean, stemCount: 2 | 4 | 6) => {
@@ -18,11 +19,11 @@ export const useLayerSelectorAnimation = (layerId: LayerId, isVisible: boolean, 
 
   useEffect(() => {
     if (shouldBeVisible) {
-      scale.value = withTiming(1, { duration: 200 });
-      opacity.value = withTiming(1, { duration: 200 });
+      scale.value = withTiming(1, controlTransition);
+      opacity.value = withTiming(1, controlTransition);
     } else {
-      scale.value = withTiming(0.8, { duration: 150 });
-      opacity.value = withTiming(0.3, { duration: 150 });
+      scale.value = withTiming(0.8, controlTransition);
+      opacity.value = withTiming(0.3, controlTransition);
     }
   }, [shouldBeVisible, scale, opacity]);
 

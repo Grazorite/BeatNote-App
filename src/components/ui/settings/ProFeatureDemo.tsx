@@ -68,7 +68,7 @@ const ProFeatureDemo: React.FC<ProFeatureDemoProps> = ({ kind, active, reduceMot
           <SvgText x={286} y={47 + index * 39} textAnchor="end" fontSize={8} fill={index === queueIndex ? colors.accent : colors.textSecondary}>{index === queueIndex ? 'PLAYING' : index < queueIndex ? 'PLAYED' : 'UP NEXT'}</SvgText>
         </G>)}
         <MovingRect x={64} y={54 + queueIndex * 39} height={2} rx={1} fill={colors.accent} animatedProps={queueProgress} />
-        <Label y={166}>Song ends → the next one starts</Label>
+        <Label y={166}>The next song starts automatically</Label>
       </>}
       {kind === 'speed' && <>
         <SvgText x={160} y={27} textAnchor="middle" fontSize={24} fontWeight="700" fill={colors.text}>{`${speed.toFixed(2)}×`}</SvgText>
@@ -78,7 +78,7 @@ const ProFeatureDemo: React.FC<ProFeatureDemoProps> = ({ kind, active, reduceMot
           <Rect x={29 + index * 91} y={119} width={80} height={27} rx={7} fill={colors.surfaceRaised} stroke={index === speedIndex ? colors.accent : colors.borderSubtle} />
           <SvgText x={69 + index * 91} y={137} textAnchor="middle" fontSize={12} fontWeight="600" fill={index === speedIndex ? colors.accent : colors.text}>{label}</SvgText>
         </G>)}
-        <Label y={166}>Choose a preset → change the pace</Label>
+        <Label y={166}>The playhead follows the selected speed</Label>
       </>}
       {kind === 'tempo' && <>
         <Label y={20} accent>{phase % 3 === 0 ? 'ANALYSING YOUR MUSIC…' : phase % 3 === 1 ? 'SUGGESTED TEMPO · 128 BPM' : '128 BPM · GRID APPLIED'}</Label>
@@ -89,7 +89,7 @@ const ProFeatureDemo: React.FC<ProFeatureDemoProps> = ({ kind, active, reduceMot
             <SvgText x={35 + index * 36} y={126} textAnchor="middle" fontSize={10} fill={colors.text}>{index + 1}</SvgText>
           </G>)}
         <Rect x={101} y={138} width={118} height={25} rx={8} fill={phase % 3 === 2 ? colors.accent : colors.surfaceRaised} />
-        <SvgText x={160} y={155} textAnchor="middle" fontSize={11} fill={phase % 3 === 2 ? colors.onAccent : colors.text}>{phase % 3 === 0 ? 'Finding the beat' : phase % 3 === 1 ? 'Preview → Apply' : '✓ Beat grid aligned'}</SvgText>
+        <SvgText x={160} y={155} textAnchor="middle" fontSize={11} fill={phase % 3 === 2 ? colors.onAccent : colors.text}>{phase % 3 === 0 ? 'Listening for the beat' : phase % 3 === 1 ? 'Preview the grid' : '✓ Beat grid aligned'}</SvgText>
       </>}
       {kind === 'remote' && <>
         <Rect x={34} y={9} width={252} height={157} rx={20} fill={colors.surfaceRaised} stroke={colors.borderEmphasis} />
@@ -101,7 +101,7 @@ const ProFeatureDemo: React.FC<ProFeatureDemoProps> = ({ kind, active, reduceMot
         <Circle cx={phase % 4 === 2 ? 231 : 160} cy={109} r={20} fill={phase % 4 === 1 || phase % 4 === 2 ? colors.controlActive : colors.surface} />
         <Label x={89} y={114}>−10s</Label><Label x={231} y={114}>+10s</Label>
         {paused ? <Path d="M155 100l14 9-14 9z" fill={colors.text} /> : <G><Rect x={153} y={101} width={5} height={16} rx={1} fill={colors.text} /><Rect x={163} y={101} width={5} height={16} rx={1} fill={colors.text} /></G>}
-        <Label y={151} accent>{['Playing from the Lock Screen', 'Tap pause → playback stops', 'Skip forward → jump 10 seconds', 'Tap play → keep rehearsing'][phase % 4]}</Label>
+        <Label y={151} accent>{['Playing from the Lock Screen', 'Playback paused', 'Skipped ahead 10 seconds', 'Playback resumed'][phase % 4]}</Label>
       </>}
       </G>
     </Svg>

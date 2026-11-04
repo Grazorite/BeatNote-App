@@ -117,8 +117,7 @@ const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySh
               Save changes before switching?
             </Text>
             <Text style={styles.message}>
-              Your changes to “{currentTitle}” differ from the saved project “{projectName}”.
-              {' '}BeatNote can keep them as a draft.
+              “{currentTitle}” has unsaved edits. Save them to “{projectName}” or keep a draft.
             </Text>
             <TouchableOpacity
               ref={saveButtonRef}
@@ -158,7 +157,7 @@ const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySh
       <ConfirmDialog
         visible={showRevisionConflict}
         title="This project changed since you opened it"
-        message="Choose Overwrite to replace the newer saved version, or save these changes as a new project."
+        message="Overwrite the newer version or save a separate project."
         actions={[
           {
             label: 'Overwrite',

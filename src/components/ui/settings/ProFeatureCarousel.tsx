@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 
 import ProFeatureDemo from './ProFeatureDemo';
 
@@ -10,18 +11,9 @@ const ProFeatureCarousel: React.FC<{ paused?: boolean }> = ({ paused = false }) 
   const { height } = useWindowDimensions();
   const [width, setWidth] = useState(0);
   const [active, setActive] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(true);
+  const reduceMotion = useMotionPreference() !== false;
   const scroll = useRef<ScrollView>(null);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
-
-  useEffect(() => {
-    let mounted = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((enabled: boolean) => {
-      if (mounted) setReduceMotion(enabled);
-    });
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => { mounted = false; subscription.remove(); };
-  }, []);
 
   useEffect(() => {
     const listener = AppState.addEventListener('change', state => setForeground(state === 'active'));

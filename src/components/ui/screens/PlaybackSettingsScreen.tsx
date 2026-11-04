@@ -45,7 +45,7 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
           />
           <Text style={styles.hint} testID="continuous-play-detail">
             {continuousAvailable
-              ? 'Automatically starts the next song in the current queue.'
+              ? 'Play the next song when this one ends.'
               : 'Pro only'}
           </Text>
         </View>
@@ -56,19 +56,19 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
             onValueChange={pauseOnHeadsetDisconnect => {
               void updateSettingsPreferences({ pauseOnHeadsetDisconnect });
             }}
-            accessibilityHint="Pauses playback when wired headphones, Bluetooth headphones, or another active output disconnects."
+            accessibilityHint="Pause when headphones or another audio output disconnect."
             marginBottom={-6}
             testID="pause-headset-toggle"
           />
           <Text style={styles.hint}>
-            Prevents audio from unexpectedly continuing through the iPhone speaker.
+            Pause when headphones disconnect so the song won’t play through the speaker.
           </Text>
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Keep Screen On</Text>
-        <Text style={styles.hint}>Choose when BeatNote prevents the display from sleeping.</Text>
+        <Text style={styles.hint}>Choose when the screen stays awake.</Text>
         <View style={styles.options} accessibilityRole="radiogroup">
           {KEEP_SCREEN_OPTIONS.map(option => {
             const selected = preferences.keepScreenOn === option.value;

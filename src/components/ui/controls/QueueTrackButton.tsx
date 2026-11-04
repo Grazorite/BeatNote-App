@@ -171,7 +171,7 @@ const QueueTrackButton: React.FC<QueueTrackButtonProps> = ({ action, compact = f
       description={configurableSeekButton && tapSeeks
         ? `${action === 'previous' ? '−' : '+'}${preferences.seekDurationSeconds}s`
         : !capabilityAvailable
-          ? `Not available for this source: ${action === 'shuffle' ? 'shuffle' : 'queue control'}`
+          ? `This audio doesn’t support ${action === 'shuffle' ? 'shuffle' : 'queue controls'}.`
           : undefined}
       onPress={press}
       onLongPress={longPress}

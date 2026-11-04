@@ -38,17 +38,17 @@ const DebugTierControl: React.FC = () => {
           label="Pro features"
           value={isPro}
           onValueChange={requestTierChange}
-          accessibilityHint="Debug only. Disabling selects Lite. Enabling Pro requires the debug password."
+          accessibilityHint="Turn off for Lite. Enter the debug password to turn Pro on."
           testID="debug-tier-toggle"
         />
         <Text style={styles.hint}>
-          Debug only. Currently {isPro ? 'Pro' : 'Lite'}. Enabling Pro requires the debug password.
+          Preview tier: {isPro ? 'Pro' : 'Lite'}. Pro requires a password.
         </Text>
       </View>
       <ConfirmDialog
         visible={showProUnlock}
         title="Enable Pro features"
-        message="Enter the debug password to switch this installation to the Pro feature set."
+        message="Enter the debug password to enable Pro on this device."
         confirmationText={DEBUG_PRO_PASSWORD}
         confirmationPrompt="Password"
         secureConfirmation

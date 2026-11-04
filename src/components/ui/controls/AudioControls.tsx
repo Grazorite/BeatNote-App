@@ -102,7 +102,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         delayPressIn={0}
         delayPressOut={0}
         testID="play-pause"
-        accessibilityLabel={isPlaying ? 'Pause playback' : 'Play playback'}
+        accessibilityLabel={isPlaying ? 'Pause playback' : 'Play song'}
         accessibilityState={{ disabled: !hasPlayableAudio }}
         accessibilityHint={songLoaded && !hasPlayableAudio ? 'Audio is missing for this song' : undefined}
       >
@@ -158,10 +158,10 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       </TouchableOpacity>
       </View>
       {songLoaded && !capabilities.exactSeeking && (
-        <Text style={styles.capabilityDescription}>Not available for this source: exact seeking</Text>
+        <Text style={styles.capabilityDescription}>This audio doesn’t support precise seeking.</Text>
       )}
       {songLoaded && !capabilities.repeat && (
-        <Text style={styles.capabilityDescription}>Not available for this source: repeat</Text>
+        <Text style={styles.capabilityDescription}>This audio doesn’t support repeat.</Text>
       )}
       {songLoaded && <Text testID="playback-current-time" style={styles.currentTime}>{currentLabel}</Text>}
     </View>

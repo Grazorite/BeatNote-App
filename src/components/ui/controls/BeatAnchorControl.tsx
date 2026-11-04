@@ -74,7 +74,7 @@ const BeatAnchorControl: React.FC = () => {
           <Text style={styles.buttonText}>+¼ beat</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.hint}>Fine adjustments move the beat and phrase grid together.</Text>
+      <Text style={styles.hint}>Moving Count 1 shifts the whole grid.</Text>
     </View>
   );
 };

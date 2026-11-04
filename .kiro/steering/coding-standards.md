@@ -43,6 +43,17 @@ inclusion: always
 - Utilities are the primary target for unit tests.
 - Export as named exports from a class or as standalone functions — be consistent within a file.
 
+## Product copy and motion
+
+- Use the words on the controls when giving instructions. Describe the action and its effect in
+  plain language. Show import progress as “Checking for duplicates” or “Reading audio”.
+  Destructive prompts must name what is deleted, what can be recovered, and what happens to the
+  original audio. Preserve typed confirmations, licence notices and data-format identifiers.
+- Use the shared page transition for Settings navigation and sheet settling (280 ms, ease out).
+  Related controls use a 160 ms response and brief feedback fades use 180 ms. Keep direct gestures
+  under the finger and keep the annotation reading time and 650 ms exit. Use the shared system
+  motion preference for core animations, native modal transitions and illustrative demos.
+
 ## Styling
 
 - Style files mirror the component path: `src/components/ui/controls/AudioControls.tsx` → `src/styles/components/controls/audioControls.ts`.

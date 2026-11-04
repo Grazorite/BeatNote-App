@@ -67,7 +67,7 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
 
   const restoreLastDeletion = () => {
     state.restoreLastDeletion();
-    onToast('Marker deletion restored');
+    onToast('Marker restored');
   };
   const confirmDeleteBeforePlayhead = () => {
     const count = state.allLayers.reduce(
@@ -170,10 +170,10 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
       hint={capabilityGated
         ? 'Exact seeking is unavailable for this audio source'
         : action === 'removePrevious' && enabled
-          ? 'Double tap to delete. Press and hold for restore and bulk-delete actions.'
+          ? 'Double-tap to delete. Hold to restore a marker or delete earlier markers.'
           : undefined}
       description={capabilityGated
-        ? 'Not available for this source: exact seeking'
+        ? 'This audio doesn’t support precise seeking.'
         : undefined}
       state={enabled ? 'inactive' : 'unavailable'}
       onPress={activate}

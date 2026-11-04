@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { feedbackMs } from '../../../animations/motion';
 import type { DockToastAction } from '../../../hooks/useDockToast';
 import { controlDockStyles as styles } from '../../../styles/components/controls/controlDock';
 import GlassBackdrop from './GlassBackdrop';
@@ -27,10 +28,10 @@ const DockToast: React.FC<DockToastProps> = ({ message, action, stacked = false 
     if (message) {
       setRenderedMessage(message);
       setRenderedAction(action ?? null);
-      opacity.value = withTiming(1, { duration: 160 });
+      opacity.value = withTiming(1, { duration: feedbackMs });
       return;
     }
-    opacity.value = withTiming(0, { duration: 160 }, finished => {
+    opacity.value = withTiming(0, { duration: feedbackMs }, finished => {
       if (finished) {
         runOnJS(setRenderedMessage)(null);
         runOnJS(setRenderedAction)(null);

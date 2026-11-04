@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, View, Text, TouchableOpacity } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, withTiming } from 'react-native-reanimated';
+import { controlTransition } from '../../../animations/motion';
 import { useModernToggleAnimation } from '../../../hooks/useModernToggleAnimation';
 import { modernToggleStyles as styles } from '../../../styles/components/common/modernToggle';
 
@@ -51,7 +52,7 @@ const ModernToggle: React.FC<ModernToggleProps> = ({
       // capability/store updates can occupy the JavaScript thread.
       const nextValue = target.value === 1 ? 0 : 1;
       target.value = nextValue;
-      progress.value = withTiming(nextValue, { duration: 150 });
+      progress.value = withTiming(nextValue, controlTransition);
       runOnJS(commitValue)(nextValue === 1);
     }), [commitValue, disabled, progress, target]);
 

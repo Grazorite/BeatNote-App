@@ -1,9 +1,9 @@
 /** Only features exposed in the current phone app belong in this showcase. */
 export const PRO_FEATURE_PREVIEWS = [
-  { demo: 'playback', category: 'Playback', title: 'Keep rehearsal moving', detail: 'Play through your queue without stopping. Continuous Play starts the next song so you can stay in the flow.' },
-  { demo: 'speed', category: 'Speed', title: 'Practise at your pace', detail: 'Fine-tune your speed. Choose 4, 8, or 12 presets and long-press any preset to make it your own.' },
-  { demo: 'tempo', category: 'Tempo', title: 'Find the beat faster', detail: 'Get a suggested BPM for your music. Preview the beat grid, adjust the timing, and apply it when it fits.' },
-  { demo: 'remote', category: 'Lock Screen', title: 'Stay in control', detail: 'Pause, play, and seek from the Lock Screen or Control Centre without returning to the studio.' },
+  { demo: 'playback', category: 'Playback', title: 'Play songs back to back', detail: 'Continuous Play starts the next song in your queue when this one ends.' },
+  { demo: 'speed', category: 'Speed', title: 'Set your rehearsal speed', detail: 'Adjust speed in 0.05× steps. Choose 4, 8 or 12 presets, then hold one to save a speed you use often.' },
+  { demo: 'tempo', category: 'Tempo', title: 'Line up your counts', detail: 'Preview the suggested BPM against the song. Apply it when the counts line up.' },
+  { demo: 'remote', category: 'Lock Screen', title: 'Use the Lock Screen', detail: 'Play, pause or skip ten seconds from the Lock Screen or Control Centre.' },
 ] as const;
 
 /** Current app behavior, deliberately separate from the future entitlement roadmap. */

@@ -62,7 +62,7 @@ final class BeatNoteUITests: XCTestCase {
     element("settings-pro").tap()
     XCTAssertTrue(element("pro-feature-carousel").waitForExistence(timeout: 5))
     element("pro-feature-carousel").swipeLeft()
-    XCTAssertTrue(app.staticTexts["Practise at your pace"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Set your rehearsal speed"].waitForExistence(timeout: 5))
     XCTAssertTrue(element("pro-plan-monthly").isHittable, "Both plans should fit without scrolling on the portrait phone.")
     let compareCue = element("pro-compare")
     let compareStart = compareCue.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
@@ -172,7 +172,7 @@ final class BeatNoteUITests: XCTestCase {
     let savedLoopToggleValue = String(describing: element("inner-loop-cycle").value ?? "")
 
     element("add-marker").tap()
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 marker"))
 
     element("annotation-control").tap()
     let annotationInput = element("annotation-editor-input")
@@ -202,8 +202,8 @@ final class BeatNoteUITests: XCTestCase {
     )
     XCTAssertEqual(XCTWaiter.wait(for: [durableCopyLoaded], timeout: 20), .completed)
     XCTAssertEqual(element("playback-current-time").label, "Current: 0:00")
-    XCTAssertTrue(element("play-pause").label.contains("Play playback"))
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertTrue(element("play-pause").label.contains("Play song"))
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 marker"))
     XCTAssertEqual(element("loop-overview-summary").label, savedLoopSummary)
     XCTAssertTrue(element("loop-overview-range").exists, "Draft loop range should restore after relaunch.")
     XCTAssertEqual(String(describing: element("inner-loop-cycle").value ?? ""), savedLoopToggleValue)
@@ -304,7 +304,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(cancel.waitForExistence(timeout: 3))
     cancel.tap()
     XCTAssertTrue(app.staticTexts["Tempo analysis cancelled"].waitForExistence(timeout: 2))
-    XCTAssertTrue(app.staticTexts["No BPM or beat anchor changes were applied."].exists)
+    XCTAssertTrue(app.staticTexts["Your BPM and Count 1 are unchanged."].exists)
     XCTAssertFalse(app.buttons["Restore Previous"].exists)
 
     let retryStarted = Date()
@@ -338,8 +338,14 @@ final class BeatNoteUITests: XCTestCase {
       let filename = invocation == 1
         ? "long-test-track-memory-warmup.m4a"
         : "long-test-track-memory-measured.m4a"
+      let bpmBack = element("bpm-settings-page-back")
+      if bpmBack.exists { bpmBack.tap() }
       let openSettings = element("sidebar-toggle")
       if openSettings.exists { openSettings.tap() }
+      XCTAssertTrue(
+        element("song-title-control").waitForExistence(timeout: 5),
+        "Each performance invocation should begin from the Studio after the warm-up pass."
+      )
 
       startMeasuring()
       defer { stopMeasuring() }
@@ -465,7 +471,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertEqual(element("csv-skipped-count").label, "Skipped: 0 rows")
     element("csv-replace-apply").tap()
 
-    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 markers"))
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 marker"))
     makeProjectActionVisible("load-project")
     element("load-project").tap()
     XCTAssertTrue(element("current-project-export-csv").waitForExistence(timeout: 5))
@@ -473,7 +479,7 @@ final class BeatNoteUITests: XCTestCase {
     element("current-project-export-csv").tap()
     XCTAssertTrue(app.staticTexts["1 marker ready to export"].waitForExistence(timeout: 5))
     XCTAssertTrue(
-      element("export-csv").label.contains("Includes timestamps, bar:beat and phrase:count timing, and annotations")
+      element("export-csv").label.contains("Marker times, bars, beats, dance counts and notes")
     )
     XCTAssertFalse(element("export-midi").exists)
     element("export-csv").tap()
@@ -553,7 +559,7 @@ final class BeatNoteUITests: XCTestCase {
     element("play-pause").tap()
     XCTAssertTrue(
       app.descendants(matching: .any).matching(
-        NSPredicate(format: "label == %@", "Play playback")
+        NSPredicate(format: "label == %@", "Play song")
       ).firstMatch.waitForExistence(timeout: 5)
     )
     let waveform = element("wrapped-row-gesture-area-0")

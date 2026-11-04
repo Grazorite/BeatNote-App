@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   useDerivedValue
 } from 'react-native-reanimated';
+import { controlTransition } from '../../../animations/motion';
 import { colors } from '../../../styles/common';
 
 interface SegmentedControlProps {
@@ -29,7 +30,7 @@ const AnimatedSegmentedControl: React.FC<SegmentedControlProps> = ({
 }) => {
   const segmentWidth = useSharedValue(0);
   const translateX = useDerivedValue(() => {
-    return withTiming((segmentWidth.value * selectedIndex), { duration: 250 });
+    return withTiming((segmentWidth.value * selectedIndex), controlTransition);
   });
 
   const animatedIndicatorStyle = useAnimatedStyle(() => ({

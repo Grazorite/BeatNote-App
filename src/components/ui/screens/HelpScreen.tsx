@@ -50,117 +50,44 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
             ]}
           >
         <Section title="Start on iPhone">
-          <Text style={styles.text}>
-            1. Tap Choose Music, then import an audio file from Files or choose one from your library
-          </Text>
-          <Text style={styles.text}>
-            2. Play the song, or tap and drag the timeline to seek
-          </Text>
-          <Text style={styles.text}>
-            3. Add a marker at the playhead
-          </Text>
-          <Text style={styles.text}>
-            4. At that marker, tap Annotation to add a movement cue
-          </Text>
-          <Text style={styles.text}>
-            5. Save your project from the top bar
-          </Text>
+          <Text style={styles.text}>1. Tap Choose Music. Pick a song from your library or import one from Files.</Text>
+          <Text style={styles.text}>2. Play the song and tap Add Marker on a beat you want to remember.</Text>
+          <Text style={styles.text}>3. At the marker, tap Annotation and write your cue.</Text>
+          <Text style={styles.text}>4. Tap Save Project in the top bar.</Text>
         </Section>
 
         <Section title="Playback & Markers">
-          <Text style={styles.text}>
-            • Previous and Next jump between markers
-          </Text>
-          <Text style={styles.text}>
-            • Add Marker changes to Remove while you are at a marker
-          </Text>
-          <Text style={styles.text}>
-            • Annotation is available only while the playhead is at a marker
-          </Text>
-          <Text style={styles.text}>
-            • Inner Loop cycles through Off, Between Markers, and Selected Range
-          </Text>
-          <Text style={styles.text}>
-            • Hold Delete Previous to restore a deletion or remove all earlier markers
-          </Text>
+          <Text style={styles.text}>Use Previous Marker or Next Marker to jump to a cue. At a marker, Add Marker becomes Remove.</Text>
+          <Text style={styles.text}>Tap Inner Loop to cycle between Off, Between Markers and Selected Range.</Text>
+          <Text style={styles.text}>Hold Delete Previous to restore a marker or delete all earlier markers.</Text>
         </Section>
 
         <Section title="Music Library">
-          <Text style={styles.text}>
-            • In Tap Seeks mode, Track Previous/Next show their signed seek distance; type it directly or hold −/+ to adjust faster in Settings → Buttons
-          </Text>
-          <Text style={styles.text}>
-            • Imported audio is copied into BeatNote; deleting it from BeatNote does not delete the original in Files
-          </Text>
-          <Text style={styles.text}>
-            • Choose Custom Order, then drag the reorder handle beside a song to arrange your library
-          </Text>
-          <Text style={styles.text}>
-            • Your custom order is saved even when you temporarily sort by title, date, or duration
-          </Text>
+          <Text style={styles.text}>Importing makes a copy in BeatNote. Your original stays in Files.</Text>
+          <Text style={styles.text}>Choose Custom Order and drag a song by its handle. You can switch sort order and come back to your arrangement.</Text>
+          <Text style={styles.text}>Change what the track buttons do in Settings under Button Configuration.</Text>
         </Section>
 
         <Section title="Waveform & Overview">
-          <Text style={styles.text}>
-            • Tap or drag the timeline to seek without creating a marker
-          </Text>
-          <Text style={styles.text}>
-            • Waveform artwork can be switched on in Settings and is off by default
-          </Text>
-          <Text style={styles.text}>
-            • Solid timing bars keep seeking, markers, loops, and the playhead available when it is off
-          </Text>
-          <Text style={styles.text}>
-            • Drag the overview handles to select and adjust a loop range
-          </Text>
-          <Text style={styles.text}>
-            • Timed annotations appear briefly as playback reaches their markers
-          </Text>
+          <Text style={styles.text}>Tap or drag the timeline to move through the song. Drag the overview handles to set a loop.</Text>
+          <Text style={styles.text}>Turn on Show waveform in Display & Annotations to see the shape of the music.</Text>
+          <Text style={styles.text}>During playback, each note appears when the playhead crosses its marker.</Text>
         </Section>
 
         <Section title="Tempo & Dance Counts">
-          <Text style={styles.text}>
-            • BeatNote may offer a local BPM and beat-anchor suggestion after import
-          </Text>
-          <Text style={styles.text}>
-            • Preview a suggestion before applying it; analysis never changes your grid silently
-          </Text>
-          <Text style={styles.text}>
-            • Use manual BPM, Set Count 1 Here, and anchor nudges whenever the suggestion needs correction
-          </Text>
-          <Text style={styles.text}>
-            • Choose 4, 6, or 8 counts and show or hide dance-count guidance from Settings
-          </Text>
-        </Section>
-
-        <Section title="Export Options">
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>CSV Export:</Text> timestamps, BPM-derived bar:beat timing, and annotations
-          </Text>
-          <Text style={styles.text}>
-            • <Text style={styles.boldText}>PDF Export:</Text> a printable choreography sheet with selectable timeline, marker, count-grid, and notes sections
-          </Text>
-          <Text style={styles.text}>
-            Choose Save to Files, AirDrop, or another destination from the iOS share sheet.
-          </Text>
+          <Text style={styles.text}>Open Timing & BPM to analyse a song. Preview the suggested tempo before you apply it.</Text>
+          <Text style={styles.text}>To line up a phrase, move the playhead to its first beat and tap Set Count 1 Here. Use the arrows for small adjustments.</Text>
+          <Text style={styles.text}>Choose 4, 6 or 8 counts per phrase. Turn on Show dance counts to see them as you rehearse.</Text>
         </Section>
 
         <Section title="Projects & CSV">
-          <Text style={styles.text}>
-            • Projects save all markers and settings
-          </Text>
-          <Text style={styles.text}>
-            • Open, rename, or delete saved work from Projects
-          </Text>
-          <Text style={styles.text}>
-            • Data persists between app sessions
-          </Text>
-          <Text style={styles.text}>
-            • Export or import BeatNote CSV files
-          </Text>
-          <Text style={styles.text}>
-            • CSV includes timestamps, BPM-derived bar:beat timing, and annotations
-          </Text>
+          <Text style={styles.text}>Open Projects to save a version, return to a saved project or import markers from a BeatNote CSV.</Text>
+        </Section>
+
+        <Section title="Export Options">
+          <Text style={styles.text}>Choose CSV for marker times, bars, beats, dance counts and notes.</Text>
+          <Text style={styles.text}>Choose PDF for a printable rehearsal sheet. Select the sections you want, then tap Export PDF.</Text>
+          <Text style={styles.text}>In the share sheet, choose AirDrop, Save to Files or another destination.</Text>
         </Section>
           </ScrollView>
         </View>

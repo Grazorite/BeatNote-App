@@ -8,6 +8,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { controlMs } from '../../../animations/motion';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 import { musicLibraryRowStyles as styles } from '../../../styles/components/library/musicLibraryRow';
 import { colors } from '../../../styles/common';
 import type { MusicItem } from '../../../types/library';
@@ -134,6 +136,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     missing ? 'Audio missing' : null,
     failure,
   ].filter(Boolean).join(', ');
+  const controlDuration = useMotionPreference() === false ? controlMs : 0;
   const canReorder = customOrderIndex !== undefined
     && customOrderCount !== undefined
     && onReorderBy !== undefined;
@@ -146,10 +149,10 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     }
     Animated.timing(reorderTranslateY, {
       toValue: reorderShift * REORDER_ROW_HEIGHT,
-      duration: 170,
+      duration: controlDuration,
       useNativeDriver: true,
     }).start();
-  }, [reorderActive, reorderShift, reorderTranslateY]);
+  }, [controlDuration, reorderActive, reorderShift, reorderTranslateY]);
 
   const dragResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,

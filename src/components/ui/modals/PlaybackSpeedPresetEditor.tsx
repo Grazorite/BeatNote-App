@@ -75,7 +75,7 @@ const PlaybackSpeedPresetEditor: React.FC<PlaybackSpeedPresetEditorProps> = ({
             onSubmitEditing={save}
           />
           {!valid && (
-            <Text style={styles.error}>Enter a value inside the supported speed range.</Text>
+            <Text style={styles.error}>Enter a speed within the range shown.</Text>
           )}
           <TouchableOpacity
             style={styles.defaultAction}

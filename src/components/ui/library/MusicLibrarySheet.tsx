@@ -13,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { controlMs } from '../../../animations/motion';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 import {
   cancelImport,
   dismissImportJob,
@@ -132,6 +134,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     originIndex: number;
     targetIndex: number;
   } | null>(null);
+  const controlDuration = useMotionPreference() === false ? controlMs : 0;
   const sortArrowRotation = useRef(new Animated.Value(
     librarySortDirection === 'ascending' ? 0 : 1,
   )).current;
@@ -157,10 +160,10 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
   useEffect(() => {
     Animated.timing(sortArrowRotation, {
       toValue: librarySortDirection === 'ascending' ? 0 : 1,
-      duration: 180,
+      duration: controlDuration,
       useNativeDriver: true,
     }).start();
-  }, [librarySortDirection, sortArrowRotation]);
+  }, [controlDuration, librarySortDirection, sortArrowRotation]);
   const projectCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     Object.values(projectSummaries).forEach(project => {
@@ -462,7 +465,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
     </View>
   ) : visibleItems.length === 0 ? (
     <View style={styles.state}>
-      <Text style={styles.stateText} maxFontSizeMultiplier={MAX_TEXT_SCALE}>No matching music</Text>
+      <Text style={styles.stateText} maxFontSizeMultiplier={MAX_TEXT_SCALE}>No matching songs</Text>
     </View>
   ) : null;
 
@@ -577,7 +580,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
                               ? librarySortDirection
                               : defaultLibrarySortDirection(option.value)}`}
                           accessibilityHint={option.value === 'custom'
-                            ? 'Uses the order you arrange by dragging rows.'
+                            ? 'Drag songs into your preferred order.'
                             : 'Tap again to reverse the order.'}
                           accessibilityState={{ selected }}
                           testID={`music-library-sort-${option.value}`}
@@ -639,8 +642,8 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
         message={deletePrompt === null ? '' : [
           `“${deletePrompt.item.displayTitle}” has ${deletePrompt.summary.projectCount} saved ${deletePrompt.summary.projectCount === 1 ? 'project' : 'projects'}`,
           deletePrompt.summary.hasDraft ? 'and a song draft.' : 'and no song draft.',
-          "This removes only BeatNote's copied audio. The original file in Files is not affected.",
-          'Saved projects and the draft are kept for relinking.',
+          'Only the copy in BeatNote will be deleted.',
+          'You can reconnect the audio to your saved work later.',
         ].join(' ')}
         actions={[{
           label: 'Delete from BeatNote',
@@ -660,7 +663,7 @@ const MusicLibrarySheet: React.FC<MusicLibrarySheetProps> = ({
         message={relinkConfirmation === null ? '' : (() => {
           const stored = libraryItems[relinkConfirmation.musicItemId];
           if (relinkConfirmation.decision === 'looksOriginal') {
-            return 'BeatNote found the same filename and duration. Use this file to restore the audio?';
+            return 'The name and duration match. Reconnect this file?';
           }
           const formatDuration = (milliseconds: number | null | undefined): string => {
             if (milliseconds === null || milliseconds === undefined) return 'unknown duration';

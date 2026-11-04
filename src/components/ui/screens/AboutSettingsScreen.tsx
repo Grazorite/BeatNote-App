@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Alert, Image, Linking, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
-  Easing,
   interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { pageTransition } from '../../../animations/motion';
 
 import appConfig from '../../../../app.json';
 import { OPEN_SOURCE_LICENCE_GROUPS } from '../../../data/openSourceLicences';
@@ -26,11 +26,10 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
   const detailProgress = useSharedValue(0);
   const version = appConfig.expo.version;
   const build = appConfig.expo.ios.buildNumber;
-  const transition = { duration: 280, easing: Easing.out(Easing.cubic) };
 
   const setLicencesVisible = (visible: boolean): void => {
     setShowLicences(visible);
-    detailProgress.value = withTiming(visible ? 1 : 0, transition);
+    detailProgress.value = withTiming(visible ? 1 : 0, pageTransition);
   };
 
   const aboutStyle = useAnimatedStyle(() => ({
@@ -42,7 +41,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
 
   const sendFeedback = () => {
     void Linking.openURL(FEEDBACK_URL).catch(() => {
-      Alert.alert('Unable to open feedback', 'Please try again when a browser connection is available.');
+      Alert.alert('Unable to open feedback', 'Try opening the feedback page again.');
     });
   };
 
@@ -84,8 +83,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
           <View style={styles.privacyCard}>
             <Text style={styles.privacyTitle}>Privacy & diagnostics</Text>
             <Text style={styles.privacyText}>
-              BeatNote does not currently send crash reports or anonymous usage statistics. Any future
-              diagnostics will be opt-in and explained here.
+              BeatNote sends no crash reports or usage statistics. Future diagnostics will be opt-in.
             </Text>
           </View>
         </SettingsSubpage>
@@ -103,8 +101,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
           backLabel="About"
         >
           <Text style={styles.licenceIntro}>
-            BeatNote is built with the following open-source software. Copyright notices and licence
-            terms are reproduced below.
+            Copyright notices and licences for the software used in BeatNote.
           </Text>
           {OPEN_SOURCE_LICENCE_GROUPS.map(group => (
             <View key={group.title} style={styles.licenceCard} testID="open-source-licence-group">

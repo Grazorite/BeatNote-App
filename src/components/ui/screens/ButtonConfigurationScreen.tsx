@@ -27,12 +27,12 @@ const SEEK_BEHAVIOURS: ReadonlyArray<{
   {
     value: 'tapSeekHoldTrack',
     label: 'Tap seeks',
-    detail: 'Hold changes to the previous or next track.',
+    detail: 'Hold to change songs.',
   },
   {
     value: 'tapTrackHoldSeek',
     label: 'Tap changes track',
-    detail: 'Hold seeks backward or forward.',
+    detail: 'Hold to skip back or ahead.',
   },
 ];
 
@@ -91,7 +91,7 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Previous & Next</Text>
         <Text style={styles.hint}>
-          In Tap Seeks mode, a small −/+ seconds label below each track icon shows its distance.
+          In Tap Seeks mode, the number below each button shows how far it skips.
         </Text>
         <View style={styles.options} accessibilityRole="radiogroup">
           {SEEK_BEHAVIOURS.map(option => {
@@ -213,7 +213,7 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
           })}
         </View>
         <Text style={styles.hint}>
-          Long-press a preset in the speed chooser to replace it. Choose Use Default there to clear a custom value.
+          Hold a speed preset to edit it. Tap Use Default to reset it.
         </Text>
       </View>
     </SettingsSubpage>

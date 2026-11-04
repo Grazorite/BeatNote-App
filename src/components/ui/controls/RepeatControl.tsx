@@ -28,7 +28,7 @@ const RepeatControl: React.FC<RepeatControlProps> = ({ onToast, compact }) => {
       state={unavailable ? 'unavailable' : active ? 'active' : 'inactive'}
       checked={active}
       hint={capabilityGated ? 'Repeat is unavailable for this audio source' : undefined}
-      description={capabilityGated ? 'Not available for this source: repeat' : undefined}
+      description={capabilityGated ? 'This audio doesn’t support repeat.' : undefined}
       onPress={() => {
         toggle();
         onToast(active ? 'Repeat track off' : 'Repeat track on');

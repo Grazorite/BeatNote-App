@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (29)` Release build re-signed and installed physically; launch awaits renewed developer trust · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (30)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,10 +60,8 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Re-trust the renewed Personal Team developer profile on the iPhone, confirm Release 29 launches,
-   and verify the existing BeatNote library/projects remain present after the in-place install.
-2. Reconcile and commit the release-candidate tree, restore the host's CoreSimulator service, and
-   rerun all ten retained native journeys from the exact committed tree.
+1. Physically review Release 30 copy and motion and confirm the existing library and projects after the in-place update.
+2. Reconcile the new polish changes with the committed V1 candidate and run all ten native journeys on the final revision.
 3. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 
@@ -90,8 +88,7 @@ target; Android is a far-future possibility only.
 - [ ] V1.6 — Reconcile and commit the exact release candidate; rerun TypeScript, 8 browser journeys,
       10 iOS journeys, version consistency, and whitespace checks
 
-- [ ] Restore physical Release 29 launch after the seven-day Personal Team profile expired; renewed
-      profile is installed in place and awaits explicit trust on the iPhone
+- [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
 
@@ -102,6 +99,9 @@ target; Android is a far-future possibility only.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Polish app copy and align navigation, control and feedback animations. Verify renewed signing and install Release 30.
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `App.tsx`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/animations/MotionPreference.tsx`, `src/animations/components/animatedToggle.ts`, `src/animations/motion.ts`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/AnimatedSegmentedControl.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlayPauseControl.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/library/ImportProgressRow.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAnimatedCollapse.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useLayerSelectorAnimation.ts`, `src/hooks/useModernToggleAnimation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
 - [x] Physically accept Release 29 repeated Music Library switching and the nested About → Open
       Source Licences slideover animation
@@ -120,10 +120,6 @@ target; Android is a far-future possibility only.
       CSV/PDF sharing, render PDF overview waveforms in solid black, and install Release 27
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] V1 release blocker — Defer waveform decoding until destination playback is ready, correct
-      automatic-tempo pulse selection and whole-number output against representative songs, share
-      exports as files without URI text, restore printable PDF waveform artwork, and install Release 26
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/hooks/useWaveformData.ts`, `src/services/bpmAnalysis.ios.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -201,6 +197,42 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-05 — Copy and motion polish on Release 30
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted` on top of `4dd88dd`
+**Kanban moved:** copy and motion polish and renewed-profile launch → Done
+
+**Changed:**
+
+- Reviewed app strings across the studio, controls, Help, Settings, library, project and export flows,
+  Pro demonstrations, progress messages, errors and accessibility hints. Replaced technical import
+  states and repetitive instructions. Destructive prompts describe the scope and recovery options.
+- Added shared page, control and feedback timing and one live system motion preference. The mobile
+  Pro sparkle stops when its button is hidden. Native dialogs, library motion, annotation and
+  speed popups and the Pro carousel respond to Reduce Motion.
+- Documented copy and motion conventions. Installed the signed update over the existing app.
+
+**Verified:**
+
+- TypeScript, version and whitespace checks passed. All eight browser journeys passed after
+  correcting a stale assertion about the dance-count caption. A mobile browser check switched Reduce
+  Motion on during a running demo, observed a static frame across a stage interval, and confirmed
+  comparison dismissal and Help navigation. Inspected Help at 393 × 852.
+- Focused native Settings/Files journey passed on iPhone 17 Pro. The first attempt stopped at the
+  Expo launcher before loading the app. Opening the local Metro URL resolved it. Xcode reported
+  one pass and zero failures on the rerun.
+- Release 29 launched before installation, resolving the trust blocker. Device services independently
+  reported 1.0.0 (30) after installation and successfully launched it.
+
+**Not verified / known gaps:**
+
+- Hands-on copy, VoiceOver, motion feel and existing saved content still need physical confirmation.
+  The full ten-test release gate remains open. This polish revision is uncommitted.
+
+**Next agent should:**
+
+- Collect physical Release 30 feedback, then reconcile the final V1 candidate and run its exact-tree gate.
 
 ### 2026-11-05 — Renew expired physical-device signature
 
@@ -347,50 +379,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:**
 
 - Record the Release 27 PDF contrast result, then run V1.4b's combined BPM/audio lifecycle matrix.
-
-### 2026-11-03 — Correct real-song tempo, switch contention, and exported files
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Music Library/BPM/export release blocker → Done; V1.4 physical BPM acceptance remains In Progress
-
-**Changed:**
-
-- Traced the BIRDS OF A FEATHER switch failure to waveform decoding starting as soon as the
-  destination URI was published, while the audio player was still opening that same file. Waveform
-  work now waits until the track-switch transaction reaches idle/player-ready state.
-- Replaced single-peak tempo selection with pulse-family ranking, explicit 3:2 alias handling,
-  interpolation, whole-number output, and a new analysis-cache version. The UI also rounds and
-  deduplicates alternatives defensively.
-- Shared iOS exports as file URLs only, preventing target apps from choosing a text message that
-  contained the sandbox URI. Replaced percentage-height PDF waveform spans with explicit inline SVG
-  rectangles so iOS Quartz has printable waveform geometry.
-- Inspected the user's attached PDF and confirmed the overview background/markers rendered while
-  waveform artwork was absent. Built, installed, device-verified, and launched Release 26 on the
-  connected physical iPhone. Earlier uncommitted release work remains preserved.
-
-**Verified:**
-
-- TypeScript, version consistency, whitespace, the focused BPM/export browser journey, and the full
-  retained Playwright suite passed; the full browser result was 8/8.
-- Focused native background/consecutive-switch acceptance passed. A native synthetic-tempo journey
-  passed, and real-file simulator iterations confirmed Marilag at 78 BPM and moved BIRDS OF A
-  FEATHER from the old 70-BPM alias to 104 before the final pulse rounding adjustment to 105.
-- Xcode's signed Release build and validation succeeded. Bundle and installed-device metadata both
-  report `1.0.0 (26)`; installation and automatic launch succeeded.
-
-**Not verified / known gaps:**
-
-- The final real-file simulator rerun was interrupted by a corrupt/incomplete xcresult after the
-  last 104→105 rounding adjustment. Exact 105 display, the user's intermittent waveform-enabled
-  Library tap sequence, direct file opening in a third-party app, and rendered physical PDF waveform
-  remain hands-on Release 26 acceptance items.
-- Standalone `codesign --verify --deep --strict` was not rerun; prior releases report
-  `CSSMERR_TP_NOT_TRUSTED` for the local Apple Development chain while Xcode validation and physical
-  installation succeed.
-
-**Next agent should:**
-
-- Record the Release 26 physical checks for waveform-enabled BIRDS switching, 78/105 BPM results,
-  direct file sharing, and visible PDF overview waveform, then close or constrain V1.4.
 
 <!-- end handover log -->

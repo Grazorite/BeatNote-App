@@ -45,15 +45,15 @@ const ExportModal: React.FC<ExportModalProps> = ({
       }
       const result = outcome.result;
 
-      const title = 'Export Successful';
+      const title = 'Export ready';
       const formatLabel = format.toUpperCase();
       const message = Platform.OS === 'ios'
         ? (result.shared
-          ? `${formatLabel} file "${result.filename}" was exported and opened in the share sheet.`
-          : `${formatLabel} file "${result.filename}" was saved locally at:\n${result.uri}`)
+          ? `${formatLabel} file “${result.filename}” opened in the share sheet.`
+          : `${formatLabel} saved as “${result.filename}”\n${result.uri}`)
         : format === 'pdf'
-          ? 'The choreography sheet opened in a print window. Choose “Save as PDF” to download it.'
-          : `CSV file "${result.filename}" has been downloaded to your Downloads folder.`;
+          ? 'Choose “Save as PDF” in the print window.'
+          : `Downloaded “${result.filename}”.`;
       
       Alert.alert(
         title,
@@ -104,7 +104,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               Export CSV
             </Text>
             <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
-              Includes timestamps, bar:beat and phrase:count timing, and annotations
+              Marker times, bars, beats, dance counts and notes
             </Text>
           </TouchableOpacity>
 
@@ -146,7 +146,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
           >
             <Text style={[styles.buttonText, styles.primaryButtonText]}>Export PDF</Text>
             <Text style={[styles.buttonSubtext, styles.primaryButtonSubtext]}>
-              Print-ready choreography sheet with your selected sections
+              Print or share the sections selected above
             </Text>
           </TouchableOpacity>
           

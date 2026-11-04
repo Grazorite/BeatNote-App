@@ -21,12 +21,12 @@ const WaveformVisibilityControl: React.FC = () => {
         }}
         disabled={!waveformAvailable}
         accessibilityHint={waveformAvailable
-          ? 'Shows decoded waveform artwork in the canvas and overview strip'
+          ? 'Show the waveform on the timeline and overview'
           : 'Requires BeatNote Pro'}
         testID="waveform-visibility-toggle"
       />
       <Text style={styles.hint}>
-        Off by default. Playback, seeking, markers, loops, and timing bars remain available.
+        Turn off to show plain timing bars. Markers, loops and seeking work in both views.
       </Text>
     </View>
   );

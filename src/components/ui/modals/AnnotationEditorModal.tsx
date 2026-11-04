@@ -102,7 +102,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
               maxLength={500}
               value={draft}
               onChangeText={setDraft}
-              placeholder="Enter movement cue or note"
+              placeholder="Add a movement cue or note"
               placeholderTextColor={colors.textSecondary}
               style={[styles.input, isLandscapePhone && styles.inputLandscape]}
               textAlignVertical="top"
@@ -117,7 +117,7 @@ const AnnotationEditorModal: React.FC<AnnotationEditorModalProps> = ({
                   onPress={() => setDraft('')}
                   accessibilityRole="button"
                   accessibilityLabel="Clear annotation text"
-                  accessibilityHint="Clears the draft. Save to remove the annotation from this marker."
+                  accessibilityHint="Tap Save after clearing the text to remove this note."
                   testID="clear-annotation-text"
                 >
                   <BeatNoteIcon name="clear" size={15} color={colors.textSecondary} />

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, Text } from 'react-native';
+import { feedbackMs } from '../../../animations/motion';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 import { annotationCalloutStyles as styles } from '../../../styles/components/controls/annotationCallout';
 import { ANNOTATION_FADE_MS } from '../../../utils/markerSelection';
 import GlassBackdrop from './GlassBackdrop';
@@ -18,6 +20,7 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({
   stacked = false,
   onPresenceChange,
 }) => {
+  const reduced = useMotionPreference() !== false;
   const visibleText = text?.trim() ?? '';
   const [renderedText, setRenderedText] = useState(visibleText || null);
   const opacity = useRef(new Animated.Value(visibleText ? 1 : 0)).current;
@@ -25,11 +28,16 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({
 
   useEffect(() => {
     animationRef.current?.stop();
+    if (reduced) {
+      opacity.setValue(visibleText ? 1 : 0);
+      setRenderedText(visibleText || null);
+      return;
+    }
     if (visibleText) {
       setRenderedText(visibleText);
       const animation = Animated.timing(opacity, {
         toValue: 1,
-        duration: 180,
+        duration: feedbackMs,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       });
@@ -51,7 +59,7 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({
       if (finished) setRenderedText(null);
     });
     return () => animation.stop();
-  }, [opacity, visibleText]);
+  }, [opacity, visibleText, reduced]);
 
   useEffect(() => () => animationRef.current?.stop(), []);
 

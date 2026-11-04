@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  Easing,
+  cancelAnimation,
   interpolate,
   runOnJS,
   useAnimatedStyle,
@@ -18,6 +18,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMotionPreference } from '../../animations/MotionPreference';
+import { pageTransition } from '../../animations/motion';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import StemSelector from '../ui/controls/StemSelector';
 import SidebarToggle from '../ui/controls/SidebarToggle';
@@ -154,15 +156,15 @@ const Sidebar: React.FC = () => {
     ? screenData.width < 768
     : Math.min(screenData.width, screenData.height) < 768;
   const pageWidth = Math.max(screenData.width, 1);
-  const mobileTransition = { duration: 280, easing: Easing.out(Easing.cubic) };
   const settingsEntryX = useSharedValue(pageWidth);
   const detailVisible = showHelpScreen || activeDetail !== null;
   const detailProgress = useSharedValue(detailVisible ? 1 : 0);
+  const reduceMotion = useMotionPreference();
   const proSparkleProgress = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      width: withTiming(isSidebarCollapsed ? 60 : 280, { duration: 300 }),
+      width: withTiming(isSidebarCollapsed ? 60 : 280, pageTransition),
     };
   });
 
@@ -174,12 +176,12 @@ const Sidebar: React.FC = () => {
     if (!isMobile) return;
     settingsEntryX.value = isSidebarCollapsed
       ? pageWidth
-      : withTiming(0, mobileTransition);
+      : withTiming(0, pageTransition);
   }, [isMobile, isSidebarCollapsed, pageWidth, settingsEntryX]);
 
   useEffect(() => {
     if (!isMobile) return;
-    detailProgress.value = withTiming(detailVisible ? 1 : 0, mobileTransition);
+    detailProgress.value = withTiming(detailVisible ? 1 : 0, pageTransition);
   }, [detailProgress, detailVisible, isMobile]);
 
   useEffect(() => {
@@ -187,8 +189,11 @@ const Sidebar: React.FC = () => {
   }, [activeDetail, bpmAvailable]);
 
   useEffect(() => {
+    proSparkleProgress.value = 0;
+    if (reduceMotion !== false || !isMobile || isSidebarCollapsed || detailVisible) return;
     proSparkleProgress.value = withRepeat(withTiming(1, { duration: 1800 }), -1, false);
-  }, [proSparkleProgress]);
+    return () => cancelAnimation(proSparkleProgress);
+  }, [proSparkleProgress, reduceMotion, isMobile, isSidebarCollapsed, detailVisible]);
 
   const mobileEntryStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: settingsEntryX.value }],
@@ -205,7 +210,7 @@ const Sidebar: React.FC = () => {
   const closeMobileSettings = () => {
     setActiveDetail(null);
     setShowHelpScreen(false);
-    settingsEntryX.value = withTiming(pageWidth, mobileTransition, finished => {
+    settingsEntryX.value = withTiming(pageWidth, pageTransition, finished => {
       if (finished) runOnJS(toggleSidebar)();
     });
   };

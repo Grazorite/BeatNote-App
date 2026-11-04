@@ -638,7 +638,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     // during suspension. Do not hold the Library sheet or roll back playable audio while it waits.
     void persistSuccessfulSwitch(dependencies, destination.item).catch(error => {
       console.error('Song changed but switch bookkeeping could not be saved', error);
-      dependencies.getState().notify('Song changed, but its recent-play update is still pending.');
+      dependencies.getState().notify('Song opened. Recently Played hasn’t updated yet.');
     });
     dependencies.setState({ switchPhase: 'idle', loadingMusicItemId: null });
     if (wasPlaying && !guardWasShown) {

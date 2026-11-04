@@ -145,7 +145,7 @@ test.describe('Critical annotation workflow', () => {
     await page.setViewportSize({ width: 740, height: 390 });
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
-    await expect(page.getByTestId('grand-total-markers')).toContainText('1 markers');
+    await expect(page.getByTestId('grand-total-markers')).toContainText('1 marker');
     await page.getByTestId('annotation-control').click();
     await expect(page.getByTestId('annotation-keyboard-done')).toBeVisible();
     await expect(page.getByTestId('save-annotation')).toBeVisible();

@@ -380,7 +380,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     const target = pendingOpenProjectId;
     const result = await saveCurrent();
     if (result.kind !== 'saved') {
-      Alert.alert('Project Not Opened', 'BeatNote could not save the current changes. Resolve the save issue, then try again.');
+      Alert.alert('Project Not Opened', 'Your draft couldn’t be saved. Try again in a moment.');
       return;
     }
     setPendingOpenProjectId(null);
@@ -685,7 +685,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           message={relinkConfirmation === null ? '' : (() => {
             const stored = libraryItems[relinkConfirmation.musicItemId];
             if (relinkConfirmation.decision === 'looksOriginal') {
-              return 'BeatNote found the same filename and duration. Use this file to restore the audio?';
+              return 'The name and duration match. Reconnect this file?';
             }
             return [
               `Stored: “${stored?.displayTitle ?? 'Song'}” — ${formatDuration(stored?.durationMs)}.`,
@@ -705,7 +705,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         <ConfirmDialog
           visible={pendingOpenProjectId !== null && discardAction === null}
           title="Save changes before opening?"
-          message="The current project has changes that are not in the most recent saved version."
+          message="This project has unsaved changes."
           actions={[
             { label: 'Save & Open', testID: 'project-guard-save-open', onPress: () => { void saveAndOpen(); } },
             { label: 'Discard Changes & Open', destructive: true, testID: 'project-guard-discard-open', onPress: () => setDiscardAction('open') },

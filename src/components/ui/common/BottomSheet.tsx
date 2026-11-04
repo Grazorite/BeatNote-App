@@ -14,13 +14,14 @@ import {
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
-  Easing,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMotionPreference } from '../../../animations/MotionPreference';
+import { pageTransition } from '../../../animations/motion';
 import {
   bottomSheetInsetStyle,
   bottomSheetKeyboardStyle,
@@ -53,7 +54,6 @@ interface WebPointerEvent {
   preventDefault(): void;
 }
 
-const ANIMATION_MS = 300;
 
 const focusNode = (node: unknown): void => {
   const handle = findNodeHandle(node as never);
@@ -79,7 +79,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const translateY = useSharedValue(Math.max(height, 1));
   const dragOrigin = useSharedValue(0);
   const [detent, setDetentState] = useState<'medium' | 'large'>(initialDetent);
-  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+  const reduceMotion = useMotionPreference();
   const [keyboardInset, setKeyboardInset] = useState(0);
   const detentRef = useRef(detent);
   const closingRef = useRef(false);
@@ -98,8 +98,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       return;
     }
     translateY.value = withTiming(offset, {
-      duration: ANIMATION_MS,
-      easing: Easing.out(Easing.cubic),
+      ...pageTransition,
     }, completed => {
       if (completed && finished) runOnJS(finished)();
     });
@@ -155,12 +154,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       if (success) runOnJS(handleRelease)(translateY.value);
       else runOnJS(resetCancelledPan)();
     }), [dragOrigin, handleRelease, resetCancelledPan, sheetHeight, translateY, visible]);
-
-  useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => listener.remove();
-  }, []);
 
   useEffect(() => {
     if (reduceMotion !== true || !visible) return;

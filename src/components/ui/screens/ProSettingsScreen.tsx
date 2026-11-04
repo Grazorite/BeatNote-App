@@ -58,7 +58,7 @@ const ProSettingsScreen: React.FC<ProSettingsScreenProps> = ({ onBack }) => {
             <Text style={styles.price}>S$2.98 monthly</Text>
           </Pressable>
         </View>
-        <Text style={styles.previewNote}>Pricing preview · Purchases not available yet. Trial subject to App Store availability.</Text>
+        <Text style={styles.previewNote}>Preview prices. Purchases aren’t available yet. Trial availability depends on the App Store.</Text>
         <Text style={styles.restore} accessibilityState={{ disabled: true }} testID="restore-purchases-placeholder">Restore Purchases · Unavailable</Text>
       </SettingsSubpage>
       <ProComparisonSheet visible={comparing} onClose={() => setComparing(false)} returnFocusRef={compareRef} />

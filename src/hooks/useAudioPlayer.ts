@@ -254,7 +254,7 @@ export const useCustomAudioPlayer = () => {
             loopDecisionSuspendedRef.current = false;
             const restoredState = useStudioStore.getState();
             restoredState.setIsPlaying(false);
-            restoredState.notify('Audio was reloaded after suspension. Tap the timeline to restore your position.');
+            restoredState.notify('Song reloaded. Tap the timeline to pick up where you left off.');
           });
         return;
       }
@@ -327,7 +327,7 @@ export const useCustomAudioPlayer = () => {
           loopDecisionSuspendedRef.current = false;
           state.setIsPlaying(false);
           console.error('Foreground audio reload failed', replaceError);
-          state.notify('Audio could not resume after suspension. Choose the song again to reload it.');
+          state.notify('Choose the song again to resume playback.');
         }
       }, FOREGROUND_PLAYER_RECHECK_MS);
     });
@@ -400,7 +400,7 @@ export const useCustomAudioPlayer = () => {
         console.error('Playback speed configuration error:', playbackRateError);
         showError(
           'Playback Speed Error',
-          'BeatNote could not apply pitch-preserved playback speed. Playback remains available at the last working speed.',
+          'Couldn’t change speed. You can keep playing at the previous speed.',
         );
       }
     };
@@ -428,7 +428,7 @@ export const useCustomAudioPlayer = () => {
       if (mounted) setAudioModeReady(true);
     }).catch((audioModeError: unknown) => {
       console.error('Audio mode configuration error:', audioModeError);
-      showError('Audio Setup Error', 'BeatNote could not configure audio playback. Please restart the app and try again.');
+      showError('Audio Setup Error', 'Restart BeatNote to set up playback again.');
     });
     return () => { mounted = false; };
   }, [showError]);
@@ -559,7 +559,7 @@ export const useCustomAudioPlayer = () => {
       } catch (error) {
         pendingSeekRef.current = null;
         console.error('Seek error:', error);
-        Alert.alert('Seek Error', 'Failed to seek to position');
+        Alert.alert('Seek Error', 'Couldn’t move to that point in the song');
         const reportedPosition = (player.currentTime ?? 0) * 1000;
         previousSampleRef.current = reportedPosition;
         setCurrentTime(reportedPosition);

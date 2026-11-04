@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { feedbackMs } from '../../../animations/motion';
+import { useMotionPreference } from '../../../animations/MotionPreference';
 import {
   configuredPlaybackSpeedPresets,
   DEFAULT_PLAYBACK_SPEED,
@@ -36,8 +38,8 @@ import { useAcceleratingPress } from '../../../hooks/useAcceleratingPress';
 import PlaybackSpeedPresetEditor from '../modals/PlaybackSpeedPresetEditor';
 
 const DRAG_CLOSE_DELAY_MS = 700;
-const DRAG_FADE_DURATION_MS = 220;
-const POPUP_PRESENT_DURATION_MS = 180;
+
+
 /** Preferred overhang of the compact (landscape) chooser below the speed button's bottom edge. */
 const COMPACT_CHOOSER_BELOW_ANCHOR = 124;
 /** Minimum gap between the compact chooser and the safe-area edges. */
@@ -121,13 +123,14 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     dismissProgress.setValue(0);
   }, [clearCloseTimer, dismissProgress, stopDismissAnimation]);
 
+  const fadeDuration = useMotionPreference() === false ? feedbackMs : 0;
   const animateDismiss = useCallback(() => {
     clearCloseTimer();
     stopDismissAnimation();
     dismissingRef.current = true;
     const dismissAnimation = Animated.timing(dismissProgress, {
       toValue: 1,
-      duration: DRAG_FADE_DURATION_MS,
+      duration: fadeDuration,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: true,
     });
@@ -141,8 +144,8 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
       setOpen(false);
       dismissProgress.setValue(0);
       presentProgress.setValue(0);
-    }, DRAG_FADE_DURATION_MS);
-  }, [clearCloseTimer, dismissProgress, presentProgress, stopDismissAnimation]);
+    }, fadeDuration);
+  }, [clearCloseTimer, dismissProgress, fadeDuration, presentProgress, stopDismissAnimation]);
 
   const applySpeed = useCallback((next: number, dismiss = false) => {
     const normalized = normalizePlaybackSpeed(next, activeBounds);
@@ -208,7 +211,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
     requestAnimationFrame(() => {
       const animation = Animated.timing(presentProgress, {
         toValue: 1,
-        duration: POPUP_PRESENT_DURATION_MS,
+        duration: fadeDuration,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       });
@@ -217,7 +220,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
         if (presentAnimationRef.current === animation) presentAnimationRef.current = null;
       });
     });
-  }, [presentProgress, restorePopup, stopPresentAnimation]);
+  }, [fadeDuration, presentProgress, restorePopup, stopPresentAnimation]);
 
   const updateFromTrackX = useCallback((trackX: number) => {
     if (trackWidth <= 0) return;
@@ -432,7 +435,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
             : 'Playback speed is unavailable for this audio source'}
         description={songLoaded && !speedAvailable
           ? productSpeedAvailable
-            ? 'Not available for this source: playback speed'
+            ? 'This audio plays at its original speed.'
             : 'Unavailable'
           : undefined}
         state={songLoaded && speedAvailable

@@ -140,7 +140,7 @@ const CsvReplaceConfirm: React.FC<CsvReplaceConfirmProps> = ({
                 maxFontSizeMultiplier={MAX_TEXT_SCALE}
                 testID="csv-beyond-duration-count"
               >
-                {preview.beyondDurationCount} markers are past the end of this song
+                {preview.beyondDurationCount} {preview.beyondDurationCount === 1 ? 'marker falls' : 'markers fall'} past the end of this song
               </Text>
             )}
 

@@ -50,7 +50,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
     try {
       clearWaveformCache();
       await Promise.all(importedItems.map(item => invalidateAnalysis(item.id)));
-      notify('Derived waveform and BPM caches cleared');
+      notify('Waveform and BPM caches cleared');
     } catch (error) {
       console.error('Unable to clear derived caches', error);
       notify("BeatNote couldn't clear every derived cache");
@@ -128,7 +128,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
           accessibilityState={{ disabled: busy }}
           testID="clear-derived-caches"
         >
-          <Text style={styles.actionText}>Clear Derived Waveform & BPM Caches</Text>
+          <Text style={styles.actionText}>Clear Waveform & BPM Caches</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.section}>
@@ -151,7 +151,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
         </TouchableOpacity>
       </View>
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Destructive Actions</Text>
+        <Text style={styles.sectionLabel}>Delete Data</Text>
         <TouchableOpacity
           style={[
             styles.action,
@@ -170,7 +170,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
         </TouchableOpacity>
         <SettingsInfoRow
           label="Keeps song drafts and imported audio"
-          detail="Each current song draft becomes unsaved, so its markers and settings remain available."
+          detail="Your markers and settings stay in each song’s draft."
           testID="delete-projects-detail"
         />
         <TouchableOpacity
@@ -195,7 +195,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
           label="Keeps projects and song drafts"
           detail={importInProgress
             ? 'Finish or cancel the current audio import first.'
-            : "Removes only BeatNote's managed audio copies. Original source files remain untouched and saved work stays available for relinking."}
+            : "Removes BeatNote’s copies. You can reconnect your projects to the original files."}
           testID="delete-imported-audio-detail"
         />
         <TouchableOpacity
@@ -216,14 +216,14 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
           label="Removes all app data"
           detail={importInProgress
             ? 'Finish or cancel the current audio import first.'
-            : 'Deletes imported audio copies, drafts, projects, markers, settings, and derived caches. Original source files remain untouched.'}
+            : 'Deletes your library, projects, drafts, markers, settings and caches. Your original audio files are kept.'}
           testID="delete-all-data-detail"
         />
       </View>
       <ConfirmDialog
         visible={confirmation === 'clearCaches'}
-        title="Clear derived caches?"
-        message="BeatNote will discard regenerated waveform peaks and automatic BPM suggestions. Imported audio, markers, manual timing, and saved projects will remain."
+        title="Clear waveform and BPM caches?"
+        message="This clears saved waveforms and BPM suggestions. Your songs, markers, manual timing and projects are kept."
         actions={[{
           label: 'Clear Caches',
           testID: 'confirm-clear-derived-caches',
@@ -235,7 +235,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
       <ConfirmDialog
         visible={confirmation === 'deleteMarkers'}
         title="Delete all markers?"
-        message="This removes every marker and annotation from the current song draft. Imported audio and saved projects are not removed."
+        message="This clears the markers and notes in this draft. Your audio and saved projects are kept."
         actions={[{
           label: 'Delete All Markers',
           destructive: true,
@@ -248,7 +248,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
       <ConfirmDialog
         visible={confirmation === 'deleteProjects'}
         title="Delete every saved project?"
-        message="This permanently deletes all saved project versions. Song drafts and imported audio remain, but this cannot be undone."
+        message="All saved project versions will be permanently deleted. Your song drafts and imported audio are kept."
         confirmationText="DELETE PROJECTS"
         actions={[{
           label: 'Delete Saved Projects',
@@ -262,7 +262,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
       <ConfirmDialog
         visible={confirmation === 'deleteImportedAudio'}
         title="Delete all imported audio?"
-        message="This permanently removes every audio copy managed by BeatNote. Saved projects and song drafts remain available for relinking, and original source files outside BeatNote are not deleted."
+        message="This permanently deletes BeatNote’s audio copies. Your original files, projects and drafts are kept. Reconnect the audio to use them again."
         confirmationText="DELETE IMPORTED AUDIO"
         actions={[{
           label: 'Delete Imported Audio',
@@ -276,7 +276,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
       <ConfirmDialog
         visible={confirmation === 'deleteAllData'}
         title="Delete all BeatNote data?"
-        message="This permanently removes every imported audio copy, song draft, saved project, marker, preference, and cache from BeatNote. Original source files outside BeatNote are not deleted."
+        message="This permanently deletes all imported audio copies, drafts, projects, markers, settings and caches. Your original files are kept."
         confirmationText="DELETE ALL DATA"
         actions={[{
           label: 'Delete All Data',

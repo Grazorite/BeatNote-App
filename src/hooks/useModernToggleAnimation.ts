@@ -5,6 +5,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { useCallback, useEffect } from 'react';
+import { controlTransition } from '../animations/motion';
 import { colors } from '../styles/common';
 
 export const useModernToggleAnimation = (isEnabled: boolean) => {
@@ -15,7 +16,7 @@ export const useModernToggleAnimation = (isEnabled: boolean) => {
     // Schedule the visual response immediately instead of waiting for a potentially expensive
     // parent/store render to commit the controlled value.
     target.value = enabled ? 1 : 0;
-    progress.value = withTiming(target.value, { duration: 150 });
+    progress.value = withTiming(target.value, controlTransition);
   }, [progress, target]);
 
   useEffect(() => {

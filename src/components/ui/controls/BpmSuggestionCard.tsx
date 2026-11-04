@@ -33,7 +33,7 @@ const BpmSuggestionCard: React.FC = () => {
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title}>Automatic tempo</Text>
         <Text style={styles.detail}>
-          Analyze this song locally, then preview the suggested BPM before applying it.
+          Find this song’s BPM on your device. Preview the grid before applying it.
         </Text>
         <View style={styles.actions}>
           <TouchableOpacity
@@ -57,7 +57,7 @@ const BpmSuggestionCard: React.FC = () => {
     return (
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title} accessibilityLiveRegion="polite">Analyzing tempo…</Text>
-        <Text style={styles.detail}>{Math.round(job.progress * 100)}% · playback stays available</Text>
+        <Text style={styles.detail}>{Math.round(job.progress * 100)}% · you can keep playing</Text>
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.button}
@@ -77,7 +77,7 @@ const BpmSuggestionCard: React.FC = () => {
     return (
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title} accessibilityLiveRegion="polite">Tempo analysis cancelled</Text>
-        <Text style={styles.detail}>No BPM or beat anchor changes were applied.</Text>
+        <Text style={styles.detail}>Your BPM and Count 1 are unchanged.</Text>
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.button}
@@ -97,7 +97,7 @@ const BpmSuggestionCard: React.FC = () => {
     return (
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title}>Tempo analysis failed</Text>
-        <Text style={styles.detail}>Your current project BPM was not changed.</Text>
+        <Text style={styles.detail}>Your project BPM is unchanged.</Text>
         <View style={styles.actions}>
           <TouchableOpacity style={styles.button} onPress={() => retryAnalysis(musicItemId)} accessibilityRole="button">
             <Text style={styles.buttonText}>Retry</Text>
@@ -135,7 +135,7 @@ const BpmSuggestionCard: React.FC = () => {
       <Text style={styles.detail}>
         {hasDownbeatSuggestion
           ? `Suggested Count 1: ${formatSeconds(result.suggestedDownbeatMs as number)}`
-          : 'Phrase start unconfirmed — the beat anchor is used as Count 1.'}
+          : 'Count 1 is set to the beat anchor. Adjust it to match the start of your phrase.'}
       </Text>
       <View style={styles.actions}>
         {gridPreview === null ? (

@@ -3,6 +3,62 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+## Archived Done — 2026-11-05 Release 30
+
+- [x] V1 release blocker — Defer waveform decoding until destination playback is ready, correct
+      automatic-tempo pulse selection and whole-number output against representative songs, share
+      exports as files without URI text, restore printable PDF waveform artwork, and install Release 26
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `modules/beatnote-tempo/ios/BeatNoteTempoModule.swift`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/hooks/useWaveformData.ts`, `src/services/bpmAnalysis.ios.ts`, `src/utils/exportEngine.ios.ts`, `src/utils/exportEngineCore.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — 2026-11-05 Release 30
+
+### 2026-11-03 — Correct real-song tempo, switch contention, and exported files
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library/BPM/export release blocker → Done; V1.4 physical BPM acceptance remains In Progress
+
+**Changed:**
+
+- Traced the BIRDS OF A FEATHER switch failure to waveform decoding starting as soon as the
+  destination URI was published, while the audio player was still opening that same file. Waveform
+  work now waits until the track-switch transaction reaches idle/player-ready state.
+- Replaced single-peak tempo selection with pulse-family ranking, explicit 3:2 alias handling,
+  interpolation, whole-number output, and a new analysis-cache version. The UI also rounds and
+  deduplicates alternatives defensively.
+- Shared iOS exports as file URLs only, preventing target apps from choosing a text message that
+  contained the sandbox URI. Replaced percentage-height PDF waveform spans with explicit inline SVG
+  rectangles so iOS Quartz has printable waveform geometry.
+- Inspected the user's attached PDF and confirmed the overview background/markers rendered while
+  waveform artwork was absent. Built, installed, device-verified, and launched Release 26 on the
+  connected physical iPhone. Earlier uncommitted release work remains preserved.
+
+**Verified:**
+
+- TypeScript, version consistency, whitespace, the focused BPM/export browser journey, and the full
+  retained Playwright suite passed; the full browser result was 8/8.
+- Focused native background/consecutive-switch acceptance passed. A native synthetic-tempo journey
+  passed, and real-file simulator iterations confirmed Marilag at 78 BPM and moved BIRDS OF A
+  FEATHER from the old 70-BPM alias to 104 before the final pulse rounding adjustment to 105.
+- Xcode's signed Release build and validation succeeded. Bundle and installed-device metadata both
+  report `1.0.0 (26)`; installation and automatic launch succeeded.
+
+**Not verified / known gaps:**
+
+- The final real-file simulator rerun was interrupted by a corrupt/incomplete xcresult after the
+  last 104→105 rounding adjustment. Exact 105 display, the user's intermittent waveform-enabled
+  Library tap sequence, direct file opening in a third-party app, and rendered physical PDF waveform
+  remain hands-on Release 26 acceptance items.
+- Standalone `codesign --verify --deep --strict` was not rerun; prior releases report
+  `CSSMERR_TP_NOT_TRUSTED` for the local Apple Development chain while Xcode validation and physical
+  installation succeed.
+
+**Next agent should:**
+
+- Record the Release 26 physical checks for waveform-enabled BIRDS switching, 78/105 BPM results,
+  direct file sharing, and visible PDF overview waveform, then close or constrain V1.4.
+
+
 ## Archived Done — 2026-11-05 Profile renewal
 
 - [x] V1 release blocker — Make Music Library completion independent of stalled bookkeeping,

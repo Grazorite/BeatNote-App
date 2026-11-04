@@ -11,11 +11,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  useReducedMotion,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { useMotionPreference } from '../../animations/MotionPreference';
 import { Layer, LayerId, SelectedMarker, useStudioStore } from '../../hooks/useStudioStore';
 import { useDockToast } from '../../hooks/useDockToast';
 import { useRenderCounter } from '../../hooks/useRenderCounter';
@@ -103,7 +103,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const opacity = useSharedValue(1);
   const switchContentOpacity = useSharedValue(1);
   const switchOverlayOpacity = useSharedValue(0);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useMotionPreference() !== false;
   const screenData = useWindowDimensions();
   const annotationFieldRef = useRef<AnnotationFieldRef>(null);
   const pendingAnnotationSaveRef = useRef<{ marker: SelectedMarker; text: string } | null>(null);
@@ -311,9 +311,9 @@ const MainContent: React.FC<MainContentProps> = ({
     />
   );
   const waveformCapabilityMessage = hasLoadedSong && !capabilities.waveformAccess
-    ? 'Not available for this source: waveform access'
+    ? 'No waveform is available for this audio.'
     : hasLoadedSong && !capabilities.exactSeeking
-      ? 'Not available for this source: exact seeking'
+      ? 'This audio doesn’t support precise seeking.'
       : null;
   const waveformCapabilityNotice = waveformCapabilityMessage === null ? null : (
     <View
@@ -385,7 +385,7 @@ const MainContent: React.FC<MainContentProps> = ({
         </Text>
       )}
       <Text style={styles.assistiveStatus} testID="grand-total-markers">
-        Grand Total: {totalMarkers} markers
+        {totalMarkers} {totalMarkers === 1 ? 'marker' : 'markers'}
       </Text>
     </View>
   );
@@ -465,7 +465,7 @@ const MainContent: React.FC<MainContentProps> = ({
           </Animated.View>
         )}
         <Text style={styles.assistiveStatus} testID="grand-total-markers">
-          Grand Total: {totalMarkers} markers
+          {totalMarkers} {totalMarkers === 1 ? 'marker' : 'markers'}
         </Text>
       </View>
     );

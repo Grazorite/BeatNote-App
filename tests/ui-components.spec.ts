@@ -61,7 +61,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('data-imported-audio-summary')).toContainText('0 songs');
     await page.getByTestId('clear-derived-caches').click();
     await expect(page.getByTestId('clear-derived-caches-confirm')).toContainText(
-      'Imported audio, markers, manual timing, and saved projects will remain.',
+      'Your songs, markers, manual timing and projects are kept.',
     );
     await page.getByTestId('clear-derived-caches-confirm').getByText('Cancel', { exact: true }).click();
     await expect(page.getByTestId('delete-all-projects')).toBeDisabled();
@@ -80,9 +80,9 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('data-settings-page-back').click();
 
     await page.getByTestId('settings-pro').click();
-    await expect(page.getByText('Keep rehearsal moving', { exact: true })).toBeVisible();
+    await expect(page.getByText('Play songs back to back', { exact: true })).toBeVisible();
     await page.getByTestId('pro-feature-1').click();
-    await expect(page.getByText('Practise at your pace', { exact: true })).toBeInViewport();
+    await expect(page.getByText('Set your rehearsal speed', { exact: true })).toBeInViewport();
     await expect(page.getByTestId('pro-plan-yearly')).toBeInViewport();
     await expect(page.getByTestId('pro-plan-monthly')).toBeInViewport();
     await page.getByTestId('pro-compare').click();
@@ -99,7 +99,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('pro-settings-page-back').click();
 
     await page.getByTestId('settings-about').click();
-    await expect(page.getByText('Version 1.0.0 (29)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (30)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');
@@ -386,7 +386,7 @@ test.describe('UI Components & Layout', () => {
     // Freeze the short fixture before changing tiers; otherwise it can finish in Pro
     // while the settings drawer is still opening on a busy native-build host.
     await page.getByTestId('play-pause').click();
-    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play playback');
+    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play song');
     await repeat.click();
     await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
@@ -395,7 +395,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('settings-page')).toHaveCount(0);
     await finishActiveTrack();
-    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play playback');
+    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play song');
     await expect(title).toContainText('long-test-track');
 
     await page.getByTestId('sidebar-open-toggle').click();
@@ -430,7 +430,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
     await finishActiveTrack();
-    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play playback');
+    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play song');
     await expect(title).toContainText('long-test-track');
 
     await page.getByTestId('sidebar-open-toggle').click();
@@ -459,7 +459,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByRole('button', { name: 'Preview' }).click();
     await page.getByRole('button', { name: 'Apply Preview' }).click();
     await page.getByTestId('dance-counts-toggle').click();
-    await expect(page.getByTestId('dance-counts-enabled')).toContainText('Dance counts are on');
+    await expect(page.getByTestId('dance-counts-enabled')).toHaveText('Look for counts beside the waveform and playback controls.');
     await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('dance-count-display')).toContainText('Count 1');

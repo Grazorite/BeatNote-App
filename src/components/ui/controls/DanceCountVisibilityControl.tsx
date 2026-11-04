@@ -15,15 +15,15 @@ const DanceCountVisibilityControl: React.FC = () => {
         label="Show dance counts"
         value={showDanceCounts}
         onValueChange={setShowDanceCounts}
-        accessibilityHint="Shows phrase and count guidance on the waveform and transport"
+        accessibilityHint="Show the phrase and count during playback"
         testID="dance-counts-toggle"
       />
       <Text style={styles.hint}>
-        Uses the project BPM and selected phrase length; it does not detect phrases in the audio.
+        Counts follow your project BPM and phrase length.
       </Text>
       {showDanceCounts && (
         <Text style={styles.enabled} accessibilityLiveRegion="polite" testID="dance-counts-enabled">
-          Dance counts are on. Close Settings to see the live phrase/count and waveform row labels.
+          Look for counts beside the waveform and playback controls.
         </Text>
       )}
     </View>

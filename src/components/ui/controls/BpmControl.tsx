@@ -29,7 +29,7 @@ const BpmControl: React.FC = () => {
           <Text style={styles.buttonText}>+5</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.hint}>Used for musical timing and beat-sized loop adjustments</Text>
+      <Text style={styles.hint}>Sets the beat grid and the size of loop adjustments</Text>
     </View>
   );
 };

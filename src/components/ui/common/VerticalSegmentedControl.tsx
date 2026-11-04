@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   useDerivedValue
 } from 'react-native-reanimated';
+import { controlTransition } from '../../../animations/motion';
 import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
 import { colors } from '../../../styles/common';
 
@@ -49,7 +50,7 @@ const VerticalSegmentedControl: React.FC<VerticalSegmentedControlProps> = ({
 }) => {
   const segmentHeight = useSharedValue(0);
   const translateY = useDerivedValue(() => {
-    return withTiming((segmentHeight.value * selectedIndex), { duration: 200 });
+    return withTiming((segmentHeight.value * selectedIndex), controlTransition);
   });
 
   const animatedIndicatorStyle = useAnimatedStyle(() => ({

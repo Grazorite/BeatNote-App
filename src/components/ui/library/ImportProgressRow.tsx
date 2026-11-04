@@ -12,9 +12,19 @@ export interface ImportProgressRowProps {
   onDismiss: (id: string) => void;
 }
 
+const importLabels: Record<ImportJobView['status'], string> = {
+  queued: 'Waiting to import',
+  validating: 'Checking file',
+  copying: 'Copying audio',
+  hashing: 'Checking for duplicates',
+  probing: 'Reading audio',
+  committing: 'Adding to library',
+  failed: 'Import failed',
+};
+
 const statusLabel = (job: ImportJobView): string => {
-  if (job.status === 'failed') return 'Import failed';
-  const label = job.status.charAt(0).toUpperCase() + job.status.slice(1);
+  const label = importLabels[job.status];
+  if (job.status === 'failed') return label;
   return job.progress === null ? label : `${label} ${Math.round(job.progress * 100)}%`;
 };
 
