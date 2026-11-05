@@ -9,12 +9,12 @@ import { formatDanceCount } from '../../../utils/danceCount';
 const DanceCountDisplay: React.FC = () => {
   const timingAvailable = useProductCapability('analysis.bpm');
   const currentTime = useStudioStore(state => timingAvailable && state.showDanceCounts ? state.currentTime : 0);
-  const bpm = useStudioStore(state => state.bpm);
+  const bpm = useStudioStore(state => state.gridPreview?.bpm ?? state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const songLoaded = useStudioStore(state => state.songLoaded);
   const showDanceCounts = useStudioStore(state => state.showDanceCounts);
-  const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
-  const phraseStartMs = useStudioStore(state => state.phraseStartMs);
+  const beatAnchorMs = useStudioStore(state => state.gridPreview?.beatAnchorMs ?? state.beatAnchorMs);
+  const phraseStartMs = useStudioStore(state => state.gridPreview ? state.gridPreview.phraseStartMs : state.phraseStartMs);
 
   if (!timingAvailable || !songLoaded || !showDanceCounts) return null;
 

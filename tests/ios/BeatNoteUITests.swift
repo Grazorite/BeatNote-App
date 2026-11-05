@@ -249,7 +249,7 @@ final class BeatNoteUITests: XCTestCase {
       app.buttons["Preview"].tap()
     } else {
       XCTAssertEqual(primaryBpm ?? 0, 60, accuracy: 0.5)
-      app.buttons["Try another tempo"].tap()
+      app.buttons["Preview related tempos"].tap()
       let doubleTempo = app.buttons.matching(
         NSPredicate(format: "label == %@", "Preview 120 BPM")
       ).firstMatch
@@ -271,6 +271,7 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(app.buttons["Apply Preview"].waitForExistence(timeout: 5))
     element("bpm-settings-page-back").tap()
     element("sidebar-toggle").tap()
+    XCTAssertTrue(element("editor-bpm-preview").waitForExistence(timeout: 5))
     element("wrapped-row-detail-0").tap()
     XCTAssertTrue(element("grid-preview-overlay").waitForExistence(timeout: 5))
 

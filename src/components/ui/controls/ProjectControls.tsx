@@ -182,6 +182,9 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   const openTimingShortcut = useStudioStore(state => state.openTimingShortcut);
   const bpm = useStudioStore(state => state.bpm);
 
+  const previewBpm = useStudioStore(state => state.gridPreview?.bpm);
+  const displayedBpm = previewBpm ?? bpm;
+
   const actions = (
     <>
       <SongTitleControl
@@ -194,11 +197,11 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <TouchableOpacity
           style={[styles.button, isMobile && styles.buttonMobile, styles.timingButton]}
           accessibilityRole="button"
-          accessibilityLabel={`Timing & BPM, ${bpm} beats per minute`}
+          accessibilityLabel={`Timing & BPM, ${previewBpm === undefined ? '' : 'previewing '}${displayedBpm} beats per minute`}
           onPress={openTimingShortcut}
           testID="timing-shortcut"
         >
-          <Text style={styles.tempoNumber}>{bpm}</Text>
+          <Text style={styles.tempoNumber}>{displayedBpm}</Text>
           <Text style={styles.tempoUnit}>BPM</Text>
         </TouchableOpacity>
       )}
@@ -247,7 +250,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   );
 
   return (
-    <View style={isMobile ? styles.controlsMobile : styles.controls}>
+    <View style={isMobile ? styles.controlsMobile : undefined}>
       {libraryStatus === 'migrating' && (
         <Text style={styles.libraryStatus} accessibilityLiveRegion="polite" testID="library-migration-status">
           Updating your library…
@@ -260,7 +263,17 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         >
           {actions}
         </View>
-      ) : actions}
+      ) : <View style={styles.controls}>{actions}</View>}
+      {timingAvailable && previewBpm !== undefined && (
+        <TouchableOpacity style={styles.previewStatus} onPress={openTimingShortcut}
+          accessibilityRole="button" accessibilityHint="Open Timing & BPM to apply or cancel this preview"
+          testID="editor-bpm-preview">
+          <Text style={styles.previewText} accessibilityLiveRegion="polite">
+            Previewing {previewBpm} BPM · Project {bpm} BPM
+          </Text>
+          <BeatNoteIcon name="chevron-right" size={14} />
+        </TouchableOpacity>
+      )}
 
       <SaveProjectPrompt
         visible={showSavePrompt}

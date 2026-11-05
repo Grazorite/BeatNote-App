@@ -100,6 +100,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Clarify active BPM previews in the editor and rename the tempo picker.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/controls/bpmSuggestionCard.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Simplify BPM controls, remove waveform stripes, and install build 36.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
@@ -111,10 +114,6 @@ target; Android is a far-future possibility only.
 
 - [x] Apply the About sparkle to the mobile Settings Pro button.
       <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/layout/sidebar.ts`</sub>
-
-- [x] Improve BPM editing, tempo suggestions and dance-count guidance.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
 
 ---
 
@@ -193,9 +192,23 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Identify the active tempo preview in the editor
+
+**Agent:** Codex · **Commit(s):** Separate preview commit following `671487b`
+**Kanban moved:** Editor BPM preview and tempo picker → Done
+
+**Changed:** When previewing, the editor shows preview and project BPM together and lets the user return directly to Timing. The optional toolbar button and count labels follow the preview. The expandable Preview related tempos control swaps position with Keep Current, exposes its expanded state, and closes after selection.
+
+**Verified:** TypeScript and all eight browser journeys passed, with a focused rerun for the final picker wording. The browser checked preview with the shortcut hidden, navigation back from the indicator, and cancellation. The focused iOS automatic BPM, preview and anchor-controls XCTest passed.
+
+**Not verified / known gaps:** Installed build 36 contains the preceding waveform/BPM fixes. The new preview UI is awaiting a future physical build. Queue edits are excluded from both commits.
+
+**Next agent should:** Include the preview indicator in the next requested iPhone build.
+
+
 ### 2026-11-05 — Polish BPM controls and remove waveform stroke bands
 
-**Agent:** Codex · **Commit(s):** `uncommitted`
+**Agent:** Codex · **Commit(s):** `671487b`
 **Kanban moved:** Simplify BPM controls, remove waveform stripes, and install build 36 → Done
 
 **Changed:** Timing & BPM opens with the toolbar toggle. Project BPM has ±10 and ±1 buttons beside the editable value. Shortened phrase, Count 1 and analysis guidance. The decoded waveform traces a filled outline for both the played and unplayed regions across the timeline, overview and detail views. Incremented to build 36 and installed in place.
@@ -245,18 +258,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:** Physical review of the Pro sparkle remains open. The shared workspace includes concurrent BPM and device build work.
 
 **Next agent should:** Check the Pro sparkle during the next iPhone review.
-
-### 2026-11-05 — Make project BPM directly editable and clarify dance timing
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** BPM editing and dance-count guidance → Done
-
-**Changed:** Project BPM is a numeric input with Done, validation (40–220), and ±1 controls. Timing setup is ordered as tempo, dance phrase, then Count 1. Related-tempo previews include 3/2 and 2/3 (104 → 156), explicitly show the preview BPM, and Keep Current cancels the preview. Updated existing browser/native journeys and choreography steering.
-
-**Verified:** TypeScript and whitespace checks passed; all eight Playwright journeys passed, including manual entry, invalid input and related-tempo preview. Focused iOS Settings XCTest passed including entering 156 and dismissing the keyboard. Reviewed the settled mobile browser layout. Inspected phrase/count calculations and grid grouping.
-
-**Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
-
-**Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
 
 <!-- end handover log -->

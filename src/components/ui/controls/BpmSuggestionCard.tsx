@@ -5,6 +5,7 @@ import {
   enqueueAnalysis,
   retryAnalysis,
 } from '../../../features/analysis/bpmAnalysisService';
+import { BeatNoteIcon } from '../../icons';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { bpmSuggestionCardStyles as styles } from '../../../styles/components/controls/bpmSuggestionCard';
@@ -159,11 +160,9 @@ const BpmSuggestionCard: React.FC = () => {
             </TouchableOpacity>
           </>
         )}
-        {alternativeBpms.length > 0 && (
-          <TouchableOpacity style={styles.button} onPress={() => setShowAlternatives(value => !value)} accessibilityRole="button">
-            <Text style={styles.buttonText}>{showAlternatives ? 'Hide related tempos' : 'Try another tempo'}</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.button} onPress={() => { cancelPreview(); setDismissedItemId(musicItemId); }} accessibilityRole="button">
+          <Text style={styles.buttonText}>Keep Current</Text>
+        </TouchableOpacity>
         {hasDownbeatSuggestion && gridPreview === null && (
           <TouchableOpacity
             style={styles.button}
@@ -174,9 +173,14 @@ const BpmSuggestionCard: React.FC = () => {
             <Text style={styles.buttonText}>Preview Suggested Count 1</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.button} onPress={() => { cancelPreview(); setDismissedItemId(musicItemId); }} accessibilityRole="button">
-          <Text style={styles.buttonText}>Keep Current</Text>
-        </TouchableOpacity>
+        {alternativeBpms.length > 0 && (
+          <TouchableOpacity style={[styles.button, styles.disclosure]} onPress={() => setShowAlternatives(value => !value)}
+            accessibilityRole="button" accessibilityLabel="Preview related tempos"
+            accessibilityState={{ expanded: showAlternatives }}>
+            <Text style={styles.buttonText}>Preview related tempos</Text>
+            <BeatNoteIcon name={showAlternatives ? 'chevron-up' : 'chevron-down'} size={14} />
+          </TouchableOpacity>
+        )}
         {gridRestoreSnapshot !== null && (
           <TouchableOpacity style={styles.button} onPress={restore} accessibilityRole="button">
             <Text style={styles.buttonText}>Restore Previous</Text>
@@ -190,7 +194,7 @@ const BpmSuggestionCard: React.FC = () => {
             <TouchableOpacity
               key={alternativeBpm}
               style={styles.button}
-              onPress={() => preview(alternativeBpm)}
+              onPress={() => { preview(alternativeBpm); setShowAlternatives(false); }}
               accessibilityRole="button"
               accessibilityLabel={`Preview ${alternativeBpm} BPM`}
             >

@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Improve BPM editing, tempo suggestions and dance-count guidance.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Make project BPM directly editable and clarify dance timing
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** BPM editing and dance-count guidance → Done
+
+**Changed:** Project BPM is a numeric input with Done, validation (40–220), and ±1 controls. Timing setup is ordered as tempo, dance phrase, then Count 1. Related-tempo previews include 3/2 and 2/3 (104 → 156), explicitly show the preview BPM, and Keep Current cancels the preview. Updated existing browser/native journeys and choreography steering.
+
+**Verified:** TypeScript and whitespace checks passed; all eight Playwright journeys passed, including manual entry, invalid input and related-tempo preview. Focused iOS Settings XCTest passed including entering 156 and dismissing the keyboard. Reviewed the settled mobile browser layout. Inspected phrase/count calculations and grid grouping.
+
+**Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
+
+**Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
+
 - [x] Randomise sparkle directions and install Release 34 on the iPhone.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `tests/ui-components.spec.ts`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 

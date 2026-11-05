@@ -34,6 +34,8 @@ initial implementation.
   and validation that preserves the saved tempo on invalid input. It does not change playback speed.
 - Related-tempo previews include 3/2 and 2/3 choices as well as detector alternatives. These are
   correction aids, not additional measured confidence claims; Keep Current clears an active preview.
+- During a preview, the toolbar and dance counts follow the preview tempo. The editor shows both
+  preview and project BPM, even if the shortcut is hidden. Tapping the indicator reopens Timing & BPM.
 - Downbeat/phrase-start confidence is advisory. Users can always set Count 1 manually and use fine
   anchor nudges.
 

@@ -70,6 +70,11 @@ export const projectControlsStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  previewStatus: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, minHeight: 44, backgroundColor: colors.surfaceRaised,
+  },
+  previewText: { color: colors.text, fontSize: 13, fontWeight: '600' },
   timingButton: { flexDirection: 'column', justifyContent: 'center', minWidth: 50 },
   tempoNumber: { color: colors.text, fontWeight: '700', fontSize: 14 },
   tempoUnit: { color: colors.textSecondary, fontWeight: '600', fontSize: 10 },

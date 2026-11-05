@@ -500,10 +500,21 @@ test.describe('UI Components & Layout', () => {
       { timeout: 15000 },
     );
     await expect(page.getByTestId('bpm-suggestion-card')).not.toContainText(/Suggested: \d+\.\d+ BPM/);
-    await page.getByRole('button', { name: 'Try another tempo' }).click();
+    await page.getByRole('button', { name: 'Preview related tempos' }).click();
     await page.getByRole('button', { name: /Preview (?:179|180) BPM/ }).click();
     await expect(page.getByTestId('bpm-preview-status')).toContainText(/Previewing (?:179|180) BPM/);
+    await page.getByTestId('timing-shortcut-toggle').click();
+    await page.getByTestId('bpm-settings-page-back').click();
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(page.getByTestId('timing-shortcut')).toHaveCount(0);
+    const previewStatus = page.getByTestId('editor-bpm-preview');
+    await expect(previewStatus).toHaveText(/Previewing (?:179|180) BPM · Project 120 BPM/);
+    await previewStatus.click();
     await page.getByRole('button', { name: 'Cancel Preview' }).click();
+    await page.getByTestId('bpm-settings-page-back').click();
+    await expect(previewStatus).toHaveCount(0);
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
     await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await page.getByRole('button', { name: 'Apply Preview' }).click();
     await page.getByTestId('dance-counts-toggle').click();

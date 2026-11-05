@@ -25,11 +25,11 @@ const RowGutter: React.FC<RowGutterProps> = ({
   testID,
 }) => {
   const startTime = formatTime(startMs);
-  const bpm = useStudioStore(state => state.bpm);
+  const bpm = useStudioStore(state => state.gridPreview?.bpm ?? state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const showDanceCounts = useStudioStore(state => state.showDanceCounts) && timingAvailable;
-  const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
-  const phraseStartMs = useStudioStore(state => state.phraseStartMs);
+  const beatAnchorMs = useStudioStore(state => state.gridPreview?.beatAnchorMs ?? state.beatAnchorMs);
+  const phraseStartMs = useStudioStore(state => state.gridPreview ? state.gridPreview.phraseStartMs : state.phraseStartMs);
   const countPosition = danceCountAtTime(
     startMs,
     bpm,

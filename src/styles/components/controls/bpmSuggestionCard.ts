@@ -36,6 +36,7 @@ export const bpmSuggestionCardStyles = StyleSheet.create({
     borderColor: colors.borderQuiet,
     backgroundColor: colors.surfaceGlassStrong,
   },
+  disclosure: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   primaryButton: {
     borderColor: colors.accent,
   },
