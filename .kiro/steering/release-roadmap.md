@@ -299,8 +299,8 @@ the default public offer. If a public lifetime product is introduced later, test
 so it does not undermine the yearly subscription.
 
 The Pro page uses a compact, illustration-led carousel above two horizontal plan cards. Its four
-stories cover implemented phone capabilities: Continuous Play, custom/fine speed, BPM suggestions,
-and Lock Screen controls. Remove introductory marketing blocks, speculative integrations, ad-removal
+stories lead with automatic BPM, followed by speed, continuous playback, and system playback
+controls on the Lock Screen and in Control Centre. The comparison follows the same order. Remove introductory marketing blocks, speculative integrations, ad-removal
 claims, and unavailable phone features from this surface. Do not mention Apple Music or stem
 separation on the Pro page, even as future or excluded features. Founders/later lifetime pricing
 remains an internal launch proposal, not additional copy on this compact page.

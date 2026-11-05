@@ -122,6 +122,50 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Record the user's Release 28 Library row-tap result with the previously affected file.
 
+## Archived Done — 2026-11-05 Pro feature order
+
+- [x] Keep Previous/Next track navigation synchronized with the active Music Library sort and
+      Custom Order while preserving the loaded song and active Shuffle sequence.
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — 2026-11-05 Pro feature order
+
+### 2026-11-05 — Synchronize transport with Music Library order
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library order and Previous/Next queue synchronization → Done
+
+**Changed:**
+
+- Reconciled the active playback queue whenever the selected library sort, direction, or Custom
+  Order changes, preserving the loaded song's index. An active shuffled sequence stays stable but
+  receives the refreshed sorted snapshot used when Shuffle is turned off.
+- Corrected explicit Music Library song selection so its requested queue rebuild uses the current
+  library order rather than stale sort metadata from the old queue.
+- Extended the existing core library journey to verify Title sort persistence, drag-reordered
+  Custom Order persistence, and hold-to-Previous/Next navigation through that updated order.
+
+**Verified:**
+
+- `npx tsc --noEmit` passed.
+- Focused library/project/BPM Playwright journey passed with the reported reorder, dismiss, and
+  hold-to-navigate sequence; full retained Playwright regression passed 8/8.
+
+**Not verified / known gaps:**
+
+- No native code changed, so iOS XCTest was not rerun. Physical hold-to-navigate confirmation with
+  a larger real library remains for the user; the fix is not yet installed on the iPhone.
+- The shared working tree also contains the completed build 36 BPM/waveform changes.
+
+**Next agent should:**
+
+- Include this queue synchronization in the next physical iPhone build and verify Custom Order with
+  at least three real songs.
+
+
+
+
 ## Archived Done — 2026-11-05 Release 30
 
 - [x] V1 release blocker — Defer waveform decoding until destination playback is ready, correct

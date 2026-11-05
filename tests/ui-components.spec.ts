@@ -96,7 +96,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('data-settings-page-back').click();
 
     await page.getByTestId('settings-pro').click();
-    await expect(page.getByText('Play songs back to back', { exact: true })).toBeVisible();
+    await expect(page.getByText('Find the BPM and line up your counts', { exact: true })).toBeInViewport();
     await page.getByTestId('pro-feature-1').click();
     await expect(page.getByText('Set your rehearsal speed', { exact: true })).toBeInViewport();
     await expect(page.getByTestId('pro-plan-yearly')).toBeInViewport();
@@ -117,7 +117,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (38)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (39)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');

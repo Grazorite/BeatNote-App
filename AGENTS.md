@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (38)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (39)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -88,6 +88,7 @@ target; Android is a far-future possibility only.
 
 
 
+
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -99,6 +100,9 @@ target; Android is a far-future possibility only.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Lead the Pro showcase and comparison with automatic BPM and name the system playback controls.
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/features/entitlements/proPreview.ts`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Commit Custom Order on release and resolve the track index against the latest queue.
       <sub>**Key Artifacts:** `src/components/ui/library/MusicLibraryRow.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `tests/ui-components.spec.ts`, `app.json`</sub>
@@ -112,10 +116,6 @@ target; Android is a far-future possibility only.
 - [x] Prepare build 37, pass the release gates, and publish the complete timing, waveform and
       queue-order work to `master` without installing it on the iPhone.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `src/utils/queueOrder.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Keep Previous/Next track navigation synchronized with the active Music Library sort and
-      Custom Order while preserving the loaded song and active Shuffle sequence.
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
 
 
 ---
@@ -197,6 +197,20 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Lead Pro with tempo detection
+
+**Agent:** Codex · **Commit(s):** Release 39 commit containing this entry
+**Kanban moved:** Pro feature order → Done
+
+**Changed:** The carousel opens on Tempo, then shows Speed, Playback and System playback controls. The first card explains BPM suggestion and count alignment. The last card names both the Lock Screen and Control Centre. The comparison follows the same priority.
+
+**Verified:** TypeScript, all eight browser journeys and whitespace checks passed. A phone-sized browser check verified each demo position and the comparison label. Device services confirmed Release 39 was installed in place. The phone reported 1.0.0 (39) and launched the app.
+
+**Not verified / known gaps:** Physical visual review remains. This change updates presentation data and copy. No dedicated native UI test was rerun.
+
+**Next agent should:** Collect feedback on the Pro showcase alongside the existing physical library review.
+
+
 ### 2026-11-05 — Release 38 Custom Order drop
 
 **Agent:** Codex · **Commit(s):** Build 38 commit containing this entry
@@ -272,39 +286,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 - Reconcile the separate build-37 installation result, then physically verify Previous/Next after
   sorting or reordering at least three real songs.
-
-### 2026-11-05 — Synchronize transport with Music Library order
-
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
-**Kanban moved:** Music Library order and Previous/Next queue synchronization → Done
-
-**Changed:**
-
-- Reconciled the active playback queue whenever the selected library sort, direction, or Custom
-  Order changes, preserving the loaded song's index. An active shuffled sequence stays stable but
-  receives the refreshed sorted snapshot used when Shuffle is turned off.
-- Corrected explicit Music Library song selection so its requested queue rebuild uses the current
-  library order rather than stale sort metadata from the old queue.
-- Extended the existing core library journey to verify Title sort persistence, drag-reordered
-  Custom Order persistence, and hold-to-Previous/Next navigation through that updated order.
-
-**Verified:**
-
-- `npx tsc --noEmit` passed.
-- Focused library/project/BPM Playwright journey passed with the reported reorder, dismiss, and
-  hold-to-navigate sequence; full retained Playwright regression passed 8/8.
-
-**Not verified / known gaps:**
-
-- No native code changed, so iOS XCTest was not rerun. Physical hold-to-navigate confirmation with
-  a larger real library remains for the user; the fix is not yet installed on the iPhone.
-- The shared working tree also contains the completed build 36 BPM/waveform changes.
-
-**Next agent should:**
-
-- Include this queue synchronization in the next physical iPhone build and verify Custom Order with
-  at least three real songs.
-
-
 
 <!-- end handover log -->
