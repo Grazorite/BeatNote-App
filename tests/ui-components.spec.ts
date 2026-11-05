@@ -117,7 +117,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (37)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (38)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');
@@ -629,6 +629,11 @@ test.describe('UI Components & Layout', () => {
     await page.mouse.up();
     await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
       .first().textContent()).toContain('test-audio');
+    await expect.poll(() => page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => {
+        const [first, second] = rows.map(row => row.getBoundingClientRect());
+        return first.bottom <= second.top + 1;
+      })).toBe(true);
     const expectedQueueOrder = await page.locator('[data-testid^="music-library-row-main-"]')
       .evaluateAll(rows => rows.map(row => row.getAttribute('data-testid')!
         .replace('music-library-row-main-', '')));

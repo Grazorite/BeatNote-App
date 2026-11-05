@@ -3,6 +3,38 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Simplify BPM controls, remove waveform stripes, and install build 36.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+### 2026-11-05 — Polish BPM controls and remove waveform stroke bands
+
+**Agent:** Codex · **Commit(s):** `671487b`
+**Kanban moved:** Simplify BPM controls, remove waveform stripes, and install build 36 → Done
+
+**Changed:** Timing & BPM opens with the toolbar toggle. Project BPM has ±10 and ±1 buttons beside the editable value. Shortened phrase, Count 1 and analysis guidance. The decoded waveform traces a filled outline for both the played and unplayed regions across the timeline, overview and detail views. Incremented to build 36 and installed in place.
+
+**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed across the suite and a focused rerun after updating waveform colour checks from stroke to fill. Constant-volume peak paths at three sample densities rendered a uniform interior. The focused iOS waveform, annotation and project restoration XCTest passed. Device services confirmed 1.0.0 (36) installed and launched on the iPhone.
+
+**Not verified / known gaps:** The screenshot’s exact imported audio has not been visually reviewed on the physical phone since installation. Concurrent queue changes and prior test edits are present in the shared tree.
+
+**Next agent should:** Collect physical build 36 feedback on the edited song with the waveform on and dance grid off.
+
+- [x] Verify and install combined build 35 with the Pro sparkle.
+      <sub>**Key Artifacts:** `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/waveform/DanceGridLines.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
+
+### 2026-11-05 — Install combined build 35 with the Settings Pro sparkle
+
+**Agent:** Codex · **Commit(s):** `65da670`
+**Kanban moved:** Verify Pro sparkle in signed build 35 and install → Done
+
+**Changed:** Combined the shared About and Settings sparkle, BPM editing, dance grid and Timing shortcut in build 35. Installed the signed update in place on the paired iPhone and gathered all current work for the requested local commit.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The packaged JavaScript contains the Settings Pro sparkle and Timing shortcut. Device services reported version 1.0.0 (35) and successfully launched the installed app.
+
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open. The first simulator check sampled the toolbar during the Back transition. A focused rerun waited for the editor to be tappable and passed. The Pro sparkle was independently exercised in the browser.
+
+**Next agent should:** Review the sparkle and dance grid visually on the physical iPhone.
+
 - [x] Show the Pro dance grid and Timing shortcut, then install build 35 on iPhone.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/waveform/DanceGridLines.tsx`</sub>
 

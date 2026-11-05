@@ -339,11 +339,6 @@ const runQueueAction = async (
   getState: () => StudioStore,
   automaticCompletion = false,
 ): Promise<QueueControlResult> => {
-  const state = getState();
-  if (state.switchPhase === 'guard' || state.saveInProgress) return { kind: 'cancelled' };
-  if (state.queue === null) {
-    return { kind: 'disabled', reason: 'Choose music to start a queue' };
-  }
   const {
     navigationBaseIndex,
     requestTrackSwitch,
@@ -352,6 +347,11 @@ const runQueueAction = async (
   } = await import(
     '../features/library/trackSwitch'
   );
+  const state = getState();
+  if (state.switchPhase === 'guard' || state.saveInProgress) return { kind: 'cancelled' };
+  if (state.queue === null) {
+    return { kind: 'disabled', reason: 'Choose music to start a queue' };
+  }
   const queue = { ...state.queue, currentIndex: navigationBaseIndex(state) };
   const target = queueTarget(
     queue,

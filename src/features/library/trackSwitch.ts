@@ -596,8 +596,7 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
           : beforeCommit.queue?.sortDirection ?? beforeCommit.librarySortDirection,
       );
     } else if (destinationQueue !== null) {
-      const matchingIndex = request.queueIndex
-        ?? destinationQueue.order.indexOf(destination.item.id);
+      const matchingIndex = destinationQueue.order.indexOf(destination.item.id);
       if (matchingIndex >= 0) destinationQueue = { ...destinationQueue, currentIndex: matchingIndex };
     }
     dependencies.getState().applyTrackState({

@@ -195,29 +195,13 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
     },
     onPanResponderRelease: () => {
       const finalOffset = appliedDragOffsetRef.current;
-      Animated.parallel([
-        Animated.spring(dragTranslateY, {
-          toValue: finalOffset * REORDER_ROW_HEIGHT,
-          damping: 22,
-          stiffness: 280,
-          useNativeDriver: true,
-        }),
-        Animated.spring(dragScale, {
-          toValue: 1,
-          damping: 18,
-          stiffness: 240,
-          useNativeDriver: true,
-        }),
-      ]).start(({ finished }) => {
-        // Clear the lifted row's transform before publishing the new list order. Zustand updates
-        // subscribers synchronously; committing first briefly applies the old drag translation at
-        // the row's new index and makes it appear to jump into a second row.
-        dragTranslateY.setValue(0);
-        appliedDragOffsetRef.current = 0;
-        setDragging(false);
-        onReorderEndRef.current?.();
-        if (finished && finalOffset !== 0) onReorderByRef.current?.(finalOffset);
-      });
+      // Publish the drop before dismissal or another gesture can interrupt a settling spring.
+      if (finalOffset !== 0) onReorderByRef.current?.(finalOffset);
+      onReorderEndRef.current?.();
+      setDragging(false);
+      appliedDragOffsetRef.current = 0;
+      dragTranslateY.setValue(0);
+      dragScale.setValue(1);
     },
     onPanResponderTerminate: () => {
       dragTranslateY.setValue(0);
@@ -236,7 +220,7 @@ const MusicLibraryRow: React.FC<MusicLibraryRowProps> = ({
         current && styles.current,
         unavailable && styles.disabled,
         dragging && styles.dragging,
-        {
+        reorderActive && {
           transform: [
             { translateY: reorderTranslateY },
             { translateY: dragTranslateY },

@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (36)` Release build installed and launched on the physical iPhone; source prepared as `1.0.0 (37)` without installation · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (38)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 36 waveform rendering, timing controls, artwork and motion and confirm the existing library and projects after the in-place update.
+1. Physically review Release 37 BPM previews, queue navigation, waveform rendering and motion and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,7 +85,7 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-- [ ] Install the committed build 37 preview UI on the paired iPhone.
+
 
 
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
@@ -100,6 +100,12 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Commit Custom Order on release and resolve the track index against the latest queue.
+      <sub>**Key Artifacts:** `src/components/ui/library/MusicLibraryRow.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `tests/ui-components.spec.ts`, `app.json`</sub>
+
+- [x] Install and launch build 37 with BPM previews and library queue synchronization.
+      <sub>**Key Artifacts:** `AGENTS.md`, `.kiro/steering/ios-testflight.md`, `docs/context/archive/beatnote-project-history.md`; signed release from `6b890c5`.</sub>
+
 - [x] Clarify active BPM previews in the editor and rename the tempo picker.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/controls/bpmSuggestionCard.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
@@ -111,11 +117,6 @@ target; Android is a far-future possibility only.
       Custom Order while preserving the loaded song and active Shuffle sequence.
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Simplify BPM controls, remove waveform stripes, and install build 36.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
-
-- [x] Verify and install combined build 35 with the Pro sparkle.
-      <sub>**Key Artifacts:** `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/waveform/DanceGridLines.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
 ---
 
@@ -195,6 +196,32 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 ## 📝 Reverse-Chronological Handover Log
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
+
+### 2026-11-05 — Release 38 Custom Order drop
+
+**Agent:** Codex · **Commit(s):** Build 38 commit containing this entry
+
+**Changed:** Commit the previewed slot on release, detach row transforms and resolve the destination by ID at switch completion.
+
+**Verified:** Types, eight browser journeys, focused row geometry check and navigation logic for every sort direction passed. Physical device reported build 38 and launched.
+
+**Not verified / known gaps:** Physical drag and hold-to-switch with the user's library awaits confirmation.
+
+**Next agent should:** Confirm repeated drag and immediate hold-to-switch with the user's library.
+
+### 2026-11-05 — Install combined build 37 on the paired iPhone
+
+**Agent:** Codex · **App source:** `6b890c5` (includes preview commit `f27e150`)
+**Kanban moved:** Install build 37 on the paired iPhone → Done
+
+**Changed:** Installed the signed release in place over build 36. It includes the editor preview indicator, expandable tempo picker and queue synchronization for library sorting and Custom Order. Recorded the standing preference to install verified user-facing changes and confirm launch on the paired iPhone.
+
+**Verified:** Built from an isolated snapshot of the committed combined source. TypeScript and all eight Playwright journeys passed, including the preview workflow and Previous/Next after reordering. The native Release build and signature check passed. Checked the build number, preview labels and queue symbol in the packaged app. Device services reported BeatNote 1.0.0 (37) installed on the iPhone 15 Pro Max and launched it.
+
+**Not verified / known gaps:** Physical interaction with the user's own songs, queue and saved projects remains for device review. Installation handover edits are local.
+
+**Next agent should:** Collect physical feedback on BPM preview and Previous/Next with the user's library order.
+
 
 ### 2026-11-05 — Identify the active tempo preview in the editor
 
@@ -278,31 +305,6 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 - Include this queue synchronization in the next physical iPhone build and verify Custom Order with
   at least three real songs.
 
-### 2026-11-05 — Polish BPM controls and remove waveform stroke bands
 
-**Agent:** Codex · **Commit(s):** `671487b`
-**Kanban moved:** Simplify BPM controls, remove waveform stripes, and install build 36 → Done
-
-**Changed:** Timing & BPM opens with the toolbar toggle. Project BPM has ±10 and ±1 buttons beside the editable value. Shortened phrase, Count 1 and analysis guidance. The decoded waveform traces a filled outline for both the played and unplayed regions across the timeline, overview and detail views. Incremented to build 36 and installed in place.
-
-**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed across the suite and a focused rerun after updating waveform colour checks from stroke to fill. Constant-volume peak paths at three sample densities rendered a uniform interior. The focused iOS waveform, annotation and project restoration XCTest passed. Device services confirmed 1.0.0 (36) installed and launched on the iPhone.
-
-**Not verified / known gaps:** The screenshot’s exact imported audio has not been visually reviewed on the physical phone since installation. Concurrent queue changes and prior test edits are present in the shared tree.
-
-**Next agent should:** Collect physical build 36 feedback on the edited song with the waveform on and dance grid off.
-
-
-### 2026-11-05 — Install combined build 35 with the Settings Pro sparkle
-
-**Agent:** Codex · **Commit(s):** `65da670`
-**Kanban moved:** Verify Pro sparkle in signed build 35 and install → Done
-
-**Changed:** Combined the shared About and Settings sparkle, BPM editing, dance grid and Timing shortcut in build 35. Installed the signed update in place on the paired iPhone and gathered all current work for the requested local commit.
-
-**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The packaged JavaScript contains the Settings Pro sparkle and Timing shortcut. Device services reported version 1.0.0 (35) and successfully launched the installed app.
-
-**Not verified / known gaps:** Physical visual and VoiceOver review remain open. The first simulator check sampled the toolbar during the Back transition. A focused rerun waited for the editor to be tappable and passed. The Pro sparkle was independently exercised in the browser.
-
-**Next agent should:** Review the sparkle and dance grid visually on the physical iPhone.
 
 <!-- end handover log -->
