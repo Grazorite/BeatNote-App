@@ -21,7 +21,7 @@ interface AboutSettingsScreenProps {
   onBack: () => void;
 }
 
-const FEEDBACK_URL = 'https://github.com/Grazorite/BeatNote-App/issues/new';
+const FEEDBACK_URL = 'https://t.me/+4edtI3WUOqZlN2U1';
 
 const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => {
   const [showLicences, setShowLicences] = useState(false);
@@ -75,7 +75,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
 
   const sendFeedback = () => {
     void Linking.openURL(FEEDBACK_URL).catch(() => {
-      Alert.alert('Unable to open feedback', 'Try opening the feedback page again.');
+      Alert.alert('Unable to open Telegram', 'Try opening the BeatNote Helpdesk invite again.');
     });
   };
 
@@ -112,10 +112,10 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
               style={styles.action}
               onPress={sendFeedback}
               accessibilityRole="link"
-              accessibilityHint="Opens the BeatNote feedback page in your browser"
+              accessibilityHint="Opens the invite to the BeatNote Helpdesk group"
               testID="about-send-feedback"
             >
-              <Text style={styles.actionText}>Send Feedback</Text>
+              <Text style={styles.actionText}>Give feedback on Telegram</Text>
             </TouchableOpacity>
           </View>
 

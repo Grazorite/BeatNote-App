@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Add Pro timeline appearance, preserve Lite rehearsal tools, and install build 40.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Pro timeline appearance
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Timeline appearance gates and Pro demonstration → Done
+
+**Changed:** Pro enables waveform artwork and annotation-lane renaming/reset. Lite keeps saved labels readable and the waveform preference intact for a return to Pro. The Display & Annotations entry sits immediately above Timing & BPM. A fifth Pro card demonstrates the two settings, and the comparison distinguishes scrubbing from waveform artwork. Updated product guidance.
+
+**Verified:** TypeScript, version and whitespace checks passed. Eight browser journeys passed, including Pro → Lite → Pro with a saved waveform choice and label. The focused iOS Settings journey passed. A phone-sized browser check confirmed the new row order, all demo stages and the Reduce Motion frame. Device services confirmed 1.0.0 (40) installed in place and launched on the physical iPhone.
+
+**Not verified / known gaps:** Hands-on physical appearance and VoiceOver review remain open.
+
+**Next agent should:** Collect feedback on the new timeline appearance controls in build 40.
+
 - [x] Simplify BPM controls, remove waveform stripes, and install build 36.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 

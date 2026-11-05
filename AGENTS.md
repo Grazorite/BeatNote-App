@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (44)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (45)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 44 timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
+1. Physically review the Release 45 Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -97,6 +97,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Open the Telegram helpdesk from About, document the feedback route and verify third-party notices for build 45.
+      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Prepare the accumulated build 40–44 changes for publication on master.
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/styles/components/settings/proSettings.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
 
@@ -108,13 +111,6 @@ target; Android is a far-future possibility only.
 
 - [x] Save annotation labels explicitly, show net changes at song switches, and connect Pro pagination to scrolling. Install build 41.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/settings/proSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add Pro timeline appearance, preserve Lite rehearsal tools, and install build 40.
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `tests/ui-components.spec.ts`</sub>
-
-
-
-
 
 ---
 
@@ -195,6 +191,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Route feedback to Telegram and install build 45
+
+**Agent:** Codex · **Commit(s):** Build 45 commit containing this entry
+**Kanban moved:** Telegram feedback handoff → Done
+
+**Changed:** About opens the BeatNote Helpdesk invite through the system URL handler. The label and accessibility hint identify Telegram. The README explains where to send feedback and how to find and refresh the licence notices.
+
+**Verified:** TypeScript, version consistency, whitespace, all eight browser journeys and the focused iOS Settings XCTest passed. The browser tapped the feedback link and checked its exact destination using an intercepted invite. All 23 direct dependency versions match the licence screen. Regenerating the 16 CocoaPods notices produced the existing file. Confirmed the invite in the signed bundle and verified build 45 installed and launched on the paired iPhone.
+
+**Not verified / known gaps:** Opening the live group on the physical phone remains a hands-on check. The update introduces no Telegram SDK or support plugin dependency.
+
+**Next agent should:** Confirm the group opens from About on the physical phone.
+
 ### 2026-11-05 — Publish the build 44 changes
 
 **Agent:** Codex · **Commit(s):** Build 44 commit containing this entry
@@ -246,25 +255,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 **Not verified / known gaps:** Hands-on physical gesture feel and VoiceOver review remain. Build 40 work and these changes remain uncommitted.
 
 **Next agent should:** Collect physical feedback on the switch prompt and Pro pagination in build 41.
-
-
-### 2026-11-05 — Pro timeline appearance
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Timeline appearance gates and Pro demonstration → Done
-
-**Changed:** Pro enables waveform artwork and annotation-lane renaming/reset. Lite keeps saved labels readable and the waveform preference intact for a return to Pro. The Display & Annotations entry sits immediately above Timing & BPM. A fifth Pro card demonstrates the two settings, and the comparison distinguishes scrubbing from waveform artwork. Updated product guidance.
-
-**Verified:** TypeScript, version and whitespace checks passed. Eight browser journeys passed, including Pro → Lite → Pro with a saved waveform choice and label. The focused iOS Settings journey passed. A phone-sized browser check confirmed the new row order, all demo stages and the Reduce Motion frame. Device services confirmed 1.0.0 (40) installed in place and launched on the physical iPhone.
-
-**Not verified / known gaps:** Hands-on physical appearance and VoiceOver review remain open.
-
-**Next agent should:** Collect feedback on the new timeline appearance controls in build 40.
-
-
-
-
-
-
 
 <!-- end handover log -->

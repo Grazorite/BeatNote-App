@@ -120,6 +120,10 @@ Apple Developer account and real EAS credentials; see
 
 ## Documentation
 
+For feedback or help, open **Settings → About BeatNote → Give feedback on Telegram** to join the
+[BeatNote Helpdesk](https://t.me/+4edtI3WUOqZlN2U1). Group members can read what you post. For a
+bug report, include the build number shown under the logo, what you tried, and what happened.
+
 - [Live project status and handover](./AGENTS.md)
 - [Product overview](./.kiro/steering/project-overview.md)
 - [Release and monetisation roadmap](./.kiro/steering/release-roadmap.md)
@@ -128,4 +132,6 @@ Apple Developer account and real EAS credentials; see
 
 ## License
 
-MIT
+BeatNote is covered by the [MIT licence](./LICENSE). Third-party notices are available in
+**Settings → About BeatNote → Open Source Licences**. When iOS dependencies change, run
+`npm run generate:licences` after CocoaPods installation to refresh the native notices.
