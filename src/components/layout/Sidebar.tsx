@@ -9,12 +9,10 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  cancelAnimation,
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,6 +38,7 @@ import SettingsNavigationRow from '../ui/settings/SettingsNavigationRow';
 import { sidebarStyles as styles } from '../../styles/layout/sidebar';
 import { colors } from '../../styles/common';
 import GlassBackdrop from '../ui/controls/GlassBackdrop';
+import OutwardSparkle from '../ui/common/OutwardSparkle';
 import AppModal from '../ui/common/AppModal';
 import HeaderBackButton from '../ui/common/HeaderBackButton';
 import { BeatNoteIcon } from '../icons';
@@ -148,7 +147,9 @@ const Sidebar: React.FC = () => {
   const showHelpScreen = useStudioStore(state => state.showHelpScreen);
   const setShowHelpScreen = useStudioStore(state => state.setShowHelpScreen);
   const bpmAvailable = useProductCapability('analysis.bpm');
-  const [activeDetail, setActiveDetail] = useState<SettingsDetail>(null);
+  const directTiming = useStudioStore(state => state.timingShortcutOpen) && bpmAvailable;
+  const [settingsDetail, setActiveDetail] = useState<SettingsDetail>(null);
+  const activeDetail = directTiming ? 'bpm' : settingsDetail;
   const insets = useSafeAreaInsets();
   const screenData = useWindowDimensions();
   
@@ -160,7 +161,6 @@ const Sidebar: React.FC = () => {
   const detailVisible = showHelpScreen || activeDetail !== null;
   const detailProgress = useSharedValue(detailVisible ? 1 : 0);
   const reduceMotion = useMotionPreference();
-  const proSparkleProgress = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -188,13 +188,6 @@ const Sidebar: React.FC = () => {
     if (!bpmAvailable && activeDetail === 'bpm') setActiveDetail(null);
   }, [activeDetail, bpmAvailable]);
 
-  useEffect(() => {
-    proSparkleProgress.value = 0;
-    if (reduceMotion !== false || !isMobile || isSidebarCollapsed || detailVisible) return;
-    proSparkleProgress.value = withRepeat(withTiming(1, { duration: 1800 }), -1, false);
-    return () => cancelAnimation(proSparkleProgress);
-  }, [proSparkleProgress, reduceMotion, isMobile, isSidebarCollapsed, detailVisible]);
-
   const mobileEntryStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: settingsEntryX.value }],
   }));
@@ -216,7 +209,7 @@ const Sidebar: React.FC = () => {
   };
 
   const edgeSwipeHandlers = useEdgeSwipeBack(() => {
-    if (!detailVisible) {
+    if (directTiming || !detailVisible) {
       closeMobileSettings();
     } else if (showHelpScreen) {
       setShowHelpScreen(false);
@@ -224,23 +217,6 @@ const Sidebar: React.FC = () => {
       setActiveDetail(null);
     }
   });
-  const firstSparkleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(proSparkleProgress.value, [0, 0.32, 0.62, 1], [0.1, 1, 0.1, 0.1]),
-    transform: [{ scale: interpolate(
-      proSparkleProgress.value,
-      [0, 0.32, 0.62, 1],
-      [0.7, 1.15, 0.7, 0.7],
-    ) }],
-  }));
-  const secondSparkleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(proSparkleProgress.value, [0, 0.48, 0.78, 1], [0.1, 0.1, 1, 0.1]),
-    transform: [{ scale: interpolate(
-      proSparkleProgress.value,
-      [0, 0.48, 0.78, 1],
-      [0.7, 0.7, 1.1, 0.7],
-    ) }],
-  }));
-
   if (isMobile) {
     return (
       <AppModal
@@ -248,7 +224,7 @@ const Sidebar: React.FC = () => {
         transparent
         animationType="none"
         presentationStyle="overFullScreen"
-        onRequestClose={() => detailVisible
+        onRequestClose={() => detailVisible && !directTiming
           ? (showHelpScreen ? setShowHelpScreen(false) : setActiveDetail(null))
           : closeMobileSettings()}
       >
@@ -284,14 +260,6 @@ const Sidebar: React.FC = () => {
                 />
                 <Text style={styles.mobileTitle} testID="settings-title">Settings</Text>
                 <View style={styles.mobileProSlot}>
-                  <Animated.Text
-                    pointerEvents="none"
-                    style={[styles.proSparkle, styles.proSparkleFirst, firstSparkleStyle]}
-                  >✦</Animated.Text>
-                  <Animated.Text
-                    pointerEvents="none"
-                    style={[styles.proSparkle, styles.proSparkleSecond, secondSparkleStyle]}
-                  >✦</Animated.Text>
                   <TouchableOpacity
                     style={styles.mobileProButton}
                     onPress={() => setActiveDetail('pro')}
@@ -302,6 +270,9 @@ const Sidebar: React.FC = () => {
                     <BeatNoteIcon name="pro" size={14} color={colors.onAccent} />
                     <Text style={styles.mobileProText}>Pro</Text>
                   </TouchableOpacity>
+                  {reduceMotion === false && !isSidebarCollapsed && !detailVisible && (
+                    <OutwardSparkle size={12} halfWidth={27} halfHeight={17} travel={8} repeatEveryMs={1800} style={styles.proSparkle} />
+                  )}
                 </View>
               </View>
               <ScrollView
@@ -334,7 +305,7 @@ const Sidebar: React.FC = () => {
               <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
             )}
             {!showHelpScreen && activeDetail === 'bpm' && (
-              <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+              <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={directTiming ? closeMobileSettings : () => setActiveDetail(null)} />
             )}
             {!showHelpScreen && activeDetail === 'display' && (
               <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
@@ -389,7 +360,7 @@ const Sidebar: React.FC = () => {
         ) : activeDetail === 'display' ? (
           <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'bpm' ? (
-          <BpmSettingsScreen onBack={() => setActiveDetail(null)} />
+          <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={directTiming ? toggleSidebar : () => setActiveDetail(null)} />
         ) : activeDetail === 'playback' ? (
           <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
         ) : activeDetail === 'buttons' ? (

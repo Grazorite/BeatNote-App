@@ -1,12 +1,14 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { danceCountDisplayStyles as styles } from '../../../styles/components/controls/danceCountDisplay';
 import { formatDanceCount } from '../../../utils/danceCount';
 
 const DanceCountDisplay: React.FC = () => {
-  const currentTime = useStudioStore(state => state.showDanceCounts ? state.currentTime : 0);
+  const timingAvailable = useProductCapability('analysis.bpm');
+  const currentTime = useStudioStore(state => timingAvailable && state.showDanceCounts ? state.currentTime : 0);
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const songLoaded = useStudioStore(state => state.songLoaded);
@@ -14,7 +16,7 @@ const DanceCountDisplay: React.FC = () => {
   const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
   const phraseStartMs = useStudioStore(state => state.phraseStartMs);
 
-  if (!songLoaded || !showDanceCounts) return null;
+  if (!timingAvailable || !songLoaded || !showDanceCounts) return null;
 
   const label = formatDanceCount(currentTime, bpm, countSize, beatAnchorMs, phraseStartMs);
   return (

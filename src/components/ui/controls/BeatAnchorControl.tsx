@@ -19,11 +19,12 @@ const BeatAnchorControl: React.FC = () => {
   const nudgeBeatAnchor = useStudioStore(state => state.nudgeBeatAnchor);
   const quarterBeatMs = (60_000 / Math.max(1, bpm)) / 4;
 
-  if (!songLoaded) return null;
+  if (!songLoaded) return <Text style={styles.hint}>Load a song to choose where Count 1 starts.</Text>;
 
   return (
     <View style={styles.container} testID="beat-anchor-control">
-      <Text style={styles.label}>Count 1 alignment</Text>
+      <Text style={styles.label}>Start your phrase on the right beat</Text>
+      <Text style={styles.hint}>Pause and move the playhead to your first dance count, then tap Set Count 1 Here. Use the adjustments below to fine-tune it.</Text>
       <Text style={styles.value} accessibilityLiveRegion="polite" testID="beat-anchor-value">
         {formatAnchor(phraseStartMs ?? beatAnchorMs)}
       </Text>

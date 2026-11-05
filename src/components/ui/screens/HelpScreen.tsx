@@ -75,9 +75,9 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
         </Section>
 
         <Section title="Tempo & Dance Counts">
-          <Text style={styles.text}>Open Timing & BPM to analyse a song. Preview the suggested tempo before you apply it.</Text>
+          <Text style={styles.text}>In Pro, tap the BPM button beside the song title, or open Timing & BPM in Settings. Preview the suggested tempo before you apply it.</Text>
           <Text style={styles.text}>To line up a phrase, move the playhead to its first beat and tap Set Count 1 Here. Use the arrows for small adjustments.</Text>
-          <Text style={styles.text}>Choose 4, 6 or 8 counts per phrase. Turn on Show dance counts to see them as you rehearse.</Text>
+          <Text style={styles.text}>Choose 4, 6 or 8 counts per phrase. Show dance grid draws dotted beats and a brighter line on Count 1, even with the waveform hidden. Show dance counts displays the phrase and count as you rehearse.</Text>
         </Section>
 
         <Section title="Projects & CSV">

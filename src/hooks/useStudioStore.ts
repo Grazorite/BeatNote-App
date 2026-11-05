@@ -217,6 +217,8 @@ export interface StudioStore {
   selectedRowIndex: number | null;
   selectedMarker: SelectedMarker | null;
   showGridLines: boolean;
+  timingShortcutOpen: boolean;
+  openTimingShortcut: () => void;
   isSidebarCollapsed: boolean;
   showHelpScreen: boolean;
   lastRemovedMarker: { layerId: LayerId; timestamp: number } | null;
@@ -498,6 +500,8 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   selectedRowIndex: null,
   selectedMarker: null,
   showGridLines: true,
+  timingShortcutOpen: false,
+  openTimingShortcut: () => set({ timingShortcutOpen: true, isSidebarCollapsed: false, showHelpScreen: false }),
   isSidebarCollapsed: true,
   showHelpScreen: false,
   lastRemovedMarker: null,
@@ -816,12 +820,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
-  setShowDanceCounts: (show) => set({
-    showDanceCounts: show,
-    // Dance-count feedback depends on phrase lines. Turning counts on must produce an immediate,
-    // visible result even if the user previously disabled the general grid-line setting.
-    ...(show ? { showGridLines: true } : {}),
-  }),
+  setShowDanceCounts: (show) => set({ showDanceCounts: show }),
   setShowWaveform: (show) => set({ showWaveform: show }),
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
@@ -1030,7 +1029,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setSelectedRowIndex: (index) => set({ selectedRowIndex: index }),
   setSelectedMarker: (marker) => set({ selectedMarker: marker }),
   setShowGridLines: (show) => set({ showGridLines: show }),
-  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed, timingShortcutOpen: false })),
   setShowHelpScreen: (show) => set({ showHelpScreen: show }),
   previewCsvImport: (csvContent, sourceName) => {
     const state = get();

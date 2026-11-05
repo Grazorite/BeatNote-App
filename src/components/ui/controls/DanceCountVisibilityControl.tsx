@@ -9,8 +9,13 @@ const DanceCountVisibilityControl: React.FC = () => {
   const showDanceCounts = useStudioStore(state => state.showDanceCounts);
   const setShowDanceCounts = useStudioStore(state => state.setShowDanceCounts);
 
+  const showGrid = useStudioStore(state => state.showGridLines);
+  const setShowGrid = useStudioStore(state => state.setShowGridLines);
+
   return (
     <View style={styles.container} testID="settings-dance-counts">
+      <ModernToggle label="Show dance grid" value={showGrid} onValueChange={setShowGrid} testID="dance-grid-toggle" />
+      <Text style={styles.hint}>Silver dots mark each beat. Brighter white dots mark Count 1.</Text>
       <ModernToggle
         label="Show dance counts"
         value={showDanceCounts}

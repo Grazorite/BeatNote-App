@@ -21,6 +21,13 @@ export const aboutSettingsStyles = StyleSheet.create({
     borderRadius: 22,
     marginBottom: 18,
   },
+  sparkle: {
+    position: 'absolute',
+    top: 38,
+    left: 38,
+    width: 20,
+    height: 20,
+  },
   appName: {
     color: colors.text,
     fontSize: 22,

@@ -99,6 +99,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
     : resolveRowHeight(isLandscape);
   const gutterWidth = resolveGutterWidth(isLandscape, isMobile ? MOBILE_GUTTER_WIDTH : undefined);
   const effectiveRowDensity = resolveRowDensity(rowDensity, isLandscape);
+  const timingAvailable = useProductCapability('analysis.bpm');
+  const gridEnabled = useStudioStore(state => state.showGridLines) && timingAvailable;
   const showWaveform = useStudioStore(state => state.showWaveform);
   const waveformAvailable = useProductCapability('waveform.display');
   const waveformEnabled = showWaveform && waveformAvailable;
@@ -419,6 +421,8 @@ const WrappedWaveform: React.FC<WrappedWaveformProps> = ({
 
   const renderRow = (row: WrappedRowModel) => (
     <WrappedRow
+      gridEnabled={gridEnabled}
+      timingAvailable={timingAvailable}
       key={row.index}
       row={row}
       rowPixelWidth={rowPixelWidth}

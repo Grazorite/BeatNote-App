@@ -11,6 +11,8 @@ import ProjectManagerModal from '../modals/ProjectManagerModal';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import SaveProjectPrompt from '../modals/SaveProjectPrompt';
 import { MusicLibrarySheet } from '../library';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
+import { useSettingsPreferences } from '../../../features/settings/preferences';
 import SongTitleControl from './SongTitleControl';
 
 interface ProjectControlsProps {
@@ -175,6 +177,11 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
     projectSummaries,
   ]);
 
+  const timingAvailable = useProductCapability('analysis.bpm');
+  const { showTimingShortcut } = useSettingsPreferences();
+  const openTimingShortcut = useStudioStore(state => state.openTimingShortcut);
+  const bpm = useStudioStore(state => state.bpm);
+
   const actions = (
     <>
       <SongTitleControl
@@ -183,6 +190,18 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         onOpen={openLibrarySheet}
       />
 
+      {timingAvailable && showTimingShortcut && (
+        <TouchableOpacity
+          style={[styles.button, isMobile && styles.buttonMobile, styles.timingButton]}
+          accessibilityRole="button"
+          accessibilityLabel={`Timing & BPM, ${bpm} beats per minute`}
+          onPress={openTimingShortcut}
+          testID="timing-shortcut"
+        >
+          <Text style={styles.tempoNumber}>{bpm}</Text>
+          <Text style={styles.tempoUnit}>BPM</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity
         ref={saveButtonRef}
         style={[styles.button, isMobile && styles.buttonMobile, (currentMusicItemId === null || libraryLocked || saveInProgress) && styles.buttonDisabled]}

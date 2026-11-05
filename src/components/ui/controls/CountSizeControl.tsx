@@ -36,7 +36,7 @@ const CountSizeControl: React.FC = () => {
         })}
       </View>
       <Text style={styles.hint}>
-        Sets the phrase length for snapping, exports and count lines.
+        One beat = one count. With {countSize} counts, count 1 through {countSize}, then start the next phrase. Each new phrase starts on a white grid line.
       </Text>
     </View>
   );

@@ -5,6 +5,7 @@ import { rowGutterStyles as styles } from '../../../styles/components/waveform/r
 import { danceCountAtTime } from '../../../utils/danceCount';
 
 interface RowGutterProps {
+  timingAvailable: boolean;
   startMs: number;
   width: number;
   testID?: string;
@@ -18,6 +19,7 @@ const formatTime = (milliseconds: number): string => {
 };
 
 const RowGutter: React.FC<RowGutterProps> = ({
+  timingAvailable,
   startMs,
   width,
   testID,
@@ -25,7 +27,7 @@ const RowGutter: React.FC<RowGutterProps> = ({
   const startTime = formatTime(startMs);
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
-  const showDanceCounts = useStudioStore(state => state.showDanceCounts);
+  const showDanceCounts = useStudioStore(state => state.showDanceCounts) && timingAvailable;
   const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
   const phraseStartMs = useStudioStore(state => state.phraseStartMs);
   const countPosition = danceCountAtTime(

@@ -13,6 +13,7 @@ export type SeekButtonBehaviour = 'tapTrackHoldSeek' | 'tapSeekHoldTrack';
 export type SeekDurationSeconds = number;
 
 export interface SettingsPreferences {
+  showTimingShortcut: boolean;
   continuousPlay: boolean;
   pauseOnHeadsetDisconnect: boolean;
   keepScreenOn: KeepScreenOnMode;
@@ -25,6 +26,7 @@ export interface SettingsPreferences {
 
 const STORAGE_KEY = 'beatnote.settings.v1';
 const DEFAULTS: SettingsPreferences = {
+  showTimingShortcut: true,
   continuousPlay: true,
   pauseOnHeadsetDisconnect: true,
   keepScreenOn: 'disabled',
@@ -80,6 +82,8 @@ const hydration = AsyncStorage.getItem(STORAGE_KEY)
     if (raw === null) return;
     const parsed = JSON.parse(raw) as Partial<SettingsPreferences>;
     snapshot = {
+      showTimingShortcut: typeof parsed.showTimingShortcut === 'boolean'
+        ? parsed.showTimingShortcut : DEFAULTS.showTimingShortcut,
       continuousPlay: typeof parsed.continuousPlay === 'boolean'
         ? parsed.continuousPlay
         : DEFAULTS.continuousPlay,

@@ -70,6 +70,9 @@ export const projectControlsStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  timingButton: { flexDirection: 'column', justifyContent: 'center', minWidth: 50 },
+  tempoNumber: { color: colors.text, fontWeight: '700', fontSize: 14 },
+  tempoUnit: { color: colors.textSecondary, fontWeight: '600', fontSize: 10 },
   buttonDisabled: {
     backgroundColor: colors.surface,
   },

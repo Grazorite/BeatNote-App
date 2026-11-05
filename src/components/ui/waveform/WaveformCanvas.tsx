@@ -8,6 +8,7 @@ import { useWaveformData, generateWaveformPath } from '../../../hooks/useWavefor
 import { useZoomGesture } from '../../../hooks/useZoomGesture';
 import { useScrollZoom } from '../../../hooks/useScrollZoom';
 import LoadingSpinner from '../common/LoadingSpinner';
+import DanceGridLines from './DanceGridLines';
 import RhythmicGrid from './RhythmicGrid';
 import GridPreviewOverlay from './GridPreviewOverlay';
 import { waveformCanvasStyles as styles } from '../../../styles/components/waveform/waveformCanvas';
@@ -66,7 +67,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   const loopStartMs = useStudioStore(state => state.loopStartMs);
   const loopEndMs = useStudioStore(state => state.loopEndMs);
   const isPlaying = useStudioStore(state => state.isPlaying);
-  const showGridLines = useStudioStore(state => state.showGridLines);
+  const timingAvailable = useProductCapability('analysis.bpm');
+  const showGridLines = useStudioStore(state => state.showGridLines) && timingAvailable;
   const bpm = useStudioStore(state => state.bpm);
   const countSize = useStudioStore(state => state.countSize);
   const beatAnchorMs = useStudioStore(state => state.beatAnchorMs);
@@ -291,37 +293,6 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     });
   }, [viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
   
-  const renderGridLines = React.useCallback(() => {
-    if (!showGridLines) return null;
-    
-    const lines = [];
-    const millisecondsPerBeat = 60_000 / bpm;
-    const originMs = phraseStartMs ?? beatAnchorMs;
-    const startBeat = Math.floor((viewportStartTime - originMs) / millisecondsPerBeat);
-    const endBeat = Math.ceil((viewportStartTime + viewportDuration - originMs) / millisecondsPerBeat);
-    
-    for (let beat = startBeat; beat <= endBeat; beat++) {
-      const beatTimeMs = originMs + beat * millisecondsPerBeat;
-      const x = ((beatTimeMs - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
-      
-      if (x >= 0 && x <= VIEWPORT_WIDTH && beat % countSize === 0) {
-        lines.push(
-          <Line
-            key={`grid-${beat}`}
-            x1={x}
-            y1={0}
-            x2={x}
-            y2={WAVEFORM_HEIGHT}
-            stroke="#666666"
-            strokeWidth={2}
-            opacity={0.5}
-          />
-        );
-      }
-    }
-    return lines;
-  }, [showGridLines, bpm, countSize, beatAnchorMs, phraseStartMs, viewportStartTime, viewportDuration, VIEWPORT_WIDTH, WAVEFORM_HEIGHT]);
-
   // Current playhead position in viewport
   const playheadX = ((currentTime - viewportStartTime) / viewportDuration) * VIEWPORT_WIDTH;
   const showPlayhead = currentTime >= viewportStartTime && currentTime <= viewportStartTime + viewportDuration;
@@ -436,7 +407,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                 testID="waveform-detail-loop"
               />
             )}
-            {renderGridLines()}
+            {showGridLines && !gridPreview && <DanceGridLines startMs={viewportStartTime} durationMs={viewportDuration}
+              width={VIEWPORT_WIDTH} height={WAVEFORM_HEIGHT} testID="dance-grid-detail" />}
             {layers.map(layer => renderLayerMarkers(layer))}
             
             {/* Ghost playhead */}
@@ -485,7 +457,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
               </>
             )}
           </Svg>
-          {gridPreview !== null && (
+          {showGridLines && gridPreview !== null && (
             <GridPreviewOverlay
               preview={gridPreview}
               width={VIEWPORT_WIDTH}

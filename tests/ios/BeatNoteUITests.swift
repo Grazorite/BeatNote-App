@@ -36,6 +36,10 @@ final class BeatNoteUITests: XCTestCase {
       "Settings should be the trailing action in the mobile project toolbar."
     )
     XCTAssertFalse(element("sidebar-toggle").exists, "Closed drawer must not overlap the project toolbar.")
+    element("timing-shortcut").tap()
+    XCTAssertTrue(element("dance-grid-toggle").waitForExistence(timeout: 5))
+    element("bpm-settings-page-back").tap()
+    XCTAssertTrue(element("timing-shortcut").isHittable)
     if restoredAudio {
       XCTAssertTrue(element("song-title-control").label.contains("current song"))
     } else {
@@ -84,6 +88,11 @@ final class BeatNoteUITests: XCTestCase {
     element("settings-bpm-entry").tap()
     XCTAssertTrue(element("settings-bpm").exists)
     XCTAssertTrue(app.staticTexts["Project BPM"].exists)
+    let bpmInput = element("project-bpm-input")
+    bpmInput.tap()
+    bpmInput.typeText("156")
+    element("project-bpm-done").tap()
+    XCTAssertEqual(bpmInput.value as? String, "156")
     XCTAssertFalse(app.staticTexts["Stem Separation"].exists)
     XCTAssertFalse(app.staticTexts["View Mode"].exists)
     for hiddenSetting in [
@@ -237,13 +246,13 @@ final class BeatNoteUITests: XCTestCase {
       app.buttons["Preview"].tap()
     } else {
       XCTAssertEqual(primaryBpm ?? 0, 60, accuracy: 0.5)
-      app.buttons["Alternatives"].tap()
+      app.buttons["Try another tempo"].tap()
       let doubleTempo = app.buttons.matching(
-        NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "BPM", "double tempo")
+        NSPredicate(format: "label == %@", "Preview 120 BPM")
       ).firstMatch
       XCTAssertTrue(doubleTempo.waitForExistence(timeout: 5))
       let alternativeLabel = doubleTempo.label
-      let alternativePattern = try! NSRegularExpression(pattern: "Use ([0-9]+(?:\\.[0-9]+)?) BPM")
+      let alternativePattern = try! NSRegularExpression(pattern: "Preview ([0-9]+(?:\\.[0-9]+)?) BPM")
       let alternativeRange = NSRange(
         alternativeLabel.startIndex..<alternativeLabel.endIndex,
         in: alternativeLabel

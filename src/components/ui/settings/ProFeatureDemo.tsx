@@ -85,7 +85,8 @@ const ProFeatureDemo: React.FC<ProFeatureDemoProps> = ({ kind, active, reduceMot
         <Waveform />
         {phase % 3 === 0 ? <MovingRect y={43} width={3} height={66} fill={colors.accent} animatedProps={cursor} />
           : Array.from({ length: 8 }, (_, index) => <G key={index}>
-            <Line x1={35 + index * 36} x2={35 + index * 36} y1={39} y2={110} stroke={phase % 3 === 2 ? colors.marker : colors.accent} strokeDasharray={phase % 3 === 1 ? '3 4' : undefined} />
+            <Line x1={35 + index * 36} x2={35 + index * 36} y1={39} y2={110} stroke={phase % 3 === 1 ? colors.accent : index === 0 ? colors.gridMajor : colors.gridMiddle}
+              strokeWidth={index === 0 ? 2 : 1.25} strokeLinecap="round" strokeDasharray={index === 0 ? '1 3' : '1 4'} />
             <SvgText x={35 + index * 36} y={126} textAnchor="middle" fontSize={10} fill={colors.text}>{index + 1}</SvgText>
           </G>)}
         <Rect x={101} y={138} width={118} height={25} rx={8} fill={phase % 3 === 2 ? colors.accent : colors.surfaceRaised} />

@@ -4,6 +4,7 @@ import Svg, { Line, Text } from 'react-native-svg';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { rhythmicGridStyles as styles } from '../../../styles/components/waveform/rhythmicGrid';
 import { colors, dimensions } from '../../../styles/common';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import GridPreviewOverlay from './GridPreviewOverlay';
 
 interface RhythmicGridProps {
@@ -15,6 +16,7 @@ interface RhythmicGridProps {
 
 const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, overlayHeight = 300, showRuler = true }) => {
   // Optimized Zustand selectors
+  const timingAvailable = useProductCapability('analysis.bpm');
   const bpm = useStudioStore(state => state.bpm);
   const viewportStartTime = useStudioStore(state => state.viewportStartTime);
   const viewportDuration = useStudioStore(state => state.viewportDuration);
@@ -89,6 +91,7 @@ const RhythmicGrid: React.FC<RhythmicGridProps> = ({ width, pixelsPerSecond, ove
     return { rulerLines, majorLines };
   }, [width, pixelsPerSecond, bpm, countSize, showDanceCounts, viewportStartTime, viewportDuration, beatAnchorMs, phraseStartMs]);
   
+  if (!timingAvailable) return null;
   return (
     <View>
       {/* Ruler bar */}

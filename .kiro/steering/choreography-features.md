@@ -16,13 +16,23 @@ initial implementation.
 - `countSize` supports 4, 6, or 8 counts and defaults to 8.
 - Project BPM, `beatAnchorMs`, and optional `phraseStartMs` are the source of truth for beat, phrase,
   snapping, live count, waveform guidance, and export calculations.
-- The persisted `showDanceCounts` setting hides or shows phrase emphasis, waveform count labels, and
-  the live transport count. It does not change snapping or export semantics.
+- The project’s Show dance grid setting draws dotted silver beats and thicker white Count 1 lines
+  on the main rows and detail timeline, with waveform peaks or the plain bar. Fitted rows show
+  phrase boundaries when individual beats would overlap. Show dance counts independently controls
+  row labels and the live transport count. Both displays require Pro.
+- The Pro toolbar’s BPM shortcut sits between the song title and Save. It opens Timing & BPM
+  directly and Back returns to the editor. The shortcut is on by default and its visibility is
+  an app preference in Timing & BPM.
 - Automatic BPM analysis is assistance only. It offers a preview that the user can apply or decline;
   it never silently replaces an authored grid.
 - Automatic suggestions and alternatives are displayed and applied as whole BPM values. The native
   detector resolves half/double and 3-against-2 pulse ambiguity across representative windows; it
   must not expose raw autocorrelation decimals as authored timing.
+- The Timing & BPM page orders setup as tempo, phrase length, then Count 1 alignment. Project BPM
+  is directly editable from 40–220 (up to two decimal places), with explicit keyboard dismissal
+  and validation that preserves the saved tempo on invalid input. It does not change playback speed.
+- Related-tempo previews include 3/2 and 2/3 choices as well as detector alternatives. These are
+  correction aids, not additional measured confidence claims; Keep Current clears an active preview.
 - Downbeat/phrase-start confidence is advisory. Users can always set Count 1 manually and use fine
   anchor nudges.
 

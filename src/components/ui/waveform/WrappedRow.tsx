@@ -14,6 +14,7 @@ import {
 } from '../../../utils/markerShape';
 import type { WrappedRow as WrappedRowModel } from '../../../utils/rowLayout';
 import { pointerToTimestamp, type RowLoopSegment } from '../../../utils/timelineMapping';
+import DanceGridLines from './DanceGridLines';
 import RowGutter from './RowGutter';
 import {
   formatAccessibleTime,
@@ -34,6 +35,8 @@ export interface WrappedLayerMarkers {
 }
 
 interface WrappedRowProps {
+  gridEnabled: boolean;
+  timingAvailable: boolean;
   row: WrappedRowModel;
   rowPixelWidth: number;
   rowHeight: number;
@@ -115,6 +118,8 @@ const loopGeometry = (
 };
 
 const WrappedRow: React.FC<WrappedRowProps> = ({
+  gridEnabled,
+  timingAvailable,
   row,
   rowPixelWidth,
   rowHeight,
@@ -235,6 +240,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
         testID={`wrapped-row-detail-${row.index}`}
       >
         <RowGutter
+          timingAvailable={timingAvailable}
           startMs={row.startMs}
           width={gutterWidth}
           testID={`wrapped-row-gutter-${row.index}`}
@@ -346,6 +352,8 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             height={waveformHeight}
             style={StyleSheet.absoluteFill}
           >
+          {gridEnabled && <DanceGridLines startMs={row.startMs} durationMs={row.endMs - row.startMs}
+            width={rowPixelWidth} height={waveformHeight} testID={`dance-grid-row-${row.index}`} />}
           {markersByLayer.flatMap(layer => layer.timestamps.map(timestamp => (
             <Line
               key={`${layer.layerId}-${timestamp}`}
@@ -493,7 +501,9 @@ const sameLoopSegments = (a: RowLoopSegment[] | undefined, b: RowLoopSegment[] |
 };
 
 const areWrappedRowPropsEqual = (previous: WrappedRowProps, next: WrappedRowProps): boolean => (
-  previous.row === next.row
+  previous.timingAvailable === next.timingAvailable
+  && previous.gridEnabled === next.gridEnabled
+  && previous.row === next.row
   && previous.rowPixelWidth === next.rowPixelWidth
   && previous.rowHeight === next.rowHeight
   && previous.gutterWidth === next.gutterWidth

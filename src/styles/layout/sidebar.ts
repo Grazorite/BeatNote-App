@@ -74,17 +74,10 @@ export const sidebarStyles = StyleSheet.create({
   },
   proSparkle: {
     position: 'absolute',
-    color: colors.accent,
-    fontSize: 9,
-    lineHeight: 10,
-  },
-  proSparkleFirst: {
-    top: 0,
-    right: 4,
-  },
-  proSparkleSecond: {
-    bottom: 0,
-    left: 3,
+    top: '50%',
+    left: '50%',
+    marginTop: -6,
+    marginLeft: -6,
   },
   mobileScrollContent: {
     flexGrow: 1,

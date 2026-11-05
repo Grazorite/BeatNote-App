@@ -19,8 +19,8 @@ export const bpmSuggestionCardStyles = StyleSheet.create({
   },
   detail: {
     color: colors.textSecondary,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 13,
+    lineHeight: 19,
   },
   actions: {
     flexDirection: 'row',
@@ -28,7 +28,7 @@ export const bpmSuggestionCardStyles = StyleSheet.create({
     gap: 6,
   },
   button: {
-    minHeight: 36,
+    minHeight: 44,
     justifyContent: 'center',
     paddingHorizontal: 10,
     borderRadius: 7,
@@ -41,7 +41,7 @@ export const bpmSuggestionCardStyles = StyleSheet.create({
   },
   buttonText: {
     color: colors.text,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
   },
   primaryText: {

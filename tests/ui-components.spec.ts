@@ -18,7 +18,19 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-bpm-entry').click();
     await expect(page.getByTestId('bpm-settings-page')).toBeVisible();
     await expect(page.getByText('Project BPM', { exact: true })).toBeVisible();
+    const bpmInput = page.getByTestId('project-bpm-input');
+    await bpmInput.fill('156');
+    await bpmInput.press('Enter');
+    await expect(bpmInput).toHaveValue('156');
+    await bpmInput.fill('0');
+    await bpmInput.press('Enter');
+    await expect(page.getByText('Enter a number from 40 to 220. Your project BPM is still 156.')).toBeVisible();
+    await bpmInput.fill('156');
+    await bpmInput.press('Enter');
     await expect(page.getByTestId('dance-counts-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.getByTestId('bpm-settings-page-back').click();
+    await page.getByTestId('settings-bpm-entry').click();
+    await expect(page.getByTestId('project-bpm-input')).toHaveValue('156');
     await page.getByTestId('bpm-settings-page-back').click();
 
     await page.getByTestId('settings-playback').click();
@@ -101,7 +113,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (32)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (35)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');
@@ -147,8 +159,32 @@ test.describe('UI Components & Layout', () => {
   test('Lite and Pro expose the intended feature gates', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
-    await loadTestAudio(page);
+    await loadSyntheticClickAudio(page, 120, 72);
 
+    const grid = page.getByTestId('dance-grid-row-0');
+    const shortcut = page.getByTestId('timing-shortcut');
+    await expect(grid).toBeVisible();
+    const phrasePath = grid.locator('path').last();
+    const eightCounts = await phrasePath.getAttribute('d');
+    await shortcut.click();
+    await page.getByTestId('count-size-4').click();
+    await page.getByTestId('dance-grid-toggle').click();
+    await page.getByTestId('timing-shortcut-toggle').click();
+    await page.getByTestId('bpm-settings-page-back').click();
+    await expect(shortcut).toHaveCount(0);
+    await expect(grid).toHaveCount(0);
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-bpm-entry').click();
+    await page.getByTestId('dance-grid-toggle').click();
+    await page.getByTestId('timing-shortcut-toggle').click();
+    await page.getByTestId('bpm-settings-page-back').click();
+    await page.getByTestId('settings-display').click();
+    await page.getByTestId('waveform-visibility-toggle').click();
+    await page.getByTestId('display-settings-page-back').click();
+    await page.getByTestId('sidebar-toggle').click();
+    await expect(grid).toBeVisible();
+    await expect(page.getByTestId('wrapped-row-peaks-0')).toBeVisible();
+    await expect(phrasePath).not.toHaveAttribute('d', eightCounts ?? '');
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
@@ -163,6 +199,8 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
+    await expect(shortcut).toHaveCount(0);
+    await expect(grid).toHaveCount(0);
     await page.getByTestId('playback-speed').click();
     await expect(page.getByTestId('playback-speed-preset-0.75')).toBeVisible();
     await expect(page.getByTestId('playback-speed-slider')).toHaveCount(0);
@@ -458,7 +496,11 @@ test.describe('UI Components & Layout', () => {
       { timeout: 15000 },
     );
     await expect(page.getByTestId('bpm-suggestion-card')).not.toContainText(/Suggested: \d+\.\d+ BPM/);
-    await page.getByRole('button', { name: 'Preview' }).click();
+    await page.getByRole('button', { name: 'Try another tempo' }).click();
+    await page.getByRole('button', { name: /Preview (?:179|180) BPM/ }).click();
+    await expect(page.getByTestId('bpm-preview-status')).toContainText(/Previewing (?:179|180) BPM/);
+    await page.getByRole('button', { name: 'Cancel Preview' }).click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await page.getByRole('button', { name: 'Apply Preview' }).click();
     await page.getByTestId('dance-counts-toggle').click();
     await expect(page.getByTestId('dance-counts-enabled')).toHaveText('Look for counts beside the waveform and playback controls.');

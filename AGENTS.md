@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (32)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (35)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 32 artwork, copy and motion and confirm the existing library and projects after the in-place update.
+1. Physically review Release 35 dance grid, toolbar shortcut, artwork and motion and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,6 +85,9 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
+
+
+
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -97,21 +100,20 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
-- [x] Install Release 32 with the fixed About title and prepare all work for the requested commit and push.
-      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `assets/`, `.kiro/steering/ios-testflight.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
+- [x] Verify and install combined build 35 with the Pro sparkle.
+      <sub>**Key Artifacts:** `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/waveform/DanceGridLines.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
-- [x] Keep “BeatNote for iOS” visible during the five logo pulses.
-      <sub>**Key Artifacts:** `AGENTS.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
+- [x] Show the Pro dance grid and Timing shortcut, then install build 35 on iPhone.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/waveform/DanceGridLines.tsx`</sub>
 
-- [x] Ship the two-colour waveform icon and five About-logo pulses on the paired iPhone as build 31.
-      <sub>**Key Artifacts:** `assets/`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`, `.kiro/steering/ios-testflight.md`</sub>
+- [x] Apply the About sparkle to the mobile Settings Pro button.
+      <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/layout/sidebar.ts`</sub>
 
-- [x] V1.6 — Reconcile and commit the exact V1 release candidate; pass TypeScript, all eight
-      browser journeys, all ten retained iOS journeys, version consistency, and whitespace checks
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `tests/ios/BeatNoteUITests.swift`</sub>
+- [x] Improve BPM editing, tempo suggestions and dance-count guidance.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Polish app copy and align navigation, control and feedback animations. Verify renewed signing and install Release 30.
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `App.tsx`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/animations/MotionPreference.tsx`, `src/animations/components/animatedToggle.ts`, `src/animations/motion.ts`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/AnimatedSegmentedControl.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/common/VerticalSegmentedControl.tsx`, `src/components/ui/controls/AnnotationCallout.tsx`, `src/components/ui/controls/AudioControls.tsx`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/controls/DockToast.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/PlayPauseControl.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/controls/RepeatControl.tsx`, `src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/library/ImportProgressRow.tsx`, `src/components/ui/library/MusicLibraryRow.tsx`, `src/components/ui/library/MusicLibrarySheet.tsx`, `src/components/ui/modals/AnnotationEditorModal.tsx`, `src/components/ui/modals/CsvReplaceConfirm.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/PlaybackSpeedPresetEditor.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/components/ui/screens/ProSettingsScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useAnimatedCollapse.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useLayerSelectorAnimation.ts`, `src/hooks/useModernToggleAnimation.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+- [x] Randomise sparkle directions and install Release 34 on the iPhone.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `tests/ui-components.spec.ts`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 ---
 
@@ -190,117 +192,69 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Install combined build 35 with the Settings Pro sparkle
 
-### 2026-11-05 — Install Release 32 and publish icon polish
+**Agent:** Codex · **Commit(s):** Release 35 implementation commit containing this entry
+**Kanban moved:** Verify Pro sparkle in signed build 35 and install → Done
 
-**Agent:** Codex · **Commit(s):** Included in the release-32 commit containing this entry
-**Kanban moved:** Release 32 installation and publication preparation → Done
+**Changed:** Combined the shared About and Settings sparkle, BPM editing, dance grid and Timing shortcut in build 35. Installed the signed update in place on the paired iPhone and gathered all current work for the requested local commit.
 
-**Changed:** Incremented the iOS build to 32 and installed the signed update in place. The About logo pulses five times one second apart while “BeatNote for iOS” stays visible. Includes the orange waveform and violet centre artwork and all accumulated documentation changes. User explicitly requested committing and pushing all work to master.
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The packaged JavaScript contains the Settings Pro sparkle and Timing shortcut. Device services reported version 1.0.0 (35) and successfully launched the installed app.
 
-**Verified:** TypeScript, version consistency, whitespace checks and all eight browser journeys passed. Signed Release build succeeded. Device services independently reported 1.0.0 (32) installed and successfully launched it.
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open. A focused simulator build encountered regenerating CocoaPods module maps. The separate dance-grid build 35 run is covering the native Settings check.
 
-**Not verified / known gaps:** Physical visual review and VoiceOver remain for the user. Native Settings coverage passed for Release 31; no new native test run for the title-only adjustment. Commit and push results are reported in the session response after this entry is saved.
+**Next agent should:** Collect physical build 35 feedback and record the native Settings result.
 
-**Next agent should:** Collect physical Release 32 feedback, then continue TestFlight preparation.
-
-
-### 2026-11-05 — Keep the About title during logo pulses
+### 2026-11-05 — Install the Pro dance grid and Timing shortcut on iPhone
 
 **Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Keep the About title visible → Done
+**Kanban moved:** Pro grid, Timing shortcut and Release 35 installation → Done
 
-**Changed:** The About title now always reads “BeatNote for iOS”. Five pulses and their one-second spacing remain unchanged. Reduce Motion keeps the logo static. Updated the existing browser assertion.
+**Changed:** The main rows and detail canvas plot dotted silver beats and thicker white Count 1 lines, independent of waveform visibility and count labels. Grid visibility is saved per project. The Pro toolbar shortcut between the song title and Save opens Timing & BPM and returns directly to the editor. Its visibility preference persists across songs. Incremented to build 35 and installed in place.
 
-**Verified:** TypeScript, all eight browser journeys and whitespace checks passed. The preceding Release 31 focused iOS Settings journey also passed before this text-only adjustment.
+**Verified:** TypeScript, all eight browser journeys, version consistency and whitespace checks passed. Tested grid visibility with and without peaks, changing phrase length, both toggles, direct navigation and Lite gating. Signed Release build succeeded. Device services confirmed 1.0.0 (35) installed and launched on the paired iPhone.
 
-**Not verified / known gaps:** This adjustment has not been rebuilt or installed on the iPhone. Installed Release 31 still shows the numbers. Existing artwork and release changes remain uncommitted.
+**Not verified / known gaps:** Focused iOS Settings XCTest running. Physical review of line contrast, Marilag alignment and existing projects remains open. Shared workspace includes concurrent sparkle work.
 
-**Next agent should:** Include the fixed title in the next requested device build.
+**Next agent should:** Review the dotted grid and existing library on the iPhone with build 35.
 
-### 2026-11-05 — Install Release 31 with five logo pulses
+### 2026-11-05 — Share the About sparkle with the mobile Settings Pro button
 
 **Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** About easter egg → Done
+**Kanban moved:** Settings Pro sparkle → Done
 
-**Changed:** Orange waveform bars flank a violet centre bar and diamond. A tap starts five numbered pulses one second apart. Reduce Motion uses the numbers alone.
+**Changed:** About and Settings Pro share the same star and random outward motion. The Pro button emits one star every 1.8 seconds while visible. Reduce Motion and navigation away stop the effect.
 
-**Verified:** TypeScript and eight browser journeys passed, including counts 1–5 and reset. The paired iPhone reported version 1.0.0 build 31 and launched after in-place installation.
+**Verified:** TypeScript passed. A mobile browser captured three emissions with distinct trajectories, confirmed removal on Reduce Motion, opened Pro, returned and tapped the About logo. Seven regression journeys passed together and the Settings journey passed separately after the concurrent build-number update.
 
-**Not verified / known gaps:** Physical iPhone appearance and VoiceOver delivery await device review.
+**Not verified / known gaps:** Physical review of the Pro sparkle remains open. The shared workspace includes concurrent BPM and device build work.
 
-**Next agent should:** Include one About icon tap in the upcoming device review.
+**Next agent should:** Check the Pro sparkle during the next iPhone review.
 
-### 2026-11-05 — Reconcile and pass the exact V1 candidate
+### 2026-11-05 — Make project BPM directly editable and clarify dance timing
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `4dd88dd`, `32db18b`
-**Kanban moved:** V1.6 exact release-candidate gate → Done
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** BPM editing and dance-count guidance → Done
 
-**Changed:**
+**Changed:** Project BPM is a numeric input with Done, validation (40–220), and ±1 controls. Timing setup is ordered as tempo, dance phrase, then Count 1. Related-tempo previews include 3/2 and 2/3 (104 → 156), explicitly show the preview BPM, and Keep Current cancels the preview. Updated existing browser/native journeys and choreography steering.
 
-- Reconciled the accumulated V1 implementation into `4dd88dd`, then incorporated the completed
-  Release 30 copy/motion handover in `32db18b` without overwriting its concurrent work.
-- Corrected the long-track XCTest performance journey so its measured pass returns from the warm-up
-  BPM subpage to a known Studio state before opening the second fixture. The app's tempo analysis
-  had succeeded; the prior failure was test navigation state leaking between invocations.
+**Verified:** TypeScript and whitespace checks passed; all eight Playwright journeys passed, including manual entry, invalid input and related-tempo preview. Focused iOS Settings XCTest passed including entering 156 and dismissing the keyboard. Reviewed the settled mobile browser layout. Inspected phrase/count calculations and grid grouping.
 
-**Verified:**
+**Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
 
-- TypeScript, version consistency and whitespace checks passed. Jest's intentionally empty permanent
-  unit suite passed with `--passWithNoTests`; licence generation retained all 16 native notices.
-- All eight Playwright journeys passed on an isolated local port. An earlier launch attempt was
-  discarded because sandboxed Expo port probing collided with another active local server.
-- All ten retained iOS journeys passed consecutively on iPhone 17 Pro simulator from exact commit
-  `32db18b`, including annotation restore, tempo suggestion/cancel/retry/long-track memory, looping,
-  CSV/share, background recovery with repeated Library switching, landscape, and Open In.
+**Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
 
-**Not verified / known gaps:**
+### 2026-11-05 — Install Release 34 with random sparkle directions
 
-- Release 30 is installed and launches on the physical iPhone, but hands-on copy/motion, VoiceOver,
-  and preservation of the existing library/projects remain for the user to confirm.
-- Apple distribution, App Store Connect metadata and TestFlight clean-install/update acceptance are
-  V1.7 and have not started.
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Random sparkle and Release 34 installation → Done
 
-**Next agent should:**
+**Changed:** Each pulse chooses a random angle around the logo, starts the sparkle near the corresponding edge and moves it outward. Preserved five pulses, fixed title and Reduce Motion handling. Incremented build and browser expectation to 34; installed the signed update in place.
 
-- Guide the user through V1.7 beginning with Apple Developer enrolment, then configure the stable
-  production identifiers and App Store Connect record before producing a TestFlight candidate.
+**Verified:** TypeScript, version consistency and all eight browser journeys passed. Signed Release build succeeded. Device services independently reported 1.0.0 (34) installed and launched it successfully.
 
-### 2026-11-05 — Copy and motion polish on Release 30
+**Not verified / known gaps:** Physical sparkle appearance and VoiceOver remain for user review. Native XCTest was not rerun. Accumulated sparkle and release changes remain uncommitted and unpushed.
 
-**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted` on top of `4dd88dd`
-**Kanban moved:** copy and motion polish and renewed-profile launch → Done
-
-**Changed:**
-
-- Reviewed app strings across the studio, controls, Help, Settings, library, project and export flows,
-  Pro demonstrations, progress messages, errors and accessibility hints. Replaced technical import
-  states and repetitive instructions. Destructive prompts describe the scope and recovery options.
-- Added shared page, control and feedback timing and one live system motion preference. The mobile
-  Pro sparkle stops when its button is hidden. Native dialogs, library motion, annotation and
-  speed popups and the Pro carousel respond to Reduce Motion.
-- Documented copy and motion conventions. Installed the signed update over the existing app.
-
-**Verified:**
-
-- TypeScript, version and whitespace checks passed. All eight browser journeys passed after
-  correcting a stale assertion about the dance-count caption. A mobile browser check switched Reduce
-  Motion on during a running demo, observed a static frame across a stage interval, and confirmed
-  comparison dismissal and Help navigation. Inspected Help at 393 × 852.
-- Focused native Settings/Files journey passed on iPhone 17 Pro. The first attempt stopped at the
-  Expo launcher before loading the app. Opening the local Metro URL resolved it. Xcode reported
-  one pass and zero failures on the rerun.
-- Release 29 launched before installation, resolving the trust blocker. Device services independently
-  reported 1.0.0 (30) after installation and successfully launched it.
-
-**Not verified / known gaps:**
-
-- Hands-on copy, VoiceOver, motion feel and existing saved content still need physical confirmation.
-  The full ten-test release gate remains open. This polish revision is uncommitted.
-
-**Next agent should:**
-
-- Collect physical Release 30 feedback, then reconcile the final V1 candidate and run its exact-tree gate.
-
+**Next agent should:** Collect physical Release 34 feedback, then continue TestFlight preparation.
 
 <!-- end handover log -->

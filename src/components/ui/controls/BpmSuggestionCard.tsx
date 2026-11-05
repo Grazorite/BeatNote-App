@@ -33,7 +33,7 @@ const BpmSuggestionCard: React.FC = () => {
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title}>Automatic tempo</Text>
         <Text style={styles.detail}>
-          Find this song’s BPM on your device. Preview the grid before applying it.
+          Estimate this song’s BPM on your device. Listen and check the suggestion before applying it.
         </Text>
         <View style={styles.actions}>
           <TouchableOpacity
@@ -124,6 +124,11 @@ const BpmSuggestionCard: React.FC = () => {
   const preview = (bpm: number, phraseStartMs?: number) => (
     previewSuggestion(bpm, result.suggestedAnchorMs, phraseStartMs)
   );
+  const alternativeBpms = Array.from(new Set([
+    ...result.bpmAlternatives.map(alternative => Math.round(alternative.bpm)),
+    Math.round(detectedBpm * 1.5),
+    Math.round(detectedBpm * 2 / 3),
+  ])).filter(bpm => bpm !== detectedBpm && bpm >= 40 && bpm <= 220).sort((a, b) => a - b);
   const formatSeconds = (milliseconds: number) => `${(milliseconds / 1000).toFixed(3)}s`;
 
   return (
@@ -135,8 +140,14 @@ const BpmSuggestionCard: React.FC = () => {
       <Text style={styles.detail}>
         {hasDownbeatSuggestion
           ? `Suggested Count 1: ${formatSeconds(result.suggestedDownbeatMs as number)}`
-          : 'Count 1 is set to the beat anchor. Adjust it to match the start of your phrase.'}
+          : 'After applying a tempo, line up Count 1 with the start of your dance phrase.'}
       </Text>
+      <Text style={styles.detail}>Automatic analysis can follow a different rhythmic pulse. If this feels wrong, try a related tempo or type the BPM above.</Text>
+      {gridPreview !== null && (
+        <Text style={styles.detail} accessibilityLiveRegion="polite" testID="bpm-preview-status">
+          Previewing {gridPreview.bpm} BPM · Apply Preview saves it to your project.
+        </Text>
+      )}
       <View style={styles.actions}>
         {gridPreview === null ? (
           <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={() => preview(detectedBpm)} accessibilityRole="button">
@@ -152,9 +163,9 @@ const BpmSuggestionCard: React.FC = () => {
             </TouchableOpacity>
           </>
         )}
-        {result.bpmAlternatives.length > 1 && (
+        {alternativeBpms.length > 0 && (
           <TouchableOpacity style={styles.button} onPress={() => setShowAlternatives(value => !value)} accessibilityRole="button">
-            <Text style={styles.buttonText}>Alternatives</Text>
+            <Text style={styles.buttonText}>{showAlternatives ? 'Hide related tempos' : 'Try another tempo'}</Text>
           </TouchableOpacity>
         )}
         {hasDownbeatSuggestion && gridPreview === null && (
@@ -167,7 +178,7 @@ const BpmSuggestionCard: React.FC = () => {
             <Text style={styles.buttonText}>Preview Suggested Count 1</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.button} onPress={() => setDismissedItemId(musicItemId)} accessibilityRole="button">
+        <TouchableOpacity style={styles.button} onPress={() => { cancelPreview(); setDismissedItemId(musicItemId); }} accessibilityRole="button">
           <Text style={styles.buttonText}>Keep Current</Text>
         </TouchableOpacity>
         {gridRestoreSnapshot !== null && (
@@ -178,17 +189,16 @@ const BpmSuggestionCard: React.FC = () => {
       </View>
       {showAlternatives && (
         <View style={styles.actions} testID="bpm-alternatives">
-          {result.bpmAlternatives.filter(alternative => alternative.relation !== 'primary').map(alternative => {
-            const alternativeBpm = Math.round(alternative.bpm);
+          {alternativeBpms.map(alternativeBpm => {
             return (
             <TouchableOpacity
-              key={`${alternative.relation}-${alternativeBpm}`}
+              key={alternativeBpm}
               style={styles.button}
               onPress={() => preview(alternativeBpm)}
               accessibilityRole="button"
-              accessibilityLabel={`Use ${alternativeBpm} BPM ${alternative.relation} tempo`}
+              accessibilityLabel={`Preview ${alternativeBpm} BPM`}
             >
-              <Text style={styles.buttonText}>{alternativeBpm} BPM · {alternative.relation}</Text>
+              <Text style={styles.buttonText}>{alternativeBpm} BPM</Text>
             </TouchableOpacity>
             );
           })}

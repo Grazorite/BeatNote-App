@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { pageTransition } from '../../../animations/motion';
 import { useMotionPreference } from '../../../animations/MotionPreference';
+import OutwardSparkle from '../common/OutwardSparkle';
 
 import appConfig from '../../../../app.json';
 import { OPEN_SOURCE_LICENCE_GROUPS } from '../../../data/openSourceLicences';
@@ -90,6 +91,9 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
           <View style={styles.identity}>
             <Pressable accessibilityRole="button" accessibilityLabel="BeatNote icon" accessibilityHint="Gives you a dance count-in" onPress={countIn}>
               <Animated.Image accessible={false} source={require('../../../../assets/icon.png')} style={[styles.icon, pulseStyle]} />
+              {beat > 0 && reduced === false && (
+                <OutwardSparkle key={beat} size={20} halfWidth={44} halfHeight={44} travel={14} style={styles.sparkle} />
+              )}
             </Pressable>
             <Text style={styles.appName}>BeatNote for iOS</Text>
             <Text style={styles.version}>Version {version} ({build})</Text>
