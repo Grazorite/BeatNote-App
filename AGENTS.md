@@ -194,16 +194,16 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 ### 2026-11-05 — Install combined build 35 with the Settings Pro sparkle
 
-**Agent:** Codex · **Commit(s):** Release 35 implementation commit containing this entry
+**Agent:** Codex · **Commit(s):** `65da670`
 **Kanban moved:** Verify Pro sparkle in signed build 35 and install → Done
 
 **Changed:** Combined the shared About and Settings sparkle, BPM editing, dance grid and Timing shortcut in build 35. Installed the signed update in place on the paired iPhone and gathered all current work for the requested local commit.
 
 **Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The packaged JavaScript contains the Settings Pro sparkle and Timing shortcut. Device services reported version 1.0.0 (35) and successfully launched the installed app.
 
-**Not verified / known gaps:** Physical visual and VoiceOver review remain open. A focused simulator build encountered regenerating CocoaPods module maps. The separate dance-grid build 35 run is covering the native Settings check.
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open. The focused simulator run opened Timing and found the dance grid toggle. Its immediate hittability assertion for the Timing shortcut failed after tapping Back. The Pro sparkle was independently exercised in the browser.
 
-**Next agent should:** Collect physical build 35 feedback and record the native Settings result.
+**Next agent should:** Review the Timing shortcut on return from Settings and distinguish transition timing from a navigation failure.
 
 ### 2026-11-05 — Install the Pro dance grid and Timing shortcut on iPhone
 
