@@ -112,7 +112,7 @@ const DataManagementScreen: React.FC<DataManagementScreenProps> = ({ onBack }) =
   };
 
   return (
-    <SettingsSubpage title="Data" onBack={onBack} testID="data-settings-page">
+    <SettingsSubpage title="Data Management" onBack={onBack} testID="data-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Storage</Text>
         <SettingsInfoRow

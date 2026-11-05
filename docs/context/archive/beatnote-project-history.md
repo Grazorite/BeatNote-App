@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Collapse licence groups by default and install build 46.
+      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Collapse Open Source Licences on entry
+
+**Agent:** Codex · **Commit(s):** Build 46 commit containing this entry
+**Kanban moved:** Licence expanders → Done
+
+**Changed:** Every licence group has an independently expandable heading. Opening the page starts with all groups collapsed. Expanded groups show package versions and selectable notice text.
+
+**Verified:** TypeScript, version consistency, all eight browser journeys and the focused iOS Settings XCTest passed. Browser coverage checked the initial collapsed state, opening two groups and closing one while the other stayed open. The paired iPhone reported 1.0.0 (46) installed and launched it.
+
+**Not verified / known gaps:** Physical VoiceOver review remains open.
+
+**Next agent should:** Include one licence disclosure in the next device review.
+
 - [x] Open the Telegram helpdesk from About, document the feedback route and verify third-party notices for build 45.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
 

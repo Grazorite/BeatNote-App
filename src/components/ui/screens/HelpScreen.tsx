@@ -65,7 +65,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
         <Section title="Music Library">
           <Text style={styles.text}>Importing makes a copy in BeatNote. Your original stays in Files.</Text>
           <Text style={styles.text}>Choose Custom Order and drag a song by its handle. You can switch sort order and come back to your arrangement.</Text>
-          <Text style={styles.text}>Change what the track buttons do in Settings under Button Configuration.</Text>
+          <Text style={styles.text}>Change what the track buttons do in Settings under Button Configurations.</Text>
         </Section>
 
         <Section title="Waveform & Overview">

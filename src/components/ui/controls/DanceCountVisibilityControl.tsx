@@ -23,11 +23,9 @@ const DanceCountVisibilityControl: React.FC = () => {
         accessibilityHint="Show the phrase and count during playback"
         testID="dance-counts-toggle"
       />
-      {showDanceCounts && (
-        <Text style={styles.enabled} accessibilityLiveRegion="polite" testID="dance-counts-enabled">
-          Look for counts beside the waveform and playback controls.
-        </Text>
-      )}
+      <Text style={styles.hint} testID="dance-counts-enabled">
+        Look for counts beside the waveform and playback controls.
+      </Text>
     </View>
   );
 };

@@ -101,7 +101,7 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         testID="settings-playback"
       />
       <SettingsNavigationRow
-        label="Button Configuration"
+        label="Button Configurations"
         onPress={onOpenButtons}
         testID="settings-buttons"
       />

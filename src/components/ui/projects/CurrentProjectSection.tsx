@@ -43,7 +43,7 @@ interface SectionActionProps {
   onPress: ActionCallback;
   disabled: boolean;
   testID: string;
-  emphasis?: 'primary' | 'secondary';
+  emphasis?: 'primary' | 'secondary' | 'save';
   fullWidth?: boolean;
 }
 
@@ -76,7 +76,7 @@ const SectionAction: React.FC<SectionActionProps> = ({
       testID={testID}
     >
       <Text
-        style={[styles.actionLabel, disabled && styles.actionLabelDisabled]}
+        style={[styles.actionLabel, emphasis === 'save' && styles.saveLabel, disabled && styles.actionLabelDisabled]}
         maxFontSizeMultiplier={MAX_TEXT_SCALE}
         numberOfLines={2}
       >
@@ -96,7 +96,7 @@ const draftStatePresentation = (state: CurrentProjectDraftState): {
     case 'based':
       return { icon: 'restore', text: `Draft based on “${state.baselineName}”` };
     case 'edited':
-      return { icon: 'warning', text: 'Edited — not saved' };
+      return { icon: 'warning', text: 'Unsaved changes' };
   }
 };
 
@@ -161,7 +161,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
         </TouchableOpacity>
         <View style={styles.actionGrid}>
           <SectionAction label="Save" onPress={onSave} disabled testID="current-project-save" fullWidth={useSingleColumnActions} />
-          <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
+          <SectionAction label="Save a Copy" onPress={onSaveAsNewProject} disabled testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
           <SectionAction label="Import CSV" onPress={onImportCsv} disabled testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
           <SectionAction label="Export Project" onPress={onExportCsv} disabled testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
         </View>
@@ -192,7 +192,7 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
       </Text>
 
       <View style={styles.stateRow} testID="current-project-state">
-        <BeatNoteIcon name={statePresentation.icon} size={18} color={colors.textSecondary} />
+        <BeatNoteIcon name={statePresentation.icon} size={18} color={draftState.kind === 'edited' ? colors.accent : colors.textSecondary} />
         <Text style={styles.stateText} maxFontSizeMultiplier={MAX_TEXT_SCALE}>
           {statePresentation.text}
         </Text>
@@ -226,8 +226,8 @@ const CurrentProjectSection: React.FC<CurrentProjectSectionProps> = ({
       )}
 
       <View style={styles.actionGrid}>
-        <SectionAction label="Save" onPress={onSave} disabled={saveDisabled} testID="current-project-save" fullWidth={useSingleColumnActions} />
-        <SectionAction label="Save as New Project" onPress={onSaveAsNewProject} disabled={saveAsNewDisabled} testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Save" emphasis="save" onPress={onSave} disabled={saveDisabled} testID="current-project-save" fullWidth={useSingleColumnActions} />
+        <SectionAction label="Save a Copy" onPress={onSaveAsNewProject} disabled={saveAsNewDisabled} testID="current-project-save-as-new" fullWidth={useSingleColumnActions} />
         <SectionAction label="Import CSV" onPress={onImportCsv} disabled={importCsvDisabled} testID="current-project-import-csv" fullWidth={useSingleColumnActions} />
         <SectionAction label="Export Project" onPress={onExportCsv} disabled={exportCsvDisabled} testID="current-project-export-csv" fullWidth={useSingleColumnActions} />
       </View>

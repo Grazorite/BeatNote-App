@@ -506,7 +506,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   loadedProjectSource: null,
   selectedRowIndex: null,
   selectedMarker: null,
-  showGridLines: true,
+  showGridLines: false,
   timingShortcutOpen: false,
   openTimingShortcut: () => set({ timingShortcutOpen: true, isSidebarCollapsed: false, showHelpScreen: false }),
   isSidebarCollapsed: true,

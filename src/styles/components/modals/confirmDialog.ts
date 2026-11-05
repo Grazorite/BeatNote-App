@@ -13,6 +13,7 @@ export const confirmDialogStyles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     maxWidth: 440,
+    maxHeight: '100%',
     overflow: 'hidden',
     borderRadius: 16,
     padding: 24,

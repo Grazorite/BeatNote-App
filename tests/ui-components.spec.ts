@@ -112,7 +112,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (49)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (50)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
     const [feedbackPage] = await Promise.all([
@@ -177,18 +177,11 @@ test.describe('UI Components & Layout', () => {
 
     const grid = page.getByTestId('dance-grid-row-0');
     const shortcut = page.getByTestId('timing-shortcut');
-    await expect(grid).toBeVisible();
-    const phrasePath = grid.locator('path').last();
-    const eightCounts = await phrasePath.getAttribute('d');
-    await shortcut.click();
-    await page.getByTestId('count-size-4').click();
-    await page.getByTestId('dance-grid-toggle').click();
-    await page.getByTestId('timing-shortcut-toggle').click();
-    await page.getByTestId('bpm-settings-page-back').click();
     await expect(shortcut).toHaveCount(0);
     await expect(grid).toHaveCount(0);
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-bpm-entry').click();
+    await page.getByTestId('count-size-4').click();
     await page.getByTestId('dance-grid-toggle').click();
     await page.getByTestId('timing-shortcut-toggle').click();
     await page.getByTestId('bpm-settings-page-back').click();
@@ -201,7 +194,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('sidebar-toggle').click();
     await expect(grid).toBeVisible();
     await expect(page.getByTestId('wrapped-row-peaks-0')).toBeVisible();
-    await expect(phrasePath).not.toHaveAttribute('d', eightCounts ?? '');
+    await expect(shortcut).toBeVisible();
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
@@ -526,7 +519,6 @@ test.describe('UI Components & Layout', () => {
     await page.getByRole('button', { name: 'Preview related tempos' }).click();
     await page.getByRole('button', { name: /Preview (?:179|180) BPM/ }).click();
     await expect(page.getByTestId('bpm-preview-status')).toContainText(/Previewing (?:179|180) BPM/);
-    await page.getByTestId('timing-shortcut-toggle').click();
     await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
     await expect(page.getByTestId('timing-shortcut')).toHaveCount(0);

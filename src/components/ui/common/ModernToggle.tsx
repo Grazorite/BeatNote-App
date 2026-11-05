@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Platform, View, Text, TouchableOpacity } from 'react-native';
+import { Platform, Text, TouchableOpacity } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, withTiming } from 'react-native-reanimated';
 import { controlTransition } from '../../../animations/motion';
@@ -62,39 +62,24 @@ const ModernToggle: React.FC<ModernToggleProps> = ({
     </Animated.View>
   );
 
-  return (
-    <View style={[styles.container, { marginBottom }, disabled && { opacity: 0.45 }]}>
-      <Text style={styles.label}>{label}</Text>
-      {Platform.OS === 'web' ? (
-        <TouchableOpacity
-          onPress={handlePress}
-          disabled={disabled}
-          activeOpacity={0.8}
-          accessibilityRole="switch"
-          accessibilityLabel={label}
-          accessibilityHint={accessibilityHint}
-          accessibilityState={{ checked: value, disabled }}
-          aria-checked={value}
-          testID={testID}
-        >
-          {animatedTrack}
-        </TouchableOpacity>
-      ) : (
-        <GestureDetector gesture={nativeTap}>
-          <Animated.View
-            accessible
-            accessibilityRole="switch"
-            accessibilityLabel={label}
-            accessibilityHint={accessibilityHint}
-            accessibilityState={{ checked: value, disabled }}
-            onAccessibilityTap={handlePress}
-            testID={testID}
-          >
-            {animatedTrack}
-          </Animated.View>
-        </GestureDetector>
-      )}
-    </View>
+  const row = <>
+    <Text style={styles.label}>{label}</Text>
+    {animatedTrack}
+  </>;
+  const rowStyle = [styles.container, { marginBottom }, disabled && { opacity: 0.45 }];
+  const accessibility = {
+    accessibilityRole: 'switch' as const, accessibilityLabel: label, accessibilityHint,
+    accessibilityState: { checked: value, disabled }, testID,
+  };
+  return Platform.OS === 'web' ? (
+    <TouchableOpacity {...accessibility} style={rowStyle} onPress={handlePress}
+      disabled={disabled} activeOpacity={0.8} aria-checked={value}>{row}</TouchableOpacity>
+  ) : (
+    <GestureDetector gesture={nativeTap}>
+      <Animated.View {...accessibility} style={rowStyle} accessible onAccessibilityTap={handlePress}>
+        {row}
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

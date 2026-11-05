@@ -21,6 +21,10 @@ prerequisite for the core product.
 - Introduce upgrade prompts at expansion moments: creating another project, enabling more layers,
   requesting a professional export, or starting compute-intensive processing.
 
+## Future playlist management
+
+Lite users will be able to create playlists and arrange songs for rehearsal. Automatically starting the next song remains a Pro continuous-play feature.
+
 ## Release sequence
 
 ### V1 — Core validation

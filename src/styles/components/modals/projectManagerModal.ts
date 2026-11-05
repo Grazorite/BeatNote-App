@@ -39,7 +39,7 @@ export const projectManagerModalStyles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: colors.text,
+    color: colors.accent,
     fontSize: 17,
     lineHeight: 23,
     fontWeight: '700',

@@ -124,7 +124,7 @@ export function createEmptyPersistedContent(): PersistedContent {
     stemCount: 4,
     settings: {
       viewMode: 'unified',
-      showGridLines: true,
+      showGridLines: false,
       layerSpecificNavigation: false,
       primaryView: 'wrapped',
       countSize: 8,

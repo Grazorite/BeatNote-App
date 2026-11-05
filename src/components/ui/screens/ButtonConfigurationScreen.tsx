@@ -87,7 +87,7 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
     if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedPresetCount });
   };
   return (
-    <SettingsSubpage title="Buttons" onBack={onBack} testID="button-settings-page">
+    <SettingsSubpage title="Button Configurations" onBack={onBack} testID="button-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Previous & Next</Text>
         <Text style={styles.hint}>

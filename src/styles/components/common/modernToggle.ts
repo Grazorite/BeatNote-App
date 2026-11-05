@@ -6,6 +6,7 @@ export const modernToggleStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 44,
     paddingVertical: dimensions.spacing.sm,
   },
   label: {

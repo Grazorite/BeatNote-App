@@ -5,6 +5,7 @@ interface OutputRouteUnavailableEvent {
 }
 
 interface BeatNoteAudioSessionNativeModule {
+  setRemoteSeekSeconds(seconds: number): Promise<void>;
   addListener(
     eventName: 'onOutputRouteUnavailable',
     listener: (event: OutputRouteUnavailableEvent) => void,

@@ -19,9 +19,9 @@ initial implementation.
 - The project’s Show dance grid setting draws dotted silver beats and thicker white Count 1 lines
   on the main rows and detail timeline, with waveform peaks or the plain bar. Fitted rows show
   phrase boundaries when individual beats would overlap. Show dance counts independently controls
-  row labels and the live transport count. Both displays require Pro.
+  row labels and the live transport count. Both displays require Pro and default to off for new projects.
 - The Pro toolbar’s BPM shortcut sits between the song title and Save. It opens Timing & BPM
-  directly and Back returns to the editor. The shortcut is on by default and its visibility is
+  directly and Back returns to the editor. The shortcut is off by default and its visibility is
   an app preference in Timing & BPM.
 - Automatic BPM analysis is assistance only. It offers a preview that the user can apply or decline;
   it never silently replaces an authored grid.
@@ -29,7 +29,7 @@ initial implementation.
   detector resolves half/double and 3-against-2 pulse ambiguity across representative windows; it
   must not expose raw autocorrelation decimals as authored timing.
 - Timing & BPM starts with the toolbar visibility toggle, then tempo, phrase length and Count 1.
-  The ±1 and ±10 buttons adjust project BPM within its limits. Project BPM
+  The ±1, ±5 and ±10 buttons adjust project BPM within its limits. Project BPM
   is directly editable from 40–220 (up to two decimal places), with explicit keyboard dismissal
   and validation that preserves the saved tempo on invalid input. It does not change playback speed.
 - Related-tempo previews include 3/2 and 2/3 choices as well as detector alternatives. These are

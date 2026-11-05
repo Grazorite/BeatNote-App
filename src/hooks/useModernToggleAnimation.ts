@@ -20,8 +20,8 @@ export const useModernToggleAnimation = (isEnabled: boolean) => {
   }, [progress, target]);
 
   useEffect(() => {
-    setVisualValue(isEnabled);
-  }, [isEnabled, setVisualValue]);
+    if (target.value !== (isEnabled ? 1 : 0)) setVisualValue(isEnabled);
+  }, [isEnabled, setVisualValue, target]);
 
   const trackStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

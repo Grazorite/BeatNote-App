@@ -4,6 +4,7 @@ import {
   findNodeHandle,
   Text,
   TextInput,
+  ScrollView,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -77,7 +78,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Text ref={titleRef} style={styles.title} accessibilityRole="header">
             {title}
           </Text>
-          <Text style={styles.message}>{message}</Text>
+          <ScrollView style={{ flexGrow: 0, flexShrink: 1 }}><Text style={styles.message}>{message}</Text></ScrollView>
           {confirmationText !== undefined && (
             <View style={styles.confirmationGroup}>
               <Text style={styles.confirmationPrompt}>

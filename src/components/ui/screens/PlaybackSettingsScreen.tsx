@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import {
   type KeepScreenOnMode,
+  REMOTE_SEEK_SECONDS,
   updateSettingsPreferences,
   useSettingsPreferences,
 } from '../../../features/settings/preferences';
@@ -23,10 +24,11 @@ const KEEP_SCREEN_OPTIONS: ReadonlyArray<{ value: KeepScreenOnMode; label: strin
 
 const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack }) => {
   const preferences = useSettingsPreferences();
+  const remoteAvailable = useProductCapability('playback.remoteControls');
   const continuousAvailable = useProductCapability('playback.continuous');
 
   return (
-    <SettingsSubpage title="Playback" onBack={onBack} testID="playback-settings-page">
+    <SettingsSubpage title="Playback Settings" onBack={onBack} testID="playback-settings-page">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Queue</Text>
         <View style={styles.settingWithCaption}>
@@ -40,7 +42,6 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
             accessibilityHint={continuousAvailable
               ? 'Automatically starts the next song in the queue.'
               : 'Pro only'}
-            marginBottom={-6}
             testID="continuous-play-toggle"
           />
           <Text style={styles.hint} testID="continuous-play-detail">
@@ -57,7 +58,6 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
               void updateSettingsPreferences({ pauseOnHeadsetDisconnect });
             }}
             accessibilityHint="Pause when headphones or another audio output disconnect."
-            marginBottom={-6}
             testID="pause-headset-toggle"
           />
           <Text style={styles.hint}>
@@ -66,6 +66,21 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
         </View>
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Control Centre</Text>
+        <Text style={styles.hint}>{remoteAvailable ? 'Skip distance on the Lock Screen and in Control Centre.' : 'Pro only'}</Text>
+        <View style={[styles.segmentedOptions, !remoteAvailable && styles.disabled]} accessibilityRole="radiogroup">
+          {REMOTE_SEEK_SECONDS.map(seconds => {
+            const selected = preferences.remoteSeekSeconds === seconds;
+            return <TouchableOpacity key={seconds} accessibilityRole="radio" accessibilityLabel={`${seconds} seconds`}
+              disabled={!remoteAvailable} accessibilityState={{ selected, disabled: !remoteAvailable }}
+              onPress={() => { void updateSettingsPreferences({ remoteSeekSeconds: seconds }); }}
+              style={[styles.segmentedOption, selected && styles.segmentedOptionSelected]}>
+              <Text style={styles.optionText}>{seconds}s</Text>
+            </TouchableOpacity>;
+          })}
+        </View>
+      </View>
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Keep Screen On</Text>
         <Text style={styles.hint}>Choose when the screen stays awake.</Text>

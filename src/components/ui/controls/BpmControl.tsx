@@ -47,7 +47,7 @@ const BpmControl: React.FC = () => {
     <View testID="settings-bpm" style={styles.container}>
       <Text style={styles.label}>Project BPM</Text>
       <View style={styles.controls}>
-        {[-10, -1].map(stepButton)}
+        {[-10, -5, -1].map(stepButton)}
         <TextInput
           ref={input}
           style={styles.bpmValue}
@@ -63,7 +63,7 @@ const BpmControl: React.FC = () => {
           accessibilityHint="Enter a tempo from 40 to 220 beats per minute"
           testID="project-bpm-input"
         />
-        {[1, 10].map(stepButton)}
+        {[1, 5, 10].map(stepButton)}
       </View>
       {editing && (
         <TouchableOpacity style={styles.button} onPress={() => input.current?.blur()} accessibilityRole="button" testID="project-bpm-done">

@@ -31,11 +31,11 @@ import {
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectManagerModalStyles as styles } from '../../../styles/components/modals/projectManagerModal';
 import type { MusicItem } from '../../../types/library';
-import type { PersistedContent, SavedProjectSummary } from '../../../types/project';
+import type { SavedProjectSummary } from '../../../types/project';
 import { MAX_TEXT_SCALE, SUPPORTED_AUDIO_EXTENSIONS } from '../../../utils/libraryConstants';
-import { changedMarkerCount, changedSettingNames } from '../../../utils/draftResolution';
+import { summarizeProjectEdits } from '../../../utils/projectChangeSummary';
 import { groupProjectSections } from '../../../utils/projectNames';
-import { extractPersistedContent } from '../../../utils/persistedContent';
+import { extractPersistedContent, projectContent } from '../../../utils/persistedContent';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import AppModal from '../common/AppModal';
 import CurrentProjectSection, {
@@ -355,25 +355,10 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   }, [applyCsvReplace, notify, onClose]);
 
   const confirmDiscardMessage = useMemo(() => {
-    if (loadedProjectSource === null) return 'Discard the current changes? This cannot be undone.';
-    const current = extractPersistedContent(useStudioStore.getState());
-    const baseline: PersistedContent = {
-      layers: loadedProjectSource.layers as PersistedContent['layers'],
-      bpm: loadedProjectSource.metadata.bpm,
-      stemCount: loadedProjectSource.metadata.stemCount,
-      settings: loadedProjectSource.settings,
-      extras: {},
-    };
-    const markerCount = changedMarkerCount(current, baseline);
-    if (markerCount > 0) {
-      return `Discard changes to ${markerCount} marker${markerCount === 1 ? '' : 's'}? This cannot be undone.`;
-    }
-    const settings = changedSettingNames(current, baseline);
-    if (settings.length > 0) {
-      return `Discard changed settings (${settings.join(', ')})? This cannot be undone.`;
-    }
-    return 'Discard the current changes? This cannot be undone.';
-  }, [allLayersData, loadedProjectSource]);
+    if (!discardAction || !loadedProjectSource) return 'Discard the current changes? This cannot be undone.';
+    const changes = summarizeProjectEdits(projectContent(loadedProjectSource), extractPersistedContent(useStudioStore.getState()));
+    return changes.length ? changes.join('\n') + '\n\nThese changes will be discarded.' : 'Discard the current changes? This cannot be undone.';
+  }, [discardAction, loadedProjectSource]);
 
   const saveAndOpen = useCallback(async () => {
     if (pendingOpenProjectId === null) return;

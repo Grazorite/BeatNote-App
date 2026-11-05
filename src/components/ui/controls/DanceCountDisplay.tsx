@@ -8,17 +8,12 @@ import { formatDanceCount } from '../../../utils/danceCount';
 
 const DanceCountDisplay: React.FC = () => {
   const timingAvailable = useProductCapability('analysis.bpm');
-  const currentTime = useStudioStore(state => timingAvailable && state.showDanceCounts ? state.currentTime : 0);
-  const bpm = useStudioStore(state => state.gridPreview?.bpm ?? state.bpm);
-  const countSize = useStudioStore(state => state.countSize);
-  const songLoaded = useStudioStore(state => state.songLoaded);
-  const showDanceCounts = useStudioStore(state => state.showDanceCounts);
-  const beatAnchorMs = useStudioStore(state => state.gridPreview?.beatAnchorMs ?? state.beatAnchorMs);
-  const phraseStartMs = useStudioStore(state => state.gridPreview ? state.gridPreview.phraseStartMs : state.phraseStartMs);
-
-  if (!timingAvailable || !songLoaded || !showDanceCounts) return null;
-
-  const label = formatDanceCount(currentTime, bpm, countSize, beatAnchorMs, phraseStartMs);
+  const label = useStudioStore(state => timingAvailable && state.songLoaded && state.showDanceCounts
+    ? formatDanceCount(state.currentTime, state.gridPreview?.bpm ?? state.bpm, state.countSize,
+      state.gridPreview?.beatAnchorMs ?? state.beatAnchorMs,
+      state.gridPreview ? state.gridPreview.phraseStartMs : state.phraseStartMs)
+    : null);
+  if (label === null) return null;
   return (
     <View style={styles.container} accessible accessibilityLabel={label} testID="dance-count-display">
       <Text style={styles.text}>{label}</Text>

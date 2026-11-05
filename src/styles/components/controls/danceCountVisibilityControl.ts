@@ -9,9 +9,9 @@ export const danceCountVisibilityControlStyles = StyleSheet.create({
   },
   hint: {
     color: colors.textSecondary,
-    fontSize: 11,
-    lineHeight: 15,
-    marginTop: 2,
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 8,
   },
   enabled: {
     color: colors.accent,

@@ -12,8 +12,8 @@ import { isLoopRangeGestureActive } from '../features/playback/interactionActivi
 import { incrementPerfCounter } from '../utils/perfCounters';
 import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
-import { getSettingsPreferences } from '../features/settings/preferences';
-import { subscribeToOutputRouteUnavailable } from '../services/audioRoute';
+import { getSettingsPreferences, useSettingsPreferences } from '../features/settings/preferences';
+import { setRemoteSeekSeconds, subscribeToOutputRouteUnavailable } from '../services/audioRoute';
 import { withAudioOperationTimeout } from '../utils/audioOperationTimeout';
 
 interface ErrorState {
@@ -79,6 +79,7 @@ export const useCustomAudioPlayer = () => {
   const seekPlayer = useCallback(async (seconds: number, label = 'Audio seek'): Promise<void> => (
     withAudioOperationTimeout(player.seekTo(seconds), NATIVE_SEEK_TIMEOUT_MS, label)
   ), [player]);
+  const { remoteSeekSeconds } = useSettingsPreferences();
   const remoteControlsAvailable = useProductCapability('playback.remoteControls');
   const playbackSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const lockScreenActiveRef = useRef(false);
@@ -464,6 +465,13 @@ export const useCustomAudioPlayer = () => {
     // unmounts. Calling clearLockScreenControls from React cleanup races that release and can address
     // an already-disposed SharedObject on iOS.
   }, [audioModeReady, currentAudioUri, lockScreenTitle, player, playerIsLoaded, remoteControlsAvailable]);
+
+  // Expo sets ten seconds when it registers a player. Apply our interval afterwards
+  // and update it independently so a preference change doesn't register extra handlers.
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || !audioModeReady || !playerIsLoaded || !currentAudioUri || !remoteControlsAvailable) return;
+    void setRemoteSeekSeconds(remoteSeekSeconds).catch(error => console.error('Control Centre seek interval:', error));
+  }, [audioModeReady, playerIsLoaded, currentAudioUri, remoteControlsAvailable, remoteSeekSeconds, player, lockScreenTitle]);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;

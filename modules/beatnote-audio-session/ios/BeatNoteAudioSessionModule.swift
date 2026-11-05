@@ -1,4 +1,5 @@
 import AVFoundation
+import MediaPlayer
 import ExpoModulesCore
 
 public final class BeatNoteAudioSessionModule: Module {
@@ -7,6 +8,13 @@ public final class BeatNoteAudioSessionModule: Module {
   public func definition() -> ModuleDefinition {
     Name("BeatNoteAudioSession")
     Events("onOutputRouteUnavailable")
+
+    AsyncFunction("setRemoteSeekSeconds") { (seconds: Int) in
+      let intervals = [NSNumber(value: seconds)]
+      let center = MPRemoteCommandCenter.shared()
+      center.skipForwardCommand.preferredIntervals = intervals
+      center.skipBackwardCommand.preferredIntervals = intervals
+    }.runOnQueue(.main)
 
     OnStartObserving {
       guard self.routeObserver == nil else { return }

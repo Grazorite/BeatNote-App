@@ -126,6 +126,7 @@ export const currentProjectSectionStyles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+  saveLabel: { color: colors.accent },
   actionLabelDisabled: {
     color: colors.textSecondary,
   },

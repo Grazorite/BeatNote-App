@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (49)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (50)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review the Release 49 dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
+1. Physically review the Release 50 timing controls, project changes, dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,6 +85,8 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
+- [ ] Physically verify Control Centre skipping with a customised interval on build 50.
+
 
 
 
@@ -93,6 +95,8 @@ target; Android is a far-future possibility only.
 
 ### ⏸ Deferred — V2/V3
 
+- [ ] Playlist management in Lite, with automatic continuous playback gated to Pro.
+
 - [ ] V2 purchase/restore/entitlement enforcement after the V1 core acceptance and tier matrix are stable
 - [ ] V2 advanced tempo intelligence and Apple Music provider spike; Spotify commercial streaming
       remains blocked unless its policy changes or BeatNote receives written approval
@@ -100,6 +104,9 @@ target; Android is a far-future possibility only.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Exercise prompt failures and simplify the existing regression journeys.
       <sub>**Key Artifacts:** `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
@@ -113,8 +120,6 @@ target; Android is a far-future possibility only.
 - [x] Give Telegram feedback the primary About button and move licences to a footer link. Install build 47.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
-- [x] Collapse licence groups by default and install build 46.
-      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 
 ---
@@ -196,6 +201,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Install timing and project refinements in build 50
+
+**Agent:** Codex · **Commit(s):** Build 50 commit containing this entry
+**Kanban moved:** Requested UI, roadmap changes and physical installation → Done
+
+**Changed:** Independent Control Centre interval, aligned Settings titles and toggle captions, count-label update optimisation, ±5 BPM buttons, opt-in timing displays, project colour hierarchy and detailed revert confirmation. Lite playlists are on the roadmap with continuous play gated to Pro.
+
+**Verified:** TypeScript, version and whitespace checks, eight browser journeys, temporary 375-point timing/revert check and focused native Settings XCTest passed. The paired iPhone accepted the in-place update, launched BeatNote, and reported version 1.0.0 (50).
+
+**Not verified / known gaps:** Control Centre behaviour and toggle feel await hands-on review.
+
+**Next agent should:** Confirm a changed system skip interval during playback on the physical iPhone.
+
 ### 2026-11-05 — Audit prompt failures and trim regression assertions
 
 **Agent:** Codex · **Commit(s):** Test edits in `5eeef01`. Audit results recorded in the commit containing this entry.
@@ -249,18 +267,6 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 **Next agent should:** Collect physical feedback on the About screen.
 
-### 2026-11-05 — Collapse Open Source Licences on entry
-
-**Agent:** Codex · **Commit(s):** Build 46 commit containing this entry
-**Kanban moved:** Licence expanders → Done
-
-**Changed:** Every licence group has an independently expandable heading. Opening the page starts with all groups collapsed. Expanded groups show package versions and selectable notice text.
-
-**Verified:** TypeScript, version consistency, all eight browser journeys and the focused iOS Settings XCTest passed. Browser coverage checked the initial collapsed state, opening two groups and closing one while the other stayed open. The paired iPhone reported 1.0.0 (46) installed and launched it.
-
-**Not verified / known gaps:** Physical VoiceOver review remains open.
-
-**Next agent should:** Include one licence disclosure in the next device review.
 
 
 <!-- end handover log -->

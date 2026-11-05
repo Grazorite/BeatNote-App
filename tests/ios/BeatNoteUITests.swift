@@ -36,6 +36,11 @@ final class BeatNoteUITests: XCTestCase {
       "Settings should be the trailing action in the mobile project toolbar."
     )
     XCTAssertFalse(element("sidebar-toggle").exists, "Closed drawer must not overlap the project toolbar.")
+    element("sidebar-open-toggle").tap()
+    element("settings-bpm-entry").tap()
+    element("timing-shortcut-toggle").tap()
+    element("bpm-settings-page-back").tap()
+    element("sidebar-toggle").tap()
     element("timing-shortcut").tap()
     XCTAssertTrue(element("dance-grid-toggle").waitForExistence(timeout: 5))
     element("bpm-settings-page-back").tap()
