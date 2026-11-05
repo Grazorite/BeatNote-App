@@ -99,7 +99,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
         accessibilityElementsHidden={showLicences}
         importantForAccessibility={showLicences ? 'no-hide-descendants' : 'auto'}
       >
-        <SettingsSubpage title="About BeatNote" onBack={onBack} testID="about-settings-page">
+        <SettingsSubpage title="About BeatNote" onBack={onBack} testID="about-settings-page" contentContainerStyle={styles.aboutContent}>
           <View style={styles.identity}>
             <Pressable accessibilityRole="button" accessibilityLabel="BeatNote icon" accessibilityHint="Gives you a dance count-in" onPress={countIn}>
               <Animated.Image accessible={false} source={require('../../../../assets/icon.png')} style={[styles.icon, pulseStyle]} />
@@ -111,25 +111,15 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
             <Text style={styles.version}>Version {version} ({build})</Text>
           </View>
 
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.action}
-              onPress={() => setLicencesVisible(true)}
-              accessibilityRole="button"
-              testID="about-open-source-licences"
-            >
-              <Text style={styles.actionText}>Open Source Licences</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.action}
-              onPress={sendFeedback}
-              accessibilityRole="link"
-              accessibilityHint="Opens the invite to the BeatNote Helpdesk group"
-              testID="about-send-feedback"
-            >
-              <Text style={styles.actionText}>Give feedback on Telegram</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={sendFeedback}
+            accessibilityRole="link"
+            accessibilityHint="Opens the invite to the BeatNote Helpdesk group"
+            testID="about-send-feedback"
+          >
+            <Text style={styles.feedbackText}>Give feedback on Telegram</Text>
+          </TouchableOpacity>
 
           <View style={styles.privacyCard}>
             <Text style={styles.privacyTitle}>Privacy & diagnostics</Text>
@@ -137,6 +127,14 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
               BeatNote sends no crash reports or usage statistics. Future diagnostics will be opt-in.
             </Text>
           </View>
+          <TouchableOpacity
+            style={styles.licencesLink}
+            onPress={() => setLicencesVisible(true)}
+            accessibilityRole="link"
+            testID="about-open-source-licences"
+          >
+            <Text style={styles.licencesLinkText}>Open Source Licences</Text>
+          </TouchableOpacity>
         </SettingsSubpage>
       </Animated.View>
       <Animated.View

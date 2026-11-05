@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (46)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (47)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review the Release 46 licence list, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
+1. Physically review the Release 47 About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,6 +85,7 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
+
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -97,6 +98,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Give Telegram feedback the primary About button and move licences to a footer link. Install build 47.
+      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
 - [x] Collapse licence groups by default and install build 46.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
@@ -108,9 +112,6 @@ target; Android is a far-future possibility only.
 
 - [x] Clarify the timeline demo and reuse the editor’s marker shields. Install build 44.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/settings/ProFeatureDemo.tsx`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Fix named-project label resets, disable Display in Lite, refine the Pro demos, and install build 42.
-      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -191,6 +192,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Install the quieter About layout in build 47
+
+**Agent:** Codex · **Commit(s):** Build 47 commit containing this entry
+**Kanban moved:** About footer and feedback hierarchy → Done
+
+**Changed:** The Telegram button uses the accent colour below the identity. Open Source Licences sits in a small, underlined footer link with a 44-point tap target. A 16-point gap separates feedback and the privacy card.
+
+**Verified:** TypeScript, version consistency, all eight browser journeys and the focused iOS Settings XCTest passed. After the spacing adjustment, the focused browser journey passed again and a 393 × 852 viewport measured exactly 16 points between the controls. Rebuilt with the same build number. Device services verified installation and launch of 1.0.0 (47).
+
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open.
+
+**Next agent should:** Collect physical feedback on the About screen.
+
 ### 2026-11-05 — Collapse Open Source Licences on entry
 
 **Agent:** Codex · **Commit(s):** Build 46 commit containing this entry
@@ -242,18 +256,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 **Not verified / known gaps:** Hands-on review of the demo on the physical display is pending. Changes remain uncommitted.
 
 **Next agent should:** Collect physical feedback on the timeline demo and Marilag reset.
-
-### 2026-11-05 — Keep reset labels when saving a named project
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Label persistence, Display tier access and Pro demos → Done
-
-**Changed:** Reset flushes the draft immediately. Saving a named project preserves its current label, including an explicitly cleared label. The annotation-label Save action uses white text when enabled. Display & Annotations closes and disables in Lite like Timing & BPM. The timeline demo shows a usable “Vocals” label, and the system controls demo drops its lock icon.
-
-**Verified:** A separate named project reproduced the stale “Notes” label before the fix. The browser checks now cover reset in both stored records and reloading the editor, the white Save text and the disabled Lite setting. TypeScript and the focused iOS Settings test passed. Installed 1.0.0 (42) over the existing iPhone app, verified the installed version, and launched it.
-
-**Not verified / known gaps:** Marilag’s saved data was not opened or edited during verification. Builds 40 through 42 remain uncommitted.
-
-**Next agent should:** Confirm Marilag’s label on the physical phone after Reset and Save Project.
 
 <!-- end handover log -->

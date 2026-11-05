@@ -38,25 +38,36 @@ export const aboutSettingsStyles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
   },
-  actions: {
-    gap: 10,
-    marginBottom: 24,
+  aboutContent: {
+    flexGrow: 1,
   },
-  action: {
-    minHeight: 52,
+  feedbackButton: {
+    minHeight: 48,
     paddingHorizontal: 16,
+    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceGlass,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
+    backgroundColor: colors.accent,
     borderRadius: dimensions.borderRadius,
   },
-  actionText: {
-    color: colors.text,
+  feedbackText: {
+    color: colors.onAccent,
     fontSize: 15,
     fontWeight: '600',
   },
+  licencesLink: {
+    alignSelf: 'center',
+    marginTop: 'auto',
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+  },
+  licencesLinkText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    textDecorationLine: 'underline',
+  },
   privacyCard: {
+    marginTop: 16,
     padding: 16,
     backgroundColor: colors.surfaceGlass,
     borderWidth: 1,

@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Fix named-project label resets, disable Display in Lite, refine the Pro demos, and install build 42.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Keep reset labels when saving a named project
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Label persistence, Display tier access and Pro demos → Done
+
+**Changed:** Reset flushes the draft immediately. Saving a named project preserves its current label, including an explicitly cleared label. The annotation-label Save action uses white text when enabled. Display & Annotations closes and disables in Lite like Timing & BPM. The timeline demo shows a usable “Vocals” label, and the system controls demo drops its lock icon.
+
+**Verified:** A separate named project reproduced the stale “Notes” label before the fix. The browser checks now cover reset in both stored records and reloading the editor, the white Save text and the disabled Lite setting. TypeScript and the focused iOS Settings test passed. Installed 1.0.0 (42) over the existing iPhone app, verified the installed version, and launched it.
+
+**Not verified / known gaps:** Marilag’s saved data was not opened or edited during verification. Builds 40 through 42 remain uncommitted.
+
+**Next agent should:** Confirm Marilag’s label on the physical phone after Reset and Save Project.
+
 - [x] Save annotation labels explicitly, show net changes at song switches, and connect Pro pagination to scrolling. Install build 41.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/settings/proSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
 
