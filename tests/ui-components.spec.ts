@@ -99,6 +99,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByText('Find the BPM and line up your counts', { exact: true })).toBeInViewport();
     await page.getByTestId('pro-feature-1').click();
     await expect(page.getByText('Set your rehearsal speed', { exact: true })).toBeInViewport();
+    await page.getByRole('button', { name: 'Show Timeline appearance features' }).click();
+    await expect(page.getByTestId('pro-demo-appearance')).toBeInViewport();
     await expect(page.getByTestId('pro-plan-yearly')).toBeInViewport();
     await expect(page.getByTestId('pro-plan-monthly')).toBeInViewport();
     await page.getByTestId('pro-compare').click();
@@ -117,7 +119,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (39)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (44)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');
@@ -183,6 +185,10 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('timing-shortcut-toggle').click();
     await page.getByTestId('bpm-settings-page-back').click();
     await page.getByTestId('settings-display').click();
+    const laneName = page.getByTestId('settings-layer-name-vocals');
+    await laneName.fill('Vocals');
+    await expect(page.getByTestId('settings-layer-save-vocals').getByText('Save')).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await page.getByTestId('settings-layer-save-vocals').click();
     await page.getByTestId('waveform-visibility-toggle').click();
     await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
@@ -194,6 +200,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-bpm-entry')).toBeDisabled();
     await expect(page.getByTestId('settings-bpm-entry')).toContainText('Pro only');
+    await expect(page.getByTestId('settings-display')).toBeDisabled();
+    await expect(page.getByTestId('settings-display')).toContainText('Pro only');
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toBeDisabled();
     await expect(page.getByTestId('continuous-play-detail')).toHaveText('Pro only');
@@ -203,6 +211,9 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('button-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
+    await expect(page.getByTestId('wrapped-row-peaks-0')).toHaveCount(0);
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveCount(0);
+    await expect(page.getByTestId('add-marker')).toBeEnabled();
     await expect(shortcut).toHaveCount(0);
     await expect(grid).toHaveCount(0);
     await page.getByTestId('playback-speed').click();
@@ -228,6 +239,11 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('confirm-enable-debug-pro').click();
     await expect(proPasswordDialog).toHaveCount(0);
     await expect(page.getByTestId('settings-bpm-entry')).toBeEnabled();
+    await page.getByTestId('settings-display').click();
+    await expect(page.getByTestId('waveform-visibility-toggle')).toHaveAttribute('aria-checked', 'true');
+    await expect(laneName).toBeEditable();
+    await expect(laneName).toHaveValue('Vocals');
+    await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('settings-buttons').click();
     await page.getByTestId('speed-preset-count-4').click();
     await page.getByTestId('button-settings-page-back').click();
@@ -550,8 +566,8 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-display').click();
-    await page.getByTestId('settings-layer-name-vocals').fill('Lead movement');
-    await page.getByTestId('settings-layer-name-vocals').press('Enter');
+    await page.getByTestId('settings-layer-name-vocals').fill('Notes');
+    await page.getByTestId('settings-layer-save-vocals').click();
     await expect(page.getByTestId('settings-layer-reset-vocals').getByText('Reset'))
       .toHaveCSS('color', 'rgb(181, 74, 69)');
     await page.getByTestId('display-settings-page-back').click();
@@ -666,7 +682,37 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('projects-back').click();
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-display').click();
-    await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Lead movement');
+    await expect(page.getByTestId('settings-layer-name-vocals')).toHaveValue('Notes');
+    const labelField = page.getByTestId('settings-layer-name-vocals');
+    const storedLabel = (source: 'draft' | 'project') => page.evaluate(which => {
+      const project = Object.entries(localStorage)
+        .filter(([key]) => key.startsWith('beatnote.project.v2.'))
+        .map(([, raw]) => JSON.parse(raw))
+        .find(record => record.metadata.name === 'Renamed Current');
+      if (!project) return null;
+      const record = which === 'project' ? project
+        : JSON.parse(localStorage.getItem('beatnote.draft.v1.' + project.musicItemId) ?? 'null')?.content;
+      const layer = record?.layers.find((item: { id: string }) => item.id === 'vocals');
+      return layer ? layer.customName ?? 'Annotations' : null;
+    }, source);
+    await expect.poll(() => storedLabel('project')).toBe('Notes');
+    await page.getByTestId('settings-layer-reset-vocals').click();
+    await expect(labelField).toHaveValue('Annotations');
+    await expect.poll(() => storedLabel('draft')).toBe('Annotations');
+    await page.getByTestId('display-settings-page-back').click();
+    await page.getByTestId('sidebar-toggle').click();
+    await page.getByTestId('save-project').click();
+    await expect.poll(() => storedLabel('project')).toBe('Annotations');
+    await page.reload();
+    await expect(songTitleControl).toContainText('test-audio');
+    await page.getByTestId('sidebar-open-toggle').click();
+    await page.getByTestId('settings-display').click();
+    await expect(labelField).toHaveValue('Annotations');
+    await labelField.fill('Footwork');
+    await labelField.blur();
+    await expect(page.getByTestId('settings-layer-save-vocals')).toBeEnabled();
+    await page.getByTestId('settings-layer-save-vocals').click();
+    await expect(page.getByTestId('settings-layer-save-vocals')).toBeDisabled();
     await page.getByTestId('display-settings-page-back').click();
     await page.getByTestId('sidebar-toggle').click();
 
@@ -674,6 +720,8 @@ test.describe('UI Components & Layout', () => {
     await songTitleControl.click();
     await page.getByRole('button', { name: /^second-song,/ }).click();
     await expect(page.getByTestId('switch-guard-dialog')).toBeVisible();
+    await expect(page.getByTestId('switch-change-summary')).toContainText('Annotation label: “Annotations” → “Footwork”');
+    await expect(page.getByTestId('switch-change-summary')).toContainText('Markers: 1 added');
     await page.getByTestId('switch-keep-draft').click();
     await songTitleControl.click();
     const target = page.getByRole('button', { name: /^test-audio,/ });
@@ -694,6 +742,7 @@ test.describe('UI Components & Layout', () => {
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
 
     await page.getByTestId('load-project').click();
+    await prepareFilePicker(page);
     await page.getByTestId('current-project-import-csv').click();
     await page.locator('input[type="file"]').last().setInputFiles({
       name: 'replace.csv',

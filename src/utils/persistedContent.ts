@@ -216,6 +216,17 @@ export function applyPersistedContent(content: PersistedContent): PersistedConte
   };
 }
 
+/** Read authored content without relying on project metadata for change detection. */
+export function projectContent(project: BeatNoteProject): PersistedContent {
+  return {
+    layers: cloneLayers(project.layers as PersistedLayer[]),
+    bpm: project.metadata.bpm,
+    stemCount: project.metadata.stemCount,
+    settings: { ...project.settings },
+    extras: getTopLevelExtras(project),
+  };
+}
+
 /** Split a stored project into its immutable envelope and authored content. */
 export function splitProjectEnvelope(project: SavedProject): {
   envelope: SavedProjectEnvelope;
@@ -228,8 +239,6 @@ export function splitProjectEnvelope(project: SavedProject): {
     revision,
     metadata,
     audio,
-    layers,
-    settings,
   } = project;
 
   return {
@@ -246,13 +255,7 @@ export function splitProjectEnvelope(project: SavedProject): {
       },
       audio: { ...audio },
     },
-    content: {
-      layers: cloneLayers(layers as PersistedLayer[]),
-      bpm: metadata.bpm,
-      stemCount: metadata.stemCount,
-      settings: { ...settings },
-      extras: getTopLevelExtras(project),
-    },
+    content: projectContent(project),
   };
 }
 

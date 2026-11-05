@@ -65,6 +65,7 @@ const useEdgeSwipeBack = (onBack: () => void) => {
 
 interface SettingsRootSectionsProps {
   bpmAvailable: boolean;
+  displayAvailable: boolean;
   showProRow?: boolean;
   onOpenDisplay: () => void;
   onOpenPlayback: () => void;
@@ -78,6 +79,7 @@ interface SettingsRootSectionsProps {
 
 const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
   bpmAvailable,
+  displayAvailable,
   showProRow = true,
   onOpenDisplay,
   onOpenPlayback,
@@ -94,11 +96,6 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
     </View>
     <View style={[styles.sidebarSection, styles.navigationRows]}>
       <SettingsNavigationRow
-        label="Display & Annotations"
-        onPress={onOpenDisplay}
-        testID="settings-display"
-      />
-      <SettingsNavigationRow
         label="Playback Settings"
         onPress={onOpenPlayback}
         testID="settings-playback"
@@ -107,6 +104,13 @@ const SettingsRootSections: React.FC<SettingsRootSectionsProps> = ({
         label="Button Configuration"
         onPress={onOpenButtons}
         testID="settings-buttons"
+      />
+      <SettingsNavigationRow
+        label="Display & Annotations"
+        detail={displayAvailable ? undefined : 'Pro only'}
+        disabled={!displayAvailable}
+        onPress={onOpenDisplay}
+        testID="settings-display"
       />
       <SettingsNavigationRow
         label="Timing & BPM"
@@ -147,6 +151,7 @@ const Sidebar: React.FC = () => {
   const showHelpScreen = useStudioStore(state => state.showHelpScreen);
   const setShowHelpScreen = useStudioStore(state => state.setShowHelpScreen);
   const bpmAvailable = useProductCapability('analysis.bpm');
+  const displayAvailable = useProductCapability('waveform.display');
   const directTiming = useStudioStore(state => state.timingShortcutOpen) && bpmAvailable;
   const [settingsDetail, setActiveDetail] = useState<SettingsDetail>(null);
   const activeDetail = directTiming ? 'bpm' : settingsDetail;
@@ -185,8 +190,10 @@ const Sidebar: React.FC = () => {
   }, [detailProgress, detailVisible, isMobile]);
 
   useEffect(() => {
-    if (!bpmAvailable && activeDetail === 'bpm') setActiveDetail(null);
-  }, [activeDetail, bpmAvailable]);
+    if ((!bpmAvailable && activeDetail === 'bpm') || (!displayAvailable && activeDetail === 'display')) {
+      setActiveDetail(null);
+    }
+  }, [activeDetail, bpmAvailable, displayAvailable]);
 
   const mobileEntryStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: settingsEntryX.value }],
@@ -281,6 +288,7 @@ const Sidebar: React.FC = () => {
                 showsVerticalScrollIndicator={false}
               >
                 <SettingsRootSections
+                  displayAvailable={displayAvailable}
                   bpmAvailable={bpmAvailable}
                   showProRow={false}
                   onOpenDisplay={() => setActiveDetail('display')}
@@ -379,6 +387,7 @@ const Sidebar: React.FC = () => {
             indicatorStyle="default"
           >
             <SettingsRootSections
+              displayAvailable={displayAvailable}
               bpmAvailable={bpmAvailable}
               onOpenDisplay={() => setActiveDetail('display')}
               onOpenPlayback={() => setActiveDetail('playback')}

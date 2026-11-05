@@ -45,7 +45,7 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Layer** — the persisted project schema retains six stable internal IDs (Vocals, Drums, Bass,
   Piano, Guitar, and Other) for compatibility and future expansion. The V1 phone editor exposes one
   annotation lane and hides layer-selection UI; its fixed internal `vocals` layer is presented as
-  **Annotations** unless the user gives the lane a custom name. Mobile Settings exposes only that
+  **Annotations** unless the user names the lane in Pro. Lite retains saved labels. Mobile Settings exposes only that
   lane name, while desktop retains the multi-layer naming controls. Existing multi-layer projects
   remain readable, and CSV/PDF exports use the annotation-facing fallback without changing IDs.
 - **Marker** — a timestamp placed on a layer, representing a beat, cue, or movement moment.
@@ -80,7 +80,7 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   available screen height and each row's timestamp span adapts to the loaded track duration. Gutter
   and waveform gestures seek or select; marker creation is exclusive to the bottom marker controls.
 - **Waveform display** — optional decoded amplitude artwork in the canvas and overview strip. It is
-  available in every tier, persisted per project, and off by default; when off, the canvas renders
+  available in Pro, persisted per project, and off by default; when off, the canvas renders
   solid timing/progress bars without removing seeking, markers, loops, playhead, or annotations.
   One container-level scrub spans every row: a horizontal-first drag activates it (vertical-first
   movement does not), the finger then maps across adjacent rows, and holding in the trailing edge

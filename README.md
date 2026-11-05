@@ -24,7 +24,7 @@ target. Android is a far-future possibility. See [AGENTS.md](./AGENTS.md) for li
 - App-owned local music library with durable import, relink, rename, removal, search, sort, and queue controls
 - Per-song autosaved drafts plus named, revisioned projects
 - Fixed-height wrapped timeline with continuous cross-row scrubbing and a full-song loop overview
-- Optional decoded waveform artwork in the canvas and overview strip (available to both tiers and off by default); solid timing bars preserve the complete Lite workflow
+- Optional decoded waveform artwork in the canvas and overview strip and custom annotation labels in Pro. Lite supports scrubbing, markers, notes and loops on plain timing bars
 - Unlimited markers and free-text annotations on the V1 phone annotation lane
 - Marker navigation, undo/redo, vocabulary suggestions, and timed annotation callouts
 - BPM, beat-anchor, phrase-start, 4/6/8-count guidance, snapping, and non-destructive automatic BPM suggestions

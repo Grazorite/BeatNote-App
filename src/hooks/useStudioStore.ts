@@ -1,3 +1,4 @@
+import { isCapabilityAvailable } from '../features/entitlements/capabilityService';
 import { create, type StateCreator } from 'zustand';
 import type { BeatNoteProject, LayerId } from '../types/project';
 import { StemSeparationStatus } from '../features/stemSeparation/types';
@@ -50,7 +51,7 @@ import {
   parseCsvForPreview,
   restoreCsvUndo,
 } from '../utils/csvReplace';
-import { normalizeCustomLayerName } from '../utils/layers';
+import { DEFAULT_ANNOTATION_LANE_NAME, normalizeCustomLayerName } from '../utils/layers';
 
 export type { LayerId } from '../types/project';
 
@@ -123,6 +124,7 @@ export interface SwitchDestination {
 }
 
 export interface SwitchGuardPrompt {
+  changes: string[];
   pendingDestination: SwitchDestination;
 }
 
@@ -858,7 +860,9 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   setPrimaryView: (view) => set({ primaryView: view }),
   setCountSize: (size) => set({ countSize: size }),
   setShowDanceCounts: (show) => set({ showDanceCounts: show }),
-  setShowWaveform: (show) => set({ showWaveform: show }),
+  setShowWaveform: (show) => {
+    if (isCapabilityAvailable('waveform.display')) set({ showWaveform: show });
+  },
   setRowDensity: (density) => set({ rowDensity: density }),
   setFollowPlayhead: (follow) => set({ followPlayhead: follow }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: normalizePlaybackSpeed(speed) }),
@@ -1408,9 +1412,10 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   }),
   setActiveLayer: (layerId) => set({ activeLayerId: layerId }),
   setLayerCustomName: (layerId, customName) => set((state) => {
+    if (!isCapabilityAvailable('layers.customNames')) return state;
     const defaultName = state.allLayersData.find(layer => layer.id === layerId)?.name;
     if (defaultName === undefined) return state;
-    const normalized = normalizeCustomLayerName(customName, defaultName);
+    const normalized = normalizeCustomLayerName(customName, layerId === 'vocals' ? DEFAULT_ANNOTATION_LANE_NAME : defaultName);
     const updatedAllLayers = state.allLayersData.map(layer => (
       layer.id === layerId ? { ...layer, customName: normalized } : layer
     ));

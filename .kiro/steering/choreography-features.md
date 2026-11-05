@@ -46,7 +46,7 @@ maps, deeper phrase/downbeat assistance, and configurable or batch analysis.
 ## Waveform display
 
 - Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is controlled by
-  a persisted `showWaveform` project setting. It is available in Lite and Pro (not gated).
+  a persisted `showWaveform` project setting. The artwork requires Pro. Lite uses timing bars and preserves the saved preference.
 - The toggle is off for new and older projects unless the user enables it.
 - With artwork off, the same timeline geometry renders as solid timing/progress bars. Seeking,
   scrubbing, markers, loops, playhead, and annotations remain fully usable.
@@ -55,7 +55,7 @@ maps, deeper phrase/downbeat assistance, and configurable or batch analysis.
 
 - `Layer.customName` is persisted without changing the stable `LayerId` schema.
 - The V1 phone editor exposes one lane, internally `vocals`, presented as **Annotations** unless the
-  user supplies a custom name.
+  user supplies a custom name in Pro. Lite keeps existing names readable and disables editing and reset. Label edits stay local to the field until Save or keyboard Done. Blurring the field does not change the song. Reset clears the custom name and flushes the song draft immediately. Saving the named project must preserve that cleared value. “Vocals” is a valid custom label.
 - Existing multi-layer projects remain readable. Multi-layer editing and naming are V2 Pro expansion
   candidates.
 

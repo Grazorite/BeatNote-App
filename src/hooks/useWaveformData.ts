@@ -117,7 +117,7 @@ export const useWaveformData = (
     };
   }, [readyAudioUri, resolution]);
 
-  return { waveformData, loading };
+  return readyAudioUri ? { waveformData, loading } : { waveformData: null, loading: false };
 };
 
 /** Trace both edges once so a tinted waveform has no interior stroke seams. */

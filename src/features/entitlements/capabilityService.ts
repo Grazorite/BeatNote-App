@@ -11,12 +11,11 @@ import {
 } from './types';
 
 /**
- * Lite includes waveform artwork and the built-in pitch-preserved speed presets. Fine speed
+ * Lite includes the built-in pitch-preserved speed presets. Waveform artwork, label editing, fine speed
  * adjustment, custom presets, all BPM tooling, continuous playback, resume, and remote controls
  * remain Pro.
  */
 const LITE_INCLUDED = new Set<ProductCapability>([
-  'waveform.display',
   'playback.pitchPreservingSpeed',
 ]);
 

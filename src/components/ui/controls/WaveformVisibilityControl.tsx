@@ -26,7 +26,7 @@ const WaveformVisibilityControl: React.FC = () => {
         testID="waveform-visibility-toggle"
       />
       <Text style={styles.hint}>
-        Turn off to show plain timing bars. Markers, loops and seeking work in both views.
+        {waveformAvailable ? 'Show the shape of your song on the timeline and overview.' : 'Pro only'}
       </Text>
     </View>
   );

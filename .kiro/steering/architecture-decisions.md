@@ -177,12 +177,11 @@ the decision only with written Spotify approval/partnership or a material policy
 Rationale: provider-neutral code cannot remove provider policy, DRM, subscription, or decoded-audio
 constraints. Naming a blocked integration as a paid feature would create product and legal risk.
 
-### ADR-020: Waveform artwork is an optional, ungated presentation layer
+### ADR-020: Waveform artwork is an optional Pro display setting
 
 Decoded waveform artwork in the wrapped canvas, detail canvas, and overview strip is a persisted
-`showWaveform` setting that defaults to false and is available to every tier (revised 2026-11-02;
-it was previously a Pro capability). Disabling it prevents waveform extraction requests from those
-surfaces. With artwork off, the same timeline renders solid timing/progress bars with identical
+`showWaveform` setting that defaults to false and requires Pro (revised 2026-11-05). Lite shows timing bars and preserves the saved
+preference and custom annotation labels. Disabling artwork prevents extraction requests from these surfaces. With artwork off, the same timeline renders solid timing/progress bars with identical
 seeking, scrubbing, marker, loop, playhead, and annotation behavior.
 
 Rationale: waveform artwork adds useful visual precision and measurable extraction/drawing cost,

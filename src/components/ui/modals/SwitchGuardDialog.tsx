@@ -3,6 +3,7 @@ import {
   AccessibilityInfo,
   Alert,
   findNodeHandle,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -116,9 +117,12 @@ const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySh
             <Text ref={titleRef} style={styles.title} accessibilityRole="header">
               Save changes before switching?
             </Text>
-            <Text style={styles.message}>
-              “{currentTitle}” has unsaved edits. Save them to “{projectName}” or keep a draft.
-            </Text>
+            <ScrollView style={styles.changes}>
+              <Text style={styles.message}>
+                “{currentTitle}” has unsaved edits. Save them to “{projectName}” or keep a draft.
+              </Text>
+              <Text style={styles.summary} testID="switch-change-summary">{switchGuard.changes.join('\n')}</Text>
+            </ScrollView>
             <TouchableOpacity
               ref={saveButtonRef}
               style={[styles.button, styles.saveButton]}

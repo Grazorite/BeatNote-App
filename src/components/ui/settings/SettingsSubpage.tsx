@@ -49,6 +49,7 @@ const SettingsSubpage: React.FC<SettingsSubpageProps> = ({
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={[styles.content, contentContainerStyle]}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {children}

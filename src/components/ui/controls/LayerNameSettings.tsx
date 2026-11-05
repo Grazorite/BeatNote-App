@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { flushDraft } from '../../../features/library/draftAutosave';
+import { DRAFT_FLUSH_TIMEOUT_MS } from '../../../utils/libraryConstants';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import type { Layer } from '../../../hooks/useStudioStore';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { colors } from '../../../styles/common';
@@ -9,6 +12,7 @@ import {
   getAnnotationLaneDisplayName,
   getLayerDisplayName,
   MAX_CUSTOM_LAYER_NAME_LENGTH,
+  normalizeCustomLayerName,
 } from '../../../utils/layers';
 
 interface LayerNameRowProps {
@@ -25,15 +29,17 @@ const LayerNameRow: React.FC<LayerNameRowProps> = ({ layer, disabled, annotation
     : getLayerDisplayName(layer);
   const [value, setValue] = useState(displayName);
 
-  useEffect(() => setValue(displayName), [displayName]);
+  useEffect(() => setValue(displayName), [displayName, disabled]);
 
+  const defaultLabel = annotationLane ? DEFAULT_ANNOTATION_LANE_NAME : layer.name;
+  const nextName = normalizeCustomLayerName(value, defaultLabel);
+  const canSave = !disabled && nextName !== layer.customName;
   const commit = () => {
-    setTextInputFocused(false);
-    const storedValue = annotationLane
-      && value.trim().toLocaleLowerCase() === DEFAULT_ANNOTATION_LANE_NAME.toLocaleLowerCase()
-      ? layer.name
-      : value;
-    setLayerCustomName(layer.id, storedValue);
+    if (!disabled) {
+      if (canSave) setLayerCustomName(layer.id, nextName ?? '');
+      setValue(nextName ?? defaultLabel);
+      Keyboard.dismiss();
+    }
   };
 
   const fieldLabel = annotationLane ? 'Annotation lane name' : `${layer.name} layer name`;
@@ -50,7 +56,7 @@ const LayerNameRow: React.FC<LayerNameRowProps> = ({ layer, disabled, annotation
         value={value}
         onChangeText={setValue}
         onFocus={() => setTextInputFocused(true)}
-        onBlur={commit}
+        onBlur={() => setTextInputFocused(false)}
         onSubmitEditing={commit}
         editable={!disabled}
         maxLength={MAX_CUSTOM_LAYER_NAME_LENGTH}
@@ -61,9 +67,21 @@ const LayerNameRow: React.FC<LayerNameRowProps> = ({ layer, disabled, annotation
         testID={`settings-layer-name-${layer.id}`}
       />
       <TouchableOpacity
+        onPress={commit}
+        disabled={!canSave}
+        accessibilityRole="button"
+        accessibilityLabel={annotationLane ? 'Save annotation label' : 'Save layer name'}
+        style={styles.resetButton}
+        testID={`settings-layer-save-${layer.id}`}
+      >
+        <Text style={[styles.saveText, !canSave && styles.disabled]}>Save</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={() => {
           setValue(annotationLane ? DEFAULT_ANNOTATION_LANE_NAME : layer.name);
-          setLayerCustomName(layer.id, layer.name);
+          setLayerCustomName(layer.id, '');
+          Keyboard.dismiss();
+          void flushDraft(DRAFT_FLUSH_TIMEOUT_MS);
         }}
         disabled={disabled || layer.customName === undefined}
         accessibilityRole="button"
@@ -86,7 +104,9 @@ interface LayerNameSettingsProps {
 const LayerNameSettings: React.FC<LayerNameSettingsProps> = ({ singleAnnotationLane = false }) => {
   const layers = useStudioStore(state => state.layers);
   const allLayersData = useStudioStore(state => state.allLayersData);
+  const songId = useStudioStore(state => state.currentMusicItemId);
   const songLoaded = useStudioStore(state => state.songLoaded);
+  const canRename = useProductCapability('layers.customNames');
   const displayedLayers = singleAnnotationLane
     ? allLayersData.filter(layer => layer.id === 'vocals')
     : layers;
@@ -94,15 +114,15 @@ const LayerNameSettings: React.FC<LayerNameSettingsProps> = ({ singleAnnotationL
   return (
     <View style={styles.container} testID="settings-layer-names">
       <Text style={styles.helpText}>
-        {singleAnnotationLane
-          ? "This name is saved with the song's draft and projects and used in exports."
+        {!canRename ? 'Pro only' : singleAnnotationLane
+          ? 'Tap Save to use this label in the song’s draft, projects and exports.'
           : "Names are saved with this song's draft and projects."}
       </Text>
       {displayedLayers.map(layer => (
         <LayerNameRow
-          key={layer.id}
+          key={`${songId}-${layer.id}`}
           layer={layer}
-          disabled={!songLoaded}
+          disabled={!songLoaded || !canRename}
           annotationLane={singleAnnotationLane}
         />
       ))}

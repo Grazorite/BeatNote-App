@@ -70,7 +70,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
 
         <Section title="Waveform & Overview">
           <Text style={styles.text}>Tap or drag the timeline to move through the song. Drag the overview handles to set a loop.</Text>
-          <Text style={styles.text}>Turn on Show waveform in Display & Annotations to see the shape of the music.</Text>
+          <Text style={styles.text}>In Pro, open Display & Annotations to show the waveform or rename the annotation lane.</Text>
           <Text style={styles.text}>During playback, each note appears when the playhead crosses its marker.</Text>
         </Section>
 

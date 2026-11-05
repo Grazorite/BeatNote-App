@@ -33,7 +33,7 @@ fast regression harness, not a product or release target.
 - One visible annotation lane in the V1 phone editor; preserve the six-layer project schema for
   compatibility and V2 expansion
 - Marker editing, navigation, undo, and redo
-- Solid timing bars and seeking; decoded waveform artwork is an optional, off-by-default toggle
+- Solid timing bars and seeking; decoded waveform artwork is an optional, off-by-default Pro toggle
 - BPM, beat anchor, 8-count guidance, and the non-destructive local automatic-BPM suggestion are
   Pro-tier features, exposed as previews in V1
 - Section looping and practical rehearsal controls
@@ -157,7 +157,6 @@ The Lite tier must complete a real project:
 
 - Import and play supported local audio
 - Seek, scrub, loop, and use solid timing/progress bars
-- Optionally enable decoded waveform artwork (user-controlled, off by default)
 - Add, edit, navigate, and delete unlimited markers and annotations
 - Choose from the built-in pitch-preserved speed presets; fine increments and preset editing are Pro
 - Play in the background; playback stops at the end of a track unless Repeat is on
@@ -200,7 +199,7 @@ provider, which grants implemented preview features without enforcing a paywall.
 | `projects.unlimited` | No (one saved project per song; drafts unlimited) | Yes |
 | `layers.multiple` | No (one phone lane) | Yes |
 | `layers.customNames` | No | Yes |
-| `waveform.display` | Yes; user-controlled and off by default (ungated) | Yes |
+| `waveform.display` | No (plain timing bars) | Optional, off by default |
 | `playback.pitchPreservingSpeed` | Yes; built-in pitch-preserved presets | Yes |
 | `playback.advancedSpeed` | No | Fine slider/buttons, adjustable range, and long-press custom preset editing |
 | `playback.continuous` | No (stops at track end unless Repeat is on) | Yes |
@@ -298,9 +297,9 @@ should be time- or cohort-limited, clearly exclude metered cloud stem-processing
 the default public offer. If a public lifetime product is introduced later, test S$79.98 or higher
 so it does not undermine the yearly subscription.
 
-The Pro page uses a compact, illustration-led carousel above two horizontal plan cards. Its four
-stories lead with automatic BPM, followed by speed, continuous playback, and system playback
-controls on the Lock Screen and in Control Centre. The comparison follows the same order. Remove introductory marketing blocks, speculative integrations, ad-removal
+The Pro page uses a compact, illustration-led carousel above two horizontal plan cards. Its five
+stories lead with automatic BPM, followed by speed, timeline appearance, continuous playback and
+system playback controls. Timeline appearance demonstrates waveform display and renaming the annotation lane. Display & Annotations sits immediately above Timing & BPM in Settings. Both rows are disabled in Lite. Additional marker styles, colours and stem views are future design ideas. The comparison follows the same order. Remove introductory marketing blocks, speculative integrations, ad-removal
 claims, and unavailable phone features from this surface. Do not mention Apple Music or stem
 separation on the Pro page, even as future or excluded features. Founders/later lifetime pricing
 remains an internal launch proposal, not additional copy on this compact page.
@@ -316,7 +315,7 @@ BPM analysis/preview/apply, and Lock Screen pause/seek/play. They never control 
 modify projects. Only the visible foreground demo runs; opening comparison pauses it. Reduce
 Motion shows a static explanatory frame. Use the shared chevron icon in a reserved 28-point box
 for the compare cue, not a text glyph with a clipped line height. Pro comparison values use the
-accent colour and bold weight while retaining explicit checks/text. Pagination is directly tappable,
+accent colour and bold weight while retaining explicit checks/text. The active pagination pill stretches and follows the horizontal scroll position; Reduce Motion snaps it to the selected dot. Pagination is directly tappable,
 and small screens/large text retain vertical scrolling as a fallback. Both plan choices should fit
 on a standard portrait phone without scrolling. Yearly remains selected by default (S$19.98,
 about S$1.67/month, 44% below twelve S$2.98 monthly payments). Purchase/trial availability remains

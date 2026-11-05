@@ -145,24 +145,26 @@ const markerFrequencies = (markers: readonly number[]): Map<number, number> => {
   return frequencies;
 };
 
-/** Count per-layer marker additions and removals, retaining duplicate multiplicity. */
-export function changedMarkerCount(
-  current: PersistedContent,
-  baseline: PersistedContent,
-): number {
-  const baselineByLayer = new Map(baseline.layers.map(layer => [layer.id, layer]));
-  return current.layers.reduce((total, layer) => {
-    const currentCounts = markerFrequencies(layer.markers);
-    const baselineCounts = markerFrequencies(baselineByLayer.get(layer.id)?.markers ?? []);
-    const timestamps = new Set([...currentCounts.keys(), ...baselineCounts.keys()]);
-    return total + [...timestamps].reduce(
-      (count, timestamp) => count
-        + Math.abs((currentCounts.get(timestamp) ?? 0) - (baselineCounts.get(timestamp) ?? 0)),
-      0,
-    );
-  }, 0) + baseline.layers
-    .filter(layer => !current.layers.some(currentLayer => currentLayer.id === layer.id))
-    .reduce((total, layer) => total + layer.markers.length, 0);
+/** Count additions and removals by layer and timestamp, including duplicate markers. */
+export function changedMarkers(current: PersistedContent, baseline: PersistedContent): { added: number; removed: number } {
+  const counts = { added: 0, removed: 0 };
+  const layerIds = new Set([...current.layers, ...baseline.layers].map(layer => layer.id));
+  for (const id of layerIds) {
+    const before = markerFrequencies(baseline.layers.find(layer => layer.id === id)?.markers ?? []);
+    const after = markerFrequencies(current.layers.find(layer => layer.id === id)?.markers ?? []);
+    for (const time of new Set([...before.keys(), ...after.keys()])) {
+      const difference = (after.get(time) ?? 0) - (before.get(time) ?? 0);
+      counts.added += Math.max(0, difference);
+      counts.removed += Math.max(0, -difference);
+    }
+  }
+  return counts;
+}
+
+/** Total marker changes shown when discarding a project draft. */
+export function changedMarkerCount(current: PersistedContent, baseline: PersistedContent): number {
+  const { added, removed } = changedMarkers(current, baseline);
+  return added + removed;
 }
 
 /** List persisted setting keys whose canonical values differ. */

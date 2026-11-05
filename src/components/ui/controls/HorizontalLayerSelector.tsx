@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, TouchableOpacity, Text, TextInput } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useStudioStore, LayerId } from '../../../hooks/useStudioStore';
 import { useLayerSelectorAnimation } from '../../../hooks/useLayerSelectorAnimation';
 import { BeatNoteIcon, BeatNoteIconName } from '../../icons';
@@ -16,6 +17,7 @@ const HorizontalLayerSelector: React.FC = () => {
     toggleLayerVisibility,
     stemCount,
   } = useStudioStore();
+  const canRename = useProductCapability('layers.customNames');
   const [editingLayerId, setEditingLayerId] = useState<LayerId | null>(null);
   const [draftName, setDraftName] = useState('');
 
@@ -52,7 +54,7 @@ const HorizontalLayerSelector: React.FC = () => {
     );
 
     const displayName = getLayerDisplayName(layer);
-    const isEditing = editingLayerId === layer.id;
+    const isEditing = canRename && editingLayerId === layer.id;
 
     return (
       <Animated.View style={[styles.layerItem, animatedStyle]}>
@@ -99,7 +101,7 @@ const HorizontalLayerSelector: React.FC = () => {
             </Text>
           )}
         </TouchableOpacity>
-        {!isEditing && (
+        {canRename && !isEditing && (
           <TouchableOpacity
             onPress={() => beginEditing(layer)}
             accessibilityRole="button"
@@ -123,7 +125,7 @@ const HorizontalLayerSelector: React.FC = () => {
         ))}
       </View>
       <Text style={styles.helpText}>
-        Tap to select • Long press to hide/show • Edit name to customise
+        Tap to select • Long press to hide/show{canRename ? ' • Edit name to customise' : ''}
       </Text>
     </View>
   );

@@ -122,6 +122,75 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 
 - Record the user's Release 28 Library row-tap result with the previously affected file.
 
+## Archived Done — Release 41
+
+- [x] Clarify active BPM previews in the editor and rename the tempo picker.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/controls/bpmSuggestionCard.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+
+## Archived handover — Release 41
+
+### 2026-11-05 — Identify the active tempo preview in the editor
+
+**Agent:** Codex · **Commit(s):** Separate preview commit following `671487b`
+**Kanban moved:** Editor BPM preview and tempo picker → Done
+
+**Changed:** When previewing, the editor shows preview and project BPM together and lets the user return directly to Timing. The optional toolbar button and count labels follow the preview. The expandable Preview related tempos control swaps position with Keep Current, exposes its expanded state, and closes after selection.
+
+**Verified:** TypeScript and all eight browser journeys passed, with a focused rerun for the final picker wording. The browser checked preview with the shortcut hidden, navigation back from the indicator, and cancellation. The focused iOS automatic BPM, preview and anchor-controls XCTest passed.
+
+**Not verified / known gaps:** Installed build 36 contains the preceding waveform/BPM fixes. The new preview UI is awaiting a future physical build. Queue edits are excluded from both commits.
+
+**Next agent should:** Include the preview indicator in the next requested iPhone build.
+
+
+
+## Archived Done — Release 40
+
+- [x] Prepare build 37, pass the release gates, and publish the complete timing, waveform and
+      queue-order work to `master` without installing it on the iPhone.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `src/utils/queueOrder.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+
+## Archived handover — Release 40
+
+### 2026-11-05 — Prepare and publish build 37
+
+**Agent:** orchestrator (Codex) · **Commit(s):** Included in the build-37 publication commit containing this entry
+**Kanban moved:** Build 37 versioning, final release gate, commit and push → Done
+
+**Changed:**
+
+- Incremented the iOS source build from 36 to 37 and updated the in-app About expectation. Per the
+  user's request, no native build was installed; the physical iPhone remains on Release 36.
+- Reconciled the complete shared tree: simplified timing controls, filled waveform rendering,
+  Music Library order/transport synchronization, matching steering, and retained browser/native
+  acceptance updates.
+- Replaced a timing-sensitive playback-annotation visibility assertion with a page-side observer of
+  the actual popup event. The behavior under test is unchanged, while parallel worker stalls can no
+  longer miss the intentionally short two-second callout.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` passed.
+- Final full retained Playwright regression passed 8/8 on build 37. The first full run passed 7/8;
+  the annotation journey passed focused, identifying a transient-observation race rather than an
+  app regression, and the final event-based assertion passed in the full parallel suite.
+- The focused iOS automatic-BPM suggestion, preview-in-editor, apply/restore and anchor-controls
+  journey passed against build 37's source on iPhone 17 Pro simulator.
+
+**Not verified / known gaps:**
+
+- This session did not build, install, or physically review build 37. The user reported that a
+  separate agent is handling its device installation, whose outcome is not claimed here. TestFlight
+  distribution and existing-library/project confirmation remain open.
+
+**Next agent should:**
+
+- Reconcile the separate build-37 installation result, then physically verify Previous/Next after
+  sorting or reordering at least three real songs.
+
+
 ## Archived Done — 2026-11-05 Pro feature order
 
 - [x] Keep Previous/Next track navigation synchronized with the active Music Library sort and
@@ -6656,3 +6725,50 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Not verified / known gaps:** Physical review of the Pro sparkle remains open. The shared workspace includes concurrent BPM and device build work.
 
 **Next agent should:** Check the Pro sparkle during the next iPhone review.
+
+- [x] Install and launch build 37 with BPM previews and library queue synchronization.
+      <sub>**Key Artifacts:** `AGENTS.md`, `.kiro/steering/ios-testflight.md`, `docs/context/archive/beatnote-project-history.md`; signed release from `6b890c5`.</sub>
+
+### 2026-11-05 — Install combined build 37 on the paired iPhone
+
+**Agent:** Codex · **App source:** `6b890c5` (includes preview commit `f27e150`)
+**Kanban moved:** Install build 37 on the paired iPhone → Done
+
+**Changed:** Installed the signed release in place over build 36. It includes the editor preview indicator, expandable tempo picker and queue synchronization for library sorting and Custom Order. Recorded the standing preference to install verified user-facing changes and confirm launch on the paired iPhone.
+
+**Verified:** Built from an isolated snapshot of the committed combined source. TypeScript and all eight Playwright journeys passed, including the preview workflow and Previous/Next after reordering. The native Release build and signature check passed. Checked the build number, preview labels and queue symbol in the packaged app. Device services reported BeatNote 1.0.0 (37) installed on the iPhone 15 Pro Max and launched it.
+
+**Not verified / known gaps:** Physical interaction with the user's own songs, queue and saved projects remains for device review. Installation handover edits are local.
+
+**Next agent should:** Collect physical feedback on BPM preview and Previous/Next with the user's library order.
+
+- [x] Commit Custom Order on release and resolve the track index against the latest queue.
+      <sub>**Key Artifacts:** `src/components/ui/library/MusicLibraryRow.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `tests/ui-components.spec.ts`, `app.json`</sub>
+
+### 2026-11-05 — Release 38 Custom Order drop
+
+**Agent:** Codex · **Commit(s):** Build 38 commit containing this entry
+
+**Changed:** Commit the previewed slot on release, detach row transforms and resolve the destination by ID at switch completion.
+
+**Verified:** Types, eight browser journeys, focused row geometry check and navigation logic for every sort direction passed. Physical device reported build 38 and launched.
+
+**Not verified / known gaps:** Physical drag and hold-to-switch with the user's library awaits confirmation.
+
+**Next agent should:** Confirm repeated drag and immediate hold-to-switch with the user's library.
+
+- [x] Lead the Pro showcase and comparison with automatic BPM and name the system playback controls.
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/features/entitlements/proPreview.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Lead Pro with tempo detection
+
+**Agent:** Codex · **Commit(s):** Release 39 commit containing this entry
+**Kanban moved:** Pro feature order → Done
+
+**Changed:** The carousel opens on Tempo, then shows Speed, Playback and System playback controls. The first card explains BPM suggestion and count alignment. The last card names both the Lock Screen and Control Centre. The comparison follows the same priority.
+
+**Verified:** TypeScript, all eight browser journeys and whitespace checks passed. A phone-sized browser check verified each demo position and the comparison label. Device services confirmed Release 39 was installed in place. The phone reported 1.0.0 (39) and launched the app.
+
+**Not verified / known gaps:** Physical visual review remains. This change updates presentation data and copy. No dedicated native UI test was rerun.
+
+**Next agent should:** Collect feedback on the Pro showcase alongside the existing physical library review.

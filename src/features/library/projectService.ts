@@ -182,6 +182,7 @@ const mergeStoredUnknownFields = (
       ...storedLayers.get(layer.id),
       id: layer.id,
       name: layer.name,
+      customName: layer.customName,
       color: layer.color,
       markers: [...layer.markers],
       annotations: layer.annotations.map(annotation => ({ ...annotation })),

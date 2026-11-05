@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (39)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (44)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 37 BPM previews, queue navigation, waveform rendering and motion and confirm the existing library and projects after the in-place update.
+1. Physically review Release 44 timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,10 +85,6 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-
-
-
-
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -101,21 +97,23 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
-- [x] Lead the Pro showcase and comparison with automatic BPM and name the system playback controls.
-      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/features/entitlements/proPreview.ts`, `tests/ui-components.spec.ts`</sub>
+- [x] Prepare the accumulated build 40–44 changes for publication on master.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/styles/components/settings/proSettings.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Commit Custom Order on release and resolve the track index against the latest queue.
-      <sub>**Key Artifacts:** `src/components/ui/library/MusicLibraryRow.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `tests/ui-components.spec.ts`, `app.json`</sub>
+- [x] Clarify the timeline demo and reuse the editor’s marker shields. Install build 44.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/settings/ProFeatureDemo.tsx`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Install and launch build 37 with BPM previews and library queue synchronization.
-      <sub>**Key Artifacts:** `AGENTS.md`, `.kiro/steering/ios-testflight.md`, `docs/context/archive/beatnote-project-history.md`; signed release from `6b890c5`.</sub>
+- [x] Fix named-project label resets, disable Display in Lite, refine the Pro demos, and install build 42.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Clarify active BPM previews in the editor and rename the tempo picker.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/controls/bpmSuggestionCard.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+- [x] Save annotation labels explicitly, show net changes at song switches, and connect Pro pagination to scrolling. Install build 41.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/settings/proSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Prepare build 37, pass the release gates, and publish the complete timing, waveform and
-      queue-order work to `master` without installing it on the iPhone.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `src/utils/queueOrder.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+- [x] Add Pro timeline appearance, preserve Lite rehearsal tools, and install build 40.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `tests/ui-components.spec.ts`</sub>
+
+
+
 
 
 ---
@@ -197,94 +195,76 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
-### 2026-11-05 — Lead Pro with tempo detection
+### 2026-11-05 — Publish the build 44 changes
 
-**Agent:** Codex · **Commit(s):** Release 39 commit containing this entry
-**Kanban moved:** Pro feature order → Done
+**Agent:** Codex · **Commit(s):** Build 44 commit containing this entry
+**Kanban moved:** Prepare builds 40–44 for publication → Done
 
-**Changed:** The carousel opens on Tempo, then shows Speed, Playback and System playback controls. The first card explains BPM suggestion and count alignment. The last card names both the Lock Screen and Control Centre. The comparison follows the same priority.
+**Changed:** Collected Pro timeline appearance, marker artwork, label persistence, switch summaries, carousel changes, tests and documentation since build 39 into one release commit.
 
-**Verified:** TypeScript, all eight browser journeys and whitespace checks passed. A phone-sized browser check verified each demo position and the comparison label. Device services confirmed Release 39 was installed in place. The phone reported 1.0.0 (39) and launched the app.
+**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed on build 44, which was also installed and launched on the paired iPhone.
 
-**Not verified / known gaps:** Physical visual review remains. This change updates presentation data and copy. No dedicated native UI test was rerun.
+**Not verified / known gaps:** Hands-on review of Marilag remains pending.
 
-**Next agent should:** Collect feedback on the Pro showcase alongside the existing physical library review.
+**Next agent should:** Collect physical feedback on Marilag and the timeline demo.
+
+### 2026-11-05 — Match the timeline demo to the editor
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Timeline demo captions and marker artwork → Done
+
+**Changed:** Removed “Timing bars” and the redundant waveform caption. The timeline demo uses the editor’s hollow and filled shield paths, head placement and marker lines for a plain and an annotated marker.
+
+**Verified:** TypeScript and version checks passed. A phone-sized browser check found both shield paths and checked the waveform-off, waveform-on and renamed frames. Device services confirmed 1.0.0 (44) installed and launched.
+
+**Not verified / known gaps:** Hands-on review of the demo on the physical display is pending. Changes remain uncommitted.
+
+**Next agent should:** Collect physical feedback on the timeline demo and Marilag reset.
+
+### 2026-11-05 — Keep reset labels when saving a named project
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Label persistence, Display tier access and Pro demos → Done
+
+**Changed:** Reset flushes the draft immediately. Saving a named project preserves its current label, including an explicitly cleared label. The annotation-label Save action uses white text when enabled. Display & Annotations closes and disables in Lite like Timing & BPM. The timeline demo shows a usable “Vocals” label, and the system controls demo drops its lock icon.
+
+**Verified:** A separate named project reproduced the stale “Notes” label before the fix. The browser checks now cover reset in both stored records and reloading the editor, the white Save text and the disabled Lite setting. TypeScript and the focused iOS Settings test passed. Installed 1.0.0 (42) over the existing iPhone app, verified the installed version, and launched it.
+
+**Not verified / known gaps:** Marilag’s saved data was not opened or edited during verification. Builds 40 through 42 remain uncommitted.
+
+**Next agent should:** Confirm Marilag’s label on the physical phone after Reset and Save Project.
+
+### 2026-11-05 — Explicit label saves, switch summaries and continuous pagination
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** label Save, switch prompt and Pro carousel → Done
+
+**Changed:** Save and keyboard Done apply an annotation label to the song draft. The switch guard snapshots the net authored changes against the named saved project, covering markers, notes, labels, timing, playback, loops and other project settings. The scrollable summary distinguishes newer or unavailable baselines. Pro pagination follows fractional scroll progress in both directions with a Reduce Motion snap. Timeline appearance precedes Playback and uses shorter copy.
+
+**Verified:** TypeScript, version, whitespace and all eight browser journeys passed. The final library journey rerun checked blur, explicit Save, and marker/label changes in the switch prompt. A mixed-content check covered additions, removals, duplicate markers, edited notes, settings and reverted content. The focused iOS Settings journey passed. Fractional browser offsets produced a stretching and retracting pill on forward and reverse scroll. Device services confirmed 1.0.0 (41) installed in place and launched.
+
+**Not verified / known gaps:** Hands-on physical gesture feel and VoiceOver review remain. Build 40 work and these changes remain uncommitted.
+
+**Next agent should:** Collect physical feedback on the switch prompt and Pro pagination in build 41.
 
 
-### 2026-11-05 — Release 38 Custom Order drop
+### 2026-11-05 — Pro timeline appearance
 
-**Agent:** Codex · **Commit(s):** Build 38 commit containing this entry
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Timeline appearance gates and Pro demonstration → Done
 
-**Changed:** Commit the previewed slot on release, detach row transforms and resolve the destination by ID at switch completion.
+**Changed:** Pro enables waveform artwork and annotation-lane renaming/reset. Lite keeps saved labels readable and the waveform preference intact for a return to Pro. The Display & Annotations entry sits immediately above Timing & BPM. A fifth Pro card demonstrates the two settings, and the comparison distinguishes scrubbing from waveform artwork. Updated product guidance.
 
-**Verified:** Types, eight browser journeys, focused row geometry check and navigation logic for every sort direction passed. Physical device reported build 38 and launched.
+**Verified:** TypeScript, version and whitespace checks passed. Eight browser journeys passed, including Pro → Lite → Pro with a saved waveform choice and label. The focused iOS Settings journey passed. A phone-sized browser check confirmed the new row order, all demo stages and the Reduce Motion frame. Device services confirmed 1.0.0 (40) installed in place and launched on the physical iPhone.
 
-**Not verified / known gaps:** Physical drag and hold-to-switch with the user's library awaits confirmation.
+**Not verified / known gaps:** Hands-on physical appearance and VoiceOver review remain open.
 
-**Next agent should:** Confirm repeated drag and immediate hold-to-switch with the user's library.
-
-### 2026-11-05 — Install combined build 37 on the paired iPhone
-
-**Agent:** Codex · **App source:** `6b890c5` (includes preview commit `f27e150`)
-**Kanban moved:** Install build 37 on the paired iPhone → Done
-
-**Changed:** Installed the signed release in place over build 36. It includes the editor preview indicator, expandable tempo picker and queue synchronization for library sorting and Custom Order. Recorded the standing preference to install verified user-facing changes and confirm launch on the paired iPhone.
-
-**Verified:** Built from an isolated snapshot of the committed combined source. TypeScript and all eight Playwright journeys passed, including the preview workflow and Previous/Next after reordering. The native Release build and signature check passed. Checked the build number, preview labels and queue symbol in the packaged app. Device services reported BeatNote 1.0.0 (37) installed on the iPhone 15 Pro Max and launched it.
-
-**Not verified / known gaps:** Physical interaction with the user's own songs, queue and saved projects remains for device review. Installation handover edits are local.
-
-**Next agent should:** Collect physical feedback on BPM preview and Previous/Next with the user's library order.
+**Next agent should:** Collect feedback on the new timeline appearance controls in build 40.
 
 
-### 2026-11-05 — Identify the active tempo preview in the editor
-
-**Agent:** Codex · **Commit(s):** Separate preview commit following `671487b`
-**Kanban moved:** Editor BPM preview and tempo picker → Done
-
-**Changed:** When previewing, the editor shows preview and project BPM together and lets the user return directly to Timing. The optional toolbar button and count labels follow the preview. The expandable Preview related tempos control swaps position with Keep Current, exposes its expanded state, and closes after selection.
-
-**Verified:** TypeScript and all eight browser journeys passed, with a focused rerun for the final picker wording. The browser checked preview with the shortcut hidden, navigation back from the indicator, and cancellation. The focused iOS automatic BPM, preview and anchor-controls XCTest passed.
-
-**Not verified / known gaps:** Installed build 36 contains the preceding waveform/BPM fixes. The new preview UI is awaiting a future physical build. Queue edits are excluded from both commits.
-
-**Next agent should:** Include the preview indicator in the next requested iPhone build.
 
 
-### 2026-11-05 — Prepare and publish build 37
 
-**Agent:** orchestrator (Codex) · **Commit(s):** Included in the build-37 publication commit containing this entry
-**Kanban moved:** Build 37 versioning, final release gate, commit and push → Done
 
-**Changed:**
-
-- Incremented the iOS source build from 36 to 37 and updated the in-app About expectation. Per the
-  user's request, no native build was installed; the physical iPhone remains on Release 36.
-- Reconciled the complete shared tree: simplified timing controls, filled waveform rendering,
-  Music Library order/transport synchronization, matching steering, and retained browser/native
-  acceptance updates.
-- Replaced a timing-sensitive playback-annotation visibility assertion with a page-side observer of
-  the actual popup event. The behavior under test is unchanged, while parallel worker stalls can no
-  longer miss the intentionally short two-second callout.
-
-**Verified:**
-
-- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` passed.
-- Final full retained Playwright regression passed 8/8 on build 37. The first full run passed 7/8;
-  the annotation journey passed focused, identifying a transient-observation race rather than an
-  app regression, and the final event-based assertion passed in the full parallel suite.
-- The focused iOS automatic-BPM suggestion, preview-in-editor, apply/restore and anchor-controls
-  journey passed against build 37's source on iPhone 17 Pro simulator.
-
-**Not verified / known gaps:**
-
-- This session did not build, install, or physically review build 37. The user reported that a
-  separate agent is handling its device installation, whose outcome is not claimed here. TestFlight
-  distribution and existing-library/project confirmation remain open.
-
-**Next agent should:**
-
-- Reconcile the separate build-37 installation result, then physically verify Previous/Next after
-  sorting or reordering at least three real songs.
 
 <!-- end handover log -->

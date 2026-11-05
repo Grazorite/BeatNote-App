@@ -6,7 +6,8 @@ import {
   type MusicItem,
 } from '../../types/library';
 import type { PersistedContent, SavedProject, SongDraft } from '../../types/project';
-import { computeContentFingerprint } from '../../utils/contentFingerprint';
+import { summarizeProjectEdits } from '../../utils/projectChangeSummary';
+import { computeContentFingerprint, contentFingerprintsEqual } from '../../utils/contentFingerprint';
 import { decideSwitchGuard, deriveDraftUiState, resolveSongLoad } from '../../utils/draftResolution';
 import {
   DRAFT_FLUSH_TIMEOUT_MS,
@@ -16,6 +17,7 @@ import {
   applyPersistedContent,
   createEmptyPersistedContent,
   extractPersistedContent,
+  projectContent,
   splitProjectEnvelope,
 } from '../../utils/persistedContent';
 import audioStore from './audioStore';
@@ -38,6 +40,21 @@ const PLAYER_LOAD_TIMEOUT_MS = 10_000;
 const PLAYER_SEEK_TIMEOUT_MS = 5_000;
 const PLAYER_COMMAND_TIMEOUT_MS = 2_000;
 const TRACK_RESOLVE_TIMEOUT_MS = 12_000;
+
+/** Compare once when switching, using the same authored snapshot as draft autosave. */
+function switchChanges(state: StudioStore): string[] {
+  const current = extractPersistedContent(state);
+  if (contentFingerprintsEqual(computeContentFingerprint(current), state.draftBaselineFingerprint)) return [];
+  const saved = state.loadedProjectSource;
+  if (!saved || !state.draftBaseline || saved.projectId !== state.draftBaseline.projectId) {
+    return ['The saved version is unavailable for comparison.'];
+  }
+  // Apply today's defaults to older projects just as the editor does on load.
+  const before = extractPersistedContent({ ...applyPersistedContent(projectContent(saved)), loadedProjectSource: saved });
+  const lines = summarizeProjectEdits(before, current);
+  if (saved.revision !== state.draftBaseline.revision) lines.unshift('Compared with the newer saved version.');
+  return lines;
+}
 
 export type SwitchRequest = SwitchDestination;
 
@@ -503,11 +520,11 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
     const initial = dependencies.getState();
     if (initial.saveInProgress) return { kind: 'cancelled' };
     if (!bypassGuard && initial.currentMusicItemId !== null && decideSwitchGuard(initial.draftUiState) === 'prompt') {
-      dependencies.setState({
-        switchPhase: 'guard',
-        switchGuard: { pendingDestination: request },
-      });
-      return new Promise<SwitchResult>(resolve => { guarded = { request, resolve }; });
+      const changes = switchChanges(initial);
+      if (changes.length) {
+        dependencies.setState({ switchPhase: 'guard', switchGuard: { pendingDestination: request, changes } });
+        return new Promise<SwitchResult>(resolve => { guarded = { request, resolve }; });
+      }
     }
 
     const source = snapshotSource(initial);

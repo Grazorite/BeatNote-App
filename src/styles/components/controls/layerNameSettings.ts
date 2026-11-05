@@ -45,6 +45,7 @@ export const layerNameSettingsStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  saveText: { color: colors.text, fontSize: 13, fontWeight: '700' },
   resetText: {
     color: colors.iconDestructive,
     fontSize: 12,
