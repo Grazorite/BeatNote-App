@@ -133,5 +133,6 @@ bug report, include the build number shown under the logo, what you tried, and w
 ## License
 
 BeatNote is covered by the [MIT licence](./LICENSE). Third-party notices are available in
-**Settings → About BeatNote → Open Source Licences**. When iOS dependencies change, run
+**Settings → About BeatNote → Open Source Licences**. Tap a group to read its package list and full
+notice. When iOS dependencies change, run
 `npm run generate:licences` after CocoaPods installation to refresh the native notices.

@@ -119,7 +119,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (45)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (46)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
     const [feedbackPage] = await Promise.all([
@@ -131,8 +131,16 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');
     await expect(licencesPage).toBeVisible();
+    await expect(licencesPage.getByRole('button', { expanded: true })).toHaveCount(0);
+    const expoLicence = licencesPage.getByRole('button', { name: 'Expo and Expo modules', exact: true });
+    await expoLicence.click();
     await expect(licencesPage).toContainText('expo-audio 1.1.1');
+    await licencesPage.getByRole('button', { name: 'React and React Native', exact: true }).click();
     await expect(licencesPage).toContainText('react-native 0.81.5');
+    await expoLicence.click();
+    await expect(licencesPage).not.toContainText('expo-audio 1.1.1');
+    await expect(licencesPage).toContainText('react-native 0.81.5');
+    await licencesPage.getByRole('button', { name: 'Lucide', exact: true }).click();
     await expect(licencesPage).toContainText('lucide-react-native 0.554.0');
     await expect(licencesPage).toContainText('Native: DoubleConversion');
     await expect(licencesPage).toContainText('Native: hermes-engine');

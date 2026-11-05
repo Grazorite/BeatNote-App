@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Save annotation labels explicitly, show net changes at song switches, and connect Pro pagination to scrolling. Install build 41.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/settings/proSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Explicit label saves, switch summaries and continuous pagination
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** label Save, switch prompt and Pro carousel → Done
+
+**Changed:** Save and keyboard Done apply an annotation label to the song draft. The switch guard snapshots the net authored changes against the named saved project, covering markers, notes, labels, timing, playback, loops and other project settings. The scrollable summary distinguishes newer or unavailable baselines. Pro pagination follows fractional scroll progress in both directions with a Reduce Motion snap. Timeline appearance precedes Playback and uses shorter copy.
+
+**Verified:** TypeScript, version, whitespace and all eight browser journeys passed. The final library journey rerun checked blur, explicit Save, and marker/label changes in the switch prompt. A mixed-content check covered additions, removals, duplicate markers, edited notes, settings and reverted content. The focused iOS Settings journey passed. Fractional browser offsets produced a stretching and retracting pill on forward and reverse scroll. Device services confirmed 1.0.0 (41) installed in place and launched.
+
+**Not verified / known gaps:** Hands-on physical gesture feel and VoiceOver review remain. Build 40 work and these changes remain uncommitted.
+
+**Next agent should:** Collect physical feedback on the switch prompt and Pro pagination in build 41.
+
 - [x] Add Pro timeline appearance, preserve Lite rehearsal tools, and install build 40.
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `tests/ui-components.spec.ts`</sub>
 

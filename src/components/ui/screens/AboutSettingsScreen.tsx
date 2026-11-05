@@ -16,6 +16,7 @@ import appConfig from '../../../../app.json';
 import { OPEN_SOURCE_LICENCE_GROUPS } from '../../../data/openSourceLicences';
 import { aboutSettingsStyles as styles } from '../../../styles/components/settings/aboutSettings';
 import SettingsSubpage from '../settings/SettingsSubpage';
+import { BeatNoteIcon } from '../../icons';
 
 interface AboutSettingsScreenProps {
   onBack: () => void;
@@ -25,6 +26,7 @@ const FEEDBACK_URL = 'https://t.me/+4edtI3WUOqZlN2U1';
 
 const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => {
   const [showLicences, setShowLicences] = useState(false);
+  const [expandedLicences, setExpandedLicences] = useState<Set<string>>(() => new Set());
   const [beat, setBeat] = useState(0);
   const reduced = useMotionPreference();
   const scale = useSharedValue(1);
@@ -62,8 +64,18 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
   const build = appConfig.expo.ios.buildNumber;
 
   const setLicencesVisible = (visible: boolean): void => {
+    if (visible) setExpandedLicences(new Set());
     setShowLicences(visible);
     detailProgress.value = withTiming(visible ? 1 : 0, pageTransition);
+  };
+
+  const toggleLicence = (title: string) => {
+    setExpandedLicences(previous => {
+      const next = new Set(previous);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
   };
 
   const aboutStyle = useAnimatedStyle(() => ({
@@ -142,13 +154,24 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
           <Text style={styles.licenceIntro}>
             Copyright notices and licences for the software used in BeatNote.
           </Text>
-          {OPEN_SOURCE_LICENCE_GROUPS.map(group => (
-            <View key={group.title} style={styles.licenceCard} testID="open-source-licence-group">
-              <Text style={styles.licenceTitle}>{group.title}</Text>
-              <Text style={styles.licencePackages}>{group.packages.join('\n')}</Text>
-              <Text style={styles.licenceNotice}>{group.notice}</Text>
-            </View>
-          ))}
+          {OPEN_SOURCE_LICENCE_GROUPS.map(group => {
+            const expanded = expandedLicences.has(group.title);
+            return (
+              <View key={group.title} style={styles.licenceCard} testID="open-source-licence-group">
+                <TouchableOpacity style={styles.licenceHeader} onPress={() => toggleLicence(group.title)}
+                  accessibilityRole="button" accessibilityLabel={group.title} accessibilityState={{ expanded }}>
+                  <Text style={styles.licenceTitle}>{group.title}</Text>
+                  <BeatNoteIcon name={expanded ? 'chevron-down' : 'chevron-right'} size={16} />
+                </TouchableOpacity>
+                {expanded && (
+                  <View style={styles.licenceBody}>
+                    <Text style={styles.licencePackages}>{group.packages.join('\n')}</Text>
+                    <Text selectable style={styles.licenceNotice}>{group.notice}</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </SettingsSubpage>
       </Animated.View>
     </View>

@@ -81,14 +81,26 @@ export const aboutSettingsStyles = StyleSheet.create({
     marginBottom: 4,
   },
   licenceCard: {
-    padding: 16,
-    gap: 10,
     backgroundColor: colors.surfaceGlass,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: dimensions.borderRadius,
   },
+  licenceHeader: {
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  licenceBody: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 10,
+  },
   licenceTitle: {
+    flex: 1,
     color: colors.text,
     fontSize: 16,
     fontWeight: '700',
