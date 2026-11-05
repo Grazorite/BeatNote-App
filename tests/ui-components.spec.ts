@@ -112,7 +112,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (48)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (49)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
     const [feedbackPage] = await Promise.all([

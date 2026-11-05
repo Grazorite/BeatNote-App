@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Prepare the accumulated build 40–44 changes for publication on master.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/styles/components/settings/proSettings.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Publish the build 44 changes
+
+**Agent:** Codex · **Commit(s):** Build 44 commit containing this entry
+**Kanban moved:** Prepare builds 40–44 for publication → Done
+
+**Changed:** Collected Pro timeline appearance, marker artwork, label persistence, switch summaries, carousel changes, tests and documentation since build 39 into one release commit.
+
+**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed on build 44, which was also installed and launched on the paired iPhone.
+
+**Not verified / known gaps:** Hands-on review of Marilag remains pending.
+
+**Next agent should:** Collect physical feedback on Marilag and the timeline demo.
+
 - [x] Clarify the timeline demo and reuse the editor’s marker shields. Install build 44.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/settings/ProFeatureDemo.tsx`, `tests/ui-components.spec.ts`</sub>
 

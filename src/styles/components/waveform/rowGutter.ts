@@ -22,7 +22,7 @@ export const rowGutterStyles = StyleSheet.create({
   },
   count: {
     width: '100%',
-    color: colors.gridMajor,
+    color: colors.textSecondary,
     fontSize: 10,
     lineHeight: 12,
     fontWeight: '700',

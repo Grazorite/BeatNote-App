@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (48)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (49)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review the Release 47 About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
+1. Physically review the Release 49 dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -102,6 +102,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Use secondary grey for the main canvas dance counts and install build 49.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
 - [x] Standardise app-owned alerts and install build 48.
       <sub>**Key Artifacts:** `AGENTS.md`, `App.tsx`, `app.json`, `src/components/ErrorBoundary.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/common/AppPrompt.tsx`</sub>
 
@@ -113,10 +116,6 @@ target; Android is a far-future possibility only.
 
 - [x] Open the Telegram helpdesk from About, document the feedback route and verify third-party notices for build 45.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Prepare the accumulated build 40–44 changes for publication on master.
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/styles/components/settings/proSettings.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
-
 
 ---
 
@@ -197,9 +196,23 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Install build 49 with quieter dance-count labels
+
+**Agent:** Codex · **Commit(s):** Build 49 commit containing this entry; build 48 is `5eeef01`
+**Kanban moved:** Canvas dance-count contrast and build 49 installation → Done
+
+**Changed:** The phrase/count text below each main canvas timestamp uses the secondary text colour. Incremented the iOS build to 49 and updated the About expectation. Prepared build 48 prompt changes and build 49 label styling as separate commits for the requested master push.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser regression journeys passed. A focused mobile render with counts enabled confirmed white timestamps (#ffffff) and grey count text (#999999). Signed release 49 passed signature verification. Device services independently reported 1.0.0 (49) installed and launched the app.
+
+**Not verified / known gaps:** Physical readability with the user's songs remains for device review. Native XCTest was not rerun for the colour change.
+
+**Next agent should:** Collect physical feedback on the contrast between timestamps and counts.
+
+
 ### 2026-11-05 — Standardise BeatNote prompts in build 48
 
-**Agent:** Codex · **Commit(s):** Build 48 commit containing this entry
+**Agent:** Codex · **Commit(s):** `5eeef01`
 **Kanban moved:** App-owned prompts → Done
 
 **Changed:** Routed marker actions, export, project, playback, queue, feedback and crash messages through a shared glass dialog, including prompts above a sheet.
@@ -248,19 +261,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 **Not verified / known gaps:** Opening the live group on the physical phone remains a hands-on check. The update introduces no Telegram SDK or support plugin dependency.
 
 **Next agent should:** Confirm the group opens from About on the physical phone.
-
-### 2026-11-05 — Publish the build 44 changes
-
-**Agent:** Codex · **Commit(s):** Build 44 commit containing this entry
-**Kanban moved:** Prepare builds 40–44 for publication → Done
-
-**Changed:** Collected Pro timeline appearance, marker artwork, label persistence, switch summaries, carousel changes, tests and documentation since build 39 into one release commit.
-
-**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed on build 44, which was also installed and launched on the paired iPhone.
-
-**Not verified / known gaps:** Hands-on review of Marilag remains pending.
-
-**Next agent should:** Collect physical feedback on Marilag and the timeline demo.
-
 
 <!-- end handover log -->
