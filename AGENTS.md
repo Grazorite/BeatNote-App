@@ -86,7 +86,6 @@ target; Android is a far-future possibility only.
 ### 🚧 In Progress
 
 
-- [ ] Exercise prompt failures and audit the full regression suite.
 
 
 
@@ -102,6 +101,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Exercise prompt failures and simplify the existing regression journeys.
+      <sub>**Key Artifacts:** `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
+
 - [x] Use secondary grey for the main canvas dance counts and install build 49.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
@@ -114,8 +116,6 @@ target; Android is a far-future possibility only.
 - [x] Collapse licence groups by default and install build 46.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
-- [x] Open the Telegram helpdesk from About, document the feedback route and verify third-party notices for build 45.
-      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -196,6 +196,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Audit prompt failures and trim regression assertions
+
+**Agent:** Codex · **Commit(s):** Test edits in `5eeef01`. Audit results recorded in the commit containing this entry.
+**Kanban moved:** Prompt audit and full suite review → Done
+
+**Changed:** Removed redundant colour, spacing and PDF markup assertions. Toast checks target the visible message instead of its transient live-region attribute. Removed temporary fault-injection checks after execution.
+
+**Verified:** TypeScript and eight browser journeys passed, including the final build 49 browser run. All ten aggregate simulator results reported one pass each and zero failures. Temporary browser checks exercised bulk marker cancel/delete/undo, project open/save/revert/rename/delete, CSV read and CSV/PDF export errors, playback and seek failures, queue recovery, Telegram and both crash clipboard outcomes.
+
+**Not verified / known gaps:** Failures were injected into disposable browser data. Physical VoiceOver remains a hands-on check.
+
+**Next agent should:** Collect physical accessibility and library feedback.
+
 ### 2026-11-05 — Install build 49 with quieter dance-count labels
 
 **Agent:** Codex · **Commit(s):** Build 49 commit containing this entry; build 48 is `5eeef01`
@@ -249,17 +262,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 **Next agent should:** Include one licence disclosure in the next device review.
 
-### 2026-11-05 — Route feedback to Telegram and install build 45
-
-**Agent:** Codex · **Commit(s):** Build 45 commit containing this entry
-**Kanban moved:** Telegram feedback handoff → Done
-
-**Changed:** About opens the BeatNote Helpdesk invite through the system URL handler. The label and accessibility hint identify Telegram. The README explains where to send feedback and how to find and refresh the licence notices.
-
-**Verified:** TypeScript, version consistency, whitespace, all eight browser journeys and the focused iOS Settings XCTest passed. The browser tapped the feedback link and checked its exact destination using an intercepted invite. All 23 direct dependency versions match the licence screen. Regenerating the 16 CocoaPods notices produced the existing file. Confirmed the invite in the signed bundle and verified build 45 installed and launched on the paired iPhone.
-
-**Not verified / known gaps:** Opening the live group on the physical phone remains a hands-on check. The update introduces no Telegram SDK or support plugin dependency.
-
-**Next agent should:** Confirm the group opens from About on the physical phone.
 
 <!-- end handover log -->
