@@ -1,5 +1,6 @@
+import { showPrompt } from '../common/AppPrompt';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native';
 import { exportProjectCsv, exportProjectPdf } from '../../../features/library/projectService';
 import { exportModalStyles as styles } from '../../../styles/components/modals/exportModal';
 import GlassBackdrop from '../controls/GlassBackdrop';
@@ -55,14 +56,14 @@ const ExportModal: React.FC<ExportModalProps> = ({
           ? 'Choose “Save as PDF” in the print window.'
           : `Downloaded “${result.filename}”.`;
       
-      Alert.alert(
+      showPrompt(
         title,
         message,
         [{ text: 'OK', onPress: onClose }]
       );
     } catch (error) {
       console.error('Export error:', error);
-      Alert.alert(
+      showPrompt(
         'Export Failed',
         error instanceof Error ? error.message : 'Failed to export data'
       );

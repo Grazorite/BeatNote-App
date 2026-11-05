@@ -1,5 +1,6 @@
+import { showPrompt } from '../common/AppPrompt';
 import React, { useCallback } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useSettingsPreferences } from '../../../features/settings/preferences';
 import { useStudioStore, type QueueControlResult } from '../../../hooks/useStudioStore';
@@ -31,7 +32,7 @@ const metadata: Record<QueueButtonAction, {
 };
 
 const reportFailure = (failure: SwitchFailure): void => {
-  const actions: Parameters<typeof Alert.alert>[2] = [];
+  const actions: Parameters<typeof showPrompt>[2] = [];
   if (failure.canRelink) {
     actions.push({
       text: 'Relink',
@@ -45,7 +46,7 @@ const reportFailure = (failure: SwitchFailure): void => {
     });
   }
   actions.push({ text: 'Close', style: 'cancel' });
-  Alert.alert(failure.title, failure.message, actions);
+  showPrompt(failure.title, failure.message, actions);
 };
 
 const reportResult = (result: QueueControlResult): void => {

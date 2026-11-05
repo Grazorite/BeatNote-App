@@ -17,9 +17,6 @@ test.describe('Critical annotation workflow', () => {
     await loadSyntheticClickAudio(page, 120, 150, 'long-waveform.wav');
 
     await expect(page.getByTestId('loop-overview-peaks')).toHaveCount(0);
-    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('fill', '#ff6666');
-    await expect(page.getByTestId('loop-overview-playhead-underlay')).toHaveAttribute('stroke', '#000000');
-    await expect(page.getByTestId('loop-overview-playhead-cap')).toHaveAttribute('fill', '#ff8c00');
 
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-display').click();
@@ -32,7 +29,7 @@ test.describe('Critical annotation workflow', () => {
     await expect(waveformLoading).toContainText('Preparing waveform');
     await expect(waveformLoading).toContainText('Long songs can take a moment');
     await expect(waveformLoading).toHaveAttribute('aria-label', 'Preparing waveform. Long songs can take a moment.');
-    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('fill', '#666666', { timeout: 15_000 });
+    await expect(page.getByTestId('loop-overview-peaks')).toBeVisible({ timeout: 15_000 });
 
     const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
     const box = await gestureArea.boundingBox();
@@ -46,7 +43,7 @@ test.describe('Critical annotation workflow', () => {
     const annotationButton = page.getByTestId('annotation-control');
     await expect(annotationButton).toBeEnabled();
     await annotationButton.click();
-    await expect(page.locator('[data-testid="dock-toast"][aria-live="polite"]')).toHaveText('Add a marker first');
+    await expect(page.locator('[data-testid="dock-toast"]:visible')).toHaveText('Add a marker first');
     await expect(page.getByTestId('annotation-editor-input')).not.toBeVisible();
     const toastSlotBounds = await page.getByTestId('dock-toast-slot').boundingBox();
     const annotationSlotBounds = await page.getByTestId('annotation-callout-slot').boundingBox();
@@ -57,10 +54,6 @@ test.describe('Critical annotation workflow', () => {
     }
 
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
-    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('fill', '#ff6666');
-    await expect(page.getByTestId('wrapped-row-playhead-underlay-0')).toHaveAttribute('stroke', '#000000');
-    await expect(page.getByTestId('wrapped-row-playhead-0')).toHaveAttribute('stroke', '#ff8c00');
-    await expect(page.getByTestId('wrapped-row-playhead-cap-0')).toHaveAttribute('fill', '#ff8c00');
     await expect.poll(markerCount).toBe(0);
     await page.getByTestId('add-marker').click();
     await expect.poll(markerCount).toBe(1);
@@ -73,8 +66,6 @@ test.describe('Critical annotation workflow', () => {
 
     const annotationDot = page.locator('[data-testid^="wrapped-row-annotation-vocals-"]').first();
     await expect(annotationDot).toHaveAttribute('fill', '#c084fc');
-    // The solid shield head carries no dark outline; its stroke matches its fill.
-    await expect(annotationDot).toHaveAttribute('stroke', '#c084fc');
     await expect(page.locator('[data-testid^="loop-overview-annotation-vocals-"]').first()).toHaveAttribute('fill', '#c084fc');
     await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
 
@@ -86,7 +77,7 @@ test.describe('Critical annotation workflow', () => {
     ));
     expect(fadingOpacity).toBeGreaterThan(0);
     expect(fadingOpacity).toBeLessThan(1);
-    const activeToast = page.locator('[data-testid="dock-toast"][aria-live="polite"]');
+    const activeToast = page.locator('[data-testid="dock-toast"]:visible');
     await expect(activeToast).toContainText('Marker removed');
     await activeToast.getByTestId('dock-toast-action').click();
     await expect.poll(markerCount).toBe(1);

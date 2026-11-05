@@ -1,5 +1,6 @@
+import { showPrompt } from './ui/common/AppPrompt';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -21,15 +22,19 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
     console.error('ErrorBoundary componentDidCatch:', error, errorInfo);
   }
 
-  copyErrorToClipboard = () => {
+  copyErrorToClipboard = async () => {
     const errorText = `Error: ${this.state.error?.message || 'Unknown error'}\n\nStack Trace:\n${this.state.error?.stack || 'No stack trace'}`;
     
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(errorText);
-      Alert.alert('Copied', 'Error details copied to clipboard');
-    } else {
-      Alert.alert('Error Details', errorText);
+    if (globalThis.navigator?.clipboard) {
+      try {
+        await navigator.clipboard.writeText(errorText);
+        showPrompt('Copied', 'Error details copied to clipboard');
+        return;
+      } catch {
+        // The selectable dialog also works when clipboard access is denied.
+      }
     }
+    showPrompt('Error Details', errorText);
   };
 
   render() {

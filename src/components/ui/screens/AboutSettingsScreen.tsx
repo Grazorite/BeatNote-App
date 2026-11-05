@@ -1,5 +1,6 @@
+import { showPrompt } from '../common/AppPrompt';
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, Linking, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { AccessibilityInfo, Linking, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   interpolate,
   cancelAnimation,
@@ -87,7 +88,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
 
   const sendFeedback = () => {
     void Linking.openURL(FEEDBACK_URL).catch(() => {
-      Alert.alert('Unable to open Telegram', 'Try opening the BeatNote Helpdesk invite again.');
+      showPrompt('Unable to open Telegram', 'Try opening the BeatNote Helpdesk invite again.');
     });
   };
 

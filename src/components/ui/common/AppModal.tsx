@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppPromptHost } from './AppPrompt';
 import { Modal, type ModalProps } from 'react-native';
 import { useMotionPreference } from '../../../animations/MotionPreference';
 
@@ -17,7 +18,10 @@ const AppModal: React.FC<ModalProps> = ({
 }) => {
   const reduced = useMotionPreference();
   return <Modal {...props} supportedOrientations={supportedOrientations}
-    animationType={reduced === false ? animationType : 'none'} />;
+    animationType={reduced === false ? animationType : 'none'}>
+    {props.children}
+    {props.visible !== false && <AppPromptHost />}
+  </Modal>;
 };
 
 export default AppModal;

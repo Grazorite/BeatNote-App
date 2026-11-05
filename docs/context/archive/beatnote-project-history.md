@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Clarify the timeline demo and reuse the editor’s marker shields. Install build 44.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/settings/ProFeatureDemo.tsx`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Match the timeline demo to the editor
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Timeline demo captions and marker artwork → Done
+
+**Changed:** Removed “Timing bars” and the redundant waveform caption. The timeline demo uses the editor’s hollow and filled shield paths, head placement and marker lines for a plain and an annotated marker.
+
+**Verified:** TypeScript and version checks passed. A phone-sized browser check found both shield paths and checked the waveform-off, waveform-on and renamed frames. Device services confirmed 1.0.0 (44) installed and launched.
+
+**Not verified / known gaps:** Hands-on review of the demo on the physical display is pending. Changes remain uncommitted.
+
+**Next agent should:** Collect physical feedback on the timeline demo and Marilag reset.
+
 - [x] Fix named-project label resets, disable Display in Lite, refine the Pro demos, and install build 42.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/layerNameSettings.ts`, `tests/ui-components.spec.ts`</sub>
 

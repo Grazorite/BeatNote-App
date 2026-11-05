@@ -1,6 +1,7 @@
+import { showPrompt } from '../components/ui/common/AppPrompt';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
-import { Alert, AppState, Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
@@ -506,7 +507,7 @@ export const useCustomAudioPlayer = () => {
         playbackIntentTimerRef.current = null;
       }
       setIsPlaying(playerStatusRef.current.playing);
-      Alert.alert('Playback Error', 'Failed to control audio playback');
+      showPrompt('Playback Error', 'Failed to control audio playback');
     } finally {
       perfEndAfterFrame(intervalId);
     }
@@ -559,7 +560,7 @@ export const useCustomAudioPlayer = () => {
       } catch (error) {
         pendingSeekRef.current = null;
         console.error('Seek error:', error);
-        Alert.alert('Seek Error', 'Couldn’t move to that point in the song');
+        showPrompt('Seek Error', 'Couldn’t move to that point in the song');
         const reportedPosition = (player.currentTime ?? 0) * 1000;
         previousSampleRef.current = reportedPosition;
         setCurrentTime(reportedPosition);

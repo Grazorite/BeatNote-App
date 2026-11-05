@@ -186,6 +186,13 @@ final class BeatNoteUITests: XCTestCase {
     element("add-marker").tap()
     XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 marker"))
 
+    element("add-marker").tap()
+    element("remove-last-marker").press(forDuration: 0.8)
+    let restore = app.buttons["Restore deleted marker"]
+    XCTAssertTrue(restore.waitForExistence(timeout: 5))
+    restore.tap()
+    XCTAssertTrue(app.staticTexts["grand-total-markers"].label.contains("1 marker"))
+
     element("annotation-control").tap()
     let annotationInput = element("annotation-editor-input")
     XCTAssertTrue(annotationInput.waitForExistence(timeout: 5))

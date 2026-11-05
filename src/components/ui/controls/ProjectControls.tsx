@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
+import { View, TouchableOpacity, Text, Keyboard } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../../hooks/useStudioStore';
 import { projectControlsStyles as styles } from '../../../styles/components/controls/projectControls';

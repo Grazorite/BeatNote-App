@@ -1,9 +1,9 @@
+import { showPrompt } from '../common/AppPrompt';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
   AccessibilityInfo,
-  Alert,
   findNodeHandle,
   Platform,
   SectionList,
@@ -316,7 +316,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       : result.kind === 'notFound'
         ? 'This project is no longer available.'
         : 'The current song changed while the project was opening.';
-    Alert.alert('Project Not Opened', message);
+    showPrompt('Project Not Opened', message);
     return false;
   }, [currentMusicItemId, interactionsDisabled, onClose, projectSummaries]);
 
@@ -337,7 +337,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         : await FileSystem.readAsStringAsync(asset.uri);
       previewCsvImport(content, asset.name);
     } catch (error) {
-      Alert.alert('Import Failed', error instanceof Error ? error.message : 'Unable to read this CSV file.');
+      showPrompt('Import Failed', error instanceof Error ? error.message : 'Unable to read this CSV file.');
     } finally {
       // iOS can deliver the page-sheet dismissal request just after the document picker resolves.
       // Keep the project sheet mounted long enough for the CSV preview to become visible.
@@ -380,7 +380,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     const target = pendingOpenProjectId;
     const result = await saveCurrent();
     if (result.kind !== 'saved') {
-      Alert.alert('Project Not Opened', 'Your draft couldn’t be saved. Try again in a moment.');
+      showPrompt('Project Not Opened', 'Your draft couldn’t be saved. Try again in a moment.');
       return;
     }
     setPendingOpenProjectId(null);
@@ -399,7 +399,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     if (action === 'revert') {
       const result = await revertToSaved();
       if (result.kind === 'reverted') notify('Reverted to saved project');
-      else if (result.kind === 'failed') Alert.alert('Project Not Reverted', result.reason);
+      else if (result.kind === 'failed') showPrompt('Project Not Reverted', result.reason);
     }
   }, [discardAction, notify, openProjectAndClose, pendingOpenProjectId]);
 
@@ -423,7 +423,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         : result.kind === 'readOnly'
           ? 'Newer-version projects are read-only.'
           : 'This project is no longer available.';
-    Alert.alert('Project Not Renamed', message);
+    showPrompt('Project Not Renamed', message);
   }, [notify, renameProjectState]);
 
   const handleDelete = useCallback(async (projectId: string) => {
@@ -432,7 +432,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       await deleteProject(projectId);
       notify('Project deleted');
     } catch (error) {
-      Alert.alert(
+      showPrompt(
         'Project Not Deleted',
         error instanceof Error ? error.message : 'Failed to delete project',
       );

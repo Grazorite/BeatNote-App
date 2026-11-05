@@ -1,7 +1,7 @@
+import { showPrompt } from '../common/AppPrompt';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
-  Alert,
   findNodeHandle,
   ScrollView,
   Text,
@@ -40,7 +40,7 @@ const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySh
   const reportSwitchResult = useCallback((result: SwitchGuardResolution) => {
     if (result.kind !== 'failed') return;
     if (switchGuard?.pendingDestination.origin === 'library') return;
-    Alert.alert(result.reason.title, result.reason.message, [
+    showPrompt(result.reason.title, result.reason.message, [
       { text: 'Stay', style: 'cancel' },
       { text: 'Retry', onPress: () => { void result.reason.retry(); } },
     ]);
@@ -74,11 +74,11 @@ const SwitchGuardDialog: React.FC<{ inLibrarySheet?: boolean }> = ({ inLibrarySh
       return;
     }
     if (result.kind === 'failed') {
-      Alert.alert('Project Not Saved', result.reason);
+      showPrompt('Project Not Saved', result.reason);
     } else if (result.kind === 'invalidName') {
-      Alert.alert('Project Not Saved', result.error);
+      showPrompt('Project Not Saved', result.error);
     } else if (result.kind === 'noSong') {
-      Alert.alert('Project Not Saved', 'The current song is no longer available.');
+      showPrompt('Project Not Saved', 'The current song is no longer available.');
     }
     await resolveSwitchGuard('cancel');
   }, [projectName, reportSwitchResult]);

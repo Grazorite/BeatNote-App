@@ -1,5 +1,5 @@
+import { showPrompt } from '../common/AppPrompt';
 import React from 'react';
-import { Alert } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { MarkerAddIcon, MarkerIcon, MarkerLeftIcon, MarkerRemoveIcon, MarkerRemoveLastIcon, MarkerRightIcon } from '../../icons';
 import { useStudioStore } from '../../../hooks/useStudioStore';
@@ -78,7 +78,7 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
       onToast('No markers before the playhead');
       return;
     }
-    Alert.alert(
+    showPrompt(
       'Delete markers before playhead?',
       `This will delete ${count} marker${count === 1 ? '' : 's'} across all layers.`,
       [
@@ -109,7 +109,7 @@ const MarkerDockButton: React.FC<MarkerDockButtonProps> = ({ action, onSeek, onA
         : []),
       { text: 'Cancel', style: 'cancel' as const },
     ];
-    Alert.alert('Marker actions', undefined, buttons);
+    showPrompt('Marker actions', undefined, buttons);
   };
   const activate = () => {
     if (action === 'add') {

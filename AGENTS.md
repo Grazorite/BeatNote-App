@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (47)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (48)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -86,6 +86,10 @@ target; Android is a far-future possibility only.
 ### 🚧 In Progress
 
 
+- [ ] Exercise prompt failures and audit the full regression suite.
+
+
+
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
 
 ### ⏸ Deferred — V2/V3
@@ -97,6 +101,9 @@ target; Android is a far-future possibility only.
 - [ ] Later V3 on-device/hybrid stem separation — CoreML benchmarks, Expo Module, routing, storage management, per-stem waveforms
 
 ### ✅ Done
+
+- [x] Standardise app-owned alerts and install build 48.
+      <sub>**Key Artifacts:** `AGENTS.md`, `App.tsx`, `app.json`, `src/components/ErrorBoundary.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/common/AppPrompt.tsx`</sub>
 
 - [x] Give Telegram feedback the primary About button and move licences to a footer link. Install build 47.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
@@ -110,8 +117,6 @@ target; Android is a far-future possibility only.
 - [x] Prepare the accumulated build 40–44 changes for publication on master.
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/choreography-features.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `README.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/HorizontalLayerSelector.tsx`, `src/components/ui/controls/LayerNameSettings.tsx`, `src/components/ui/controls/WaveformVisibilityControl.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureCarousel.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/entitlements/proPreview.ts`, `src/features/library/projectService.ts`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/layerNameSettings.ts`, `src/styles/components/modals/switchGuardDialog.ts`, `src/styles/components/settings/proSettings.ts`, `src/utils/draftResolution.ts`, `src/utils/persistedContent.ts`, `src/utils/projectChangeSummary.ts`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Clarify the timeline demo and reuse the editor’s marker shields. Install build 44.
-      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/settings/ProFeatureDemo.tsx`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -192,6 +197,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Standardise BeatNote prompts in build 48
+
+**Agent:** Codex · **Commit(s):** Build 48 commit containing this entry
+**Kanban moved:** App-owned prompts → Done
+
+**Changed:** Routed marker actions, export, project, playback, queue, feedback and crash messages through a shared glass dialog, including prompts above a sheet.
+
+**Verified:** TypeScript, version checks, eight browser journeys and the focused iOS marker restore journey passed. Device services confirmed build 48 installed and launched.
+
+**Not verified / known gaps:** Hands-on VoiceOver review and individual error paths remain open.
+
+**Next agent should:** Collect device feedback on the marker menu and bulk-delete confirmation.
+
 ### 2026-11-05 — Install the quieter About layout in build 47
 
 **Agent:** Codex · **Commit(s):** Build 47 commit containing this entry
@@ -244,17 +262,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 **Next agent should:** Collect physical feedback on Marilag and the timeline demo.
 
-### 2026-11-05 — Match the timeline demo to the editor
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Timeline demo captions and marker artwork → Done
-
-**Changed:** Removed “Timing bars” and the redundant waveform caption. The timeline demo uses the editor’s hollow and filled shield paths, head placement and marker lines for a plain and an annotated marker.
-
-**Verified:** TypeScript and version checks passed. A phone-sized browser check found both shield paths and checked the waveform-off, waveform-on and renamed frames. Device services confirmed 1.0.0 (44) installed and launched.
-
-**Not verified / known gaps:** Hands-on review of the demo on the physical display is pending. Changes remain uncommitted.
-
-**Next agent should:** Collect physical feedback on the timeline demo and Marilag reset.
 
 <!-- end handover log -->
