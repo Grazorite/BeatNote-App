@@ -40,6 +40,7 @@ export interface BeatNoteProject {
     beatAnchorMs?: number;
     phraseStartMs?: number | null;
     appliedBpm?: number;
+    bpmChosen?: boolean;
     manuallyOverriddenBpm?: boolean;
     manuallyOverriddenAnchor?: boolean;
     rowDensity?: RowDensity;

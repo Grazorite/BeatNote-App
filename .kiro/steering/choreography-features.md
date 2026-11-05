@@ -22,7 +22,7 @@ initial implementation.
   row labels and the live transport count. Both displays require Pro and default to off for new projects.
 - The Pro toolbar’s BPM shortcut sits between the song title and Save. It opens Timing & BPM
   directly and Back returns to the editor. The shortcut is off by default and its visibility is
-  an app preference in Timing & BPM.
+  an app preference in Timing & BPM. An untouched 120 is muted even after saving. Choosing a tempo brightens the number; an orange dot marks a tempo change since the saved project. Analysis previews keep their own label.
 - Automatic BPM analysis is assistance only. It offers a preview that the user can apply or decline;
   it never silently replaces an authored grid.
 - Automatic suggestions and alternatives are displayed and applied as whole BPM values. The native

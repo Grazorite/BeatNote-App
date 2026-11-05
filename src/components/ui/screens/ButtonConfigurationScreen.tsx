@@ -13,6 +13,7 @@ import { settingsPageStyles as styles } from '../../../styles/components/setting
 import {
   type PlaybackSpeedPresetCount,
 } from '../../../utils/playbackSpeed';
+import { showPrompt } from '../common/AppPrompt';
 import SettingsSubpage from '../settings/SettingsSubpage';
 
 interface ButtonConfigurationScreenProps {
@@ -83,6 +84,7 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
     incrementDisabled,
   );
 
+  const canReset = advancedSpeed && Object.keys(preferences.playbackSpeedPresetOverrides).length > 0;
   const setPresetCount = (playbackSpeedPresetCount: PlaybackSpeedPresetCount): void => {
     if (advancedSpeed) void updateSettingsPreferences({ playbackSpeedPresetCount });
   };
@@ -215,6 +217,18 @@ const ButtonConfigurationScreen: React.FC<ButtonConfigurationScreenProps> = ({ o
         <Text style={styles.hint}>
           Hold a speed preset to edit it. Tap Use Default to reset it.
         </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canReset }}
+          disabled={!canReset}
+          style={[styles.action, canReset ? styles.destructiveAction : styles.disabled]}
+          onPress={() => showPrompt('Reset all speed presets?', 'Restore the default speeds for every preset layout.', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Reset All', style: 'destructive', onPress: () => { void updateSettingsPreferences({ playbackSpeedPresetOverrides: {} }); } },
+          ])}
+        >
+          <Text style={[styles.actionText, canReset && styles.destructiveText]}>Reset All Speed Presets</Text>
+        </TouchableOpacity>
       </View>
     </SettingsSubpage>
   );

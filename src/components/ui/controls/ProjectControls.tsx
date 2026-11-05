@@ -13,6 +13,7 @@ import SaveProjectPrompt from '../modals/SaveProjectPrompt';
 import { MusicLibrarySheet } from '../library';
 import { useProductCapability } from '../../../features/entitlements/useProductCapability';
 import { useSettingsPreferences } from '../../../features/settings/preferences';
+import { useBpmStatus } from '../../../hooks/useBpmStatus';
 import SongTitleControl from './SongTitleControl';
 
 interface ProjectControlsProps {
@@ -180,7 +181,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   const timingAvailable = useProductCapability('analysis.bpm');
   const { showTimingShortcut } = useSettingsPreferences();
   const openTimingShortcut = useStudioStore(state => state.openTimingShortcut);
-  const bpm = useStudioStore(state => state.bpm);
+  const { bpm, chosen, edited, caption } = useBpmStatus();
 
   const previewBpm = useStudioStore(state => state.gridPreview?.bpm);
   const displayedBpm = previewBpm ?? bpm;
@@ -197,11 +198,12 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
         <TouchableOpacity
           style={[styles.button, isMobile && styles.buttonMobile, styles.timingButton]}
           accessibilityRole="button"
-          accessibilityLabel={`Timing & BPM, ${previewBpm === undefined ? '' : 'previewing '}${displayedBpm} beats per minute`}
+          accessibilityLabel={`Timing & BPM, ${previewBpm === undefined ? '' : 'previewing '}${displayedBpm} beats per minute${previewBpm === undefined ? `, ${caption}` : ''}`}
           onPress={openTimingShortcut}
           testID="timing-shortcut"
         >
-          <Text style={styles.tempoNumber}>{displayedBpm}</Text>
+          {edited && previewBpm === undefined && <View style={styles.tempoDot} />}
+          <Text style={[styles.tempoNumber, !chosen && previewBpm === undefined && styles.defaultTempo]}>{displayedBpm}</Text>
           <Text style={styles.tempoUnit}>BPM</Text>
         </TouchableOpacity>
       )}

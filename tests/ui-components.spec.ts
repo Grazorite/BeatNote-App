@@ -39,6 +39,8 @@ test.describe('UI Components & Layout', () => {
 
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('radio', { name: 'Skip seconds' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: '10 seconds', exact: true })).toBeChecked();
     await expect(page.getByTestId('pause-headset-toggle')).toHaveAttribute('aria-checked', 'true');
     await page.getByTestId('continuous-play-toggle').click();
     await page.getByTestId('pause-headset-toggle').click();
@@ -112,7 +114,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (50)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (52)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
     const [feedbackPage] = await Promise.all([
@@ -204,6 +206,8 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('settings-display')).toContainText('Pro only');
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toBeDisabled();
+    await expect(page.getByRole('radio', { name: '10 seconds', exact: true })).toBeDisabled();
+    await expect(page.getByRole('radio', { name: 'Change songs' })).toBeDisabled();
     await expect(page.getByTestId('continuous-play-detail')).toHaveText('Pro only');
     await page.getByTestId('playback-settings-page-back').click();
     await page.getByTestId('settings-buttons').click();

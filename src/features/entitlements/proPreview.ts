@@ -4,7 +4,7 @@ export const PRO_FEATURE_PREVIEWS = [
   { demo: 'speed', category: 'Speed', title: 'Set your rehearsal speed', detail: 'Adjust speed in 0.05× steps. Choose 4, 8 or 12 presets, then hold one to save a speed you use often.' },
   { demo: 'appearance', category: 'Timeline appearance', title: 'Add a waveform to your timeline', detail: 'See the shape of your song and name your annotation lane.' },
   { demo: 'playback', category: 'Playback', title: 'Play songs back to back', detail: 'Continuous Play starts the next song in your queue when this one ends.' },
-  { demo: 'remote', category: 'System playback controls', title: 'Control music outside BeatNote', detail: 'Play, pause or skip by your chosen interval from the player on your Lock Screen or in Control Centre.' },
+  { demo: 'remote', category: 'System playback controls', title: 'Control music outside BeatNote', detail: 'Play, pause, skip seconds or change songs from the Lock Screen and Control Centre.' },
 ] as const;
 
 /** Current app behavior, deliberately separate from the future entitlement roadmap. */

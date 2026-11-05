@@ -68,18 +68,31 @@ const PlaybackSettingsScreen: React.FC<PlaybackSettingsScreenProps> = ({ onBack 
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Control Centre</Text>
-        <Text style={styles.hint}>{remoteAvailable ? 'Skip distance on the Lock Screen and in Control Centre.' : 'Pro only'}</Text>
+        <Text style={styles.hint}>{remoteAvailable ? 'Choose what the Lock Screen and Control Centre buttons do.' : 'Pro only'}</Text>
         <View style={[styles.segmentedOptions, !remoteAvailable && styles.disabled]} accessibilityRole="radiogroup">
-          {REMOTE_SEEK_SECONDS.map(seconds => {
-            const selected = preferences.remoteSeekSeconds === seconds;
-            return <TouchableOpacity key={seconds} accessibilityRole="radio" accessibilityLabel={`${seconds} seconds`}
-              disabled={!remoteAvailable} accessibilityState={{ selected, disabled: !remoteAvailable }}
-              onPress={() => { void updateSettingsPreferences({ remoteSeekSeconds: seconds }); }}
+          {(['seek', 'tracks'] as const).map(mode => {
+            const selected = preferences.remoteButtonMode === mode;
+            return <TouchableOpacity key={mode} accessibilityRole="radio" aria-checked={selected} disabled={!remoteAvailable}
+              accessibilityState={{ selected, disabled: !remoteAvailable }}
+              onPress={() => { void updateSettingsPreferences({ remoteButtonMode: mode }); }}
               style={[styles.segmentedOption, selected && styles.segmentedOptionSelected]}>
-              <Text style={styles.optionText}>{seconds}s</Text>
+              <Text style={styles.optionText}>{mode === 'seek' ? 'Skip seconds' : 'Change songs'}</Text>
             </TouchableOpacity>;
           })}
         </View>
+        {preferences.remoteButtonMode === 'seek' && (
+          <View style={[styles.segmentedOptions, !remoteAvailable && styles.disabled]} accessibilityRole="radiogroup">
+            {REMOTE_SEEK_SECONDS.map(seconds => {
+              const selected = preferences.remoteSeekSeconds === seconds;
+              return <TouchableOpacity key={seconds} accessibilityRole="radio" aria-checked={selected} accessibilityLabel={`${seconds} seconds`}
+                disabled={!remoteAvailable} accessibilityState={{ selected, disabled: !remoteAvailable }}
+                onPress={() => { void updateSettingsPreferences({ remoteSeekSeconds: seconds }); }}
+                style={[styles.segmentedOption, selected && styles.segmentedOptionSelected]}>
+                <Text style={styles.optionText}>{seconds}s</Text>
+              </TouchableOpacity>;
+            })}
+          </View>
+        )}
       </View>
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Keep Screen On</Text>

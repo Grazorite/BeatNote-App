@@ -7,13 +7,13 @@ import { useStudioStore } from './useStudioStore';
 import { LOOP_BOUNDARY_TOLERANCE_MS, decideLoopWrap, markerLoopRangeAtTime } from '../utils/loopRange';
 import { isCapabilityAvailable } from '../features/entitlements/capabilityService';
 import { useProductCapability } from '../features/entitlements/useProductCapability';
-import { updateTrackSwitchPlayer } from '../features/library/trackSwitch';
+import { navigationBaseIndex, updateTrackSwitchPlayer } from '../features/library/trackSwitch';
 import { isLoopRangeGestureActive } from '../features/playback/interactionActivity';
 import { incrementPerfCounter } from '../utils/perfCounters';
 import { perfBegin, perfEndAfterFrame } from '../utils/perfMarks';
 import { DEFAULT_PLAYBACK_SPEED } from '../utils/playbackSpeed';
 import { getSettingsPreferences, useSettingsPreferences } from '../features/settings/preferences';
-import { setRemoteSeekSeconds, subscribeToOutputRouteUnavailable } from '../services/audioRoute';
+import { configureRemoteButtons, subscribeToRemoteTrack, subscribeToOutputRouteUnavailable } from '../services/audioRoute';
 import { withAudioOperationTimeout } from '../utils/audioOperationTimeout';
 
 interface ErrorState {
@@ -79,7 +79,10 @@ export const useCustomAudioPlayer = () => {
   const seekPlayer = useCallback(async (seconds: number, label = 'Audio seek'): Promise<void> => (
     withAudioOperationTimeout(player.seekTo(seconds), NATIVE_SEEK_TIMEOUT_MS, label)
   ), [player]);
-  const { remoteSeekSeconds } = useSettingsPreferences();
+  const remoteIndex = useStudioStore(navigationBaseIndex);
+  const remoteCount = useStudioStore(state => state.queue?.order.length ?? 0);
+  const remoteLocked = useStudioStore(state => state.saveInProgress || state.switchPhase === 'guard');
+  const { remoteSeekSeconds, remoteButtonMode } = useSettingsPreferences();
   const remoteControlsAvailable = useProductCapability('playback.remoteControls');
   const playbackSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const lockScreenActiveRef = useRef(false);
@@ -455,8 +458,8 @@ export const useCustomAudioPlayer = () => {
         title: lockScreenTitle,
         artist: 'BeatNote',
       }, {
-        showSeekBackward: true,
-        showSeekForward: true,
+        showSeekBackward: getSettingsPreferences().remoteButtonMode === 'seek',
+        showSeekForward: getSettingsPreferences().remoteButtonMode === 'seek',
       });
     } catch (lockScreenError) {
       console.error('Lock screen controls setup error:', lockScreenError);
@@ -466,12 +469,32 @@ export const useCustomAudioPlayer = () => {
     // an already-disposed SharedObject on iOS.
   }, [audioModeReady, currentAudioUri, lockScreenTitle, player, playerIsLoaded, remoteControlsAvailable]);
 
-  // Expo sets ten seconds when it registers a player. Apply our interval afterwards
-  // and update it independently so a preference change doesn't register extra handlers.
+  // Configure the system buttons after Expo registers the Now Playing player.
+  const remoteMode = audioModeReady && playerIsLoaded && currentAudioUri && remoteControlsAvailable
+    ? remoteButtonMode : 'off';
+  const canGoBack = !remoteLocked && remoteIndex !== null && remoteIndex > 0;
+  const canGoForward = !remoteLocked && remoteIndex !== null && remoteIndex + 1 < remoteCount;
   useEffect(() => {
-    if (Platform.OS !== 'ios' || !audioModeReady || !playerIsLoaded || !currentAudioUri || !remoteControlsAvailable) return;
-    void setRemoteSeekSeconds(remoteSeekSeconds).catch(error => console.error('Control Centre seek interval:', error));
-  }, [audioModeReady, playerIsLoaded, currentAudioUri, remoteControlsAvailable, remoteSeekSeconds, player, lockScreenTitle]);
+    if (Platform.OS !== 'ios') return;
+    void configureRemoteButtons(remoteMode, remoteSeekSeconds, canGoBack, canGoForward)
+      .catch(error => console.error('Control Centre buttons:', error));
+  }, [remoteMode, remoteSeekSeconds, canGoBack, canGoForward, player, lockScreenTitle, currentAudioUri]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    const unsubscribe = subscribeToRemoteTrack(direction => {
+      if (!isCapabilityAvailable('playback.remoteControls') || getSettingsPreferences().remoteButtonMode !== 'tracks') return;
+      const state = useStudioStore.getState();
+      const change = direction === 'next' ? state.nextTrack() : state.previousTrack(true);
+      void change.then(result => {
+        if (result.kind === 'failed') state.notify(result.reason.message);
+      }).catch(error => console.error('Control Centre track change:', error));
+    });
+    return () => {
+      unsubscribe();
+      void configureRemoteButtons('off', 10, false, false).catch(error => console.error('Control Centre cleanup:', error));
+    };
+  }, []);
 
   const togglePlayback = useCallback(async () => {
     if (!player) return;

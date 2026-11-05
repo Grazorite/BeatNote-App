@@ -169,6 +169,7 @@ const mergeStoredUnknownFields = (
       beatAnchorMs: current.settings.beatAnchorMs,
       phraseStartMs: current.settings.phraseStartMs,
       appliedBpm: current.settings.appliedBpm,
+      bpmChosen: current.settings.bpmChosen,
       manuallyOverriddenBpm: current.settings.manuallyOverriddenBpm,
       manuallyOverriddenAnchor: current.settings.manuallyOverriddenAnchor,
       rowDensity: current.settings.rowDensity,

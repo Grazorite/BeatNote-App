@@ -11,10 +11,12 @@ import {
 export type KeepScreenOnMode = 'disabled' | 'always' | 'whilePlaying';
 export type SeekButtonBehaviour = 'tapTrackHoldSeek' | 'tapSeekHoldTrack';
 export type SeekDurationSeconds = number;
+export type RemoteButtonMode = 'seek' | 'tracks';
 export const REMOTE_SEEK_SECONDS = [5, 10, 15, 30] as const;
 
 export interface SettingsPreferences {
   remoteSeekSeconds: number;
+  remoteButtonMode: RemoteButtonMode;
   showTimingShortcut: boolean;
   continuousPlay: boolean;
   pauseOnHeadsetDisconnect: boolean;
@@ -29,6 +31,7 @@ export interface SettingsPreferences {
 const STORAGE_KEY = 'beatnote.settings.v1';
 const DEFAULTS: SettingsPreferences = {
   remoteSeekSeconds: 10,
+  remoteButtonMode: 'seek',
   showTimingShortcut: false,
   continuousPlay: true,
   pauseOnHeadsetDisconnect: true,
@@ -85,6 +88,7 @@ const hydration = AsyncStorage.getItem(STORAGE_KEY)
     if (raw === null) return;
     const parsed = JSON.parse(raw) as Partial<SettingsPreferences>;
     snapshot = {
+      remoteButtonMode: parsed.remoteButtonMode === 'tracks' ? 'tracks' : 'seek',
       remoteSeekSeconds: REMOTE_SEEK_SECONDS.find(value => value === parsed.remoteSeekSeconds) ?? DEFAULTS.remoteSeekSeconds,
       showTimingShortcut: typeof parsed.showTimingShortcut === 'boolean'
         ? parsed.showTimingShortcut : DEFAULTS.showTimingShortcut,

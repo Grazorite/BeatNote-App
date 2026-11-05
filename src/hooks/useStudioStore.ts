@@ -90,6 +90,7 @@ export interface GridRestoreSnapshot {
   bpm: number;
   beatAnchorMs: number;
   phraseStartMs: number | null;
+  bpmChosen: boolean;
   manuallyOverriddenBpm: boolean;
   manuallyOverriddenAnchor: boolean;
 }
@@ -204,6 +205,7 @@ export interface StudioStore {
   primaryView: 'wrapped' | 'detail';
   countSize: 4 | 6 | 8;
   showDanceCounts: boolean;
+  bpmChosen: boolean;
   showWaveform: boolean;
   beatAnchorMs: number;
   phraseStartMs: number | null;
@@ -250,7 +252,7 @@ export interface StudioStore {
   closeLibrarySheet: () => void;
   applyTrackState: (payload: TrackCommitPayload) => void;
   firstTrack: () => Promise<QueueControlResult>;
-  previousTrack: () => Promise<QueueControlResult>;
+  previousTrack: (skipRestart?: boolean) => Promise<QueueControlResult>;
   nextTrack: () => Promise<QueueControlResult>;
   advanceTrackAfterCompletion: () => Promise<QueueControlResult>;
   toggleShuffle: () => void;
@@ -340,6 +342,7 @@ const runQueueAction = async (
   action: QueueAction,
   getState: () => StudioStore,
   automaticCompletion = false,
+  skipRestart = false,
 ): Promise<QueueControlResult> => {
   const {
     navigationBaseIndex,
@@ -358,7 +361,7 @@ const runQueueAction = async (
   const target = queueTarget(
     queue,
     action,
-    state.currentTime,
+    skipRestart ? 0 : state.currentTime,
     state.songLoaded && state.currentMusicItemId !== null,
   );
   if (target.kind === 'disabled') return target;
@@ -490,6 +493,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   showWaveform: false,
   beatAnchorMs: 0,
   phraseStartMs: null,
+  bpmChosen: false,
   manuallyOverriddenBpm: false,
   manuallyOverriddenAnchor: false,
   gridRestoreSnapshot: null,
@@ -685,7 +689,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
     };
   }),
   firstTrack: () => runQueueAction('first', get),
-  previousTrack: () => runQueueAction('previous', get),
+  previousTrack: (skipRestart = false) => runQueueAction('previous', get, false, skipRestart),
   nextTrack: () => runQueueAction('next', get),
   advanceTrackAfterCompletion: () => runQueueAction('next', get, true),
   toggleShuffle: () => {
@@ -787,18 +791,20 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   }),
   setViewportLocked: (locked) => set({ isViewportLocked: locked }),
   setBpm: (bpm) => set({ bpm }),
-  setBpmManual: (bpm) => set({ bpm, manuallyOverriddenBpm: true, gridPreview: null }),
+  setBpmManual: (bpm) => set({ bpm, bpmChosen: true, manuallyOverriddenBpm: true, gridPreview: null }),
   applyAnalysisSuggestion: (bpm, anchorMs, phraseStartMs) => set((state) => ({
     gridRestoreSnapshot: {
       bpm: state.bpm,
       beatAnchorMs: state.beatAnchorMs,
       phraseStartMs: state.phraseStartMs,
+      bpmChosen: state.bpmChosen,
       manuallyOverriddenBpm: state.manuallyOverriddenBpm,
       manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
     },
     bpm,
     beatAnchorMs: Math.max(0, Math.round(anchorMs)),
     phraseStartMs: phraseStartMs === undefined ? state.phraseStartMs : Math.max(0, Math.round(phraseStartMs)),
+    bpmChosen: true,
     manuallyOverriddenBpm: false,
     manuallyOverriddenAnchor: false,
     gridPreview: null,
@@ -817,12 +823,14 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
       bpm: state.bpm,
       beatAnchorMs: state.beatAnchorMs,
       phraseStartMs: state.phraseStartMs,
+      bpmChosen: state.bpmChosen,
       manuallyOverriddenBpm: state.manuallyOverriddenBpm,
       manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
     },
     bpm: state.gridPreview.bpm,
     beatAnchorMs: state.gridPreview.beatAnchorMs,
     phraseStartMs: state.gridPreview.phraseStartMs,
+    bpmChosen: true,
     manuallyOverriddenBpm: false,
     manuallyOverriddenAnchor: false,
     gridPreview: null,

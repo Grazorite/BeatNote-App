@@ -43,7 +43,7 @@ export const bpmControlStyles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bpmValue: {
-    color: colors.accent,
+    color: colors.text,
     fontSize: 22,
     fontWeight: 'bold',
     marginHorizontal: 2,
@@ -52,6 +52,9 @@ export const bpmControlStyles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  defaultValue: { color: colors.textSecondary },
+  invalid: { color: colors.iconDestructive },
+  edited: { color: colors.accent },
   hint: {
     color: colors.textSecondary,
     fontSize: 13,

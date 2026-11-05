@@ -63,6 +63,7 @@ Post-core stem separation may later enhance this workflow, but it is not part of
   Project Manager can rename both saved-list entries and the currently loaded saved baseline.
 - **Draft baseline** — the Saved Project revision and content fingerprint used to decide whether a
   draft is saved or dirty and whether a song switch needs confirmation.
+- **System playback buttons** — Pro users default to 10-second seeking and can choose a different interval or previous/next song in Playback Settings. System song changes follow the current queue and use the normal draft guard. The in-app tap/hold setting is independent.
 - **Playback queue** — an ordered snapshot of Music Item IDs. First, Previous, Next, and Shuffle
   operate on this queue independently of Saved Projects. Changing the active Music Library sort or
   Custom Order immediately refreshes the non-shuffled queue while preserving the loaded song;

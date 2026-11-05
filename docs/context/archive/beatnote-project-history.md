@@ -3,6 +3,38 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Standardise app-owned alerts and install build 48.
+      <sub>**Key Artifacts:** `AGENTS.md`, `App.tsx`, `app.json`, `src/components/ErrorBoundary.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/common/AppPrompt.tsx`</sub>
+
+### 2026-11-05 — Standardise BeatNote prompts in build 48
+
+**Agent:** Codex · **Commit(s):** `5eeef01`
+**Kanban moved:** App-owned prompts → Done
+
+**Changed:** Routed marker actions, export, project, playback, queue, feedback and crash messages through a shared glass dialog, including prompts above a sheet.
+
+**Verified:** TypeScript, version checks, eight browser journeys and the focused iOS marker restore journey passed. Device services confirmed build 48 installed and launched.
+
+**Not verified / known gaps:** Hands-on VoiceOver review and individual error paths remain open.
+
+**Next agent should:** Collect device feedback on the marker menu and bulk-delete confirmation.
+
+- [x] Give Telegram feedback the primary About button and move licences to a footer link. Install build 47.
+      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Install the quieter About layout in build 47
+
+**Agent:** Codex · **Commit(s):** Build 47 commit containing this entry
+**Kanban moved:** About footer and feedback hierarchy → Done
+
+**Changed:** The Telegram button uses the accent colour below the identity. Open Source Licences sits in a small, underlined footer link with a 44-point tap target. A 16-point gap separates feedback and the privacy card.
+
+**Verified:** TypeScript, version consistency, all eight browser journeys and the focused iOS Settings XCTest passed. After the spacing adjustment, the focused browser journey passed again and a 393 × 852 viewport measured exactly 16 points between the controls. Rebuilt with the same build number. Device services verified installation and launch of 1.0.0 (47).
+
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open.
+
+**Next agent should:** Collect physical feedback on the About screen.
+
 - [x] Collapse licence groups by default and install build 46.
       <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 

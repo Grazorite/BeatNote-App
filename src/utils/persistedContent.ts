@@ -54,6 +54,7 @@ export type PersistedContentSource = Pick<StudioStore,
   | 'showWaveform'
   | 'beatAnchorMs'
   | 'phraseStartMs'
+  | 'bpmChosen'
   | 'manuallyOverriddenBpm'
   | 'manuallyOverriddenAnchor'
   | 'rowDensity'
@@ -79,6 +80,7 @@ export type PersistedContentPatch = Pick<StudioStore,
   | 'showWaveform'
   | 'beatAnchorMs'
   | 'phraseStartMs'
+  | 'bpmChosen'
   | 'manuallyOverriddenBpm'
   | 'manuallyOverriddenAnchor'
   | 'rowDensity'
@@ -168,6 +170,8 @@ export function extractPersistedContent(state: PersistedContentSource): Persiste
       beatAnchorMs: state.beatAnchorMs,
       phraseStartMs: state.phraseStartMs,
       appliedBpm: state.bpm,
+      // Only an accepted analysis at 120 needs extra data to distinguish it from the default.
+      bpmChosen: (state.bpmChosen && state.bpm === 120 && !state.manuallyOverriddenBpm) || undefined,
       manuallyOverriddenBpm: state.manuallyOverriddenBpm,
       manuallyOverriddenAnchor: state.manuallyOverriddenAnchor,
       rowDensity: state.rowDensity,
@@ -205,6 +209,7 @@ export function applyPersistedContent(content: PersistedContent): PersistedConte
     showWaveform: content.settings.showWaveform ?? false,
     beatAnchorMs: content.settings.beatAnchorMs ?? 0,
     phraseStartMs: content.settings.phraseStartMs ?? null,
+    bpmChosen: content.settings.bpmChosen ?? (content.bpm !== 120 || content.settings.manuallyOverriddenBpm === true),
     manuallyOverriddenBpm: content.settings.manuallyOverriddenBpm ?? false,
     manuallyOverriddenAnchor: content.settings.manuallyOverriddenAnchor ?? false,
     rowDensity: content.settings.rowDensity ?? { mode: 'phrase' },

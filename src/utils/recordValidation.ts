@@ -101,6 +101,7 @@ const isProjectSettings = (value: unknown): boolean => {
     && !isFiniteNumber(value.phraseStartMs)) return false;
   if (value.appliedBpm !== undefined
     && (!isFiniteNumber(value.appliedBpm) || value.appliedBpm <= 0)) return false;
+  if (value.bpmChosen !== undefined && !isBoolean(value.bpmChosen)) return false;
   if (value.manuallyOverriddenBpm !== undefined
     && !isBoolean(value.manuallyOverriddenBpm)) return false;
   if (value.manuallyOverriddenAnchor !== undefined

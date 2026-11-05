@@ -5,7 +5,8 @@ interface OutputRouteUnavailableEvent {
 }
 
 interface BeatNoteAudioSessionNativeModule {
-  setRemoteSeekSeconds(seconds: number): Promise<void>;
+  configureRemoteButtons(mode: 'seek' | 'tracks' | 'off', seconds: number, previous: boolean, next: boolean): Promise<void>;
+  addListener(eventName: 'onRemoteTrack', listener: (event: { direction: 'previous' | 'next' }) => void): EventSubscription;
   addListener(
     eventName: 'onOutputRouteUnavailable',
     listener: (event: OutputRouteUnavailableEvent) => void,

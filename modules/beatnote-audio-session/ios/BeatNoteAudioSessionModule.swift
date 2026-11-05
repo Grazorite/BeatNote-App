@@ -3,15 +3,32 @@ import MediaPlayer
 import ExpoModulesCore
 
 public final class BeatNoteAudioSessionModule: Module {
+  private var trackTargets: [(MPRemoteCommand, Any)] = []
   private var routeObserver: NSObjectProtocol?
 
   public func definition() -> ModuleDefinition {
     Name("BeatNoteAudioSession")
-    Events("onOutputRouteUnavailable")
+    Events("onOutputRouteUnavailable", "onRemoteTrack")
 
-    AsyncFunction("setRemoteSeekSeconds") { (seconds: Int) in
+    AsyncFunction("configureRemoteButtons") { (mode: String, seconds: Int, previous: Bool, next: Bool) in
       let intervals = [NSNumber(value: seconds)]
       let center = MPRemoteCommandCenter.shared()
+      center.skipForwardCommand.isEnabled = mode == "seek"
+      center.skipBackwardCommand.isEnabled = mode == "seek"
+      center.nextTrackCommand.isEnabled = mode == "tracks" && next
+      center.previousTrackCommand.isEnabled = mode == "tracks" && previous
+      if mode == "tracks" && self.trackTargets.isEmpty {
+        for (command, direction) in [(center.previousTrackCommand, "previous"), (center.nextTrackCommand, "next")] {
+          let token = command.addTarget { [weak self] _ in
+            guard let self else { return .commandFailed }
+            self.sendEvent("onRemoteTrack", ["direction": direction])
+            return .success
+          }
+          self.trackTargets.append((command, token))
+        }
+      } else if mode != "tracks" {
+        self.removeTrackTargets()
+      }
       center.skipForwardCommand.preferredIntervals = intervals
       center.skipBackwardCommand.preferredIntervals = intervals
     }.runOnQueue(.main)
@@ -41,6 +58,12 @@ public final class BeatNoteAudioSessionModule: Module {
 
   deinit {
     stopObservingRouteChanges()
+    removeTrackTargets()
+  }
+
+  private func removeTrackTargets() {
+    for (command, token) in trackTargets { command.removeTarget(token) }
+    trackTargets.removeAll()
   }
 
   private func stopObservingRouteChanges() {

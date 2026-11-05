@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (50)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (52)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -85,6 +85,9 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
+
+- [ ] Check system Previous/Next from the physical Lock Screen and Control Centre during playback.
+
 - [ ] Physically verify Control Centre skipping with a customised interval on build 50.
 
 
@@ -105,6 +108,12 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Add bulk speed preset reset and selectable system song/interval buttons. Install build 52.
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Distinguish default, edited and saved tempos; install build 51.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/projectControls.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `src/utils/recordValidation.ts`, `tests/ui-components.spec.ts`, `src/hooks/useBpmStatus.ts`</sub>
+
 - [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
@@ -114,11 +123,7 @@ target; Android is a far-future possibility only.
 - [x] Use secondary grey for the main canvas dance counts and install build 49.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
-- [x] Standardise app-owned alerts and install build 48.
-      <sub>**Key Artifacts:** `AGENTS.md`, `App.tsx`, `app.json`, `src/components/ErrorBoundary.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/common/AppPrompt.tsx`</sub>
 
-- [x] Give Telegram feedback the primary About button and move licences to a footer link. Install build 47.
-      <sub>**Key Artifacts:** `AGENTS.md`, `README.md`, `app.json`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 
 
@@ -201,6 +206,34 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Install system transport modes and preset reset in build 52
+
+**Agent:** Codex · **Commit(s):** Build 52 publication commit containing this entry
+**Kanban moved:** Preset reset and Control Centre mode → Done
+
+**Changed:** Pro Playback Settings choose interval skipping or queue navigation on iOS. System Previous goes directly to the preceding song. Button Configurations can restore default speeds across all preset layouts with confirmation.
+
+**Verified:** Types and eight browser journeys passed. Temporary checks covered reset/cancel, mode and interval persistence, and queue navigation after the restart threshold. Device services verified build 52 installed and launched.
+
+**Not verified / known gaps:** The simulator opened Control Centre without rendering its media tile, so an actual system-button press still needs physical confirmation.
+
+**Defaults:** New installations use 10-second system seeking. Lite disables both system button choices and the interval selector. Existing explicit Pro preferences are preserved.
+
+**Next agent should:** Try both directions on the physical Lock Screen with Change songs selected and a multi-song queue.
+
+### 2026-11-05 — Compact BPM status in build 51
+
+**Agent:** Codex · **Commit(s):** uncommitted
+**Kanban moved:** Tempo status and signed installation → Done
+
+**Changed:** The toolbar mutes the untouched 120, brightens a chosen tempo and adds an orange dot for unsaved tempo edits. Timing settings and accessibility expose the status in words. Accepted analysis at exactly 120 survives save and reload.
+
+**Verified:** Types, eight browser journeys and focused Settings XCTest passed. Temporary checks confirmed contrast, dot transitions, unrelated marker edits, returning to the saved tempo, and manual and analysed 120 after reload. The physical phone reported version 1.0.0 (51) installed.
+
+**Not verified / known gaps:** iOS denied launch because the phone was locked. Hands-on VoiceOver review remains open. Old 120 BPM projects lacking evidence of tempo selection display the default state.
+
+**Next agent should:** Confirm launch after unlock.
+
 ### 2026-11-05 — Install timing and project refinements in build 50
 
 **Agent:** Codex · **Commit(s):** Build 50 commit containing this entry
@@ -241,31 +274,7 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 **Next agent should:** Collect physical feedback on the contrast between timestamps and counts.
 
 
-### 2026-11-05 — Standardise BeatNote prompts in build 48
 
-**Agent:** Codex · **Commit(s):** `5eeef01`
-**Kanban moved:** App-owned prompts → Done
-
-**Changed:** Routed marker actions, export, project, playback, queue, feedback and crash messages through a shared glass dialog, including prompts above a sheet.
-
-**Verified:** TypeScript, version checks, eight browser journeys and the focused iOS marker restore journey passed. Device services confirmed build 48 installed and launched.
-
-**Not verified / known gaps:** Hands-on VoiceOver review and individual error paths remain open.
-
-**Next agent should:** Collect device feedback on the marker menu and bulk-delete confirmation.
-
-### 2026-11-05 — Install the quieter About layout in build 47
-
-**Agent:** Codex · **Commit(s):** Build 47 commit containing this entry
-**Kanban moved:** About footer and feedback hierarchy → Done
-
-**Changed:** The Telegram button uses the accent colour below the identity. Open Source Licences sits in a small, underlined footer link with a 44-point tap target. A 16-point gap separates feedback and the privacy card.
-
-**Verified:** TypeScript, version consistency, all eight browser journeys and the focused iOS Settings XCTest passed. After the spacing adjustment, the focused browser journey passed again and a 393 × 852 viewport measured exactly 16 points between the controls. Rebuilt with the same build number. Device services verified installation and launch of 1.0.0 (47).
-
-**Not verified / known gaps:** Physical visual and VoiceOver review remain open.
-
-**Next agent should:** Collect physical feedback on the About screen.
 
 
 
