@@ -39,7 +39,10 @@ final class BeatNoteUITests: XCTestCase {
     element("timing-shortcut").tap()
     XCTAssertTrue(element("dance-grid-toggle").waitForExistence(timeout: 5))
     element("bpm-settings-page-back").tap()
-    XCTAssertTrue(element("timing-shortcut").isHittable)
+    let returnedToEditor = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+      self.element("timing-shortcut").isHittable && !self.element("bpm-settings-page").exists
+    }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [returnedToEditor], timeout: 5), .completed)
     if restoredAudio {
       XCTAssertTrue(element("song-title-control").label.contains("current song"))
     } else {

@@ -23,8 +23,7 @@ const BeatAnchorControl: React.FC = () => {
 
   return (
     <View style={styles.container} testID="beat-anchor-control">
-      <Text style={styles.label}>Start your phrase on the right beat</Text>
-      <Text style={styles.hint}>Pause and move the playhead to your first dance count, then tap Set Count 1 Here. Use the adjustments below to fine-tune it.</Text>
+      <Text style={styles.hint}>Move the playhead to your first count, then tap Set Count 1 Here.</Text>
       <Text style={styles.value} accessibilityLiveRegion="polite" testID="beat-anchor-value">
         {formatAnchor(phraseStartMs ?? beatAnchorMs)}
       </Text>
@@ -75,7 +74,6 @@ const BeatAnchorControl: React.FC = () => {
           <Text style={styles.buttonText}>+¼ beat</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.hint}>Moving Count 1 shifts the whole grid.</Text>
     </View>
   );
 };

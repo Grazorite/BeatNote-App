@@ -319,9 +319,7 @@ const WrappedRow: React.FC<WrappedRowProps> = ({
             <>
               <Path
                 d={path}
-                stroke={colors.gridMinor}
-                strokeWidth={1}
-                fill="none"
+                fill={colors.gridMinor}
                 opacity={0.75}
                 testID={`wrapped-row-peaks-${row.index}`}
               />

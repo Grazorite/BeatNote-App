@@ -56,10 +56,8 @@ const PlayedWaveform: React.FC<PlayedWaveformProps> = ({ activeLayerColor, wavef
   <Svg width={Math.max(0, width)} height={OVERVIEW_HEIGHT} pointerEvents="none">
     <Path
       d={waveformPath}
-      stroke={activeLayerColor}
-      strokeOpacity={PLAYED_WAVEFORM_OPACITY}
-      strokeWidth={1.5}
-      fill="none"
+      fill={activeLayerColor}
+      fillOpacity={PLAYED_WAVEFORM_OPACITY}
       testID="loop-overview-progress"
     />
   </Svg>
@@ -199,7 +197,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
       waveformData.duration,
     );
   }, [drawable, songDuration, waveformData?.duration, waveformData?.peaks, waveformData?.source, width]);
-  const progressPath = waveformPath || `M 0 ${OVERVIEW_HEIGHT / 2} L ${Math.max(0, width)} ${OVERVIEW_HEIGHT / 2}`;
+  const progressPath = waveformPath || `M 0 ${OVERVIEW_HEIGHT / 2} h ${Math.max(0, width)} v 1.5 H 0 Z`;
 
   return (
     <View testID="loop-overview-track" style={styles.track} pointerEvents="none">
@@ -208,9 +206,7 @@ const LoopOverviewTrack: React.FC<LoopOverviewTrackProps> = ({ audioUri, width }
         {waveformPath ? (
           <Path
             d={waveformPath}
-            stroke={colors.gridMinor}
-            strokeWidth={1}
-            fill="none"
+            fill={colors.gridMinor}
             opacity={0.75}
             testID="loop-overview-peaks"
           />

@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Randomise sparkle directions and install Release 34 on the iPhone.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `tests/ui-components.spec.ts`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Install Release 34 with random sparkle directions
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Random sparkle and Release 34 installation → Done
+
+**Changed:** Each pulse chooses a random angle around the logo, starts the sparkle near the corresponding edge and moves it outward. Preserved five pulses, fixed title and Reduce Motion handling. Incremented build and browser expectation to 34; installed the signed update in place.
+
+**Verified:** TypeScript, version consistency and all eight browser journeys passed. Signed Release build succeeded. Device services independently reported 1.0.0 (34) installed and launched it successfully.
+
+**Not verified / known gaps:** Physical sparkle appearance and VoiceOver remain for user review. Native XCTest was not rerun. Accumulated sparkle and release changes remain uncommitted and unpushed.
+
+**Next agent should:** Collect physical Release 34 feedback, then continue TestFlight preparation.
+
 - [x] Add a subtle emitted sparkle to each About-logo pulse.
       <sub>**Key Artifacts:** `AGENTS.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`</sub>
 

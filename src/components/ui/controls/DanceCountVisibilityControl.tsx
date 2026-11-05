@@ -15,7 +15,7 @@ const DanceCountVisibilityControl: React.FC = () => {
   return (
     <View style={styles.container} testID="settings-dance-counts">
       <ModernToggle label="Show dance grid" value={showGrid} onValueChange={setShowGrid} testID="dance-grid-toggle" />
-      <Text style={styles.hint}>Silver dots mark each beat. Brighter white dots mark Count 1.</Text>
+      <Text style={styles.hint}>Silver marks each beat. White marks Count 1.</Text>
       <ModernToggle
         label="Show dance counts"
         value={showDanceCounts}
@@ -23,9 +23,6 @@ const DanceCountVisibilityControl: React.FC = () => {
         accessibilityHint="Show the phrase and count during playback"
         testID="dance-counts-toggle"
       />
-      <Text style={styles.hint}>
-        Counts follow your project BPM and phrase length.
-      </Text>
       {showDanceCounts && (
         <Text style={styles.enabled} accessibilityLiveRegion="polite" testID="dance-counts-enabled">
           Look for counts beside the waveform and playback controls.

@@ -189,10 +189,10 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       <Svg width={VIEWPORT_WIDTH} height={120} style={styles.canvas}>
           <Path
             d={pathData}
-            stroke="#00ff00"
+            stroke={waveformData ? 'none' : '#00ff00'}
             strokeWidth={2}
-            fill="none"
-            strokeOpacity={0.6}
+            fill={waveformData ? '#00ff00' : 'none'}
+            opacity={0.6}
           />
           {renderStemMarkers()}
           

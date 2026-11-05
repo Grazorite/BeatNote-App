@@ -200,7 +200,8 @@ inclusion: always
   violet wash plus a slim underline across the looped segment; the overview strip shows only the
   underline, with no fill and no outside dimming. The segment comes from `useMarkerLoopSegment`,
   which mirrors the playback engine and changes only when the playhead crosses a marker.
-- The already-played waveform stroke is muted with `PLAYED_WAVEFORM_OPACITY` from
+- Draw decoded peaks as a single filled outline so played audio has no vertical stroke bands.
+  The already-played waveform tint is muted with `PLAYED_WAVEFORM_OPACITY` from
   `src/styles/common.ts` so the layer colour does not compete with markers or the playhead. Adjust
   that one constant rather than recolouring the layer.
 

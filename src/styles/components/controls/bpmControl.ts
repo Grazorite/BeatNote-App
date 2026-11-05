@@ -23,7 +23,7 @@ export const bpmControlStyles = StyleSheet.create({
     padding: 4,
   },
   button: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 4,
     paddingVertical: 8,
     minHeight: 44,
     minWidth: 44,
@@ -42,10 +42,10 @@ export const bpmControlStyles = StyleSheet.create({
   },
   bpmValue: {
     color: colors.accent,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginHorizontal: 16,
-    minWidth: 100,
+    marginHorizontal: 2,
+    minWidth: 52,
     minHeight: 48,
     flex: 1,
     textAlign: 'center',

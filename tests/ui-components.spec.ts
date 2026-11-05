@@ -22,6 +22,10 @@ test.describe('UI Components & Layout', () => {
     await bpmInput.fill('156');
     await bpmInput.press('Enter');
     await expect(bpmInput).toHaveValue('156');
+    await page.getByRole('button', { name: 'Increase BPM by 10' }).click();
+    await expect(bpmInput).toHaveValue('166');
+    await page.getByRole('button', { name: 'Decrease BPM by 10' }).click();
+    await expect(bpmInput).toHaveValue('156');
     await bpmInput.fill('0');
     await bpmInput.press('Enter');
     await expect(page.getByText('Enter a number from 40 to 220. Your project BPM is still 156.')).toBeVisible();
@@ -113,7 +117,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (35)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (37)', { exact: true })).toBeVisible();
     await expect(page.getByTestId('about-send-feedback')).toBeVisible();
     await page.getByTestId('about-open-source-licences').click();
     const licencesPage = page.getByTestId('open-source-licences-page');

@@ -361,10 +361,8 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
                     viewportDuration, 
                     waveformData.duration
                   ))}
-                  stroke={colors.success}
-                  strokeWidth={1}
-                  fill="none"
-                  strokeOpacity={0.6}
+                  fill={colors.success}
+                  fillOpacity={0.6}
                 />
               ) : (
                 <Rect

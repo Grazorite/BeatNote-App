@@ -36,13 +36,18 @@ const BpmControl: React.FC = () => {
     setError(false);
   };
 
+  const stepButton = (delta: number): React.ReactElement => (
+    <TouchableOpacity key={delta} style={styles.button} onPress={() => adjustBpm(delta)}
+      accessibilityRole="button" accessibilityLabel={`${delta < 0 ? 'Decrease' : 'Increase'} BPM by ${Math.abs(delta)}`}>
+      <Text style={styles.buttonText}>{delta < 0 ? '−' : '+'}{Math.abs(delta)}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View testID="settings-bpm" style={styles.container}>
       <Text style={styles.label}>Project BPM</Text>
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.button} onPress={() => adjustBpm(-1)} accessibilityRole="button" accessibilityLabel="Decrease BPM by 1">
-          <Text style={styles.buttonText}>−1</Text>
-        </TouchableOpacity>
+        {[-10, -1].map(stepButton)}
         <TextInput
           ref={input}
           style={styles.bpmValue}
@@ -58,9 +63,7 @@ const BpmControl: React.FC = () => {
           accessibilityHint="Enter a tempo from 40 to 220 beats per minute"
           testID="project-bpm-input"
         />
-        <TouchableOpacity style={styles.button} onPress={() => adjustBpm(1)} accessibilityRole="button" accessibilityLabel="Increase BPM by 1">
-          <Text style={styles.buttonText}>+1</Text>
-        </TouchableOpacity>
+        {[1, 10].map(stepButton)}
       </View>
       {editing && (
         <TouchableOpacity style={styles.button} onPress={() => input.current?.blur()} accessibilityRole="button" testID="project-bpm-done">
@@ -68,8 +71,7 @@ const BpmControl: React.FC = () => {
         </TouchableOpacity>
       )}
       {error && <Text style={styles.hint} accessibilityLiveRegion="polite">Enter a number from 40 to 220. Your project BPM is still {bpm}.</Text>}
-      <Text style={styles.hint}>Tap the number to edit · 40–220 beats per minute.</Text>
-      <Text style={styles.hint}>Sets the beat grid and dance-count timing. To change how fast the song plays, use playback speed.</Text>
+      <Text style={styles.hint}>Tap the BPM to set your beat and count spacing.</Text>
     </View>
   );
 };

@@ -45,10 +45,8 @@ const PlayedArtwork: React.FC<PlayedArtworkProps> = ({ path, width, height, colo
     {path ? (
       <Path
         d={path}
-        stroke={color}
-        strokeOpacity={PLAYED_WAVEFORM_OPACITY}
-        strokeWidth={1.5}
-        fill="none"
+        fill={color}
+        fillOpacity={PLAYED_WAVEFORM_OPACITY}
         testID={`wrapped-row-progress-${rowIndex}`}
       />
     ) : (

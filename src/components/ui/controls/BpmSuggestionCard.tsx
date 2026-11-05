@@ -33,7 +33,7 @@ const BpmSuggestionCard: React.FC = () => {
       <View style={styles.container} testID="bpm-suggestion-card">
         <Text style={styles.title}>Automatic tempo</Text>
         <Text style={styles.detail}>
-          Estimate this song’s BPM on your device. Listen and check the suggestion before applying it.
+          Preview a tempo estimate for this song.
         </Text>
         <View style={styles.actions}>
           <TouchableOpacity
@@ -137,15 +137,11 @@ const BpmSuggestionCard: React.FC = () => {
       <Text style={styles.detail}>
         {result.confidenceBand} confidence · {result.tempoModel === 'variable' ? 'tempo may vary' : 'steady tempo'}
       </Text>
-      <Text style={styles.detail}>
-        {hasDownbeatSuggestion
-          ? `Suggested Count 1: ${formatSeconds(result.suggestedDownbeatMs as number)}`
-          : 'After applying a tempo, line up Count 1 with the start of your dance phrase.'}
-      </Text>
-      <Text style={styles.detail}>Automatic analysis can follow a different rhythmic pulse. If this feels wrong, try a related tempo or type the BPM above.</Text>
+      {hasDownbeatSuggestion && <Text style={styles.detail}>Suggested Count 1: {formatSeconds(result.suggestedDownbeatMs as number)}</Text>}
+      <Text style={styles.detail}>If the beat feels off, try another tempo or enter your own.</Text>
       {gridPreview !== null && (
         <Text style={styles.detail} accessibilityLiveRegion="polite" testID="bpm-preview-status">
-          Previewing {gridPreview.bpm} BPM · Apply Preview saves it to your project.
+          Previewing {gridPreview.bpm} BPM
         </Text>
       )}
       <View style={styles.actions}>

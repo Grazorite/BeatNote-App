@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (35)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (36)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review Release 35 dance grid, toolbar shortcut, artwork and motion and confirm the existing library and projects after the in-place update.
+1. Physically review Release 36 waveform rendering, timing controls, artwork and motion and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -100,6 +100,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Simplify BPM controls, remove waveform stripes, and install build 36.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Verify and install combined build 35 with the Pro sparkle.
       <sub>**Key Artifacts:** `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/waveform/DanceGridLines.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
 
@@ -112,8 +115,6 @@ target; Android is a far-future possibility only.
 - [x] Improve BPM editing, tempo suggestions and dance-count guidance.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Randomise sparkle directions and install Release 34 on the iPhone.
-      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `tests/ui-components.spec.ts`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
 
 ---
 
@@ -192,6 +193,20 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-05 — Polish BPM controls and remove waveform stroke bands
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Simplify BPM controls, remove waveform stripes, and install build 36 → Done
+
+**Changed:** Timing & BPM opens with the toolbar toggle. Project BPM has ±10 and ±1 buttons beside the editable value. Shortened phrase, Count 1 and analysis guidance. The decoded waveform traces a filled outline for both the played and unplayed regions across the timeline, overview and detail views. Incremented to build 36 and installed in place.
+
+**Verified:** TypeScript, version consistency and whitespace checks passed. All eight browser journeys passed across the suite and a focused rerun after updating waveform colour checks from stroke to fill. Constant-volume peak paths at three sample densities rendered a uniform interior. The focused iOS waveform, annotation and project restoration XCTest passed. Device services confirmed 1.0.0 (36) installed and launched on the iPhone.
+
+**Not verified / known gaps:** The screenshot’s exact imported audio has not been visually reviewed on the physical phone since installation. Concurrent queue changes and prior test edits are present in the shared tree.
+
+**Next agent should:** Collect physical build 36 feedback on the edited song with the waveform on and dance grid off.
+
+
 ### 2026-11-05 — Install combined build 35 with the Settings Pro sparkle
 
 **Agent:** Codex · **Commit(s):** `65da670`
@@ -243,18 +258,5 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
 
 **Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
-
-### 2026-11-05 — Install Release 34 with random sparkle directions
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Random sparkle and Release 34 installation → Done
-
-**Changed:** Each pulse chooses a random angle around the logo, starts the sparkle near the corresponding edge and moves it outward. Preserved five pulses, fixed title and Reduce Motion handling. Incremented build and browser expectation to 34; installed the signed update in place.
-
-**Verified:** TypeScript, version consistency and all eight browser journeys passed. Signed Release build succeeded. Device services independently reported 1.0.0 (34) installed and launched it successfully.
-
-**Not verified / known gaps:** Physical sparkle appearance and VoiceOver remain for user review. Native XCTest was not rerun. Accumulated sparkle and release changes remain uncommitted and unpushed.
-
-**Next agent should:** Collect physical Release 34 feedback, then continue TestFlight preparation.
 
 <!-- end handover log -->

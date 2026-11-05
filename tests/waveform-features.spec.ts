@@ -17,7 +17,7 @@ test.describe('Critical annotation workflow', () => {
     await loadSyntheticClickAudio(page, 120, 150, 'long-waveform.wav');
 
     await expect(page.getByTestId('loop-overview-peaks')).toHaveCount(0);
-    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
+    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('fill', '#ff6666');
     await expect(page.getByTestId('loop-overview-playhead-underlay')).toHaveAttribute('stroke', '#000000');
     await expect(page.getByTestId('loop-overview-playhead-cap')).toHaveAttribute('fill', '#ff8c00');
 
@@ -32,7 +32,7 @@ test.describe('Critical annotation workflow', () => {
     await expect(waveformLoading).toContainText('Preparing waveform');
     await expect(waveformLoading).toContainText('Long songs can take a moment');
     await expect(waveformLoading).toHaveAttribute('aria-label', 'Preparing waveform. Long songs can take a moment.');
-    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('stroke', '#666666', { timeout: 15_000 });
+    await expect(page.getByTestId('loop-overview-peaks')).toHaveAttribute('fill', '#666666', { timeout: 15_000 });
 
     const gestureArea = page.getByTestId('wrapped-row-gesture-area-0');
     const box = await gestureArea.boundingBox();
@@ -57,7 +57,7 @@ test.describe('Critical annotation workflow', () => {
     }
 
     await gestureArea.click({ position: { x: box.width * 0.6, y: 12 } });
-    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('stroke', '#ff6666');
+    await expect(page.getByTestId('loop-overview-progress')).toHaveAttribute('fill', '#ff6666');
     await expect(page.getByTestId('wrapped-row-playhead-underlay-0')).toHaveAttribute('stroke', '#000000');
     await expect(page.getByTestId('wrapped-row-playhead-0')).toHaveAttribute('stroke', '#ff8c00');
     await expect(page.getByTestId('wrapped-row-playhead-cap-0')).toHaveAttribute('fill', '#ff8c00');

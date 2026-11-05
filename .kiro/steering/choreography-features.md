@@ -28,7 +28,8 @@ initial implementation.
 - Automatic suggestions and alternatives are displayed and applied as whole BPM values. The native
   detector resolves half/double and 3-against-2 pulse ambiguity across representative windows; it
   must not expose raw autocorrelation decimals as authored timing.
-- The Timing & BPM page orders setup as tempo, phrase length, then Count 1 alignment. Project BPM
+- Timing & BPM starts with the toolbar visibility toggle, then tempo, phrase length and Count 1.
+  The ±1 and ±10 buttons adjust project BPM within its limits. Project BPM
   is directly editable from 40–220 (up to two decimal places), with explicit keyboard dismissal
   and validation that preserves the saved tempo on invalid input. It does not change playback speed.
 - Related-tempo previews include 3/2 and 2/3 choices as well as detector alternatives. These are

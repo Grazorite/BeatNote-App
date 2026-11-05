@@ -36,7 +36,7 @@ const CountSizeControl: React.FC = () => {
         })}
       </View>
       <Text style={styles.hint}>
-        One beat = one count. With {countSize} counts, count 1 through {countSize}, then start the next phrase. Each new phrase starts on a white grid line.
+        Count one beat at a time. Start again after {countSize}.
       </Text>
     </View>
   );
