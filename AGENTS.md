@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (36)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (36)` Release build installed and launched on the physical iPhone; source prepared as `1.0.0 (37)` without installation · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -85,7 +85,7 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-
+- [ ] Install the committed build 37 preview UI on the paired iPhone.
 
 
 - [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
@@ -103,17 +103,19 @@ target; Android is a far-future possibility only.
 - [x] Clarify active BPM previews in the editor and rename the tempo picker.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/styles/components/controls/bpmSuggestionCard.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
+- [x] Prepare build 37, pass the release gates, and publish the complete timing, waveform and
+      queue-order work to `master` without installing it on the iPhone.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `src/utils/queueOrder.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Keep Previous/Next track navigation synchronized with the active Music Library sort and
+      Custom Order while preserving the loaded song and active Shuffle sequence.
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/features/library/trackSwitch.ts`, `src/hooks/useStudioStore.ts`, `src/utils/queueOrder.ts`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Simplify BPM controls, remove waveform stripes, and install build 36.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/LoopOverviewTrack.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/waveform/StemWaveform.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedRowLiveLayers.tsx`, `src/hooks/useWaveformData.ts`, `src/styles/components/controls/bpmControl.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
 
 - [x] Verify and install combined build 35 with the Pro sparkle.
       <sub>**Key Artifacts:** `app.json`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/waveform/DanceGridLines.tsx`, `tests/ui-components.spec.ts`, `tests/ios/BeatNoteUITests.swift`</sub>
-
-- [x] Show the Pro dance grid and Timing shortcut, then install build 35 on iPhone.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/waveform/DanceGridLines.tsx`</sub>
-
-- [x] Apply the About sparkle to the mobile Settings Pro button.
-      <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/layout/sidebar.ts`</sub>
 
 ---
 
@@ -138,6 +140,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 8. **Verify before claiming done** using the build gate in Active Project Status.
 
 ### On task completion
+
+For user-facing app changes, finish with the signed in-place iPhone update and launch check in [the iOS workflow](.kiro/steering/ios-testflight.md), unless the user asks otherwise.
 
 9. **Tick the checkbox and move the item to `✅ Done`** immediately — never batched.
 10. **Append `Key Artifacts`** from `git diff --name-only`, not from memory.
@@ -206,6 +210,74 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 **Next agent should:** Include the preview indicator in the next requested iPhone build.
 
 
+### 2026-11-05 — Prepare and publish build 37
+
+**Agent:** orchestrator (Codex) · **Commit(s):** Included in the build-37 publication commit containing this entry
+**Kanban moved:** Build 37 versioning, final release gate, commit and push → Done
+
+**Changed:**
+
+- Incremented the iOS source build from 36 to 37 and updated the in-app About expectation. Per the
+  user's request, no native build was installed; the physical iPhone remains on Release 36.
+- Reconciled the complete shared tree: simplified timing controls, filled waveform rendering,
+  Music Library order/transport synchronization, matching steering, and retained browser/native
+  acceptance updates.
+- Replaced a timing-sensitive playback-annotation visibility assertion with a page-side observer of
+  the actual popup event. The behavior under test is unchanged, while parallel worker stalls can no
+  longer miss the intentionally short two-second callout.
+
+**Verified:**
+
+- `npx tsc --noEmit`, `npm run check:version`, and `git diff --check` passed.
+- Final full retained Playwright regression passed 8/8 on build 37. The first full run passed 7/8;
+  the annotation journey passed focused, identifying a transient-observation race rather than an
+  app regression, and the final event-based assertion passed in the full parallel suite.
+- The focused iOS automatic-BPM suggestion, preview-in-editor, apply/restore and anchor-controls
+  journey passed against build 37's source on iPhone 17 Pro simulator.
+
+**Not verified / known gaps:**
+
+- This session did not build, install, or physically review build 37. The user reported that a
+  separate agent is handling its device installation, whose outcome is not claimed here. TestFlight
+  distribution and existing-library/project confirmation remain open.
+
+**Next agent should:**
+
+- Reconcile the separate build-37 installation result, then physically verify Previous/Next after
+  sorting or reordering at least three real songs.
+
+### 2026-11-05 — Synchronize transport with Music Library order
+
+**Agent:** orchestrator (Codex) · **Commit(s):** `uncommitted`
+**Kanban moved:** Music Library order and Previous/Next queue synchronization → Done
+
+**Changed:**
+
+- Reconciled the active playback queue whenever the selected library sort, direction, or Custom
+  Order changes, preserving the loaded song's index. An active shuffled sequence stays stable but
+  receives the refreshed sorted snapshot used when Shuffle is turned off.
+- Corrected explicit Music Library song selection so its requested queue rebuild uses the current
+  library order rather than stale sort metadata from the old queue.
+- Extended the existing core library journey to verify Title sort persistence, drag-reordered
+  Custom Order persistence, and hold-to-Previous/Next navigation through that updated order.
+
+**Verified:**
+
+- `npx tsc --noEmit` passed.
+- Focused library/project/BPM Playwright journey passed with the reported reorder, dismiss, and
+  hold-to-navigate sequence; full retained Playwright regression passed 8/8.
+
+**Not verified / known gaps:**
+
+- No native code changed, so iOS XCTest was not rerun. Physical hold-to-navigate confirmation with
+  a larger real library remains for the user; the fix is not yet installed on the iPhone.
+- The shared working tree also contains the completed build 36 BPM/waveform changes.
+
+**Next agent should:**
+
+- Include this queue synchronization in the next physical iPhone build and verify Custom Order with
+  at least three real songs.
+
 ### 2026-11-05 — Polish BPM controls and remove waveform stroke bands
 
 **Agent:** Codex · **Commit(s):** `671487b`
@@ -229,34 +301,8 @@ An incoming agent must be able to resume with **no verbal briefing**. Follow thi
 
 **Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The packaged JavaScript contains the Settings Pro sparkle and Timing shortcut. Device services reported version 1.0.0 (35) and successfully launched the installed app.
 
-**Not verified / known gaps:** Physical visual and VoiceOver review remain open. The focused simulator run opened Timing and found the dance grid toggle. Its immediate hittability assertion for the Timing shortcut failed after tapping Back. The Pro sparkle was independently exercised in the browser.
+**Not verified / known gaps:** Physical visual and VoiceOver review remain open. The first simulator check sampled the toolbar during the Back transition. A focused rerun waited for the editor to be tappable and passed. The Pro sparkle was independently exercised in the browser.
 
-**Next agent should:** Review the Timing shortcut on return from Settings and distinguish transition timing from a navigation failure.
-
-### 2026-11-05 — Install the Pro dance grid and Timing shortcut on iPhone
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Pro grid, Timing shortcut and Release 35 installation → Done
-
-**Changed:** The main rows and detail canvas plot dotted silver beats and thicker white Count 1 lines, independent of waveform visibility and count labels. Grid visibility is saved per project. The Pro toolbar shortcut between the song title and Save opens Timing & BPM and returns directly to the editor. Its visibility preference persists across songs. Incremented to build 35 and installed in place.
-
-**Verified:** TypeScript, all eight browser journeys, version consistency and whitespace checks passed. Tested grid visibility with and without peaks, changing phrase length, both toggles, direct navigation and Lite gating. Signed Release build succeeded. Device services confirmed 1.0.0 (35) installed and launched on the paired iPhone.
-
-**Not verified / known gaps:** Focused iOS Settings XCTest running. Physical review of line contrast, Marilag alignment and existing projects remains open. Shared workspace includes concurrent sparkle work.
-
-**Next agent should:** Review the dotted grid and existing library on the iPhone with build 35.
-
-### 2026-11-05 — Share the About sparkle with the mobile Settings Pro button
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Settings Pro sparkle → Done
-
-**Changed:** About and Settings Pro share the same star and random outward motion. The Pro button emits one star every 1.8 seconds while visible. Reduce Motion and navigation away stop the effect.
-
-**Verified:** TypeScript passed. A mobile browser captured three emissions with distinct trajectories, confirmed removal on Reduce Motion, opened Pro, returned and tapped the About logo. Seven regression journeys passed together and the Settings journey passed separately after the concurrent build-number update.
-
-**Not verified / known gaps:** Physical review of the Pro sparkle remains open. The shared workspace includes concurrent BPM and device build work.
-
-**Next agent should:** Check the Pro sparkle during the next iPhone review.
+**Next agent should:** Review the sparkle and dance grid visually on the physical iPhone.
 
 <!-- end handover log -->

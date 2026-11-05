@@ -28,6 +28,14 @@ The generated `ios/` directory is intentionally ignored. Native configuration mu
 key window; the scene delegate then attaches that existing window to the connected `UIWindowScene`
 and forwards scene lifecycle, URL, and user-activity events through `AppDelegate`.
 
+### Installation after app changes
+
+After completing and verifying a user-facing BeatNote change, increment the iOS build number
+once (or use the requested build if already prepared). Build a signed Release for the paired
+physical iPhone, install it over the existing app, check the version reported by the phone and
+launch it. This is the user's standing preference unless they explicitly defer installation.
+If the phone is unreachable or locked, report the specific remaining device action.
+
 ### Physical development build on iOS 27
 
 1. Connect and unlock the iPhone, enable Developer Mode, and trust/pair it with Xcode.

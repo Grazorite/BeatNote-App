@@ -116,9 +116,39 @@ test.describe('Critical annotation workflow', () => {
       }, time);
       await page.waitForTimeout(160);
     };
+    const watchNextPlaybackCallout = async () => {
+      await page.evaluate(() => {
+        const targetWindow = window as typeof window & {
+          annotationPlaybackCalloutSeen?: boolean;
+          annotationPlaybackObserver?: MutationObserver;
+        };
+        targetWindow.annotationPlaybackObserver?.disconnect();
+        targetWindow.annotationPlaybackCalloutSeen = false;
+        const recordCallout = () => {
+          const callout = document.querySelector('[data-testid="annotation-callout"]');
+          if (!callout?.textContent?.includes('Turn together')) return;
+          targetWindow.annotationPlaybackCalloutSeen = true;
+          targetWindow.annotationPlaybackObserver?.disconnect();
+        };
+        targetWindow.annotationPlaybackObserver = new MutationObserver(recordCallout);
+        targetWindow.annotationPlaybackObserver.observe(document.body, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+        recordCallout();
+      });
+    };
+    const expectPlaybackCallout = async () => {
+      await expect.poll(() => page.evaluate(() => (
+        (window as typeof window & { annotationPlaybackCalloutSeen?: boolean })
+          .annotationPlaybackCalloutSeen === true
+      ))).toBe(true);
+    };
+    await watchNextPlaybackCallout();
     await page.getByTestId('play-pause').click();
     await sampleClock(markerTime + 10);
-    await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
+    await expectPlaybackCallout();
     await expect(page.getByTestId('annotation-callout')).toHaveCount(0, { timeout: 4000 });
     for (const time of [markerTime - 800, markerTime + 20, markerTime - 50, markerTime + 30]) {
       await sampleClock(time);
@@ -127,9 +157,10 @@ test.describe('Critical annotation workflow', () => {
     await page.getByTestId('play-pause').click();
     await sampleClock(markerTime - 200);
     await gestureArea.click({ position: { x: box.width * 0.2, y: 12 } });
+    await watchNextPlaybackCallout();
     await page.getByTestId('play-pause').click();
     await sampleClock(markerTime + 10);
-    await expect(page.getByTestId('annotation-callout')).toContainText('Turn together');
+    await expectPlaybackCallout();
     await page.getByTestId('play-pause').click();
 
     await page.getByRole('button', { name: 'Annotation: Turn together', exact: true }).click();

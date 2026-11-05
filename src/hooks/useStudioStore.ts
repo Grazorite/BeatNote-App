@@ -38,7 +38,12 @@ import {
 import { subscribeImportJobs } from '../features/library/importPipeline';
 import { subscribeAnalysisJobs } from '../features/analysis/bpmAnalysisService';
 import { applyPersistedContent } from '../utils/persistedContent';
-import { queueTarget, setShuffle as setQueueShuffle, type QueueAction } from '../utils/queueOrder';
+import {
+  queueTarget,
+  setShuffle as setQueueShuffle,
+  syncQueueToLibraryOrder,
+  type QueueAction,
+} from '../utils/queueOrder';
 import type { SwitchResult } from '../features/library/trackSwitch';
 import {
   applyCsvReplace as replaceLayersFromCsv,
@@ -515,7 +520,21 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   separatedStemUris: {},
   setLibraryItems: (items) => set({ libraryItems: items }),
   setLibrarySort: (sort, direction) => {
-    set({ librarySort: sort, librarySortDirection: direction });
+    let queueToPersist: PlaybackQueue | null = null;
+    let queueChanged = false;
+    set((state) => {
+      const queue = syncQueueToLibraryOrder(
+        state.queue,
+        Object.values(state.libraryItems),
+        sort,
+        direction,
+        state.libraryCustomOrder,
+        state.currentMusicItemId,
+      );
+      queueToPersist = queue;
+      queueChanged = queue !== state.queue;
+      return { librarySort: sort, librarySortDirection: direction, queue };
+    });
     void updateLibrarySort(sort, direction, {
       onIssue: issue => set((state) => ({
         persistenceIssues: [
@@ -526,10 +545,27 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
         ],
       })),
     }).catch(() => undefined);
+    if (queueChanged) get().setQueue(queueToPersist);
   },
   setLibraryCustomOrder: (order) => {
     const customOrder = [...new Set(order)];
-    set({ libraryCustomOrder: customOrder });
+    let queueToPersist: PlaybackQueue | null = null;
+    let queueChanged = false;
+    set((state) => {
+      const queue = state.librarySort === 'custom'
+        ? syncQueueToLibraryOrder(
+            state.queue,
+            Object.values(state.libraryItems),
+            state.librarySort,
+            state.librarySortDirection,
+            customOrder,
+            state.currentMusicItemId,
+          )
+        : state.queue;
+      queueToPersist = queue;
+      queueChanged = queue !== state.queue;
+      return { libraryCustomOrder: customOrder, queue };
+    });
     void updateLibraryCustomOrder(customOrder, {
       onIssue: issue => set((state) => ({
         persistenceIssues: [
@@ -540,6 +576,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
         ],
       })),
     }).catch(() => undefined);
+    if (queueChanged) get().setQueue(queueToPersist);
   },
   setCurrentAudioSource: (uri, filename) => set({
     currentAudioUri: uri,

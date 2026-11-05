@@ -115,6 +115,47 @@ export function buildQueue(
   };
 }
 
+/**
+ * Reconcile an existing queue with the Music Library's active order while keeping the loaded song
+ * selected. Shuffle keeps its current randomized order, but receives the new sorted snapshot so
+ * turning Shuffle off returns to the latest library order.
+ */
+export function syncQueueToLibraryOrder(
+  queue: PlaybackQueue | null,
+  items: readonly MusicItem[],
+  sortKey: LibrarySortKey,
+  sortDirection: LibrarySortDirection,
+  customOrder: readonly string[],
+  currentId: string | null,
+): PlaybackQueue | null {
+  if (queue === null || currentId === null) return queue;
+
+  const rebuilt = buildQueue(
+    items,
+    queue.collectionId,
+    sortKey,
+    currentId,
+    customOrder,
+    sortDirection,
+  );
+  if (!queue.shuffle) return rebuilt;
+
+  const nextIds = new Set(rebuilt.snapshot);
+  const order = queue.order.filter(id => nextIds.has(id));
+  const retainedIds = new Set(order);
+  rebuilt.snapshot.forEach(id => {
+    if (!retainedIds.has(id)) order.push(id);
+  });
+  const currentIndex = order.indexOf(currentId);
+
+  return {
+    ...rebuilt,
+    order,
+    currentIndex: currentIndex >= 0 ? currentIndex : null,
+    shuffle: true,
+  };
+}
+
 export function shuffleOrder(
   snapshot: readonly string[],
   currentId: string,

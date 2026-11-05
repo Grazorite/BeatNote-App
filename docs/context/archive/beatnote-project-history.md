@@ -3,21 +3,21 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
-- [x] Improve BPM editing, tempo suggestions and dance-count guidance.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+- [x] Show the Pro dance grid and Timing shortcut, then install build 35 on iPhone.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/ProFeatureDemo.tsx`, `src/components/ui/waveform/RhythmicGrid.tsx`, `src/components/ui/waveform/RowGutter.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/components/ui/waveform/WrappedRow.tsx`, `src/components/ui/waveform/WrappedWaveform.tsx`, `src/features/settings/preferences.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/projectControls.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/waveform/DanceGridLines.tsx`</sub>
 
-### 2026-11-05 — Make project BPM directly editable and clarify dance timing
+### 2026-11-05 — Install the Pro dance grid and Timing shortcut on iPhone
 
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** BPM editing and dance-count guidance → Done
+**Agent:** Codex · **Commit(s):** `65da670` (implementation)
+**Kanban moved:** Pro grid, Timing shortcut and Release 35 installation → Done
 
-**Changed:** Project BPM is a numeric input with Done, validation (40–220), and ±1 controls. Timing setup is ordered as tempo, dance phrase, then Count 1. Related-tempo previews include 3/2 and 2/3 (104 → 156), explicitly show the preview BPM, and Keep Current cancels the preview. Updated existing browser/native journeys and choreography steering.
+**Changed:** The main rows and detail canvas plot dotted silver beats and thicker white Count 1 lines, independent of waveform visibility and count labels. Grid visibility is saved per project. The Pro toolbar shortcut between the song title and Save opens Timing & BPM and returns directly to the editor. Its visibility preference persists across songs. Incremented to build 35 and installed in place.
 
-**Verified:** TypeScript and whitespace checks passed; all eight Playwright journeys passed, including manual entry, invalid input and related-tempo preview. Focused iOS Settings XCTest passed including entering 156 and dismissing the keyboard. Reviewed the settled mobile browser layout. Inspected phrase/count calculations and grid grouping.
+**Verified:** TypeScript, all eight browser journeys, version consistency and whitespace checks passed. Tested grid visibility with and without peaks, changing phrase length, both toggles, direct navigation and Lite gating. Signed Release build succeeded. Device services confirmed 1.0.0 (35) installed and launched on the paired iPhone.
 
-**Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
+**Not verified / known gaps:** The focused iOS Settings XCTest passed with the Back transition wait. This test adjustment and log update are uncommitted. Physical review of line contrast, Marilag alignment and existing projects remains open. Shared workspace includes concurrent sparkle work.
 
-**Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
+**Next agent should:** Review the dotted grid and existing library on the iPhone with build 35.
 
 - [x] Randomise sparkle directions and install Release 34 on the iPhone.
       <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `tests/ui-components.spec.ts`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/settings/aboutSettings.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
@@ -6546,3 +6546,37 @@ keep `AGENTS.md` concise. Archived checklist items and handover entries are copi
 **Not verified / known gaps:** Physical visual review of the sparkle and VoiceOver remains for the user. No new native XCTest run. Sparkle implementation and release changes remain uncommitted and unpushed.
 
 **Next agent should:** Collect physical Release 33 feedback, then continue TestFlight preparation.
+
+
+- [x] Improve BPM editing, tempo suggestions and dance-count guidance.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/controls/BeatAnchorControl.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/BpmSuggestionCard.tsx`, `src/components/ui/controls/CountSizeControl.tsx`, `src/components/ui/screens/BpmSettingsScreen.tsx`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/bpmSuggestionCard.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Make project BPM directly editable and clarify dance timing
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** BPM editing and dance-count guidance → Done
+
+**Changed:** Project BPM is a numeric input with Done, validation (40–220), and ±1 controls. Timing setup is ordered as tempo, dance phrase, then Count 1. Related-tempo previews include 3/2 and 2/3 (104 → 156), explicitly show the preview BPM, and Keep Current cancels the preview. Updated existing browser/native journeys and choreography steering.
+
+**Verified:** TypeScript and whitespace checks passed; all eight Playwright journeys passed, including manual entry, invalid input and related-tempo preview. Focused iOS Settings XCTest passed including entering 156 and dismissing the keyboard. Reviewed the settled mobile browser layout. Inspected phrase/count calculations and grid grouping.
+
+**Not verified / known gaps:** No Marilag audio was analysed in this session; native detector ranking is unchanged. Related tempos are correction aids, not new measurements. No physical-device install or VoiceOver review. Existing Release 34 artwork changes and this work remain uncommitted and unpushed.
+
+**Next agent should:** Include the timing improvements in the next requested iPhone build and review Marilag at the user's 156 BPM with Count 1 aligned.
+
+
+- [x] Apply the About sparkle to the mobile Settings Pro button.
+      <sub>**Key Artifacts:** `src/components/layout/Sidebar.tsx`, `src/components/ui/common/OutwardSparkle.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/layout/sidebar.ts`</sub>
+
+### 2026-11-05 — Share the About sparkle with the mobile Settings Pro button
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Settings Pro sparkle → Done
+
+**Changed:** About and Settings Pro share the same star and random outward motion. The Pro button emits one star every 1.8 seconds while visible. Reduce Motion and navigation away stop the effect.
+
+**Verified:** TypeScript passed. A mobile browser captured three emissions with distinct trajectories, confirmed removal on Reduce Motion, opened Pro, returned and tapped the About logo. Seven regression journeys passed together and the Settings journey passed separately after the concurrent build-number update.
+
+**Not verified / known gaps:** Physical review of the Pro sparkle remains open. The shared workspace includes concurrent BPM and device build work.
+
+**Next agent should:** Check the Pro sparkle during the next iPhone review.

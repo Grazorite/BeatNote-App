@@ -64,7 +64,10 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 - **Draft baseline** — the Saved Project revision and content fingerprint used to decide whether a
   draft is saved or dirty and whether a song switch needs confirmation.
 - **Playback queue** — an ordered snapshot of Music Item IDs. First, Previous, Next, and Shuffle
-  operate on this queue independently of Saved Projects.
+  operate on this queue independently of Saved Projects. Changing the active Music Library sort or
+  Custom Order immediately refreshes the non-shuffled queue while preserving the loaded song;
+  Shuffle retains its randomized order but adopts the refreshed snapshot for when Shuffle is turned
+  off.
 - **Song Title control** — the leading toolbar control showing the current song, with long names
   middle-truncated so both identifying ends remain visible. It opens the detented Music Library for
   import, search, sorting, rename, removal, relink, and project routing. The library includes a

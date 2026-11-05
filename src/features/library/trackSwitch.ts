@@ -582,13 +582,18 @@ export function createTrackSwitch(dependencies: TrackSwitchDependencies) {
         && !beforeCommit.queue?.snapshot.includes(destination.item.id));
     let destinationQueue = beforeCommit.queue;
     if (shouldRebuildQueue) {
+      const useActiveLibraryOrder = request.rebuildQueue === true;
       destinationQueue = buildQueue(
         Object.values(beforeCommit.libraryItems),
         beforeCommit.queue?.collectionId ?? IMPORTED_MUSIC_COLLECTION_ID,
-        beforeCommit.queue?.sortKey ?? beforeCommit.librarySort,
+        useActiveLibraryOrder
+          ? beforeCommit.librarySort
+          : beforeCommit.queue?.sortKey ?? beforeCommit.librarySort,
         destination.item.id,
         beforeCommit.libraryCustomOrder,
-        beforeCommit.queue?.sortDirection ?? beforeCommit.librarySortDirection,
+        useActiveLibraryOrder
+          ? beforeCommit.librarySortDirection
+          : beforeCommit.queue?.sortDirection ?? beforeCommit.librarySortDirection,
       );
     } else if (destinationQueue !== null) {
       const matchingIndex = request.queueIndex

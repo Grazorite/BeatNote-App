@@ -586,6 +586,15 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('music-library-sort-title').click();
     const ascendingTitles = await page.locator('[data-testid^="music-library-row-main-"]')
       .evaluateAll(rows => rows.map(row => row.textContent ?? ''));
+    const ascendingIds = await page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.getAttribute('data-testid')!
+        .replace('music-library-row-main-', '')));
+    await expect.poll(() => page.evaluate(() => {
+      const stored = localStorage.getItem('beatnote.queue.v1');
+      if (stored === null) return null;
+      const queue = JSON.parse(stored);
+      return { sortKey: queue.sortKey, sortDirection: queue.sortDirection, order: queue.order };
+    })).toEqual({ sortKey: 'title', sortDirection: 'ascending', order: ascendingIds });
     await page.getByTestId('music-library-sort-title').click();
     await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
       .evaluateAll(rows => rows.map(row => row.textContent ?? '')))
@@ -620,7 +629,32 @@ test.describe('UI Components & Layout', () => {
     await page.mouse.up();
     await expect.poll(async () => page.locator('[data-testid^="music-library-row-main-"]')
       .first().textContent()).toContain('test-audio');
-    await page.getByRole('button', { name: /^test-audio,/ }).click();
+    const expectedQueueOrder = await page.locator('[data-testid^="music-library-row-main-"]')
+      .evaluateAll(rows => rows.map(row => row.getAttribute('data-testid')!
+        .replace('music-library-row-main-', '')));
+    const secondSongId = (await page.locator('[data-testid^="music-library-row-main-"]')
+      .filter({ hasText: 'second-song' }).getAttribute('data-testid'))!
+      .replace('music-library-row-main-', '');
+    await expect.poll(() => page.evaluate(() => {
+      const stored = localStorage.getItem('beatnote.queue.v1');
+      if (stored === null) return null;
+      const queue = JSON.parse(stored);
+      return { order: queue.order, currentIndex: queue.currentIndex };
+    })).toEqual({
+      order: expectedQueueOrder,
+      currentIndex: expectedQueueOrder.indexOf(secondSongId),
+    });
+    await page.getByTestId('music-library-sheet-backdrop').click({ position: { x: 10, y: 10 } });
+    const holdTrackControl = async (testID: 'previous-track-control' | 'next-track-control') => {
+      const control = page.getByTestId(testID);
+      await control.click({ delay: 700 });
+    };
+    await holdTrackControl('previous-track-control');
+    await expect(songTitleControl).toContainText('test-audio');
+    await holdTrackControl('next-track-control');
+    await expect(songTitleControl).toContainText('second-song');
+    await holdTrackControl('previous-track-control');
+    await expect(songTitleControl).toContainText('test-audio');
 
     await page.getByTestId('load-project').click();
     await expect(page.getByTestId('current-project-name')).toHaveText('Renamed Current');
