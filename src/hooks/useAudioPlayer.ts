@@ -1,6 +1,7 @@
 import { showPrompt } from '../components/ui/common/AppPrompt';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAudioPlayer, AudioSource, setAudioModeAsync } from 'expo-audio';
+import { AudioSource, setAudioModeAsync } from 'expo-audio';
+import { useStudioPlayer } from './useStudioPlayer';
 import { AppState, Platform } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from './useStudioStore';
@@ -30,6 +31,28 @@ const PLAYBACK_INTENT_COMMAND_TIMEOUT_MS = 2000;
 const PLAYBACK_INTENT_SETTLE_MS = 400;
 const NATIVE_SEEK_TIMEOUT_MS = 5_000;
 const FOREGROUND_PLAYER_RECHECK_MS = 750;
+const PLAYER_READY_TIMEOUT_MS = 10_000;
+const PLAY_START_TIMEOUT_MS = 2_000;
+const playbackAudioMode = {
+  playsInSilentMode: true,
+  shouldPlayInBackground: true,
+  interruptionMode: 'doNotMix' as const,
+};
+
+const clockMoved = (seconds: number, start: number) => Number.isFinite(seconds)
+  && (Number.isFinite(start) ? Math.abs(seconds - start) > 0.01 : seconds > 0);
+
+async function waitForPlayer(
+  ready: () => boolean,
+  current: () => boolean,
+  timeoutMs: number,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (current() && !ready()) {
+    if (Date.now() >= deadline) throw new Error('Timed out waiting for the audio player');
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+}
 
 /**
  * Custom audio player hook that handles:
@@ -52,7 +75,16 @@ export const useCustomAudioPlayer = () => {
   const seekResumePlaybackRef = useRef(false);
   const seekEpochRef = useRef(0);
   const foregroundPlayerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resumeRestoreRef = useRef<{ positionMs: number; shouldPlay: boolean } | null>(null);
+  const recoveryRef = useRef<{
+    uri: string;
+    previousPlayer: ReturnType<typeof useStudioPlayer>;
+    playStarted: boolean;
+    positionMs: number;
+    shouldPlay: boolean;
+  } | null>(null);
+  const transportCommand = useRef(0);
+  const checkNextPlay = useRef(false);
+  const [playerGeneration, setPlayerGeneration] = useState(0);
   const mountedRef = useRef(true);
   const playbackIntentRef = useRef<boolean | null>(null);
   const playbackIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,7 +107,7 @@ export const useCustomAudioPlayer = () => {
     () => currentAudioUri ? { uri: currentAudioUri } : null,
     [currentAudioUri],
   );
-  const player = useAudioPlayer(audioSource);
+  const player = useStudioPlayer(audioSource, playerGeneration);
   const seekPlayer = useCallback(async (seconds: number, label = 'Audio seek'): Promise<void> => (
     withAudioOperationTimeout(player.seekTo(seconds), NATIVE_SEEK_TIMEOUT_MS, label)
   ), [player]);
@@ -86,8 +118,9 @@ export const useCustomAudioPlayer = () => {
   const remoteControlsAvailable = useProductCapability('playback.remoteControls');
   const playbackSpeedAvailable = useProductCapability('playback.pitchPreservingSpeed');
   const lockScreenActiveRef = useRef(false);
-  const playerStatusRef = useRef(player.currentStatus);
-  const [loadedPlayer, setLoadedPlayer] = useState(player.isLoaded ? player : null);
+  const initialPlayerStatus = useMemo(() => player.currentStatus, [player]);
+  const playerStatusRef = useRef(initialPlayerStatus);
+  const [loadedPlayer, setLoadedPlayer] = useState(() => player.isLoaded ? player : null);
   const playerIsLoaded = loadedPlayer === player;
   const {
     isPlaying,
@@ -151,9 +184,11 @@ export const useCustomAudioPlayer = () => {
   }, []);
 
   useEffect(() => {
+    transportCommand.current++;
     resetSeekPipeline();
-    resumeRestoreRef.current = null;
-  }, [player, resetSeekPipeline]);
+    appliedPlaybackSpeedRef.current = null;
+    if (recoveryRef.current?.uri !== currentAudioUri) recoveryRef.current = null;
+  }, [currentAudioUri, player, resetSeekPipeline]);
 
   const showError = useCallback((title: string, message: string) => {
     setError(prev => prev.visible ? prev : { visible: true, title, message });
@@ -232,35 +267,12 @@ export const useCustomAudioPlayer = () => {
       playerStatusRef.current = status;
       setLoadedPlayer(status.isLoaded ? player : null);
       const currentState = useStudioStore.getState();
-      const resumeRestore = status.isLoaded ? resumeRestoreRef.current : null;
-      if (resumeRestore !== null) {
-        resumeRestoreRef.current = null;
-        const restorePosition = Number.isFinite(resumeRestore.positionMs)
-          ? Math.max(0, resumeRestore.positionMs)
-          : 0;
-        void (restorePosition > 0
-          ? seekPlayer(restorePosition / 1000, 'Foreground audio restore')
-          : Promise.resolve())
-          .then(() => {
-            if (!mountedRef.current) return;
-            const restoredState = useStudioStore.getState();
-            restoredState.beginPlaybackTraversal(restorePosition);
-            previousSampleRef.current = restorePosition;
-            loopDecisionSuspendedRef.current = false;
-            if (resumeRestore.shouldPlay) {
-              player.play();
-              holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
-            } else {
-              restoredState.setIsPlaying(false);
-            }
-          })
-          .catch((restoreError: unknown) => {
-            console.error('Foreground audio restoration failed', restoreError);
-            loopDecisionSuspendedRef.current = false;
-            const restoredState = useStudioStore.getState();
-            restoredState.setIsPlaying(false);
-            restoredState.notify('Song reloaded. Tap the timeline to pick up where you left off.');
-          });
+      // The replacement starts at zero. Its status must not overwrite the saved position
+      // or user intent while its ready/seek/play sequence is still in flight.
+      const recovery = recoveryRef.current;
+      if (recovery?.playStarted && player !== recovery.previousPlayer && status.didJustFinish) {
+        recoveryRef.current = null;
+      } else if (recovery || !status.isLoaded) {
         return;
       }
       if (status.playing) lastPlaybackActiveAtRef.current = Date.now();
@@ -300,51 +312,101 @@ export const useCustomAudioPlayer = () => {
     return () => subscription.remove();
   }, [currentAudioUri, handleTrackCompletion, holdPlaybackIntent, player, seekPlayer, setSongDuration]);
 
+  const reloadPlayer = useCallback((positionMs: number, shouldPlay: boolean) => {
+    const state = useStudioStore.getState();
+    if (Platform.OS !== 'ios' || !currentAudioUri || state.currentAudioUri !== currentAudioUri
+      || state.switchPhase !== 'idle' || recoveryRef.current || AppState.currentState !== 'active') return;
+    transportCommand.current++;
+    resetSeekPipeline();
+    if (playbackIntentTimerRef.current !== null) clearTimeout(playbackIntentTimerRef.current);
+    playbackIntentRef.current = null;
+    recoveryRef.current = { uri: currentAudioUri, previousPlayer: player, positionMs, shouldPlay, playStarted: false };
+    state.setCurrentTime(positionMs);
+    state.setIsPlaying(shouldPlay);
+    setPlayerGeneration(value => value + 1);
+  }, [currentAudioUri, player, resetSeekPipeline]);
+
   useEffect(() => {
-    if (Platform.OS === 'web') return undefined;
+    const recovery = recoveryRef.current;
+    if (!recovery || recovery.previousPlayer === player || recovery.uri !== currentAudioUri) return;
+    let active = true;
+    const current = () => active && recoveryRef.current === recovery
+      && useStudioStore.getState().currentAudioUri === recovery.uri
+      && useStudioStore.getState().switchPhase === 'idle';
+    const restore = async () => {
+      await waitForPlayer(() => player.isLoaded, current, PLAYER_READY_TIMEOUT_MS);
+      if (!current()) return;
+      await withAudioOperationTimeout(setAudioModeAsync(playbackAudioMode),
+        PLAY_START_TIMEOUT_MS, 'Restore iOS audio session');
+      if (!current()) return;
+      setAudioModeReady(true);
+      let positionMs: number;
+      do {
+        positionMs = recovery.positionMs;
+        await seekPlayer(positionMs / 1000, 'Restore playback position');
+      } while (current() && positionMs !== recovery.positionMs);
+      if (!current()) return;
+      useStudioStore.getState().beginPlaybackTraversal(positionMs);
+      previousSampleRef.current = positionMs;
+      if (!recovery.shouldPlay) return;
+      const start = player.currentTime;
+      recovery.playStarted = true;
+      player.play();
+      await waitForPlayer(() => clockMoved(player.currentTime, start),
+        () => current() && recovery.shouldPlay, PLAY_START_TIMEOUT_MS);
+    };
+    void restore().catch(error => {
+      if (!current()) return;
+      console.error('Same-song playback recovery failed', error);
+      try {
+        player.pause();
+      } catch (pauseError) {
+        console.error('Recovery pause failed', pauseError);
+      }
+      checkNextPlay.current = true;
+      useStudioStore.getState().setIsPlaying(false);
+      showPrompt('Playback Error', 'Couldn’t resume this song. Tap Play to try again.');
+    }).finally(() => {
+      if (active && recoveryRef.current === recovery) recoveryRef.current = null;
+    });
+    return () => { active = false; };
+  }, [currentAudioUri, player, seekPlayer]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
     let previousState = AppState.currentState;
     const subscription = AppState.addEventListener('change', nextState => {
       const becameActive = nextState === 'active' && previousState !== 'active';
       previousState = nextState;
-      if (!becameActive) return;
-
-      // Any seek promise left behind by suspension must not keep new taps, Play, or a rollback
-      // waiting forever. Its epoch check prevents a late native completion from winning.
-      resetSeekPipeline();
-      if (foregroundPlayerTimerRef.current !== null) {
-        clearTimeout(foregroundPlayerTimerRef.current);
-      }
-      foregroundPlayerTimerRef.current = setTimeout(() => {
-        foregroundPlayerTimerRef.current = null;
-        const state = useStudioStore.getState();
-        if (!mountedRef.current || audioSource === null || currentAudioUri === null
-          || player.isLoaded || playerStatusRef.current.isLoaded) return;
-
-        resumeRestoreRef.current = {
-          positionMs: state.currentTime,
-          shouldPlay: state.isPlaying,
-        };
-        loopDecisionSuspendedRef.current = true;
-        try {
-          player.replace(audioSource);
-        } catch (replaceError) {
-          resumeRestoreRef.current = null;
-          loopDecisionSuspendedRef.current = false;
-          state.setIsPlaying(false);
-          console.error('Foreground audio reload failed', replaceError);
-          state.notify('Choose the song again to resume playback.');
+      if (foregroundPlayerTimerRef.current !== null) clearTimeout(foregroundPlayerTimerRef.current);
+      if (!becameActive) {
+        transportCommand.current++;
+        const recovery = recoveryRef.current;
+        if (recovery && !recovery.playStarted) {
+          recovery.shouldPlay = false;
+          useStudioStore.getState().setIsPlaying(false);
         }
+        return;
+      }
+      resetSeekPipeline();
+      checkNextPlay.current = true;
+      foregroundPlayerTimerRef.current = setTimeout(() => {
+        const state = useStudioStore.getState();
+        if (!checkNextPlay.current || !currentAudioUri || state.currentAudioUri !== currentAudioUri
+          || state.switchPhase !== 'idle' || Platform.OS !== 'ios') return;
+        try {
+          if (player.isLoaded) return;
+        } catch (error) {
+          console.warn('Foreground player is unavailable', error);
+        }
+        reloadPlayer(state.currentTime, state.isPlaying);
       }, FOREGROUND_PLAYER_RECHECK_MS);
     });
-
     return () => {
       subscription.remove();
-      if (foregroundPlayerTimerRef.current !== null) {
-        clearTimeout(foregroundPlayerTimerRef.current);
-        foregroundPlayerTimerRef.current = null;
-      }
+      if (foregroundPlayerTimerRef.current !== null) clearTimeout(foregroundPlayerTimerRef.current);
     };
-  }, [audioSource, currentAudioUri, player, resetSeekPipeline]);
+  }, [currentAudioUri, player, reloadPlayer, resetSeekPipeline]);
 
   useEffect(() => subscribeToOutputRouteUnavailable(() => {
     const state = useStudioStore.getState();
@@ -355,6 +417,12 @@ export const useCustomAudioPlayer = () => {
     if (!wasPlaying) return;
 
     if (getSettingsPreferences().pauseOnHeadsetDisconnect) {
+      transportCommand.current++;
+      const recovery = recoveryRef.current;
+      if (recovery) {
+        recovery.shouldPlay = false;
+        if (recovery.playStarted) recoveryRef.current = null;
+      }
       player.pause();
       holdPlaybackIntent(false, PLAYBACK_INTENT_SETTLE_MS);
       return;
@@ -362,8 +430,10 @@ export const useCustomAudioPlayer = () => {
 
     // expo-audio pauses on iOS oldDeviceUnavailable before publishing the route event. When the
     // user opts out, resume after that native pause settles so playback continues on the new route.
+    const command = transportCommand.current;
     setTimeout(() => {
-      if (!mountedRef.current || getSettingsPreferences().pauseOnHeadsetDisconnect) return;
+      if (!mountedRef.current || command !== transportCommand.current
+        || getSettingsPreferences().pauseOnHeadsetDisconnect) return;
       player.play();
       holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
     }, 120);
@@ -425,11 +495,7 @@ export const useCustomAudioPlayer = () => {
 
   useEffect(() => {
     let mounted = true;
-    setAudioModeAsync({
-      playsInSilentMode: true,
-      shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
-    }).then(() => {
+    setAudioModeAsync(playbackAudioMode).then(() => {
       if (mounted) setAudioModeReady(true);
     }).catch((audioModeError: unknown) => {
       console.error('Audio mode configuration error:', audioModeError);
@@ -499,8 +565,27 @@ export const useCustomAudioPlayer = () => {
   const togglePlayback = useCallback(async () => {
     if (!player) return;
     const intervalId = perfBegin('playback.toggle');
+    const command = ++transportCommand.current;
+    const state = useStudioStore.getState();
+    const targetPlaying = !state.isPlaying;
+    const positionMs = state.songDuration > 0 && state.currentTime >= state.songDuration - END_OF_TRACK_TOLERANCE_MS
+      ? 0 : state.currentTime;
+    const current = () => mountedRef.current && command === transportCommand.current
+      && useStudioStore.getState().currentAudioUri === currentAudioUri
+      && useStudioStore.getState().switchPhase === 'idle';
     try {
-      const targetPlaying = !useStudioStore.getState().isPlaying;
+      const recovering = recoveryRef.current;
+      if (recovering) {
+        recovering.shouldPlay = targetPlaying;
+        state.setIsPlaying(targetPlaying);
+        if (!targetPlaying && recovering.playStarted) {
+          recoveryRef.current = null;
+          player.pause();
+        }
+        return;
+      }
+      const verifyStart = Platform.OS === 'ios' && targetPlaying && checkNextPlay.current;
+      if (verifyStart) checkNextPlay.current = false;
       seekResumePlaybackRef.current = targetPlaying;
       holdPlaybackIntent(targetPlaying, PLAYBACK_INTENT_COMMAND_TIMEOUT_MS);
       if (!targetPlaying) {
@@ -526,27 +611,40 @@ export const useCustomAudioPlayer = () => {
           // delayed every ordinary Play command and made the transport feel unresponsive.
           previousSampleRef.current = currentTime;
         }
-        if (!mountedRef.current || playbackIntentRef.current !== true) return;
-        await player.play();
+        if (!current()) return;
+        const start = verifyStart ? player.currentTime : 0;
+        await withAudioOperationTimeout(player.play(), PLAYBACK_INTENT_COMMAND_TIMEOUT_MS, 'Start playback');
+        if (verifyStart) {
+          await waitForPlayer(() => clockMoved(player.currentTime, start) || playerStatusRef.current.didJustFinish,
+            current, PLAY_START_TIMEOUT_MS);
+        }
+        if (!current()) return;
         holdPlaybackIntent(true, PLAYBACK_INTENT_SETTLE_MS);
       }
     } catch (error) {
-      console.error('Playback error:', error);
+      if (!current()) return;
+      if (Platform.OS === 'ios' && targetPlaying && currentAudioUri && AppState.currentState === 'active') {
+        console.warn('Retrying playback with a fresh player', error);
+        reloadPlayer(positionMs, true);
+        return;
+      }
       playbackIntentRef.current = null;
       if (playbackIntentTimerRef.current !== null) {
         clearTimeout(playbackIntentTimerRef.current);
         playbackIntentTimerRef.current = null;
       }
+      console.error('Playback error:', error);
       setIsPlaying(playerStatusRef.current.playing);
       showPrompt('Playback Error', 'Failed to control audio playback');
     } finally {
       perfEndAfterFrame(intervalId);
     }
-  }, [holdPlaybackIntent, player, seekPlayer, setIsPlaying, setCurrentTime]);
+  }, [currentAudioUri, holdPlaybackIntent, player, reloadPlayer, seekPlayer, setIsPlaying]);
 
   const seekToPosition = useCallback(async (position: number): Promise<void> => {
     if (!player) return;
 
+    transportCommand.current++;
     const intervalId = perfBegin(
       loopDecisionSuspendedRef.current && seekDrainRef.current === null ? 'seek.scrub' : 'seek.tap',
     );
@@ -554,6 +652,13 @@ export const useCustomAudioPlayer = () => {
     const clampedPosition = Math.max(0, Math.min(position, songDuration));
     // Visual feedback is immediate for every tap; only the newest target reaches the player.
     useStudioStore.getState().beginPlaybackTraversal(clampedPosition);
+    const recovery = recoveryRef.current;
+    if (recovery && !recovery.playStarted) {
+      recovery.positionMs = clampedPosition;
+      perfEndAfterFrame(intervalId);
+      return;
+    }
+    recoveryRef.current = null;
     pendingSeekRef.current = clampedPosition;
     pendingSeekIntervalsRef.current.push(intervalId);
     seekResumePlaybackRef.current = useStudioStore.getState().isPlaying;
@@ -589,6 +694,7 @@ export const useCustomAudioPlayer = () => {
           break;
         }
       } catch (error) {
+        if (!mountedRef.current || seekEpoch !== seekEpochRef.current) return;
         pendingSeekRef.current = null;
         console.error('Seek error:', error);
         showPrompt('Seek Error', 'Couldn’t move to that point in the song');
@@ -658,6 +764,7 @@ export const useCustomAudioPlayer = () => {
     if (!player || !isPlaying) return;
 
     const interval = setInterval(() => {
+      if (recoveryRef.current) return;
       incrementPerfCounter('playback.sampleTick');
       if (player.currentTime !== undefined) {
         const currentTimeMs = player.currentTime * 1000; // Convert to milliseconds

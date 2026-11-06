@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import AppModal from '../common/AppModal';
+import TelegramFeedbackButton from '../common/TelegramFeedbackButton';
 import HeaderBackButton from '../common/HeaderBackButton';
 
 interface HelpScreenProps {
@@ -49,6 +50,9 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = fa
               isMobile && { paddingBottom: Math.max(insets.bottom, 24) },
             ]}
           >
+        <View style={styles.feedback}>
+          <TelegramFeedbackButton testID="help-send-feedback" />
+        </View>
         <Section title="Start on iPhone">
           <Text style={styles.text}>1. Tap Choose Music. Pick a song from your library or import one from Files.</Text>
           <Text style={styles.text}>2. Play the song and tap Add Marker on a beat you want to remember.</Text>

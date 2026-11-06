@@ -193,8 +193,11 @@ timeline interaction model identical avoids degrading Lite or creating incompati
 Every awaited native `expo-audio` seek must have a finite application-level timeout. Foregrounding
 invalidates the JavaScript seek drain so a native operation abandoned during suspension cannot keep
 transport, canvas seeking, or song switching serialized behind it. If the retained player remains
-unloaded after a short foreground grace period, BeatNote replaces its source and restores the last
-position and play intent when loading completes.
+unloaded after a short foreground grace period, BeatNote recreates the iOS player for the same
+URI. The first Play after foregrounding also checks for clock movement. A failed Play or a stalled
+start gets one fresh-player attempt. Restore playback speed and position, reconfigure the session
+for Play, and respect newer pause, seek and song-switch actions. Keep the current project loaded
+throughout recovery.
 
 Expo SDK 54's iOS `AudioPlayer.seekTo` implementation is patched during prebuild to use
 `AVPlayerItem.seek(...completionHandler:)` with weak ownership and to cancel pending seeks when the

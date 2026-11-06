@@ -48,6 +48,7 @@ import ExportModal from './ExportModal';
 import SaveProjectPrompt from './SaveProjectPrompt';
 
 interface ProjectManagerModalProps {
+  openedFromLibrary: boolean;
   visible: boolean;
   onClose: () => void;
   /** Scroll the complete manager to this song instead of filtering its contents. */
@@ -109,6 +110,7 @@ const formatDuration = (milliseconds: number | null | undefined): string => {
 
 const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   visible,
+  openedFromLibrary,
   onClose,
   musicItemId = null,
   onChooseMusic,
@@ -119,6 +121,7 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const titleRef = useRef<Text>(null);
   const listRef = useRef<SectionList<ProjectListRow, ProjectListSection>>(null);
   const nativePickerActiveRef = useRef(false);
+  const returnToMusicOnDismiss = useRef(false);
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const webTitleProps = Platform.OS === 'web' ? { tabIndex: -1 as const } : {};
@@ -288,9 +291,12 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   }, [discardCsvPreview, visible]);
 
   const closeAndChooseMusic = useCallback(() => {
+    returnToMusicOnDismiss.current = Platform.OS === 'ios';
     onClose();
-    requestAnimationFrame(onChooseMusic);
+    if (Platform.OS !== 'ios') requestAnimationFrame(onChooseMusic);
   }, [onChooseMusic, onClose]);
+
+  const goBack = openedFromLibrary ? closeAndChooseMusic : onClose;
 
   const openProjectAndClose = useCallback(async (
     projectId: string,
@@ -583,7 +589,12 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={() => {
-        if (!nativePickerActiveRef.current) onClose();
+        if (!nativePickerActiveRef.current) goBack();
+      }}
+      onDismiss={() => {
+        if (!returnToMusicOnDismiss.current) return;
+        returnToMusicOnDismiss.current = false;
+        onChooseMusic();
       }}
       onShow={() => {
         const handle = findNodeHandle(titleRef.current);
@@ -602,9 +613,9 @@ const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           },
         ]}>
           <HeaderBackButton
-            onPress={onClose}
-            accessibilityLabel="Back from Projects"
-            label="Back"
+            onPress={goBack}
+            accessibilityLabel={openedFromLibrary ? 'Back to Music Library' : 'Back from Projects'}
+            label={openedFromLibrary ? 'Music' : 'Back'}
             testID="projects-back"
           />
           <Text

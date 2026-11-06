@@ -34,8 +34,8 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-11-05
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (52)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Last updated:** 2026-11-06
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (54)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -85,6 +85,8 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
+- [ ] Confirm that one Play tap resumes the same song and position after overnight suspension on the physical iPhone after installing build 54.
+
 
 - [ ] Check system Previous/Next from the physical Lock Screen and Control Centre during playback.
 
@@ -108,6 +110,12 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Add Telegram feedback to Help & Support and return one page at a time from Licences and Library-launched Projects. Install build 54.
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/TelegramFeedbackButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+- [x] Recover the same song in place when Play fails after iOS suspension. Install build 53.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioPlayer.ios.ts`, `src/hooks/useStudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add bulk speed preset reset and selectable system song/interval buttons. Install build 52.
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `tests/ui-components.spec.ts`</sub>
 
@@ -116,16 +124,6 @@ target; Android is a far-future possibility only.
 
 - [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Exercise prompt failures and simplify the existing regression journeys.
-      <sub>**Key Artifacts:** `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
-
-- [x] Use secondary grey for the main canvas dance counts and install build 49.
-      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
-
-
-
-
 
 ---
 
@@ -206,6 +204,54 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-06 — Help feedback and Back destinations in build 54
+
+**Agent:** Codex · **Commit(s):** Build 54 commit containing this entry and the build 53 playback recovery.
+**Kanban moved:** Help feedback and Back navigation → Done
+
+**Changed:** Help & Support opens with the shared Telegram feedback button before Start on iPhone.
+Settings routes header Back, system Back and leading-edge swipes through the same handler. Licences
+returns to About, then Settings. Projects opened from a Library row returns to Music on Back,
+waiting for the native Projects sheet to dismiss. Opening a project still returns to the editor.
+
+**Verified:** TypeScript, version consistency, whitespace and eight browser journeys passed.
+The browser intercepted the Help link and verified the existing Helpdesk invite. The focused
+iPhone simulator Settings journey verified the feedback button above the first topic, two
+consecutive back swipes from Licences, the direct Timing shortcut, and returning from Projects
+to the Music Library. Strict signing verification passed. The physical iPhone reported build 54
+installed in place and launched.
+
+**Not verified / known gaps:** Opening the Telegram app on the physical phone and the overnight
+playback check remain hands-on acceptance items.
+
+**Next agent should:** Record the physical overnight Play result and the outstanding system transport checks.
+
+### 2026-11-06 — Recover suspended playback on the same song in build 53
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Playback recovery and physical installation → Done. Overnight physical acceptance → In Progress.
+
+**Changed:** On iOS the live player determines foreground readiness. A failed Play or a first
+post-foreground start with no clock movement gets one replacement player for the same URI. Restore
+the session, rehearsal speed, selected position and current play intent with bounded waits.
+Recovery checks the active song and honours newer transport requests. The focused background
+XCTest now also resumes a paused song at a nonzero position.
+
+**Verified:** TypeScript, whitespace, version consistency and all eight browser journeys passed.
+With a temporarily injected Play failure, the native trace showed a new player restoring 2.175 s
+and playing past 3 s. A separate no-op Play timed out after two seconds and recovered from the
+same position. An initial simulator run missed the Play action after a rapid Home/activate cycle.
+The retained test now waits for backgrounding and a hittable Play button. The clean focused XCTest
+passed with healthy background audio, same-song Play and subsequent Library switches. Build 53
+passed strict signature verification on the host. The iPhone reported 1.0.0 (53) installed and
+launched after the in-place update.
+
+**Not verified / known gaps:** The exact eight-hour suspension on the physical iPhone remains open.
+Simulator faults exercised rejection and a stalled clock. The historical physical failure had
+already cleared when the user switched songs. The task changes are uncommitted on master.
+
+**Next agent should:** Record the first Play result after a physical overnight suspension on build 53.
+
 ### 2026-11-05 — Install system transport modes and preset reset in build 52
 
 **Agent:** Codex · **Commit(s):** Build 52 publication commit containing this entry
@@ -246,36 +292,5 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 **Not verified / known gaps:** Control Centre behaviour and toggle feel await hands-on review.
 
 **Next agent should:** Confirm a changed system skip interval during playback on the physical iPhone.
-
-### 2026-11-05 — Audit prompt failures and trim regression assertions
-
-**Agent:** Codex · **Commit(s):** Test edits in `5eeef01`. Audit results recorded in the commit containing this entry.
-**Kanban moved:** Prompt audit and full suite review → Done
-
-**Changed:** Removed redundant colour, spacing and PDF markup assertions. Toast checks target the visible message instead of its transient live-region attribute. Removed temporary fault-injection checks after execution.
-
-**Verified:** TypeScript and eight browser journeys passed, including the final build 49 browser run. All ten aggregate simulator results reported one pass each and zero failures. Temporary browser checks exercised bulk marker cancel/delete/undo, project open/save/revert/rename/delete, CSV read and CSV/PDF export errors, playback and seek failures, queue recovery, Telegram and both crash clipboard outcomes.
-
-**Not verified / known gaps:** Failures were injected into disposable browser data. Physical VoiceOver remains a hands-on check.
-
-**Next agent should:** Collect physical accessibility and library feedback.
-
-### 2026-11-05 — Install build 49 with quieter dance-count labels
-
-**Agent:** Codex · **Commit(s):** Build 49 commit containing this entry; build 48 is `5eeef01`
-**Kanban moved:** Canvas dance-count contrast and build 49 installation → Done
-
-**Changed:** The phrase/count text below each main canvas timestamp uses the secondary text colour. Incremented the iOS build to 49 and updated the About expectation. Prepared build 48 prompt changes and build 49 label styling as separate commits for the requested master push.
-
-**Verified:** TypeScript, version consistency, whitespace and all eight browser regression journeys passed. A focused mobile render with counts enabled confirmed white timestamps (#ffffff) and grey count text (#999999). Signed release 49 passed signature verification. Device services independently reported 1.0.0 (49) installed and launched the app.
-
-**Not verified / known gaps:** Physical readability with the user's songs remains for device review. Native XCTest was not rerun for the colour change.
-
-**Next agent should:** Collect physical feedback on the contrast between timestamps and counts.
-
-
-
-
-
 
 <!-- end handover log -->

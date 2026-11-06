@@ -111,18 +111,23 @@ test.describe('UI Components & Layout', () => {
     await expect(page.getByTestId('restore-purchases-placeholder')).toContainText('Unavailable');
     await page.getByTestId('pro-settings-page-back').click();
 
+    const swipeFromLeadingEdge = async () => {
+      const edge = await page.getByTestId('settings-edge-swipe').boundingBox();
+      if (!edge) throw new Error('Settings edge-swipe target is unavailable');
+      const startX = edge.x + Math.min(8, edge.width / 2);
+      const y = edge.y + edge.height / 2;
+      await page.mouse.move(startX, y);
+      await page.mouse.down();
+      await page.mouse.move(startX + 120, y, { steps: 6 });
+      await page.mouse.up();
+    };
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (52)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (54)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
-    const [feedbackPage] = await Promise.all([
-      page.waitForEvent('popup'),
-      page.getByRole('link', { name: 'Give feedback on Telegram' }).click(),
-    ]);
-    await expect(feedbackPage).toHaveURL(invite);
-    await feedbackPage.close();
+    await expect(page.getByRole('link', { name: 'Give feedback on Telegram' })).toBeVisible();
     await page.getByRole('link', { name: 'Open Source Licences', exact: true }).click();
     const licencesPage = page.getByTestId('open-source-licences-page');
     await expect(licencesPage).toBeVisible();
@@ -140,8 +145,10 @@ test.describe('UI Components & Layout', () => {
     await expect(licencesPage).toContainText('Native: DoubleConversion');
     await expect(licencesPage).toContainText('Native: hermes-engine');
     await expect(licencesPage).toContainText('Permission is hereby granted');
-    await page.getByTestId('open-source-licences-page-back').click();
-    await page.getByTestId('about-settings-page-back').click();
+    await swipeFromLeadingEdge();
+    await expect(page.getByRole('link', { name: 'Open Source Licences', exact: true })).toBeInViewport();
+    await swipeFromLeadingEdge();
+    await expect(page.getByTestId('settings-title')).toBeVisible();
 
     await page.getByTestId('settings-playback').click();
     await expect(page.getByTestId('continuous-play-toggle')).toHaveAttribute('aria-checked', 'false');
@@ -154,18 +161,16 @@ test.describe('UI Components & Layout', () => {
     await page.setViewportSize({ width: 740, height: 390 });
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('settings-help').click();
+    const feedbackLink = page.getByTestId('help-page').getByRole('link', { name: 'Give feedback on Telegram' });
+    await expect(feedbackLink).toBeInViewport();
+    const [feedbackPage] = await Promise.all([
+      page.waitForEvent('popup'),
+      feedbackLink.click(),
+    ]);
+    await expect(feedbackPage).toHaveURL(invite);
+    await feedbackPage.close();
     await expect(page.getByText('Start on iPhone', { exact: true })).toBeVisible();
     await expect(page.getByText('Playback & Markers', { exact: true })).toBeVisible();
-    const swipeFromLeadingEdge = async () => {
-      const edge = await page.getByTestId('settings-edge-swipe').boundingBox();
-      if (!edge) throw new Error('Settings edge-swipe target is unavailable');
-      const startX = edge.x + Math.min(8, edge.width / 2);
-      const y = edge.y + edge.height / 2;
-      await page.mouse.move(startX, y);
-      await page.mouse.down();
-      await page.mouse.move(startX + 120, y, { steps: 6 });
-      await page.mouse.up();
-    };
     await swipeFromLeadingEdge();
     await expect(page.getByText('Start on iPhone', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('settings-title')).toBeVisible();
@@ -666,6 +671,10 @@ test.describe('UI Components & Layout', () => {
       order: expectedQueueOrder,
       currentIndex: expectedQueueOrder.indexOf(secondSongId),
     });
+    await testAudioRow.getByRole('button', { name: 'More actions for test-audio' }).click();
+    await page.getByRole('menuitem', { name: 'Show Projects' }).click();
+    await page.getByRole('button', { name: 'Back to Music Library' }).click();
+    await expect(page.getByTestId('music-library-sheet')).toBeVisible();
     await page.getByTestId('music-library-sheet-backdrop').click({ position: { x: 10, y: 10 } });
     const holdTrackControl = async (testID: 'previous-track-control' | 'next-track-control') => {
       const control = page.getByTestId(testID);

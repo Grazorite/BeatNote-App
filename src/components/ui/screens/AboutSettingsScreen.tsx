@@ -1,6 +1,5 @@
-import { showPrompt } from '../common/AppPrompt';
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Linking, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { AccessibilityInfo, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   interpolate,
   cancelAnimation,
@@ -11,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { pageTransition } from '../../../animations/motion';
 import { useMotionPreference } from '../../../animations/MotionPreference';
+import TelegramFeedbackButton from '../common/TelegramFeedbackButton';
 import OutwardSparkle from '../common/OutwardSparkle';
 
 import appConfig from '../../../../app.json';
@@ -20,13 +20,12 @@ import SettingsSubpage from '../settings/SettingsSubpage';
 import { BeatNoteIcon } from '../../icons';
 
 interface AboutSettingsScreenProps {
+  showLicences: boolean;
+  onOpenLicences: () => void;
   onBack: () => void;
 }
 
-const FEEDBACK_URL = 'https://t.me/+4edtI3WUOqZlN2U1';
-
-const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => {
-  const [showLicences, setShowLicences] = useState(false);
+const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ showLicences, onOpenLicences, onBack }) => {
   const [expandedLicences, setExpandedLicences] = useState<Set<string>>(() => new Set());
   const [beat, setBeat] = useState(0);
   const reduced = useMotionPreference();
@@ -64,11 +63,9 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
   const version = appConfig.expo.version;
   const build = appConfig.expo.ios.buildNumber;
 
-  const setLicencesVisible = (visible: boolean): void => {
-    if (visible) setExpandedLicences(new Set());
-    setShowLicences(visible);
-    detailProgress.value = withTiming(visible ? 1 : 0, pageTransition);
-  };
+  useEffect(() => {
+    detailProgress.value = withTiming(showLicences ? 1 : 0, pageTransition);
+  }, [detailProgress, showLicences]);
 
   const toggleLicence = (title: string) => {
     setExpandedLicences(previous => {
@@ -85,12 +82,6 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
   const licencesStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: interpolate(detailProgress.value, [0, 1], [pageWidth, 0]) }],
   }));
-
-  const sendFeedback = () => {
-    void Linking.openURL(FEEDBACK_URL).catch(() => {
-      showPrompt('Unable to open Telegram', 'Try opening the BeatNote Helpdesk invite again.');
-    });
-  };
 
   return (
     <View style={styles.stack}>
@@ -112,15 +103,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
             <Text style={styles.version}>Version {version} ({build})</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.feedbackButton}
-            onPress={sendFeedback}
-            accessibilityRole="link"
-            accessibilityHint="Opens the invite to the BeatNote Helpdesk group"
-            testID="about-send-feedback"
-          >
-            <Text style={styles.feedbackText}>Give feedback on Telegram</Text>
-          </TouchableOpacity>
+          <TelegramFeedbackButton testID="about-send-feedback" />
 
           <View style={styles.privacyCard}>
             <Text style={styles.privacyTitle}>Privacy & diagnostics</Text>
@@ -130,7 +113,10 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
           </View>
           <TouchableOpacity
             style={styles.licencesLink}
-            onPress={() => setLicencesVisible(true)}
+            onPress={() => {
+              setExpandedLicences(new Set());
+              onOpenLicences();
+            }}
             accessibilityRole="link"
             testID="about-open-source-licences"
           >
@@ -146,7 +132,7 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ onBack }) => 
       >
         <SettingsSubpage
           title="Open Source Licences"
-          onBack={() => setLicencesVisible(false)}
+          onBack={onBack}
           testID="open-source-licences-page"
           backLabel="About"
         >

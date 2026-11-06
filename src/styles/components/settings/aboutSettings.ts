@@ -41,19 +41,6 @@ export const aboutSettingsStyles = StyleSheet.create({
   aboutContent: {
     flexGrow: 1,
   },
-  feedbackButton: {
-    minHeight: 48,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.accent,
-    borderRadius: dimensions.borderRadius,
-  },
-  feedbackText: {
-    color: colors.onAccent,
-    fontSize: 15,
-    fontWeight: '600',
-  },
   licencesLink: {
     alignSelf: 'center',
     marginTop: 'auto',

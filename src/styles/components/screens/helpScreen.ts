@@ -89,6 +89,10 @@ export const helpScreenStyles = StyleSheet.create({
   scrollContent: {
     padding: 16,
   },
+  feedback: {
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+  },
   section: {
     marginBottom: 24,
   },

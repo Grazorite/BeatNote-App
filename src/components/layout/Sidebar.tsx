@@ -43,7 +43,7 @@ import AppModal from '../ui/common/AppModal';
 import HeaderBackButton from '../ui/common/HeaderBackButton';
 import { BeatNoteIcon } from '../icons';
 
-type SettingsDetail = 'display' | 'playback' | 'buttons' | 'bpm' | 'data' | 'pro' | 'about' | null;
+type SettingsDetail = 'display' | 'playback' | 'buttons' | 'bpm' | 'data' | 'pro' | 'about' | 'licences' | null;
 
 const useEdgeSwipeBack = (onBack: () => void) => {
   const onBackRef = useRef(onBack);
@@ -215,15 +215,27 @@ const Sidebar: React.FC = () => {
     });
   };
 
-  const edgeSwipeHandlers = useEdgeSwipeBack(() => {
-    if (directTiming || !detailVisible) {
-      closeMobileSettings();
-    } else if (showHelpScreen) {
+  const goBack = () => {
+    if (showHelpScreen) {
       setShowHelpScreen(false);
-    } else {
+    } else if (activeDetail === 'licences') {
+      setActiveDetail('about');
+    } else if (activeDetail !== null && !directTiming) {
       setActiveDetail(null);
+    } else if (isMobile) {
+      closeMobileSettings();
+    } else {
+      toggleSidebar();
     }
-  });
+  };
+  const edgeSwipeHandlers = useEdgeSwipeBack(goBack);
+  const aboutPage = (activeDetail === 'about' || activeDetail === 'licences') && (
+    <AboutSettingsScreen
+      showLicences={activeDetail === 'licences'}
+      onOpenLicences={() => setActiveDetail('licences')}
+      onBack={goBack}
+    />
+  );
   if (isMobile) {
     return (
       <AppModal
@@ -231,9 +243,7 @@ const Sidebar: React.FC = () => {
         transparent
         animationType="none"
         presentationStyle="overFullScreen"
-        onRequestClose={() => detailVisible && !directTiming
-          ? (showHelpScreen ? setShowHelpScreen(false) : setActiveDetail(null))
-          : closeMobileSettings()}
+        onRequestClose={goBack}
       >
         <Animated.View style={[styles.settingsPage, mobileEntryStyle]} testID="settings-page">
           <Animated.View
@@ -260,7 +270,7 @@ const Sidebar: React.FC = () => {
             >
               <View style={styles.mobileHeader}>
                 <HeaderBackButton
-                  onPress={closeMobileSettings}
+                  onPress={goBack}
                   accessibilityLabel="Back to editor from Settings"
                   label="Back"
                   testID="sidebar-toggle"
@@ -310,29 +320,27 @@ const Sidebar: React.FC = () => {
             importantForAccessibility={detailVisible ? 'auto' : 'no-hide-descendants'}
           >
             {showHelpScreen && (
-              <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
+              <HelpScreen visible embedded onClose={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'bpm' && (
-              <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={directTiming ? closeMobileSettings : () => setActiveDetail(null)} />
+              <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'display' && (
-              <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
+              <DisplaySettingsScreen onBack={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'playback' && (
-              <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
+              <PlaybackSettingsScreen onBack={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'buttons' && (
-              <ButtonConfigurationScreen onBack={() => setActiveDetail(null)} />
+              <ButtonConfigurationScreen onBack={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'data' && (
-              <DataManagementScreen onBack={() => setActiveDetail(null)} />
+              <DataManagementScreen onBack={goBack} />
             )}
             {!showHelpScreen && activeDetail === 'pro' && (
-              <ProSettingsScreen onBack={() => setActiveDetail(null)} />
+              <ProSettingsScreen onBack={goBack} />
             )}
-            {!showHelpScreen && activeDetail === 'about' && (
-              <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
-            )}
+            {!showHelpScreen && aboutPage}
           </Animated.View>
           <View
             {...edgeSwipeHandlers}
@@ -364,22 +372,20 @@ const Sidebar: React.FC = () => {
       <SidebarToggle />
       <Animated.View style={[styles.contentContainer, contentOpacity]}>
         {showHelpScreen ? (
-          <HelpScreen visible embedded onClose={() => setShowHelpScreen(false)} />
+          <HelpScreen visible embedded onClose={goBack} />
         ) : activeDetail === 'display' ? (
-          <DisplaySettingsScreen onBack={() => setActiveDetail(null)} />
+          <DisplaySettingsScreen onBack={goBack} />
         ) : activeDetail === 'bpm' ? (
-          <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={directTiming ? toggleSidebar : () => setActiveDetail(null)} />
+          <BpmSettingsScreen backLabel={directTiming ? 'Editor' : 'Settings'} onBack={goBack} />
         ) : activeDetail === 'playback' ? (
-          <PlaybackSettingsScreen onBack={() => setActiveDetail(null)} />
+          <PlaybackSettingsScreen onBack={goBack} />
         ) : activeDetail === 'buttons' ? (
-          <ButtonConfigurationScreen onBack={() => setActiveDetail(null)} />
+          <ButtonConfigurationScreen onBack={goBack} />
         ) : activeDetail === 'data' ? (
-          <DataManagementScreen onBack={() => setActiveDetail(null)} />
+          <DataManagementScreen onBack={goBack} />
         ) : activeDetail === 'pro' ? (
-          <ProSettingsScreen onBack={() => setActiveDetail(null)} />
-        ) : activeDetail === 'about' ? (
-          <AboutSettingsScreen onBack={() => setActiveDetail(null)} />
-        ) : (
+          <ProSettingsScreen onBack={goBack} />
+        ) : aboutPage || (
           <ScrollView
             style={styles.scrollContainer}
             contentContainerStyle={styles.scrollContent}

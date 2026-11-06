@@ -41,6 +41,7 @@ final class BeatNoteUITests: XCTestCase {
     element("timing-shortcut-toggle").tap()
     element("bpm-settings-page-back").tap()
     element("sidebar-toggle").tap()
+    XCTAssertTrue(element("settings-page").waitForNonExistence(timeout: 5))
     element("timing-shortcut").tap()
     XCTAssertTrue(element("dance-grid-toggle").waitForExistence(timeout: 5))
     element("bpm-settings-page-back").tap()
@@ -71,6 +72,24 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertTrue(element("settings-pro").waitForExistence(timeout: 5))
     XCTAssertTrue(element("settings-display").exists)
     XCTAssertTrue(element("settings-bpm-entry").exists)
+    let settingsPage = element("settings-page")
+    func swipeBackFromSettingsEdge() {
+      let start = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5))
+      let end = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5))
+      start.press(forDuration: 0.05, thenDragTo: end)
+    }
+    element("settings-help").tap()
+    let feedback = element("help-send-feedback")
+    XCTAssertTrue(feedback.waitForExistence(timeout: 5) && feedback.isHittable)
+    XCTAssertLessThanOrEqual(feedback.frame.maxY, app.staticTexts.matching(identifier: "Start on iPhone").firstMatch.frame.minY)
+    element("help-close").tap()
+    element("settings-about").tap()
+    element("about-open-source-licences").tap()
+    XCTAssertTrue(element("open-source-licences-page-back").isHittable)
+    swipeBackFromSettingsEdge()
+    XCTAssertTrue(element("about-open-source-licences").isHittable)
+    swipeBackFromSettingsEdge()
+    XCTAssertTrue(element("settings-pro").isHittable)
     element("settings-pro").tap()
     XCTAssertTrue(element("pro-feature-carousel").waitForExistence(timeout: 5))
     element("pro-feature-carousel").swipeLeft()
@@ -117,12 +136,6 @@ final class BeatNoteUITests: XCTestCase {
     }
     element("bpm-settings-page-back").tap()
     element("settings-display").tap()
-    let settingsPage = element("settings-page")
-    func swipeBackFromSettingsEdge() {
-      let start = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5))
-      let end = settingsPage.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5))
-      start.press(forDuration: 0.05, thenDragTo: end)
-    }
     swipeBackFromSettingsEdge()
     XCTAssertTrue(element("settings-title").waitForExistence(timeout: 5))
     XCTAssertFalse(element("display-settings-page").exists)
@@ -136,6 +149,22 @@ final class BeatNoteUITests: XCTestCase {
     let songTitle = element("song-title-control")
     songTitle.tap()
     XCTAssertEqual(element("music-library-sheet-title").label, "Music")
+    let handle = element("music-library-sheet-grabber")
+    handle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+      forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12))
+    )
+    let firstOverflow = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "music-library-row-overflow-")
+    ).firstMatch
+    firstOverflow.tap()
+    app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH %@", "music-library-row-show-projects-")
+    ).firstMatch.tap()
+    let projectsBack = element("projects-back")
+    XCTAssertTrue(projectsBack.waitForExistence(timeout: 5))
+    XCTAssertEqual(projectsBack.label, "Back to Music Library")
+    projectsBack.tap()
+    XCTAssertTrue(element("music-library-sheet").waitForExistence(timeout: 5))
     let importAudio = element("music-library-import")
     XCTAssertTrue(importAudio.waitForExistence(timeout: 5))
     importAudio.tap()
@@ -600,6 +629,23 @@ final class BeatNoteUITests: XCTestCase {
       .completed,
       "The canvas should accept seeking immediately after foregrounding."
     )
+
+    // A retained, paused rehearsal must resume the same song at its selected position.
+    let resumeSeconds = playbackSeconds(from: playbackTime.label)
+    XCTAssertGreaterThan(resumeSeconds, 0)
+    XCUIDevice.shared.press(.home)
+    Thread.sleep(forTimeInterval: 1.5)
+    app.activate()
+    let resumeButton = app.buttons["Play song"]
+    XCTAssertTrue(resumeButton.waitForExistence(timeout: 5) && resumeButton.isHittable)
+    resumeButton.tap()
+    XCTAssertGreaterThanOrEqual(playbackSeconds(from: playbackTime.label), resumeSeconds)
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in self.playbackSeconds(from: playbackTime.label) > resumeSeconds },
+      object: nil
+    )], timeout: 15), .completed)
+    XCTAssertTrue(element("song-title-control").label.contains("current song background-audio"))
+    pauseButton.tap()
 
     let nextSong = element("next-track-control")
     XCTAssertTrue(nextSong.waitForExistence(timeout: 5) && nextSong.isHittable)

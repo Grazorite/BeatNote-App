@@ -99,7 +99,9 @@ inclusion: always
   controls. Waveform visibility and the annotation-lane label belong in Display & Annotations, not
   inline on the root. A dedicated 28-point leading-edge responder captures Back swipes above nested
   scroll/content responders: it returns one level in submenus and closes the Settings root back to
-  the editor. Do not place decorative icons beside page titles.
+  the editor. The header Back button, leading-edge swipe and system Back share the current page’s
+  return action, including Open Source Licences → About BeatNote → Settings. Timing opened from
+  the editor returns directly to the editor. Do not place decorative icons beside page titles.
 - Settings subpages keep standalone toggles and informational rows directly on the page instead of
   boxing every setting. Reserve bordered cards for meaningful groups, selected options, and actions.
 - Settings describe what an available feature does without repeating Lite or Pro labels. When a

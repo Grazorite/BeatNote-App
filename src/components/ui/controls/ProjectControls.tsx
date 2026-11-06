@@ -138,7 +138,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
   }, [libraryLocked]);
 
   const openProjects = useCallback((musicItemId: string | null = null) => {
-    if (musicItemId !== null) setRoutingLibraryToProjects(true);
+    setRoutingLibraryToProjects(useStudioStore.getState().isLibrarySheetOpen);
     closeLibrarySheet();
     requestAnimationFrame(() => {
       setProjectManagerMusicItemId(musicItemId);
@@ -320,6 +320,7 @@ const ProjectControls: React.FC<ProjectControlsProps> = ({
           setRoutingLibraryToProjects(false);
           requestAnimationFrame(() => titleButtonRef.current?.focus?.());
         }}
+        openedFromLibrary={routingLibraryToProjects}
         musicItemId={projectManagerMusicItemId}
         onChooseMusic={openLibrarySheet}
         onSave={handleManagerSave}

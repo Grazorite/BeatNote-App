@@ -3,6 +3,38 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Exercise prompt failures and simplify the existing regression journeys.
+      <sub>**Key Artifacts:** `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Audit prompt failures and trim regression assertions
+
+**Agent:** Codex · **Commit(s):** Test edits in `5eeef01`. Audit results recorded in the commit containing this entry.
+**Kanban moved:** Prompt audit and full suite review → Done
+
+**Changed:** Removed redundant colour, spacing and PDF markup assertions. Toast checks target the visible message instead of its transient live-region attribute. Removed temporary fault-injection checks after execution.
+
+**Verified:** TypeScript and eight browser journeys passed, including the final build 49 browser run. All ten aggregate simulator results reported one pass each and zero failures. Temporary browser checks exercised bulk marker cancel/delete/undo, project open/save/revert/rename/delete, CSV read and CSV/PDF export errors, playback and seek failures, queue recovery, Telegram and both crash clipboard outcomes.
+
+**Not verified / known gaps:** Failures were injected into disposable browser data. Physical VoiceOver remains a hands-on check.
+
+**Next agent should:** Collect physical accessibility and library feedback.
+
+- [x] Use secondary grey for the main canvas dance counts and install build 49.
+      <sub>**Key Artifacts:** `AGENTS.md`, `app.json`, `src/styles/components/waveform/rowGutter.ts`, `tests/ui-components.spec.ts`, `docs/context/archive/beatnote-project-history.md`</sub>
+
+### 2026-11-05 — Install build 49 with quieter dance-count labels
+
+**Agent:** Codex · **Commit(s):** Build 49 commit containing this entry; build 48 is `5eeef01`
+**Kanban moved:** Canvas dance-count contrast and build 49 installation → Done
+
+**Changed:** The phrase/count text below each main canvas timestamp uses the secondary text colour. Incremented the iOS build to 49 and updated the About expectation. Prepared build 48 prompt changes and build 49 label styling as separate commits for the requested master push.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser regression journeys passed. A focused mobile render with counts enabled confirmed white timestamps (#ffffff) and grey count text (#999999). Signed release 49 passed signature verification. Device services independently reported 1.0.0 (49) installed and launched the app.
+
+**Not verified / known gaps:** Physical readability with the user's songs remains for device review. Native XCTest was not rerun for the colour change.
+
+**Next agent should:** Collect physical feedback on the contrast between timestamps and counts.
+
 - [x] Standardise app-owned alerts and install build 48.
       <sub>**Key Artifacts:** `AGENTS.md`, `App.tsx`, `app.json`, `src/components/ErrorBoundary.tsx`, `src/components/ui/common/AppModal.tsx`, `src/components/ui/controls/MarkerDockButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/controls/QueueTrackButton.tsx`, `src/components/ui/modals/ExportModal.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/modals/SwitchGuardDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`, `src/components/ui/common/AppPrompt.tsx`</sub>
 
