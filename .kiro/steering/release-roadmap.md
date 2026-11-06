@@ -173,7 +173,7 @@ The Lite tier must complete a real project:
 - Choose whether the screen stays awake while using the app or only while playing
 - Configure seek-button behaviour and seek duration
 - Use data-management actions, including removing imported copies and clearing derived caches
-- View About, licences, version, privacy choices, and a future Send Feedback entry
+- View About, licences, version and privacy information, and reach Telegram feedback from Help & Support
 
 Lite does not include BPM, beat anchor, or 8-count tooling. Markers, annotations, looping, seeking,
 and rehearsal speed remain complete without them.
@@ -331,8 +331,8 @@ The Settings information architecture uses the supplied Audipo screens as a func
 without copying its visual design. Ignore Audipo's mark-display mode. The root stays deliberately
 small: Debug and Basic controls remain inline; Playback, Advanced, Data, and Support use navigation
 rows. Timing/BPM/count controls live on a dedicated Pro subpage rather than expanding inline. The
-About page exposes the real version/build, licence status, the project feedback link, and the
-truthful current diagnostic policy. The current implementation includes:
+About page shows the version, build, licences and current diagnostic policy. Help & Support
+opens with a full-width Telegram feedback button above the help topics. The current implementation includes:
 
 - Playback: persisted Pro Continuous Play, persisted Lite Keep Screen On modes, and a working,
   default-on Pause on Headset Disconnect preference backed by native iOS route observation.

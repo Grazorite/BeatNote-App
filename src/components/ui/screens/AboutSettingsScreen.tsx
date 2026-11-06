@@ -10,7 +10,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { pageTransition } from '../../../animations/motion';
 import { useMotionPreference } from '../../../animations/MotionPreference';
-import TelegramFeedbackButton from '../common/TelegramFeedbackButton';
 import OutwardSparkle from '../common/OutwardSparkle';
 
 import appConfig from '../../../../app.json';
@@ -102,8 +101,6 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ showLicences,
             <Text style={styles.appName}>BeatNote for iOS</Text>
             <Text style={styles.version}>Version {version} ({build})</Text>
           </View>
-
-          <TelegramFeedbackButton testID="about-send-feedback" />
 
           <View style={styles.privacyCard}>
             <Text style={styles.privacyTitle}>Privacy & diagnostics</Text>

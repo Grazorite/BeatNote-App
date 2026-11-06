@@ -90,7 +90,7 @@ export const helpScreenStyles = StyleSheet.create({
     padding: 16,
   },
   feedback: {
-    alignSelf: 'flex-start',
+    alignSelf: 'stretch',
     marginBottom: 20,
   },
   section: {

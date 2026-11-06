@@ -11,6 +11,7 @@ export const telegramFeedbackStyles = StyleSheet.create({
     borderRadius: dimensions.borderRadius,
   },
   feedbackText: {
+    textAlign: 'center',
     color: colors.onAccent,
     fontSize: 15,
     fontWeight: '600',

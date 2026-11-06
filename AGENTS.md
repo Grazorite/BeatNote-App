@@ -35,7 +35,7 @@
 ## 📊 Active Project Status
 
 **Last updated:** 2026-11-06
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (54)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (55)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -85,7 +85,7 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-- [ ] Confirm that one Play tap resumes the same song and position after overnight suspension on the physical iPhone after installing build 54.
+- [ ] Confirm that one Play tap resumes the same song and position after overnight suspension on the physical iPhone after installing build 55.
 
 
 - [ ] Check system Previous/Next from the physical Lock Screen and Control Centre during playback.
@@ -110,6 +110,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Center the full-width Telegram feedback button in Help & Support and remove the About copy. Install build 55.
+      <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Add Telegram feedback to Help & Support and return one page at a time from Licences and Library-launched Projects. Install build 54.
       <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/TelegramFeedbackButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
@@ -121,9 +124,6 @@ target; Android is a far-future possibility only.
 
 - [x] Distinguish default, edited and saved tempos; install build 51.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/projectControls.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `src/utils/recordValidation.ts`, `tests/ui-components.spec.ts`, `src/hooks/useBpmStatus.ts`</sub>
-
-- [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -204,6 +204,19 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-06 — Full-width Help feedback in build 55
+
+**Agent:** Codex · **Commit(s):** Build 55 commit containing this entry.
+**Kanban moved:** Telegram feedback placement → Done
+
+**Changed:** Help & Support now has the sole Telegram feedback button. It spans the page content between equal gutters, with centered text. Removed the About copy and updated the release roadmap.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The browser verified the Help invite and the absence of the About button. Focused iPhone simulator XCTest verified the button’s width and center. Strict signature verification passed. The physical phone reported 1.0.0 (55) installed and launched.
+
+**Not verified / known gaps:** Telegram handoff on the physical phone remains a hands-on check.
+
+**Next agent should:** Record physical feedback on Telegram handoff and the outstanding overnight playback check.
+
 ### 2026-11-06 — Help feedback and Back destinations in build 54
 
 **Agent:** Codex · **Commit(s):** Build 54 commit containing this entry and the build 53 playback recovery.
@@ -279,18 +292,5 @@ already cleared when the user switched songs. The task changes are uncommitted o
 **Not verified / known gaps:** iOS denied launch because the phone was locked. Hands-on VoiceOver review remains open. Old 120 BPM projects lacking evidence of tempo selection display the default state.
 
 **Next agent should:** Confirm launch after unlock.
-
-### 2026-11-05 — Install timing and project refinements in build 50
-
-**Agent:** Codex · **Commit(s):** Build 50 commit containing this entry
-**Kanban moved:** Requested UI, roadmap changes and physical installation → Done
-
-**Changed:** Independent Control Centre interval, aligned Settings titles and toggle captions, count-label update optimisation, ±5 BPM buttons, opt-in timing displays, project colour hierarchy and detailed revert confirmation. Lite playlists are on the roadmap with continuous play gated to Pro.
-
-**Verified:** TypeScript, version and whitespace checks, eight browser journeys, temporary 375-point timing/revert check and focused native Settings XCTest passed. The paired iPhone accepted the in-place update, launched BeatNote, and reported version 1.0.0 (50).
-
-**Not verified / known gaps:** Control Centre behaviour and toggle feel await hands-on review.
-
-**Next agent should:** Confirm a changed system skip interval during playback on the physical iPhone.
 
 <!-- end handover log -->

@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-05 — Install timing and project refinements in build 50
+
+**Agent:** Codex · **Commit(s):** Build 50 commit containing this entry
+**Kanban moved:** Requested UI, roadmap changes and physical installation → Done
+
+**Changed:** Independent Control Centre interval, aligned Settings titles and toggle captions, count-label update optimisation, ±5 BPM buttons, opt-in timing displays, project colour hierarchy and detailed revert confirmation. Lite playlists are on the roadmap with continuous play gated to Pro.
+
+**Verified:** TypeScript, version and whitespace checks, eight browser journeys, temporary 375-point timing/revert check and focused native Settings XCTest passed. The paired iPhone accepted the in-place update, launched BeatNote, and reported version 1.0.0 (50).
+
+**Not verified / known gaps:** Control Centre behaviour and toggle feel await hands-on review.
+
+**Next agent should:** Confirm a changed system skip interval during playback on the physical iPhone.
+
 - [x] Exercise prompt failures and simplify the existing regression journeys.
       <sub>**Key Artifacts:** `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`, `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`</sub>
 

@@ -81,6 +81,9 @@ final class BeatNoteUITests: XCTestCase {
     element("settings-help").tap()
     let feedback = element("help-send-feedback")
     XCTAssertTrue(feedback.waitForExistence(timeout: 5) && feedback.isHittable)
+    let helpFrame = element("help-page").frame
+    XCTAssertEqual(feedback.frame.width, helpFrame.width - 32, accuracy: 1)
+    XCTAssertEqual(feedback.frame.midX, helpFrame.midX, accuracy: 1)
     XCTAssertLessThanOrEqual(feedback.frame.maxY, app.staticTexts.matching(identifier: "Start on iPhone").firstMatch.frame.minY)
     element("help-close").tap()
     element("settings-about").tap()
