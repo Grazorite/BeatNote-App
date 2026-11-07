@@ -3,6 +3,22 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Distinguish default, edited and saved tempos; install build 51.
+      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/projectControls.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `src/utils/recordValidation.ts`, `tests/ui-components.spec.ts`, `src/hooks/useBpmStatus.ts`</sub>
+
+### 2026-11-05 — Compact BPM status in build 51
+
+**Agent:** Codex · **Commit(s):** uncommitted
+**Kanban moved:** Tempo status and signed installation → Done
+
+**Changed:** The toolbar mutes the untouched 120, brightens a chosen tempo and adds an orange dot for unsaved tempo edits. Timing settings and accessibility expose the status in words. Accepted analysis at exactly 120 survives save and reload.
+
+**Verified:** Types, eight browser journeys and focused Settings XCTest passed. Temporary checks confirmed contrast, dot transitions, unrelated marker edits, returning to the saved tempo, and manual and analysed 120 after reload. The physical phone reported version 1.0.0 (51) installed.
+
+**Not verified / known gaps:** iOS denied launch because the phone was locked. Hands-on VoiceOver review remains open. Old 120 BPM projects lacking evidence of tempo selection display the default state.
+
+**Next agent should:** Confirm launch after unlock.
+
 - [x] Update timing and playback controls, Projects hierarchy and revert details; record future Lite playlists.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSession.podspec`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `modules/beatnote-audio-session/src/index.ts`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/DanceCountDisplay.tsx`, `src/components/ui/controls/DanceCountVisibilityControl.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/projects/CurrentProjectSection.tsx`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/DataManagementScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useModernToggleAnimation.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `src/styles/components/common/modernToggle.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/danceCountVisibilityControl.ts`, `src/styles/components/modals/confirmDialog.ts`, `src/styles/components/modals/projectManagerModal.ts`, `src/styles/components/projects/currentProjectSection.ts`, `src/utils/persistedContent.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 

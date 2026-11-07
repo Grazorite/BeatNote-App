@@ -34,8 +34,8 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-11-06
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (55)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Last updated:** 2026-11-07
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (56)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -60,7 +60,7 @@ target; Android is a far-future possibility only.
 
 ### Current Focus
 
-1. Physically review the Release 50 timing controls, project changes, dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
+1. Confirm overnight playback recovery on build 56. Physically review the Release 50 timing controls, project changes, dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
 2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
    V2 purchase enforcement.
 3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
@@ -85,7 +85,7 @@ target; Android is a far-future possibility only.
 
 ### 🚧 In Progress
 
-- [ ] Confirm that one Play tap resumes the same song and position after overnight suspension on the physical iPhone after installing build 55.
+- [ ] Confirm same-song Play and position after a real overnight suspension on physical iPhone build 56. Build 55 reached the recovery error in the user’s screenshot.
 
 
 - [ ] Check system Previous/Next from the physical Lock Screen and Control Centre during playback.
@@ -110,6 +110,9 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Refresh paused audio after 15 minutes away, retry from Reload Audio, and cancel suspended recovery deadlines. Install build 56.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
 - [x] Center the full-width Telegram feedback button in Help & Support and remove the About copy. Install build 55.
       <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
@@ -121,9 +124,6 @@ target; Android is a far-future possibility only.
 
 - [x] Add bulk speed preset reset and selectable system song/interval buttons. Install build 52.
       <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Distinguish default, edited and saved tempos; install build 51.
-      <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/projectControls.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `src/utils/recordValidation.ts`, `tests/ui-components.spec.ts`, `src/hooks/useBpmStatus.ts`</sub>
 
 ---
 
@@ -204,6 +204,32 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-07 — Proactive audio refresh and actionable fallback in build 56
+
+**Agent:** Codex · **Commit(s):** Build 56 commit containing this entry.
+**Kanban moved:** Proactive stale-audio refresh and physical installation → Done. Overnight device acceptance → In Progress.
+
+**Changed:** Returning after at least 15 minutes away recreates a paused iOS player for the same
+song and position, even if the old item reports loaded. Healthy background playback continues.
+Session configuration precedes readiness and the first foreground Play. Play during refresh updates
+the pending intent. Leaving the foreground cancels unfinished recovery so old deadlines cannot show
+an error after suspension. Failed recovery retains the selected position and offers Reload Audio,
+which uses the latest player and avoids duplicate prompts. The project and unsaved edits stay loaded.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed.
+A temporary one-second inactivity threshold and injected first-recovery failure exercised proactive
+replacement and the Reload Audio retry at the same position. A delayed recovery was backgrounded,
+then replaced on return without surfacing its old timeout. Both simulator fault runs passed; all
+faults were removed. The first clean run passed playback but exposed an immediate title assertion
+in the queue check. The retained test now waits for the destination title and transition completion;
+the final clean native background/playback/seek/song-switch journey passed. Release signing and
+bundle checks passed. The physical iPhone reported 1.0.0 (56) installed in place and launched.
+
+**Not verified / known gaps:** The screenshot identifies the earlier recovery fallback, not the
+underlying native failure. The exact eight-hour physical suspension remains to be confirmed.
+
+**Next agent should:** Record the first Play and position after an overnight absence on build 56.
+
 ### 2026-11-06 — Full-width Help feedback in build 55
 
 **Agent:** Codex · **Commit(s):** Build 55 commit containing this entry.
@@ -279,18 +305,5 @@ already cleared when the user switched songs. The task changes are uncommitted o
 **Defaults:** New installations use 10-second system seeking. Lite disables both system button choices and the interval selector. Existing explicit Pro preferences are preserved.
 
 **Next agent should:** Try both directions on the physical Lock Screen with Change songs selected and a multi-song queue.
-
-### 2026-11-05 — Compact BPM status in build 51
-
-**Agent:** Codex · **Commit(s):** uncommitted
-**Kanban moved:** Tempo status and signed installation → Done
-
-**Changed:** The toolbar mutes the untouched 120, brightens a chosen tempo and adds an orange dot for unsaved tempo edits. Timing settings and accessibility expose the status in words. Accepted analysis at exactly 120 survives save and reload.
-
-**Verified:** Types, eight browser journeys and focused Settings XCTest passed. Temporary checks confirmed contrast, dot transitions, unrelated marker edits, returning to the saved tempo, and manual and analysed 120 after reload. The physical phone reported version 1.0.0 (51) installed.
-
-**Not verified / known gaps:** iOS denied launch because the phone was locked. Hands-on VoiceOver review remains open. Old 120 BPM projects lacking evidence of tempo selection display the default state.
-
-**Next agent should:** Confirm launch after unlock.
 
 <!-- end handover log -->

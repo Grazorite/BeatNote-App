@@ -197,10 +197,18 @@ unloaded after a short foreground grace period, BeatNote recreates the iOS playe
 URI. The first Play after foregrounding also checks for clock movement. A failed Play or a stalled
 start gets one fresh-player attempt. Restore playback speed and position, reconfigure the session
 for Play, and respect newer pause, seek and song-switch actions. Keep the current project loaded
-throughout recovery.
+throughout recovery. After 15 minutes away, proactively replace a paused player on foreground even
+if its item still reports loaded. Never interrupt healthy background playback or automatically play
+a paused rehearsal. A Play tap during replacement updates the pending intent and starts once ready.
+Configure the session before waiting on replacement readiness and again on the first foreground
+Play. Cancel unfinished recovery when leaving the foreground so suspended wall-clock deadlines
+cannot surface an old error on return. Failed recovery retains the selected position and marks the
+player for replacement; the fallback's Reload Audio action starts a fresh same-song attempt using
+the latest player, and ignores a prompt for a song that has since changed. Refresh only audio, never
+the app or project store, so unsaved choreography remains intact.
 
 Expo SDK 54's iOS `AudioPlayer.seekTo` implementation is patched during prebuild to use
-`AVPlayerItem.seek(...completionHandler:)` with weak ownership and to cancel pending seeks when the
+`AVPlayer.seek(...completionHandler:)` with weak ownership and to cancel pending seeks when the
 shared player is released. Keep the config plugin idempotent and fail prebuild on an unknown
 upstream implementation. Remove the patch only after upgrading to an `expo-audio` version that
 contains the equivalent upstream lifecycle fix and rerunning background/foreground transport,

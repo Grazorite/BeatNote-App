@@ -641,6 +641,9 @@ final class BeatNoteUITests: XCTestCase {
     app.activate()
     let resumeButton = app.buttons["Play song"]
     XCTAssertTrue(resumeButton.waitForExistence(timeout: 5) && resumeButton.isHittable)
+    XCTAssertFalse(app.staticTexts["Playback Error"].exists)
+    XCTAssertGreaterThanOrEqual(playbackSeconds(from: playbackTime.label), resumeSeconds,
+      "Foreground audio refresh should preserve the paused rehearsal position.")
     resumeButton.tap()
     XCTAssertGreaterThanOrEqual(playbackSeconds(from: playbackTime.label), resumeSeconds)
     XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
@@ -653,19 +656,21 @@ final class BeatNoteUITests: XCTestCase {
     let nextSong = element("next-track-control")
     XCTAssertTrue(nextSong.waitForExistence(timeout: 5) && nextSong.isHittable)
     nextSong.press(forDuration: 1.0)
-    XCTAssertTrue(
-      element("song-title-control").waitForExistence(timeout: 10)
-        && element("song-title-control").label.contains("current song long-mix"),
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "current song long-mix"),
+      object: element("song-title-control")
+    )], timeout: 15), .completed,
       "A cached long-song Music Library switch should complete after foregrounding."
     )
-    XCTAssertFalse(element("track-switch-transition").exists)
+    XCTAssertTrue(element("track-switch-transition").waitForNonExistence(timeout: 15))
     nextSong.press(forDuration: 1.0)
-    XCTAssertTrue(
-      element("song-title-control").waitForExistence(timeout: 10)
-        && element("song-title-control").label.contains("current song test-audio"),
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "current song test-audio"),
+      object: element("song-title-control")
+    )], timeout: 15), .completed,
       "A second Music Library switch should not remain queued behind the long song."
     )
-    XCTAssertFalse(element("track-switch-transition").exists)
+    XCTAssertTrue(element("track-switch-transition").waitForNonExistence(timeout: 15))
     for song in ["long-mix", "test-audio", "long-mix"] {
       selectLibrarySong(song)
     }
