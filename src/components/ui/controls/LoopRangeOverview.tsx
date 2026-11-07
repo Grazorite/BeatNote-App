@@ -9,6 +9,7 @@ import { formatLoopTime, isValidLoopRange, loopSummaryLabel } from '../../../uti
 import LoopClearControl from './LoopClearControl';
 import LoopOverviewTrack from './LoopOverviewTrack';
 import LoopRangeLayer from './LoopRangeLayer';
+import OverviewTime from './OverviewTime';
 
 interface LoopRangeOverviewProps {
   audioUri: string | null;
@@ -80,6 +81,7 @@ const LoopRangeOverview: React.FC<LoopRangeOverviewProps> = ({ audioUri, onToast
       }}
       style={[styles.root, Platform.OS === 'web' && webTouchStyle]}
     >
+      <OverviewTime />
       <View
         testID="loop-overview-track-region"
         style={styles.trackRegion}

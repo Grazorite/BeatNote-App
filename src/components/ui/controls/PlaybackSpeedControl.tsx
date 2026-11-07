@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../../hooks/useAppSafeAreaInsets';
 import { feedbackMs } from '../../../animations/motion';
 import { useMotionPreference } from '../../../animations/MotionPreference';
 import {
@@ -76,7 +76,7 @@ const PlaybackSpeedControl: React.FC<PlaybackSpeedControlProps> = ({
   const [editingPresetIndex, setEditingPresetIndex] = useState<number | null>(null);
   const wrapperRef = useRef<View>(null);
   const { height: windowHeight } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  const insets = useAppSafeAreaInsets();
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const presentAnimationRef = useRef<Animated.CompositeAnimation | null>(null);

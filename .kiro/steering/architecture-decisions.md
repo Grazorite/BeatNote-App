@@ -103,9 +103,10 @@ BeatNote stores one autosaved draft per Music Item and any number of Saved Proje
 per-key records with integer revisions. Dirty state compares a canonical content fingerprint with
 the selected project's baseline fingerprint. All writes share one serialized persistence pipeline;
 read failures block writes to the affected key. Manual song switches prompt over a dirty named
-baseline. End-of-track Pro continuation, including Shuffle, bypasses that modal only after flushing
+baseline. End-of-track Pro continuation (including Shuffle) and system Previous/Next bypass that modal only after flushing
 the current per-song draft; the named project is not overwritten, returning restores the dirty
-draft, and a failed or timed-out flush aborts the automatic switch.
+draft, and a failed or timed-out flush aborts the switch. System Previous always selects the preceding
+song rather than restarting the current one. In-app manual switching still prompts.
 Rationale: per-key records avoid whole-library overwrite races, while explicit revisions and
 fingerprints make save/autosave recovery deterministic.
 

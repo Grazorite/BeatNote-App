@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Platform, useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../hooks/useAppSafeAreaInsets';
 import { useShallow } from 'zustand/react/shallow';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { useCustomAudioPlayer } from '../../hooks/useAudioPlayer';
@@ -18,11 +18,10 @@ import KeepScreenAwakeController from '../../components/KeepScreenAwakeControlle
 export default function StudioScreen() {
   useRenderCounter('render.StudioScreen');
   useLibraryLifecycle();
-  const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
-  const isMobile = Platform.OS === 'web'
-    ? width < 768
-    : Math.min(width, height) < 768;
+  const insets = useAppSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // All iOS devices use the V1 touch editor; the desktop layout is a browser harness.
+  const isMobile = Platform.OS !== 'web' || width < 768;
   const {
     layers,
     activeLayerId,

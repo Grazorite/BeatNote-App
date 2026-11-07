@@ -8,8 +8,10 @@ inclusion: always
 
 The generated iOS app builds and the XCTest UI suite runs on Xcode 27's iOS simulator runtime. A
 locally signed development build also launches on an iPhone 15 Pro Max running iOS 27.0.1. Apple
-Developer enrollment for distribution and TestFlight setup remain pending; they are not required
-for simulator development or the current locally signed device workflow.
+Developer enrollment is active under an Individual membership. EAS is linked to
+`@grazorite/beatnote-app`; App Store Connect's BeatNote record was verified with Apple ID
+`6831990297` and bundle ID `com.beatnote.app`. The user configured EAS distribution credentials for
+team `93W4F85TJB`. TestFlight upload and clean-install/update acceptance remain pending.
 
 The current free Personal Team workflow issues local provisioning profiles with a seven-day
 lifetime. When one expires, iOS leaves the app installed but rejects launch at the security gate;
@@ -125,12 +127,12 @@ The test command starts Metro only when port 8081 is not already serving the app
 
 ## Prerequisites checklist
 
-- [ ] Purchase Apple Developer Program membership ($99/year) at developer.apple.com
-- [ ] Install EAS CLI: `npm install -g eas-cli`
-- [ ] Log in: `eas login`
-- [ ] Create EAS project: `eas init` — this generates the real `projectId` for `app.json`
-- [ ] Update `app.json` → `expo.extra.eas.projectId` with the generated ID
-- [ ] Update `eas.json` → `submit.production.ios` with real Apple ID, ASC App ID, and Team ID
+- [x] Purchase and activate Apple Developer Program membership
+- [x] Run EAS CLI through `npx eas-cli`
+- [x] Log in to Expo/EAS
+- [x] Create and link the EAS project under the approved owner
+- [x] Update `app.json` → `expo.extra.eas.projectId` with the generated ID
+- [x] Update `eas.json` → `submit.production.ios` with real Apple ID, ASC App ID, and Team ID
 
 ## Build profiles (eas.json)
 
@@ -139,17 +141,41 @@ Three profiles are configured:
 | Profile | Purpose | Distribution |
 | --- | --- | --- |
 | `development` | Local dev with dev client | Internal (ad-hoc) |
-| `preview` | TestFlight beta | Internal |
-| `production` | App Store submission | Store |
+| `preview` | Direct device preview outside TestFlight | Internal (ad hoc) |
+| `production` | TestFlight and App Store submission | Store |
 
 ## Running a TestFlight build
 
+The beta description, review notes (including the `bananas` Pro-preview unlock), feedback email and
+review contact are configured in App Store Connect. No app account sign-in is required. Use these
+public repository pages until the separate marketing website is ready:
+
+- Privacy: `https://github.com/Grazorite/BeatNote-App/blob/master/docs/privacy-policy.md`
+- Support: `https://github.com/Grazorite/BeatNote-App/blob/master/docs/support.md`
+- Feedback email: `gswm98@gmail.com`
+
+The support page offers Telegram plus email so contacting support does not require a Telegram
+account. Verify both public URLs after pushing before entering them into App Store Connect.
+Keep the review phone number in App Store Connect, not in public repository documents.
+App Privacy publishes “Data Not Collected” with the user's approved declaration. The privacy URL
+is also saved separately under TestFlight > Test Information; the support URL is saved on the
+distribution version. Revisit these declarations before introducing any data-collecting SDK.
+
+The app uses Apple's CryptoKit for local file hashes and OS services for networking; no custom
+encryption implementation was found in the app/native dependency inventory. The generated Info.plist
+declares `ITSAppUsesNonExemptEncryption = false`, consistent with Apple's OS-only exemption guidance.
+Reassess this when adding networking, purchases, telemetry or third-party SDKs. Apple TestFlight
+diagnostics/feedback are described separately from the app's own lack of analytics.
+
+For the first internal beta, build and upload only after candidate acceptance. Do not submit for
+public App Store review or invite external testers as a side effect of preparing metadata.
+
 ```bash
-# Build for TestFlight (simulator-off, real device)
-eas build --platform ios --profile preview
+# Build the store-signed archive used by TestFlight
+npx eas-cli build --platform ios --profile production
 
 # Submit to TestFlight
-eas submit --platform ios --profile preview
+npx eas-cli submit --platform ios --profile production
 ```
 
 ## iOS-specific features
@@ -175,11 +201,12 @@ eas submit --platform ios --profile preview
   flag, and supplies streaming MD5 and UUID primitives. Documents remains Files-visible for fixtures
   and exports when `UIFileSharingEnabled` is set.
 
-### iCloud sync
+### iCloud sync (not implemented)
 
 - Use `expo-file-system` with iCloud container paths
 - Requires `iCloud` capability in the Apple Developer portal and `com.apple.developer.icloud-container-identifiers` entitlement
-- Project files (`.beatnote`) sync automatically once written to the iCloud container path
+- A future implementation would need explicit container, persistence and conflict-resolution work.
+  Current BeatNote storage is local and must not be described as automatic iCloud sync.
 
 ### Background audio
 
@@ -189,9 +216,8 @@ eas submit --platform ios --profile preview
   Now Playing. `app.json` declares `UIBackgroundModes: ["audio"]`.
 - While a local song is loaded, the player is registered with `setActiveForLockScreen`, publishes
   its library display title to iOS Now Playing, and mirrors remote play/pause/seek status back into
-  the studio store. V1 exposes play/pause, timeline seeking, and ±10-second skip controls; queue
-  Previous/Next remain in-app because the installed Expo Audio API does not expose those
-  remote-command mappings.
+  the studio store. Pro offers configurable interval skipping or Previous/Next through the local
+  BeatNoteAudioSession module. The new system modes still require physical button acceptance.
 - The simulator verifies that playback time advances while backgrounded and that the UI recovers
   when foregrounded. Test Control Centre metadata/commands, calls, route changes, and real-device
   audio interruptions before release.

@@ -823,11 +823,11 @@ export const requestTrackSwitch = (request: SwitchRequest): Promise<SwitchResult
 };
 
 /**
- * Automatic completion never overwrites a saved project or blocks playback behind the manual
+ * Automatic completion and system song changes never overwrite a saved project or block behind the manual
  * switch guard. The transaction still flushes the per-song draft before changing audio, and a
  * failed/timeout flush aborts the switch so authored work is never discarded.
  */
-export const requestTrackSwitchAfterCompletion = (
+export const requestTrackSwitchPreservingDraft = (
   request: SwitchRequest,
 ): Promise<SwitchResult> => {
   const intervalId = perfBegin('track.switch');

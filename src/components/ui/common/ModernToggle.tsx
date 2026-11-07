@@ -11,6 +11,8 @@ interface ModernToggleProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  /** Wait for the controlled value when a change requires confirmation. */
+  optimistic?: boolean;
   marginBottom?: number;
   accessibilityHint?: string;
   testID?: string;
@@ -21,6 +23,7 @@ const ModernToggle: React.FC<ModernToggleProps> = ({
   value, 
   onValueChange,
   disabled = false,
+  optimistic = true,
   marginBottom = 0,
   accessibilityHint,
   testID,
@@ -33,16 +36,16 @@ const ModernToggle: React.FC<ModernToggleProps> = ({
   }, [value]);
 
   const commitValue = useCallback((nextValue: boolean) => {
-    visualValueRef.current = nextValue;
+    if (optimistic) visualValueRef.current = nextValue;
     onValueChange(nextValue);
-  }, [onValueChange]);
+  }, [onValueChange, optimistic]);
 
   const handlePress = useCallback(() => {
     if (disabled) return;
     const nextValue = !visualValueRef.current;
-    setVisualValue(nextValue);
+    if (optimistic) setVisualValue(nextValue);
     commitValue(nextValue);
-  }, [commitValue, disabled, setVisualValue]);
+  }, [commitValue, disabled, optimistic, setVisualValue]);
 
   const nativeTap = useMemo(() => Gesture.Tap()
     .enabled(!disabled)
@@ -51,10 +54,12 @@ const ModernToggle: React.FC<ModernToggleProps> = ({
       // This worklet runs on the native UI thread. The switch therefore moves before expensive
       // capability/store updates can occupy the JavaScript thread.
       const nextValue = target.value === 1 ? 0 : 1;
-      target.value = nextValue;
-      progress.value = withTiming(nextValue, controlTransition);
+      if (optimistic) {
+        target.value = nextValue;
+        progress.value = withTiming(nextValue, controlTransition);
+      }
       runOnJS(commitValue)(nextValue === 1);
-    }), [commitValue, disabled, progress, target]);
+    }), [commitValue, disabled, optimistic, progress, target]);
 
   const animatedTrack = (
     <Animated.View style={[styles.track, trackStyle]}>

@@ -34,8 +34,8 @@
 
 ## 📊 Active Project Status
 
-**Last updated:** 2026-11-07
-**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (56)` Release build installed and launched on the physical iPhone · TestFlight pending
+**Last updated:** 2026-11-08
+**Branch:** `master` (work happens here; no feature branches) · **Release target:** iOS only · current `1.0.0 (59)` Release build installed and launched on the physical iPhone · TestFlight pending
 **Build gate:** `npx tsc --noEmit` (types) and `npm test` (critical Playwright journeys);
 focused iOS XCTest for native surfaces changed by the task
 
@@ -54,16 +54,16 @@ target; Android is a far-future possibility only.
 | Stem separation | Deferred; types, store fields, and cache preserved |
 | Choreography features implemented | 6 of 6 in the V1 preview; physical-device acceptance remains |
 | Permanent unit tests | 0; Jest is retained only for temporary implementation checks |
-| iOS UI tests | 10 critical native integrations retained; all ten pass in focused simulator runs |
+| iOS UI tests | 10 critical native integrations retained; all ten passed on build 58, affected journeys and accessibility audited on build 59 |
 | E2E spec files | 2 (Playwright harness, 8 critical journeys) |
 | Native Expo modules | 4 (`BeatNoteWaveform`, `LibraryStorage`, local `BeatNoteTempo` analysis, and `BeatNoteAudioSession`) |
 
 ### Current Focus
 
-1. Confirm overnight playback recovery on build 56. Physically review the Release 50 timing controls, project changes, dance-count labels, prompt changes, About layout, Telegram feedback handoff, timeline demo markers and label resets in Marilag, switch summaries, Pro pagination and queue navigation and confirm the existing library and projects after the in-place update.
-2. Enrol for Apple distribution and pass TestFlight clean-install/update acceptance before starting
-   V2 purchase enforcement.
-3. Freeze and explicitly close V1 after distribution acceptance, recording any non-blocking limits.
+1. Confirm overnight same-song recovery and physical system Previous/Next with unsaved edits on build 59. Saved-data preservation and custom interval controls passed; manual VoiceOver was waived.
+2. Signing, beta metadata and approved privacy declaration are ready. Complete candidate acceptance,
+   then upload the first internal TestFlight build and verify clean installation and update.
+3. Freeze and explicitly close V1 after distribution acceptance, recording non-blocking limits.
 
 ### Agent Assignments
 
@@ -71,7 +71,7 @@ target; Android is a far-future possibility only.
 |--------------|------|--------------------|
 | `orchestrator` (primary session agent) | AGENTS.md upkeep, task sequencing, handover | Keep board + log current on every completion |
 | `context-gatherer` (DSH-Qwen) | Scoped investigation / light implementation | Completed performance audits `session-b21ea04d-e305-4b1a-802f-d1b8934c426a` and `session-95fd531c-fdd4-467a-a92c-dd6ab7063d1f`, plus native signposts `session-5d8e713b-9ae5-49cf-8a72-1fd082f4d970`; orchestrator/Kiro reviewed and repaired the integrations |
-| `human` (user) | Apple Developer account, secrets, deploy approval | Purchase Apple Developer account to unblock iOS |
+| `human` (user) | Apple Developer account, secrets, deploy approval | Review V1 acceptance and complete Apple authentication/metadata prompts |
 
 ---
 
@@ -79,24 +79,13 @@ target; Android is a far-future possibility only.
 
 ### 🔜 To Do
 
-- [ ] V1.7 — Activate iOS/TestFlight: Apple Developer enrolment, real EAS project ID, signing,
-      App Store Connect/privacy metadata, distribution, and clean install/update acceptance
 - [ ] V1.8 — Freeze and explicitly close V1; record non-blocking limitations before V2 begins
 
 ### 🚧 In Progress
 
-- [ ] Confirm same-song Play and position after a real overnight suspension on physical iPhone build 56. Build 55 reached the recovery error in the user’s screenshot.
-
-
-- [ ] Check system Previous/Next from the physical Lock Screen and Control Centre during playback.
-
-- [ ] Physically verify Control Centre skipping with a customised interval on build 50.
-
-
-
-
-
-- [ ] Confirm the existing library and projects on the physical iPhone after the in-place update
+- [ ] V1.7 — Signing, EAS, App Store Connect beta metadata, privacy/support URLs and the approved Data Not Collected declaration are configured. Upload to TestFlight after candidate acceptance and complete clean-install/update acceptance.
+- [ ] Confirm same-song Play and position after a real overnight suspension on physical iPhone build 59. Build 56 added proactive refresh after the build 55 failure.
+- [ ] Check physical Lock Screen/Control Centre Previous/Next with unsaved edits: draft saves, song switches, and edits return when switching back. Failed saves must block the switch.
 
 ### ⏸ Deferred — V2/V3
 
@@ -110,20 +99,21 @@ target; Android is a far-future possibility only.
 
 ### ✅ Done
 
+- [x] Add overview elapsed/total time and spacing, fix Pro-toggle cancellation, preserve drafts during system song changes, verify iPad/accessibility, prepare distribution metadata, and install build 59. Record user-passed saved-data and interval checks.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `.kiro/steering/coding-standards.md`, `.kiro/steering/ios-testflight.md`, `.kiro/steering/project-overview.md`, `.kiro/steering/release-roadmap.md`, `.kiro/steering/testing-strategy.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `eas.json`, `scripts/ios-ui-test.js`, `src/components/layout/MainContent.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/BottomSheet.tsx`, `src/components/ui/common/ModernToggle.tsx`, `src/components/ui/controls/DebugTierControl.tsx`, `src/components/ui/controls/LoopRangeOverview.tsx`, `src/components/ui/controls/OverviewTime.tsx`, `src/components/ui/controls/PlaybackSpeedControl.tsx`, `src/components/ui/controls/SidebarToggle.tsx`, `src/components/ui/modals/ConfirmDialog.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/components/ui/settings/SettingsSubpage.tsx`, `src/components/ui/waveform/WaveformCanvas.tsx`, `src/features/entitlements/capabilityService.ts`, `src/features/library/trackSwitch.ts`, `src/features/studio/StudioScreen.tsx`, `src/hooks/useAppSafeAreaInsets.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/loopRangeOverview.ts`, `src/styles/components/controls/overviewTime.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/setup.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Stabilise the landscape annotation browser journey across asynchronous rotation and verify the full suite.
+      <sub>**Key Artifacts:** `AGENTS.md`, `docs/context/archive/beatnote-project-history.md`, `tests/waveform-features.spec.ts`</sub>
+
+- [x] Default new installations to Lite, retain saved tiers and the bananas unlock, configure the supplied App Store ID, and review V1 before TestFlight. Install build 57.
+      <sub>**Key Artifacts:** `.kiro/steering/ios-testflight.md`, `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `eas.json`, `src/features/entitlements/capabilityService.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/setup.ts`, `tests/ui-components.spec.ts`, `tests/waveform-features.spec.ts`</sub>
+
 - [x] Refresh paused audio after 15 minutes away, retry from Reload Audio, and cancel suspended recovery deadlines. Install build 56.
       <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useAudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
 - [x] Center the full-width Telegram feedback button in Help & Support and remove the About copy. Install build 55.
       <sub>**Key Artifacts:** `.kiro/steering/release-roadmap.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
 
-- [x] Add Telegram feedback to Help & Support and return one page at a time from Licences and Library-launched Projects. Install build 54.
-      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/TelegramFeedbackButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Recover the same song in place when Play fails after iOS suspension. Install build 53.
-      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioPlayer.ios.ts`, `src/hooks/useStudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
-
-- [x] Add bulk speed preset reset and selectable system song/interval buttons. Install build 52.
-      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `tests/ui-components.spec.ts`</sub>
 
 ---
 
@@ -204,6 +194,92 @@ For user-facing app changes, finish with the signed in-place iPhone update and l
 
 *Newest first. Prepend new entries directly below this line. Keep only the latest 5 entries.*
 
+### 2026-11-08 — Overview timing and verified V1 candidate in build 59
+
+**Agent:** Codex · **Commit(s):** Build 59 commit containing this entry; public support/privacy pages in `ae29cfb`.
+**Kanban moved:** Overview timing/spacing, Pro cancellation, draft-preserving system switching, native/iPad/accessibility checks and metadata preparation → Done. TestFlight distribution acceptance remains In Progress.
+
+**Changed:** Overview elapsed/total time has stable width and 12-point gaps before the strip and its clear/restore action in both orientations. Cancelling Pro unlock stays visually Lite; new installations remain Lite and saved tiers persist. System song changes flush the draft without prompting or overwriting named projects. iPad uses the touch editor with a minimum top inset to keep window controls off Back. The native runner supports isolated focused lists and reports all failures. Public support/privacy pages and the About link are available. Apple beta metadata and the approved Data Not Collected declaration are saved.
+
+**Verified:** TypeScript, version consistency, whitespace and eight browser journeys passed. All ten retained iPhone journeys passed on build 58; affected annotation/project, loop/transport and landscape journeys passed again on build 59. Description/trait accessibility audits passed on iPhone and iPad. iPad simulator import/project restoration, portrait/landscape playback and windowed navigation passed; screenshots were reviewed. Temporary draft checks covered restoration, failed saves and timeout. Corrected test synchronization, button roles and the native fixture's fractional-duration expectation. Temporary audits were removed; ten native journeys remain. Signed Release 59 passed strict signature verification, installed in place, independently reported 1.0.0 (59), and launched on the physical iPhone. The user passed preserved library/projects and custom intervals. No TestFlight upload occurred.
+
+**Not verified / known gaps:** Overnight physical recovery and physical system song switching with unsaved drafts remain open. Accessibility audits cover descriptions and traits only; manual VoiceOver was waived. iPad acceptance used an 11-inch Pro simulator, not physical hardware. EAS distribution credentials were configured and reported by the user; no store archive/upload has tested them yet. All pending candidate changes are included in this commit; the requested push follows verification.
+
+**Next agent should:** Record the two remaining physical acceptance checks, then prepare the first internal TestFlight upload and clean-install/update acceptance.
+
+### 2026-11-07 — Stabilise landscape annotation browser checks
+
+**Agent:** Codex · **Commit(s):** uncommitted
+**Kanban moved:** Landscape annotation test investigation → Done
+
+**Changed:** The existing rotation journey reads all overview bounds in one browser frame and
+retries the layout assertions until reflow finishes. It explicitly pauses playback, verifies that
+the playhead is still at the marker, and confirms the annotation editor opens before checking its
+landscape Done action. Preserved the pending overview, tier, native, distribution and documentation
+work already present in the tree. No application code or iPhone build changed in this task.
+
+**Verified:** Three serial baseline runs passed. A six-worker, twelve-run baseline reproduced mixed
+portrait/landscape bounds (a transient negative gap). After the atomic layout checks, eighteen
+six-worker repetitions passed. The final test, including explicit pause/marker/editor preconditions,
+passed in the full eight-worker, eight-journey suite. TypeScript and whitespace checks passed.
+
+**Not verified / known gaps:** The exact earlier missing-Done failure appears in the existing build
+59 log but did not recur in this session; the captured new failure was in the same journey's reflow
+measurements. This addresses the observed test race without claiming a native annotation defect.
+These test/handover edits and the pre-existing work remain uncommitted on master.
+
+**Next agent should:** Continue the existing candidate work and preserve these test synchronization changes.
+
+### 2026-11-07 — Lite default and pre-TestFlight review in build 57
+
+**Agent:** Codex · **Commit(s):** uncommitted
+**Kanban moved:** Lite default, saved tiers, password unlock and V1 review → Done. V1.7 → In Progress.
+
+**Changed:** New installs and all-data reset default to Lite. Existing explicit saved Lite or Pro
+selections still hydrate unchanged; enabling Pro still requires bananas. Configured the user-supplied
+App Store Connect ID 6831990297 alongside the linked EAS project. Updated the roadmap to separate
+implemented V1 preview behavior from future policy, including CSV/PDF access, cold-launch position,
+unavailable purchases, ads and iCloud, and outstanding physical/iPad/distribution acceptance.
+Retained browser/native journeys explicitly unlock Pro instead of relying on the previous default.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed.
+Browser journeys prove fresh Lite, password unlock, saved Pro after reload and saved Lite after
+reload. Signed Release 57 passed strict signature verification; device services independently
+reported 1.0.0 (57) installed in place and launched. The focused native Settings/Files journey passed
+after the test explicitly dismissed the password keyboard before confirming; earlier attempts
+stopped at that modal. Generated test recordings and the simulator build cache were cleared.
+
+**Not verified / known gaps:** No TestFlight upload. Supplied Apple account/app records have not been
+independently authenticated in App Store Connect. Final aggregate native suite, overnight physical
+recovery, system buttons, saved-data/tier acceptance, VoiceOver and iPad remain open. Current task
+and earlier EAS setup changes remain uncommitted on master.
+
+**Next agent should:** Complete the candidate acceptance checklist in the release roadmap before
+distribution signing and the first internal TestFlight upload.
+
+### 2026-11-07 — Link EAS and prepare App Store Connect setup
+
+**Agent:** Codex · **Commit(s):** uncommitted
+**Kanban moved:** V1.7 distribution setup → In Progress
+
+**Changed:** Recorded the user's completed Individual enrolment and supplied Apple account/team in
+eas.json. Created and linked @grazorite/beatnote-app (a2f1ec5c-a46d-472f-95cf-b90778c343c3).
+Corrected the legacy Android buildType value that blocked EAS validation and corrected TestFlight
+instructions to use the production store profile. Changed files: AGENTS.md, app.json, eas.json,
+.kiro/steering/ios-testflight.md, docs/context/archive/beatnote-project-history.md.
+
+**Verified:** EAS project:info returned the approved owner and matching project ID. TypeScript,
+version consistency and whitespace checks passed. No app behavior changed or device build installed.
+
+**Not verified / known gaps:** Apple membership is user-reported; Apple authentication and App Store
+Connect record creation remain pending. ascAppId is still a placeholder. No build was uploaded.
+Source inspection confirms fresh installs and all-data reset default to Pro; saved debug tier
+persists, and bananas only gates Lite → Pro. This behavior was explained, not changed.
+The five setup/documentation files remain uncommitted.
+
+**Next agent should:** Obtain the numeric App Store Connect Apple ID after the user creates BeatNote
+with bundle ID com.beatnote.app, then configure signing and prepare the TestFlight build.
+
 ### 2026-11-07 — Proactive audio refresh and actionable fallback in build 56
 
 **Agent:** Codex · **Commit(s):** Build 56 commit containing this entry.
@@ -229,81 +305,5 @@ bundle checks passed. The physical iPhone reported 1.0.0 (56) installed in place
 underlying native failure. The exact eight-hour physical suspension remains to be confirmed.
 
 **Next agent should:** Record the first Play and position after an overnight absence on build 56.
-
-### 2026-11-06 — Full-width Help feedback in build 55
-
-**Agent:** Codex · **Commit(s):** Build 55 commit containing this entry.
-**Kanban moved:** Telegram feedback placement → Done
-
-**Changed:** Help & Support now has the sole Telegram feedback button. It spans the page content between equal gutters, with centered text. Removed the About copy and updated the release roadmap.
-
-**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The browser verified the Help invite and the absence of the About button. Focused iPhone simulator XCTest verified the button’s width and center. Strict signature verification passed. The physical phone reported 1.0.0 (55) installed and launched.
-
-**Not verified / known gaps:** Telegram handoff on the physical phone remains a hands-on check.
-
-**Next agent should:** Record physical feedback on Telegram handoff and the outstanding overnight playback check.
-
-### 2026-11-06 — Help feedback and Back destinations in build 54
-
-**Agent:** Codex · **Commit(s):** Build 54 commit containing this entry and the build 53 playback recovery.
-**Kanban moved:** Help feedback and Back navigation → Done
-
-**Changed:** Help & Support opens with the shared Telegram feedback button before Start on iPhone.
-Settings routes header Back, system Back and leading-edge swipes through the same handler. Licences
-returns to About, then Settings. Projects opened from a Library row returns to Music on Back,
-waiting for the native Projects sheet to dismiss. Opening a project still returns to the editor.
-
-**Verified:** TypeScript, version consistency, whitespace and eight browser journeys passed.
-The browser intercepted the Help link and verified the existing Helpdesk invite. The focused
-iPhone simulator Settings journey verified the feedback button above the first topic, two
-consecutive back swipes from Licences, the direct Timing shortcut, and returning from Projects
-to the Music Library. Strict signing verification passed. The physical iPhone reported build 54
-installed in place and launched.
-
-**Not verified / known gaps:** Opening the Telegram app on the physical phone and the overnight
-playback check remain hands-on acceptance items.
-
-**Next agent should:** Record the physical overnight Play result and the outstanding system transport checks.
-
-### 2026-11-06 — Recover suspended playback on the same song in build 53
-
-**Agent:** Codex · **Commit(s):** `uncommitted`
-**Kanban moved:** Playback recovery and physical installation → Done. Overnight physical acceptance → In Progress.
-
-**Changed:** On iOS the live player determines foreground readiness. A failed Play or a first
-post-foreground start with no clock movement gets one replacement player for the same URI. Restore
-the session, rehearsal speed, selected position and current play intent with bounded waits.
-Recovery checks the active song and honours newer transport requests. The focused background
-XCTest now also resumes a paused song at a nonzero position.
-
-**Verified:** TypeScript, whitespace, version consistency and all eight browser journeys passed.
-With a temporarily injected Play failure, the native trace showed a new player restoring 2.175 s
-and playing past 3 s. A separate no-op Play timed out after two seconds and recovered from the
-same position. An initial simulator run missed the Play action after a rapid Home/activate cycle.
-The retained test now waits for backgrounding and a hittable Play button. The clean focused XCTest
-passed with healthy background audio, same-song Play and subsequent Library switches. Build 53
-passed strict signature verification on the host. The iPhone reported 1.0.0 (53) installed and
-launched after the in-place update.
-
-**Not verified / known gaps:** The exact eight-hour suspension on the physical iPhone remains open.
-Simulator faults exercised rejection and a stalled clock. The historical physical failure had
-already cleared when the user switched songs. The task changes are uncommitted on master.
-
-**Next agent should:** Record the first Play result after a physical overnight suspension on build 53.
-
-### 2026-11-05 — Install system transport modes and preset reset in build 52
-
-**Agent:** Codex · **Commit(s):** Build 52 publication commit containing this entry
-**Kanban moved:** Preset reset and Control Centre mode → Done
-
-**Changed:** Pro Playback Settings choose interval skipping or queue navigation on iOS. System Previous goes directly to the preceding song. Button Configurations can restore default speeds across all preset layouts with confirmation.
-
-**Verified:** Types and eight browser journeys passed. Temporary checks covered reset/cancel, mode and interval persistence, and queue navigation after the restart threshold. Device services verified build 52 installed and launched.
-
-**Not verified / known gaps:** The simulator opened Control Centre without rendering its media tile, so an actual system-button press still needs physical confirmation.
-
-**Defaults:** New installations use 10-second system seeking. Lite disables both system button choices and the interval selector. Existing explicit Pro preferences are preserved.
-
-**Next agent should:** Try both directions on the physical Lock Screen with Change songs selected and a multi-song queue.
 
 <!-- end handover log -->

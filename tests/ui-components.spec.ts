@@ -1,7 +1,8 @@
 import path from 'node:path';
-import { test, expect, loadSyntheticClickAudio, loadTestAudio, prepareFilePicker } from './setup';
+import { test, expect, loadSyntheticClickAudio, loadTestAudio, prepareFilePicker, unlockProPreview } from './setup';
 
 test.describe('UI Components & Layout', () => {
+  test.beforeEach(async ({ page }) => { await unlockProPreview(page); });
   test('mobile Settings expose functional V1 controls and truthful placeholders', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
@@ -124,7 +125,7 @@ test.describe('UI Components & Layout', () => {
     await page.getByTestId('settings-about').click();
     await page.getByRole('button', { name: 'BeatNote icon' }).click();
     await expect(page.getByText('BeatNote for iOS', { exact: true })).toBeVisible();
-    await expect(page.getByText('Version 1.0.0 (56)', { exact: true })).toBeVisible();
+    await expect(page.getByText('Version 1.0.0 (59)', { exact: true })).toBeVisible();
     const invite = 'https://t.me/+4edtI3WUOqZlN2U1';
     await page.context().route(invite, route => route.fulfill({ body: 'Telegram group invite' }));
     await expect(page.getByTestId('about-settings-page').getByRole('link', { name: 'Give feedback on Telegram' })).toHaveCount(0);
@@ -204,6 +205,9 @@ test.describe('UI Components & Layout', () => {
     await expect(shortcut).toBeVisible();
     await page.getByTestId('sidebar-open-toggle').click();
     await page.getByTestId('debug-tier-toggle').click();
+    await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+    await page.reload();
+    await page.getByTestId('sidebar-open-toggle').click();
     await expect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('settings-bpm-entry')).toBeDisabled();
     await expect(page.getByTestId('settings-bpm-entry')).toContainText('Pro only');
@@ -514,6 +518,8 @@ test.describe('UI Components & Layout', () => {
   });
 
   test('library, project, BPM, and CSV workflows persist their core outcomes', async ({ page }) => {
+    // Includes password setup, several imports/reloads, exports and legacy migration.
+    test.setTimeout(60_000);
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
     await loadSyntheticClickAudio(page);

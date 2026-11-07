@@ -19,7 +19,7 @@ export const loopRangeOverviewStyles = StyleSheet.create({
   },
   actionSlot: {
     width: 40,
-    marginLeft: 0,
+    marginLeft: 12,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },

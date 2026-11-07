@@ -295,12 +295,16 @@ function stageOpenInFixture() {
 async function main() {
   let metroPid;
   try {
-    run('npx', ['expo', 'prebuild', '--platform', 'ios'], {
-      env: { ...environment, CI: '1' },
-    });
-    // Prebuild updates the workspace but does not reliably regenerate React codegen after a clean.
-    // CocoaPods owns those generated inputs and local Expo-module discovery.
-    run('pod', ['install'], { cwd: iosDirectory });
+    if (process.env.IOS_TEST_SKIP_PREBUILD !== '1') {
+      run('npx', ['expo', 'prebuild', '--platform', 'ios'], {
+        env: { ...environment, CI: '1' },
+      });
+      // CocoaPods regenerates codegen and discovers local modules after prebuild or a clean.
+      run('pod', ['install'], { cwd: iosDirectory });
+    } else if (!fs.existsSync(path.join(iosDirectory, 'Pods', 'Manifest.lock'))
+      || !fs.existsSync(path.join(iosDirectory, 'BeatNote.xcworkspace'))) {
+      throw new Error('IOS_TEST_SKIP_PREBUILD requires an already-generated workspace and installed pods.');
+    }
     const simulator = selectSimulator();
     const simulatorId = simulator.udid;
     metroPid = await startMetroIfNeeded();
@@ -365,16 +369,22 @@ async function main() {
       console.log(`Open In UI test result bundle: ${resultBundle}`);
     };
 
-    if (process.env.IOS_TEST_ONLY === 'testOpenInAudioImportsIntoLibrary') {
-      await runOpenInTest();
-    } else if (process.env.IOS_TEST_ONLY) {
-      runPickerTest(process.env.IOS_TEST_ONLY);
-    } else {
-      // XCTest and Files retain process/provider state between cases in one invocation. Reinstall
-      // and restage before each retained journey so the aggregate gate is deterministic.
-      for (const testName of pickerTests) runPickerTest(testName);
-      await runOpenInTest();
+    const selectedTests = process.env.IOS_TEST_ONLY
+      ? process.env.IOS_TEST_ONLY.split(',').map(name => name.trim()).filter(Boolean)
+      : [...pickerTests, 'testOpenInAudioImportsIntoLibrary'];
+    const failures = [];
+    // Keep each journey isolated and report every failure in a release run, rather than hiding
+    // later failures behind the first one. A comma-separated focus list reruns affected journeys.
+    for (const testName of selectedTests) {
+      try {
+        if (testName === 'testOpenInAudioImportsIntoLibrary') await runOpenInTest();
+        else runPickerTest(testName);
+      } catch (error) {
+        failures.push(testName);
+        console.error(`${testName}:`, error);
+      }
     }
+    if (failures.length) throw new Error(`Native journeys failed: ${failures.join(', ')}`);
   } finally {
     if (metroPid) {
       try { process.kill(-metroPid, 'SIGTERM'); } catch {}

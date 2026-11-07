@@ -46,9 +46,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
   }, []);
   
   // Responsive viewport width
-  const isMobile = Platform.OS === 'web'
-    ? screenData.width < 768
-    : Math.min(screenData.width, screenData.height) < 768;
+  const isMobile = Platform.OS !== 'web' || screenData.width < 768;
   const VIEWPORT_WIDTH = measuredWidth || (isMobile
     ? screenData.width - 16
     : Math.max(800, screenData.width - 350));

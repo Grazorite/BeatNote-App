@@ -611,7 +611,7 @@ export const useCustomAudioPlayer = () => {
     const unsubscribe = subscribeToRemoteTrack(direction => {
       if (!isCapabilityAvailable('playback.remoteControls') || getSettingsPreferences().remoteButtonMode !== 'tracks') return;
       const state = useStudioStore.getState();
-      const change = direction === 'next' ? state.nextTrack() : state.previousTrack(true);
+      const change = state.changeTrackFromSystem(direction);
       void change.then(result => {
         if (result.kind === 'failed') state.notify(result.reason.message);
       }).catch(error => console.error('Control Centre track change:', error));

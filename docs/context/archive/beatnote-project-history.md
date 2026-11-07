@@ -3,6 +3,91 @@
 This archive preserves completed work and older handover entries moved out of the live board to
 keep `AGENTS.md` concise. Archived checklist items and handover entries are copied verbatim.
 
+- [x] Add Telegram feedback to Help & Support and return one page at a time from Licences and Library-launched Projects. Install build 54.
+      <sub>**Key Artifacts:** `.kiro/steering/coding-standards.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/components/layout/Sidebar.tsx`, `src/components/ui/common/TelegramFeedbackButton.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/components/ui/modals/ProjectManagerModal.tsx`, `src/components/ui/screens/AboutSettingsScreen.tsx`, `src/components/ui/screens/HelpScreen.tsx`, `src/styles/components/common/telegramFeedbackButton.ts`, `src/styles/components/screens/helpScreen.ts`, `src/styles/components/settings/aboutSettings.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-06 — Full-width Help feedback in build 55
+
+**Agent:** Codex · **Commit(s):** Build 55 commit containing this entry.
+**Kanban moved:** Telegram feedback placement → Done
+
+**Changed:** Help & Support now has the sole Telegram feedback button. It spans the page content between equal gutters, with centered text. Removed the About copy and updated the release roadmap.
+
+**Verified:** TypeScript, version consistency, whitespace and all eight browser journeys passed. The browser verified the Help invite and the absence of the About button. Focused iPhone simulator XCTest verified the button’s width and center. Strict signature verification passed. The physical phone reported 1.0.0 (55) installed and launched.
+
+**Not verified / known gaps:** Telegram handoff on the physical phone remains a hands-on check.
+
+**Next agent should:** Record physical feedback on Telegram handoff and the outstanding overnight playback check.
+
+- [x] Recover the same song in place when Play fails after iOS suspension. Install build 53.
+      <sub>**Key Artifacts:** `.kiro/steering/architecture-decisions.md`, `AGENTS.md`, `app.json`, `docs/context/archive/beatnote-project-history.md`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioPlayer.ios.ts`, `src/hooks/useStudioPlayer.ts`, `tests/ios/BeatNoteUITests.swift`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-06 — Help feedback and Back destinations in build 54
+
+**Agent:** Codex · **Commit(s):** Build 54 commit containing this entry and the build 53 playback recovery.
+**Kanban moved:** Help feedback and Back navigation → Done
+
+**Changed:** Help & Support opens with the shared Telegram feedback button before Start on iPhone.
+Settings routes header Back, system Back and leading-edge swipes through the same handler. Licences
+returns to About, then Settings. Projects opened from a Library row returns to Music on Back,
+waiting for the native Projects sheet to dismiss. Opening a project still returns to the editor.
+
+**Verified:** TypeScript, version consistency, whitespace and eight browser journeys passed.
+The browser intercepted the Help link and verified the existing Helpdesk invite. The focused
+iPhone simulator Settings journey verified the feedback button above the first topic, two
+consecutive back swipes from Licences, the direct Timing shortcut, and returning from Projects
+to the Music Library. Strict signing verification passed. The physical iPhone reported build 54
+installed in place and launched.
+
+**Not verified / known gaps:** Opening the Telegram app on the physical phone and the overnight
+playback check remain hands-on acceptance items.
+
+**Next agent should:** Record the physical overnight Play result and the outstanding system transport checks.
+
+- [x] Add bulk speed preset reset and selectable system song/interval buttons. Install build 52.
+      <sub>**Key Artifacts:** `.kiro/steering/project-overview.md`, `AGENTS.md`, `app.json`, `modules/beatnote-audio-session/ios/BeatNoteAudioSessionModule.swift`, `src/components/ui/screens/ButtonConfigurationScreen.tsx`, `src/components/ui/screens/PlaybackSettingsScreen.tsx`, `src/features/entitlements/proPreview.ts`, `src/features/settings/preferences.ts`, `src/hooks/useAudioPlayer.ts`, `src/hooks/useStudioStore.ts`, `src/services/audioRoute.ios.ts`, `src/services/audioRoute.ts`, `tests/ui-components.spec.ts`</sub>
+
+### 2026-11-06 — Recover suspended playback on the same song in build 53
+
+**Agent:** Codex · **Commit(s):** `uncommitted`
+**Kanban moved:** Playback recovery and physical installation → Done. Overnight physical acceptance → In Progress.
+
+**Changed:** On iOS the live player determines foreground readiness. A failed Play or a first
+post-foreground start with no clock movement gets one replacement player for the same URI. Restore
+the session, rehearsal speed, selected position and current play intent with bounded waits.
+Recovery checks the active song and honours newer transport requests. The focused background
+XCTest now also resumes a paused song at a nonzero position.
+
+**Verified:** TypeScript, whitespace, version consistency and all eight browser journeys passed.
+With a temporarily injected Play failure, the native trace showed a new player restoring 2.175 s
+and playing past 3 s. A separate no-op Play timed out after two seconds and recovered from the
+same position. An initial simulator run missed the Play action after a rapid Home/activate cycle.
+The retained test now waits for backgrounding and a hittable Play button. The clean focused XCTest
+passed with healthy background audio, same-song Play and subsequent Library switches. Build 53
+passed strict signature verification on the host. The iPhone reported 1.0.0 (53) installed and
+launched after the in-place update.
+
+**Not verified / known gaps:** The exact eight-hour suspension on the physical iPhone remains open.
+Simulator faults exercised rejection and a stalled clock. The historical physical failure had
+already cleared when the user switched songs. The task changes are uncommitted on master.
+
+**Next agent should:** Record the first Play result after a physical overnight suspension on build 53.
+
+### 2026-11-05 — Install system transport modes and preset reset in build 52
+
+**Agent:** Codex · **Commit(s):** Build 52 publication commit containing this entry
+**Kanban moved:** Preset reset and Control Centre mode → Done
+
+**Changed:** Pro Playback Settings choose interval skipping or queue navigation on iOS. System Previous goes directly to the preceding song. Button Configurations can restore default speeds across all preset layouts with confirmation.
+
+**Verified:** Types and eight browser journeys passed. Temporary checks covered reset/cancel, mode and interval persistence, and queue navigation after the restart threshold. Device services verified build 52 installed and launched.
+
+**Not verified / known gaps:** The simulator opened Control Centre without rendering its media tile, so an actual system-button press still needs physical confirmation.
+
+**Defaults:** New installations use 10-second system seeking. Lite disables both system button choices and the interval selector. Existing explicit Pro preferences are preserved.
+
+**Next agent should:** Try both directions on the physical Lock Screen with Change songs selected and a multi-song queue.
+
 - [x] Distinguish default, edited and saved tempos; install build 51.
       <sub>**Key Artifacts:** `.kiro/steering/choreography-features.md`, `AGENTS.md`, `app.json`, `src/components/ui/controls/BpmControl.tsx`, `src/components/ui/controls/ProjectControls.tsx`, `src/features/library/draftAutosave.ts`, `src/features/library/projectService.ts`, `src/hooks/useStudioStore.ts`, `src/styles/components/controls/bpmControl.ts`, `src/styles/components/controls/projectControls.ts`, `src/types/project.ts`, `src/utils/persistedContent.ts`, `src/utils/recordValidation.ts`, `tests/ui-components.spec.ts`, `src/hooks/useBpmStatus.ts`</sub>
 

@@ -254,6 +254,7 @@ export interface StudioStore {
   firstTrack: () => Promise<QueueControlResult>;
   previousTrack: (skipRestart?: boolean) => Promise<QueueControlResult>;
   nextTrack: () => Promise<QueueControlResult>;
+  changeTrackFromSystem: (direction: 'previous' | 'next') => Promise<QueueControlResult>;
   advanceTrackAfterCompletion: () => Promise<QueueControlResult>;
   toggleShuffle: () => void;
   setIsPlaying: (playing: boolean) => void;
@@ -341,13 +342,13 @@ export interface StudioStore {
 const runQueueAction = async (
   action: QueueAction,
   getState: () => StudioStore,
-  automaticCompletion = false,
+  preserveDraftWithoutPrompt = false,
   skipRestart = false,
 ): Promise<QueueControlResult> => {
   const {
     navigationBaseIndex,
     requestTrackSwitch,
-    requestTrackSwitchAfterCompletion,
+    requestTrackSwitchPreservingDraft,
     seekCurrentTrack,
   } = await import(
     '../features/library/trackSwitch'
@@ -378,8 +379,8 @@ const runQueueAction = async (
       ? 'queueFirst'
       : action === 'previous' ? 'queuePrevious' : 'queueNext',
   } as const;
-  return automaticCompletion
-    ? requestTrackSwitchAfterCompletion(request)
+  return preserveDraftWithoutPrompt
+    ? requestTrackSwitchPreservingDraft(request)
     : requestTrackSwitch(request);
 };
 
@@ -691,6 +692,7 @@ export const studioStoreCreator: StateCreator<StudioStore> = (set, get) => ({
   firstTrack: () => runQueueAction('first', get),
   previousTrack: (skipRestart = false) => runQueueAction('previous', get, false, skipRestart),
   nextTrack: () => runQueueAction('next', get),
+  changeTrackFromSystem: direction => runQueueAction(direction, get, true, true),
   advanceTrackAfterCompletion: () => runQueueAction('next', get, true),
   toggleShuffle: () => {
     const state = get();

@@ -1,6 +1,7 @@
-import { test, expect, loadSyntheticClickAudio, loadTestAudio } from './setup';
+import { test, expect, loadSyntheticClickAudio, loadTestAudio, unlockProPreview } from './setup';
 
 test.describe('Critical annotation workflow', () => {
+  test.beforeEach(async ({ page }) => { await unlockProPreview(page); });
   test('creates markers only from controls and saves a mobile annotation', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
@@ -162,13 +163,46 @@ test.describe('Critical annotation workflow', () => {
     await page.setViewportSize({ width: 393, height: 852 });
     await page.goto('/');
     await loadTestAudio(page);
+
+    const expectOverviewSpacing = async () => {
+      const time = page.getByTestId('overview-playback-time');
+      await expect(time).toHaveText(/^\d+:\d{2} \/ \d+:\d{2}$/);
+      // React Native publishes viewport and measured layout separately. Read one frame's
+      // geometry and wait for reflow, rather than mixing portrait and landscape bounds.
+      await expect(async () => {
+        const [timeBox, trackBox, clearBox] = await page.evaluate(() => (
+          ['overview-playback-time', 'loop-overview-track-region', 'loop-overview-clear'].map(id => {
+            const rect = document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect();
+            return rect ? { x: rect.x, width: rect.width } : null;
+          })
+        ));
+        expect(timeBox && trackBox && clearBox).toBeTruthy();
+        if (!timeBox || !trackBox || !clearBox) return;
+        expect(trackBox.x - (timeBox.x + timeBox.width)).toBeGreaterThanOrEqual(8);
+        expect(clearBox.x - (trackBox.x + trackBox.width)).toBeGreaterThanOrEqual(8);
+        expect(trackBox.width).toBeGreaterThan(100);
+        expect(timeBox.x).toBeGreaterThanOrEqual(0);
+        expect(clearBox.x + clearBox.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+      }).toPass({ timeout: 5000 });
+    };
+    await expectOverviewSpacing();
+    const initialTime = await page.getByTestId('overview-playback-time').textContent();
+    await page.getByTestId('play-pause').click();
+    await expect(page.getByTestId('overview-playback-time')).not.toHaveText(initialTime!);
+    await page.getByRole('button', { name: 'Pause playback', exact: true }).click();
+    await expect(page.getByTestId('play-pause')).toHaveAccessibleName('Play song');
+    const pausedTime = await page.getByTestId('overview-playback-time').textContent();
     await page.getByTestId('add-marker').click();
 
     await page.setViewportSize({ width: 740, height: 390 });
+    await expectOverviewSpacing();
+    await expect(page.getByTestId('overview-playback-time')).toHaveText(pausedTime!);
     await expect(page.getByTestId('landscape-control-rail')).toBeVisible();
     await expect(page.getByTestId('song-title-control')).toContainText('test-audio');
     await expect(page.getByTestId('grand-total-markers')).toContainText('1 marker');
+    await expect(page.getByTestId('add-marker')).toHaveAccessibleName('Remove nearby marker');
     await page.getByTestId('annotation-control').click();
+    await expect(page.getByTestId('annotation-editor')).toBeVisible();
     await expect(page.getByTestId('annotation-keyboard-done')).toBeVisible();
     await expect(page.getByTestId('save-annotation')).toBeVisible();
     const editorBounds = await page.getByTestId('annotation-editor').boundingBox();
@@ -181,6 +215,7 @@ test.describe('Critical annotation workflow', () => {
 
     await page.setViewportSize({ width: 393, height: 852 });
     await expect(page.getByTestId('portrait-control-dock')).toBeVisible();
+    await expectOverviewSpacing();
     await expect(page.locator('[data-testid^="wrapped-row-marker-vocals-"]')).toHaveCount(1);
   });
 });

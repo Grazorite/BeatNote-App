@@ -117,6 +117,9 @@ inclusion: always
   marker colour for the swatch because that lane's visible identity is its marker, not the hidden
   legacy stem-layer palette. Its enabled Reset action uses the shared destructive red; disabled
   state still relies on opacity and accessibility state rather than colour alone.
+  Toggles requiring confirmation, such as the password-gated Pro preview, opt out of optimistic
+  animation and move only when their controlled value is accepted. Cancelling must leave both the
+  visual and accessible state unchanged.
 - Place mobile Settings at the trailing/rightmost end of a horizontal global toolbar. Full-screen
   utility pages enter from the trailing edge, and deeper pages use the same horizontal push/reveal
   direction; do not use the platform modal's bottom-up sheet transition for this navigation stack.
@@ -178,6 +181,13 @@ inclusion: always
   Teal stays the single cool hue so loop state reads at a glance. The disabled loop keeps its dashed
   border. Handle touch targets stay at least 44 points; only the visual capsule is slim, and its
   width must match `LOOP_HANDLE_VISUAL_WIDTH` in `LoopRangeLayer.tsx`.
+- The overview has an elapsed / total audio readout on its left and the clear/restore button on
+  its right, separated from the track by 12-point gaps in both orientations. Reserve the time
+  label's width using the song duration and tabular digits so playback never shifts the track.
+  Subscribe to whole seconds in the readout rather than rerendering the loop editor every tick.
+- Native iPad uses the same touch editor and Settings stack as iPhone. Headers, expanded sheets,
+  and popup positioning use `useAppSafeAreaInsets`: iPad reserves at least 44 points above app
+  controls because iPadOS window buttons extend below the reported safe-area top inset.
 - Decoded waveform work must never look like an unexplained frozen editor. While extraction or the
   first peak render is pending, the wrapped waveform shows a centered, high-contrast progress card
   with an activity indicator, `Preparing waveform`, and the long-song expectation. Keep it a

@@ -299,9 +299,7 @@ const MainContent: React.FC<MainContentProps> = ({
   }));
   
   // Responsive container width
-  const isMobile = Platform.OS === 'web'
-    ? screenData.width < 768
-    : Math.min(screenData.width, screenData.height) < 768;
+  const isMobile = Platform.OS !== 'web' || screenData.width < 768;
   const isLandscapePhone = isMobile && screenData.width > screenData.height;
   const projectControls = (
     <ProjectControls

@@ -15,7 +15,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../hooks/useAppSafeAreaInsets';
 import { useMotionPreference } from '../../animations/MotionPreference';
 import { pageTransition } from '../../animations/motion';
 import { useStudioStore } from '../../hooks/useStudioStore';
@@ -155,12 +155,10 @@ const Sidebar: React.FC = () => {
   const directTiming = useStudioStore(state => state.timingShortcutOpen) && bpmAvailable;
   const [settingsDetail, setActiveDetail] = useState<SettingsDetail>(null);
   const activeDetail = directTiming ? 'bpm' : settingsDetail;
-  const insets = useSafeAreaInsets();
+  const insets = useAppSafeAreaInsets();
   const screenData = useWindowDimensions();
   
-  const isMobile = Platform.OS === 'web'
-    ? screenData.width < 768
-    : Math.min(screenData.width, screenData.height) < 768;
+  const isMobile = Platform.OS !== 'web' || screenData.width < 768;
   const pageWidth = Math.max(screenData.width, 1);
   const settingsEntryX = useSharedValue(pageWidth);
   const detailVisible = showHelpScreen || activeDetail !== null;

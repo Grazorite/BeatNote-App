@@ -6,6 +6,21 @@ import type { Page } from '@playwright/test';
 // Use base test without complex fixtures
 export const test = base;
 
+// These journeys exercise Pro previews explicitly; each fresh context first proves Lite is default.
+export async function unlockProPreview(page: Page) {
+  await page.goto('/');
+  await page.getByTestId('sidebar-open-toggle').click();
+  await baseExpect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+  await page.getByTestId('debug-tier-toggle').click();
+  await page.getByTestId('debug-pro-password-dialog').getByText('Cancel', { exact: true }).click();
+  await baseExpect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'false');
+  await page.getByTestId('debug-tier-toggle').click();
+  await page.getByTestId('debug-pro-password-dialog-confirmation-input').fill('bananas');
+  await page.getByTestId('confirm-enable-debug-pro').click();
+  await baseExpect(page.getByTestId('debug-tier-toggle')).toHaveAttribute('aria-checked', 'true');
+  await page.getByTestId('sidebar-toggle').click();
+}
+
 // Use base expect
 export const expect = baseExpect;
 

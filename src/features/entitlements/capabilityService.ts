@@ -21,7 +21,7 @@ const LITE_INCLUDED = new Set<ProductCapability>([
 
 /**
  * Declares Lite/Pro policy. No purchase is enforced yet; the debug tier override below is the only
- * way to observe Lite behaviour until the V2 purchase provider replaces this one.
+ * way to enable Pro previews until the V2 purchase provider replaces this one.
  */
 export const CAPABILITY_MATRIX: readonly CapabilityMatrixEntry[] = Object.freeze(
   PRODUCT_CAPABILITIES.map(capability => Object.freeze({
@@ -49,8 +49,8 @@ const DEBUG_TIER_KEY = 'beatnote_debug_tier';
 type SnapshotListener = (snapshot: EntitlementSnapshot) => void;
 
 const listeners = new Set<SnapshotListener>();
-// V1 preview default: everything is available until the user flips the debug toggle.
-let currentTier: ProductTier = 'pro';
+// New installations start in Lite; hydration preserves either explicit saved tier.
+let currentTier: ProductTier = 'lite';
 
 const snapshotFor = (tier: ProductTier): EntitlementSnapshot => ({
   tier,
@@ -98,13 +98,13 @@ export const setDebugTier = async (tier: ProductTier): Promise<void> => {
 /** Remove the preview override and return to the V1 default during an all-data reset. */
 export const resetDebugTier = async (): Promise<void> => {
   await hydration;
-  currentTier = 'pro';
+  currentTier = 'lite';
   notify();
   await AsyncStorage.removeItem(DEBUG_TIER_KEY);
 };
 
 /**
- * V1 preview provider: no purchases, tier comes from the debug override (default Pro). Replace
+ * V1 preview provider: no purchases, tier comes from the debug override (default Lite). Replace
  * at V2 launch; UI code continues to ask only whether a product capability is available.
  */
 export const v1PreviewEntitlementProvider: EntitlementProvider = {

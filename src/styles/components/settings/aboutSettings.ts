@@ -72,6 +72,11 @@ export const aboutSettingsStyles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
+  privacyLink: {
+    minHeight: 44,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+  },
   licenceIntro: {
     color: colors.textSecondary,
     fontSize: 13,

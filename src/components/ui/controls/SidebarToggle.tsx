@@ -17,7 +17,8 @@ const SidebarToggle: React.FC = () => {
       {!isSidebarCollapsed && (
         <Text style={styles.title}>BeatNote Studio</Text>
       )}
-      <TouchableOpacity style={styles.toggle} onPress={toggleSidebar} testID="sidebar-toggle">
+      <TouchableOpacity style={styles.toggle} onPress={toggleSidebar} testID="sidebar-toggle"
+        accessibilityRole="button" accessibilityLabel={isSidebarCollapsed ? 'Open settings' : 'Close settings'}>
         <Animated.View style={animatedStyle}>
           <BeatNoteIcon name="chevron-left" size={16} />
         </Animated.View>

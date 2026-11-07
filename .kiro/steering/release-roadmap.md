@@ -56,14 +56,42 @@ Open In, app-owned audio storage, queue navigation, pitch-preserved playback, se
 background playback, one phone annotation lane, unlimited markers/annotations, range and
 between-marker loops, drafts and named projects, CSV/PDF export, optional decoded waveform artwork,
 data deletion/cache controls, and the local BPM/anchor/count preview. The six stable layer IDs,
-capability service, PDF/MIDI engines, continuous/resume playback, remote controls, and advanced
+capability service, PDF/MIDI engines, continuous playback, remote controls, and advanced
 speed/preset controls provide V2 foundations. Purchases are not connected; the preview entitlement
-provider defaults to Pro and the debug toggle is the only Lite/Pro switch. Switching from Pro to
-Lite is immediate; switching back to Pro requires the debug password `bananas`.
+provider defaults to Lite on new installations and after an explicit all-data reset. Existing saved
+Lite/Pro selections are preserved. The debug toggle is the only Lite/Pro switch: switching to Lite
+is immediate; enabling Pro requires the debug password `bananas`.
 
 Automated confidence consists of TypeScript, eight retained browser journeys, and ten retained iOS
 integration journeys. Simulator coverage does not close physical audio, touch, Bluetooth,
 interruption, external-share, real-song BPM, or TestFlight gates.
+
+#### Candidate review before TestFlight
+
+- The current V1 preview allows local import, markers/notes, seeking, loops, built-in speeds,
+  background playback, drafts, named projects, and CSV/PDF export in both tiers. The future
+  one-project limit and PDF entitlement in the matrix below are not enforced in this preview.
+- Pro preview adds waveform/lane naming, BPM/anchor/count tools, fine/custom speeds, continuous
+  playback and system transport. New installs start Lite; the password unlock is a beta preview,
+  not purchase verification. Include its instructions in beta review notes for external testing.
+- Cold launch restores the selected song paused at the beginning in both tiers. Restoring a
+  playback position across a full relaunch remains planned; same-process foreground recovery
+  preserves position and is a separate implemented behavior.
+- MIDI UI, expanded phone layers, playlists, purchases/restore, production ads, streaming providers,
+  cloud sync and stems are not part of the shipped V1 workflow. Existing schemas or capability keys
+  do not establish user-facing implementation.
+- Complete overnight same-song recovery and physical system song-control acceptance. Saved-data
+  preservation and interval controls passed on build 57. The user waived manual VoiceOver testing;
+  use automated accessibility checks and record their scope without claiming full VoiceOver support.
+  Automated candidate gates cover all ten native journeys plus focused reruns after later changes.
+- Native iPad uses the responsive touch editor and has simulator acceptance for import, annotation,
+  project restoration, portrait/landscape playback, and windowed Settings/Library navigation.
+  Automated accessibility audits cover descriptions and traits; physical iPad/VoiceOver testing
+  remains unperformed and must not be implied by these checks.
+- Distribution signing is user-configured; App Store Connect beta metadata, review contact,
+  privacy/support URLs and the approved “Data Not Collected” declaration are saved. The app declares
+  exempt encryption. TestFlight upload and clean-install/update acceptance remain pending. For public App Store
+  launch, resolve the beta password and unavailable purchase/restore UI deliberately.
 
 #### V1 exit checklist — complete before starting V2 implementation
 
@@ -90,11 +118,14 @@ interruption, external-share, real-song BPM, or TestFlight gates.
       required by the Lite policy. No production ad SDK is required for V1.
 - [x] Expand dependency licence notices and confirm About, privacy/diagnostic copy, feedback link,
       supported document types, and version/build display are release-accurate.
-- [x] Reconcile and commit the release candidate, then rerun TypeScript, all eight browser journeys,
-      the ten retained iOS journeys, version consistency, and whitespace checks from that exact tree.
-- [ ] Purchase/enrol the Apple Developer account, replace the placeholder EAS project ID, configure
-      signing/App Store Connect metadata and privacy details, distribute a TestFlight candidate, and
-      complete at least one clean install/update acceptance pass.
+- [x] Reconcile the V1 candidate and pass TypeScript, all eight browser journeys, the ten retained
+      iOS journeys, version consistency and whitespace checks. All ten native journeys passed on
+      build 58; affected annotation/project, loop/transport and landscape journeys passed again on
+      build 59, with iPhone/iPad description and trait audits. Repeat affected gates after further fixes.
+- [x] Complete Apple Developer enrolment (user-confirmed), link the real EAS project, and configure
+      the supplied App Store Connect app ID.
+- [x] Configure distribution signing, App Store Connect beta metadata and approved privacy details.
+- [ ] Distribute a TestFlight candidate and complete at least one clean-install/update acceptance pass.
 - [ ] Freeze V1 after blocker fixes, record remaining non-blocking limitations, and explicitly mark
       the V1 milestone complete before enabling purchase enforcement or other V2-only scope.
 

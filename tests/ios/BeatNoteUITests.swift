@@ -11,6 +11,29 @@ final class BeatNoteUITests: XCTestCase {
     app.launch()
     openDevelopmentServerIfNeeded()
     closeMobileSidebar()
+    // Explicitly unlock the preview for native journeys; production defaults remain Lite.
+    element("sidebar-open-toggle").tap()
+    let tierToggle = element("debug-tier-toggle")
+    if String(describing: tierToggle.value ?? "") != "1" {
+      tierToggle.tap()
+      let password = element("debug-pro-password-dialog-confirmation-input")
+      XCTAssertTrue(password.waitForExistence(timeout: 3))
+      app.buttons["Cancel"].tap()
+      XCTAssertTrue(element("debug-pro-password-dialog").waitForNonExistence(timeout: 5))
+      tierToggle.tap()
+      if password.waitForExistence(timeout: 3) {
+        password.tap()
+        typeTextIntoControlledField("bananas", field: password)
+        password.typeText("\n")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        element("confirm-enable-debug-pro").tap()
+        XCTAssertTrue(element("debug-pro-password-dialog").waitForNonExistence(timeout: 5))
+      } else {
+        XCTFail("Pro preview should require its password on a fresh installation.")
+      }
+    }
+    element("sidebar-toggle").tap()
+    XCTAssertTrue(element("settings-page").waitForNonExistence(timeout: 5))
   }
 
   override func tearDownWithError() throws {
@@ -210,7 +233,7 @@ final class BeatNoteUITests: XCTestCase {
     pauseButton.tap()
     waitForWrappedCanvasEnd("to 0:05")
 
-    let overview = element("loop-overview")
+    let overview = element("loop-overview-track-region")
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
     XCTAssertTrue(element("loop-overview-range").waitForExistence(timeout: 5))
@@ -269,6 +292,9 @@ final class BeatNoteUITests: XCTestCase {
     loadBundledSimulatorAudio("bpm-click-track.wav")
     element("sidebar-open-toggle").tap()
     element("settings-bpm-entry").tap()
+    // Preview lines obey the saved grid-visibility preference, which now defaults off.
+    let gridToggle = element("dance-grid-toggle")
+    if String(describing: gridToggle.value ?? "") != "1" { gridToggle.tap() }
 
     let suggestion = element("bpm-suggestion-card")
     XCTAssertTrue(
@@ -425,6 +451,12 @@ final class BeatNoteUITests: XCTestCase {
 
   func testLoopRangeToggleAndTransportFits() {
     loadBundledSimulatorAudio("long-test-track.m4a")
+    assertOverviewTimeAndSpacing()
+    let overviewTime = element("overview-playback-time")
+    // Native decoding can report the encoded 150-second fixture just below 150 seconds.
+    // The readout intentionally displays completed whole seconds.
+    let initialOverviewTime = overviewTime.label
+    XCTAssertTrue(["Elapsed 0:00 of 2:29", "Elapsed 0:00 of 2:30"].contains(initialOverviewTime))
 
     let dockIDs = [
       "navigate-left-marker", "add-marker", "navigate-right-marker", "play-pause",
@@ -469,6 +501,7 @@ final class BeatNoteUITests: XCTestCase {
       3,
       "Two-times playback should advance the media clock faster than wall time."
     )
+    XCTAssertNotEqual(overviewTime.label, initialOverviewTime)
     speed.tap()
     let resetSpeed = app.descendants(matching: .any).matching(
       NSPredicate(format: "label == %@", "Reset playback speed to 1×")
@@ -754,9 +787,10 @@ final class BeatNoteUITests: XCTestCase {
       .press(forDuration: 0.1, thenDragTo: waveform.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)))
     assertNoGestureRuntimeError()
 
-    let overview = element("loop-overview")
+    let overview = element("loop-overview-track-region")
     scrollIntoView(overview)
     XCTAssertTrue(overview.exists, "Loop overview should exist in landscape.")
+    assertOverviewTimeAndSpacing()
     XCTAssertGreaterThan(overview.frame.width, app.frame.width * 0.45, "Loop overview should span the landscape canvas.")
     overview.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
       .press(forDuration: 0.1, thenDragTo: overview.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5)))
@@ -765,10 +799,25 @@ final class BeatNoteUITests: XCTestCase {
     XCTAssertGreaterThan(element("waveform-container").frame.width, app.frame.width * 0.55)
     XCUIDevice.shared.orientation = .portrait
     XCTAssertTrue(element("portrait-control-dock").waitForExistence(timeout: 10))
+    assertOverviewTimeAndSpacing()
     XCTAssertFalse(element("control-dock-glass").exists, "The phone media dock should remain transparent.")
     assertNoGestureRuntimeError()
   }
 
+
+  private func assertOverviewTimeAndSpacing() {
+    let time = element("overview-playback-time")
+    let overview = element("loop-overview")
+    let track = element("loop-overview-track-region")
+    let clear = element("loop-overview-clear")
+    XCTAssertTrue(time.waitForExistence(timeout: 5))
+    XCTAssertTrue(time.label.hasPrefix("Elapsed ") && time.label.contains(" of "))
+    XCTAssertGreaterThanOrEqual(track.frame.minX - time.frame.maxX, 8)
+    XCTAssertGreaterThanOrEqual(clear.frame.minX - track.frame.maxX, 8)
+    XCTAssertGreaterThan(track.frame.width, 100)
+    XCTAssertGreaterThanOrEqual(time.frame.minX, overview.frame.minX)
+    XCTAssertLessThanOrEqual(clear.frame.maxX, overview.frame.maxX)
+  }
 
   private func selectLibrarySong(_ song: String) {
     let title = element("song-title-control")
@@ -938,7 +987,7 @@ final class BeatNoteUITests: XCTestCase {
       if browse.exists && !browse.isSelected {
         browse.tap()
       }
-      tapPickerLocation("On My iPhone")
+      tapPickerLocation(min(app.frame.width, app.frame.height) >= 768 ? "On My iPad" : "On My iPhone")
     }
 
     tapPickerItem(filename, timeout: 10)

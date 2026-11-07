@@ -43,7 +43,9 @@ the nearest existing journey when it protects that journey's outcome.
 
 Run focused cases with `IOS_TEST_ONLY=<case> npm run test:ios:ui`, and use the aggregate command only
 for release acceptance. The aggregate runner builds once, then reinstalls and restages before each
-case to isolate Files-provider and app-container state. Retain native coverage where the simulator
+case to isolate Files-provider and app-container state. A comma-separated `IOS_TEST_ONLY` list
+reruns several affected cases with one build. Runs collect failures across the selected cases and
+exit unsuccessfully if any failed. Retain native coverage where the simulator
 or device is part of the behavior:
 
 - Files picker and V1 Settings launch path.
@@ -54,6 +56,10 @@ or device is part of the behavior:
 - Background audio continuity.
 - Landscape gestures, safe geometry, and portrait restoration.
 - Open In URL delivery, loading, and retention in the local Music Library.
+
+For a focused rerun after only JavaScript or XCTest-source edits, `IOS_TEST_SKIP_PREBUILD=1` reuses
+the generated workspace/pods while still rebuilding the app/test runner and restaging each case.
+Omit it after config, dependency, native-module or plugin changes, or after deleting generated inputs.
 
 Physical-device checks remain necessary for touch comfort, VoiceOver, audio interruptions, and
 external sharing. Simulator success does not replace those checks.

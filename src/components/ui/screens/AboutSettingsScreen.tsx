@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { AccessibilityInfo, Linking, Pressable, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Animated, {
   interpolate,
   cancelAnimation,
@@ -11,6 +11,7 @@ import Animated, {
 import { pageTransition } from '../../../animations/motion';
 import { useMotionPreference } from '../../../animations/MotionPreference';
 import OutwardSparkle from '../common/OutwardSparkle';
+import { showPrompt } from '../common/AppPrompt';
 
 import appConfig from '../../../../app.json';
 import { OPEN_SOURCE_LICENCE_GROUPS } from '../../../data/openSourceLicences';
@@ -105,8 +106,16 @@ const AboutSettingsScreen: React.FC<AboutSettingsScreenProps> = ({ showLicences,
           <View style={styles.privacyCard}>
             <Text style={styles.privacyTitle}>Privacy & diagnostics</Text>
             <Text style={styles.privacyText}>
-              BeatNote sends no crash reports or usage statistics. Future diagnostics will be opt-in.
+              Your audio and projects stay on your device. BeatNote has no analytics or crash-reporting service. Apple may provide TestFlight diagnostics and feedback.
             </Text>
+            <TouchableOpacity style={styles.privacyLink} accessibilityRole="link"
+              testID="about-privacy-policy"
+              onPress={() => {
+                void Linking.openURL('https://github.com/Grazorite/BeatNote-App/blob/master/docs/privacy-policy.md')
+                  .catch(() => showPrompt('Unable to open privacy policy', 'Try again when you have an internet connection.'));
+              }}>
+              <Text style={styles.licencesLinkText}>Privacy Policy</Text>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.licencesLink}

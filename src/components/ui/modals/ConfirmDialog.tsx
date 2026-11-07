@@ -110,6 +110,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   !confirmationMatches && styles.disabledButton,
                 ]}
                 onPress={action.onPress}
+                accessibilityRole="button"
                 disabled={!confirmationMatches}
                 accessibilityState={{ disabled: !confirmationMatches }}
                 testID={action.testID}
@@ -123,7 +124,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 </Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={close}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={close} accessibilityRole="button">
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>

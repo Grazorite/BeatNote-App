@@ -43,11 +43,14 @@ Post-core stem separation may later enhance this workflow, but it is not part of
 ## Key domain concepts
 
 - **Layer** — the persisted project schema retains six stable internal IDs (Vocals, Drums, Bass,
-  Piano, Guitar, and Other) for compatibility and future expansion. The V1 phone editor exposes one
+  Piano, Guitar, and Other) for compatibility and future expansion. The V1 iPhone and iPad touch editor exposes one
   annotation lane and hides layer-selection UI; its fixed internal `vocals` layer is presented as
   **Annotations** unless the user names the lane in Pro. Lite retains saved labels. Mobile Settings exposes only that
   lane name, while desktop retains the multi-layer naming controls. Existing multi-layer projects
   remain readable, and CSV/PDF exports use the annotation-facing fallback without changing IDs.
+- **iPad layout** — native iPads use the same responsive touch editor, portrait dock, landscape rail,
+  and full-page Settings navigation as iPhone. The legacy desktop layout remains a web harness;
+  it is not the iPad product UI.
 - **Marker** — a timestamp placed on a layer, representing a beat, cue, or movement moment.
 - **Annotation** — a text note attached to a marker.
 - **Music Item** — a stable UUID and metadata record for one imported song. Native imports are

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../../hooks/useAppSafeAreaInsets';
 import { helpScreenStyles as styles } from '../../../styles/components/screens/helpScreen';
 import GlassBackdrop from '../controls/GlassBackdrop';
 import AppModal from '../common/AppModal';
@@ -14,9 +14,9 @@ interface HelpScreenProps {
 }
 
 const HelpScreen: React.FC<HelpScreenProps> = ({ visible, onClose, embedded = false }) => {
-  const { width, height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const isMobile = Platform.OS === 'web' ? width < 768 : Math.min(width, height) < 768;
+  const { width } = useWindowDimensions();
+  const insets = useAppSafeAreaInsets();
+  const isMobile = Platform.OS !== 'web' || width < 768;
 
   const content = (
       <View style={[styles.overlay, isMobile && styles.mobileOverlay]}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, ScrollView, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../../hooks/useAppSafeAreaInsets';
 
 import { settingsSubpageStyles as styles } from '../../../styles/components/settings/settingsSubpage';
 import HeaderBackButton from '../common/HeaderBackButton';
@@ -23,9 +23,9 @@ const SettingsSubpage: React.FC<SettingsSubpageProps> = ({
   contentContainerStyle,
   backLabel = 'Settings',
 }) => {
-  const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
-  const isMobile = Platform.OS === 'web' ? width < 768 : Math.min(width, height) < 768;
+  const insets = useAppSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isMobile = Platform.OS !== 'web' || width < 768;
 
   return (
     <View style={styles.page} testID={testID}>

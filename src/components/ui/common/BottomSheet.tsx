@@ -19,7 +19,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSafeAreaInsets } from '../../../hooks/useAppSafeAreaInsets';
 import { useMotionPreference } from '../../../animations/MotionPreference';
 import { pageTransition } from '../../../animations/motion';
 import {
@@ -73,7 +73,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   surfaceStyle,
 }) => {
   const { width, height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  const insets = useAppSafeAreaInsets();
   const isLandscape = width > height;
   const sheetHeight = Math.max(0, height - insets.top - insets.bottom);
   const translateY = useSharedValue(Math.max(height, 1));
